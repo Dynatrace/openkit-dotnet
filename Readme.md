@@ -30,7 +30,7 @@ TBD
 
 ## Building the Source
 
-Open `openkit-dotnetfull.sln` in Visual Studio 2017 and build.
+Open `openkit-dotnetfull.sln` in Visual Studio 2017, select your target .NET Framework and build.
 
 ## General Concepts
 * TBD
