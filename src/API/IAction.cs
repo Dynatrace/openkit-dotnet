@@ -49,7 +49,7 @@ namespace Dynatrace.OpenKit.API {
         IAction ReportValue(string valueName, string value);
 
         /// <summary>
-        ///  Reports an Error with a specified name, error code, reason and detailed description.
+        ///  Reports an error with a specified name, error code and a reason.
         /// </summary>
         /// <param name="errorName">name of this error</param>
         /// <param name="errorCode">numeric error code of this error</param>
