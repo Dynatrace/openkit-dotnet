@@ -35,6 +35,8 @@ namespace Dynatrace.OpenKit.Core {
         private int serverID;                       // Server ID (needed for Dynatrace cluster); is only written/read by beacon sender thread -> non-atomic
         private int maxBeaconSize;                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
 
+        // application and device settings
+        private string applicationVersion;
         private Device device;
 
         private HTTPClient currentHTTPClient;       // current HTTP client (depending on endpoint, monitor, name application ID and server ID)
@@ -64,6 +66,7 @@ namespace Dynatrace.OpenKit.Core {
             this.maxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
 
             this.device = new Device();
+            this.applicationVersion = null;
         }
 
         // *** public methods ***
@@ -238,6 +241,15 @@ namespace Dynatrace.OpenKit.Core {
         public int MaxBeaconSize {
             get {
                 return maxBeaconSize;
+            }
+        }
+
+        public string ApplicationVersion {
+            get {
+                return applicationVersion;
+            }
+            set {
+                this.applicationVersion = value;
             }
         }
 

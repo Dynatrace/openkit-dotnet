@@ -21,6 +21,7 @@ namespace Dynatrace.OpenKit.Protocol {
         private const string BEACON_KEY_OPENKIT_VERSION = "va";
         private const string BEACON_KEY_APPLICATION_ID = "ap";
         private const string BEACON_KEY_APPLICATION_NAME = "an";
+        private const string BEACON_KEY_APPLICATION_VERSION = "vn";
         private const string BEACON_KEY_PLATFORM_TYPE = "pt";
         private const string BEACON_KEY_VISITOR_ID = "vi";
         private const string BEACON_KEY_SESSION_NUMBER = "sn";
@@ -333,6 +334,9 @@ namespace Dynatrace.OpenKit.Protocol {
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_OPENKIT_VERSION, OPENKIT_VERSION);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_ID, configuration.ApplicationID);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_NAME, configuration.ApplicationName);
+            if (configuration.ApplicationVersion != null) {
+                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_VERSION, configuration.ApplicationVersion);
+            }
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
 
             // visitor ID, session number and IP address

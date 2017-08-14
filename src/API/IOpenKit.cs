@@ -17,6 +17,12 @@ namespace Dynatrace.OpenKit.API {
         void Initialize();
 
         /// <summary>
+        ///  Defines the version of the application.
+        /// </summary>
+        /// <param name="value">application version</param>
+        string ApplicationVersion { set; }
+
+        /// <summary>
         ///  Returns the Device used by this OpenKit instance. This can be used to provide basic information, like operating system,
         ///  manufacturer and model information.
         /// </summary>

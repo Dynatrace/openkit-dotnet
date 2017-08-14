@@ -61,6 +61,12 @@ namespace Dynatrace.OpenKit.Core {
             initialized = true;
         }
 
+        public string ApplicationVersion {
+            set {
+                configuration.ApplicationVersion = value;
+            }
+        }
+           
         public IDevice Device {
             get {
                 return configuration.Device;
