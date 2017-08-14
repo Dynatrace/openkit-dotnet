@@ -6,6 +6,7 @@ TBD
 
 ## What you can do with the OpenKit
 * Create Sessions and User Actions
+* Report values, events, errors and crashes
 * Tag web requests to server-side PurePaths
 * Use it together with Dynatrace or AppMon
 
@@ -52,5 +53,4 @@ Open `openkit-dotnetfull.sln` in Visual Studio 2017, select your target .NET Fra
 * HTTP optimizations (reuse connection, pool http client?)
 * provide simple samples to get started as markdown
 * mobile sampling
-* crash reporting
 * currently gzipping is done with code taken from DotNetZip (http://dotnetzip.codeplex.com/), investigate other solution with .NET framework (no luck so far!)
