@@ -52,6 +52,7 @@ namespace Dynatrace.OpenKit.Protocol {
         private const string BEACON_KEY_VALUE = "vl";
         private const string BEACON_KEY_ERROR_CODE = "ev";
         private const string BEACON_KEY_ERROR_REASON = "rs";
+        private const string BEACON_KEY_ERROR_STACKTRACE = "st";
         private const string BEACON_KEY_WEBREQUEST_RESPONSECODE = "rc";
 
         // version constants
@@ -222,6 +223,23 @@ namespace Dynatrace.OpenKit.Protocol {
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_CODE, errorCode);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+
+            lock (eventDataList) {
+                eventDataList.AddLast(eventBuilder.ToString());
+            }
+        }
+
+        // report a crash
+        public void ReportCrash(string errorName, string reason, string stacktrace) {
+            StringBuilder eventBuilder = new StringBuilder();
+
+            BuildBasicEventData(eventBuilder, EventType.CRASH, errorName);
+
+            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);                                  // no parent action
+            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
+            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
 
             lock (eventDataList) {
                 eventDataList.AddLast(eventBuilder.ToString());

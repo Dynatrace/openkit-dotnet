@@ -18,6 +18,9 @@ namespace Dynatrace.OpenKit.Core {
             // return DummyAction and do nothing
             return dummyActionInstance;
         }
+        public void ReportCrash(string errorName, string reason, string stacktrace) {
+            // do nothing
+        }
 
         public void End() {
             // do nothing

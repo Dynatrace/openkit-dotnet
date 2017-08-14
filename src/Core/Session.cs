@@ -39,6 +39,10 @@ namespace Dynatrace.OpenKit.Core {
             return new Action(beacon, actionName, openRootActions);
         }
 
+        public void ReportCrash(string errorName, string reason, string stacktrace) {
+            beacon.ReportCrash(errorName, reason, stacktrace);
+        }
+
         public void End() {
             // check if end() was already called before by looking at endTime
             if (endTime != -1) {
