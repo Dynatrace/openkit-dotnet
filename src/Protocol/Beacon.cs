@@ -134,7 +134,7 @@ namespace Dynatrace.OpenKit.Protocol {
         public void AddAction(Action action) {
             StringBuilder actionBuilder = new StringBuilder();
 
-            BuildBasicEventData(actionBuilder, EventType.ACTION_MANUAL, action.Name);
+            BuildBasicEventData(actionBuilder, EventType.ACTION, action.Name);
 
             AddKeyValuePair(actionBuilder, BEACON_KEY_ACTION_ID, action.ID);
             AddKeyValuePair(actionBuilder, BEACON_KEY_PARENT_ACTION_ID, action.ParentID);
@@ -214,7 +214,7 @@ namespace Dynatrace.OpenKit.Protocol {
         public void ReportError(Action parentAction, string errorName, int errorCode, string reason) {
             StringBuilder eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.ERROR_CODE, errorName);
+            BuildBasicEventData(eventBuilder, EventType.ERROR, errorName);
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
