@@ -19,6 +19,8 @@ namespace Dynatrace.OpenKit.Core {
         private static readonly bool DEFAULT_CAPTURE = true;							    // default: capture on
     	private static readonly int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;                  // default: wait 2m (in ms) to send beacon
         private static readonly int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;                    // default: max 30KB (in B) to send in one beacon
+        private static readonly bool DEFAULT_CAPTURE_ERRORS = true; 						// default: capture errors on
+    	private static readonly bool DEFAULT_CAPTURE_CRASHES = true;    					// default: capture crashes on
 
         // immutable settings
         private OpenKitType openKitType;
@@ -34,6 +36,8 @@ namespace Dynatrace.OpenKit.Core {
         private string monitorName;                 // monitor name part of URL; is only written/read by beacon sender thread -> non-atomic
         private int serverID;                       // Server ID (needed for Dynatrace cluster); is only written/read by beacon sender thread -> non-atomic
         private int maxBeaconSize;                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
+        private bool captureErrors;                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        private bool captureCrashes;		        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
 
         // application and device settings
         private string applicationVersion;
@@ -59,14 +63,16 @@ namespace Dynatrace.OpenKit.Core {
             this.endpointURL = endpointURL;
 
             // mutable settings
-            this.capture = DEFAULT_CAPTURE;
-            this.sendInterval = DEFAULT_SEND_INTERVAL;
-            this.monitorName = openKitType.DefaultMonitorName;
-            this.serverID = openKitType.DefaultServerID;
-            this.maxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
+            capture = DEFAULT_CAPTURE;
+            sendInterval = DEFAULT_SEND_INTERVAL;
+            monitorName = openKitType.DefaultMonitorName;
+            serverID = openKitType.DefaultServerID;
+            maxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
+            captureErrors = DEFAULT_CAPTURE_ERRORS;
+            captureCrashes = DEFAULT_CAPTURE_CRASHES;
 
-            this.device = new Device();
-            this.applicationVersion = null;
+            device = new Device();
+            applicationVersion = null;
         }
 
         // *** public methods ***
@@ -167,6 +173,10 @@ namespace Dynatrace.OpenKit.Core {
             if (maxBeaconSize != newMaxBeaconSize) {
                 maxBeaconSize = newMaxBeaconSize;
             }
+
+            // use capture settings for errors and crashes
+            captureErrors = statusResponse.CaptureErrors;
+            captureCrashes = statusResponse.CaptureCrashes;
         }
 
         // shut down configuration -> shut down beacon sender
@@ -241,6 +251,18 @@ namespace Dynatrace.OpenKit.Core {
         public int MaxBeaconSize {
             get {
                 return maxBeaconSize;
+            }
+        }
+
+        public bool CaptureErrors {
+            get {
+                return captureErrors;
+            }
+        }
+
+        public bool CaptureCrashes {
+            get {
+                return captureCrashes;
             }
         }
 

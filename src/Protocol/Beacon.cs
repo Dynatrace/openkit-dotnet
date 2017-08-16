@@ -214,6 +214,11 @@ namespace Dynatrace.OpenKit.Protocol {
 
         // report error on the provided Action
         public void ReportError(Action parentAction, string errorName, int errorCode, string reason) {
+            // if capture errors is off -> do nothing
+            if (!configuration.CaptureErrors) {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.ERROR, errorName);
@@ -231,6 +236,11 @@ namespace Dynatrace.OpenKit.Protocol {
 
         // report a crash
         public void ReportCrash(string errorName, string reason, string stacktrace) {
+            // if capture crashes is off -> do nothing
+            if (!configuration.CaptureCrashes) {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.CRASH, errorName);

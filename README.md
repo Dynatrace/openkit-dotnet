@@ -52,7 +52,7 @@ Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framewo
 
 ## Known Current Limitations
 
-* ignored configs: capture lifecycle, crash reporting, error reporting, session timeout
+* there is no session timeout in the OpenKit
 * it's only possible to have one OpenKit instance running as providers are static
 
 ## TODOs

@@ -18,6 +18,8 @@ namespace Dynatrace.OpenKit.Protocol {
 	    private const string RESPONSE_KEY_MONITOR_NAME = "bn";
 	    private const string RESPONSE_KEY_SERVER_ID = "id";
 	    private const string RESPONSE_KEY_MAX_BEACON_SIZE = "bl";
+        private const string RESPONSE_KEY_CAPTURE_ERRORS = "er";
+    	private const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
 
 	    // settings contained in status response
 	    private bool capture = true;
@@ -25,6 +27,8 @@ namespace Dynatrace.OpenKit.Protocol {
         private string monitorName = null;
         private int serverID = -1;
         private int maxBeaconSize = -1;
+        private bool captureErrors = true;
+        private bool captureCrashes = true;
 
         // *** constructors ***
 
@@ -53,6 +57,10 @@ namespace Dynatrace.OpenKit.Protocol {
                     serverID = Int32.Parse(value);
                 } else if (RESPONSE_KEY_MAX_BEACON_SIZE.Equals(key)) {
                     maxBeaconSize = Int32.Parse(value) * 1024;
+                } else if (RESPONSE_KEY_CAPTURE_ERRORS.Equals(key)) {
+                    captureErrors = (Int32.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
+                } else if (RESPONSE_KEY_CAPTURE_CRASHES.Equals(key)) {
+                    captureCrashes = (Int32.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
                 }
             }
         }
@@ -86,6 +94,18 @@ namespace Dynatrace.OpenKit.Protocol {
         public int MaxBeaconSize {
             get {
                 return maxBeaconSize;
+            }
+        }
+
+        public bool CaptureErrors {
+            get {
+                return captureErrors;
+            }
+        }
+
+        public bool CaptureCrashes {
+            get {
+                return captureCrashes;
             }
         }
 
