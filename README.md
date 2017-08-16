@@ -14,7 +14,6 @@ The big advantages of the OpenKit are that it's designed to
 This repository contains the reference implementation in pure .NET/C#. Other implementations are listed as follows:
 * Java: https://github.com/Dynatrace/openkit-java/
 
-
 ## What you can do with the OpenKit
 * Create Sessions and User Actions
 * Report values, events, errors and crashes
@@ -44,6 +43,8 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 ## Building the Source
 
 Open `openkit-dotnetfull.sln` in Visual Studio 2017 and build the needed project(s).
+
+Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framework 4.0.
 
 ## General Concepts
 * TBD
