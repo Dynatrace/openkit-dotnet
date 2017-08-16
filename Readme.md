@@ -43,7 +43,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 
 ## Building the Source
 
-Open `openkit-dotnetfull.sln` in Visual Studio 2017, select your target .NET Framework and build.
+Open `openkit-dotnetfull.sln` in Visual Studio 2017 and build the needed project(s).
 
 ## General Concepts
 * TBD

@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetfull", "openkit-dotnetfull.csproj", "{539C04D2-3EEC-4384-9A42-2491DB9DDD16}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetfull-4.0", "openkit-dotnetfull-4.0.csproj", "{539C04D2-3EEC-4384-9A42-2491DB9DDD16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetfull-4.5", "openkit-dotnetfull-4.5.csproj", "{9B4C7F47-131E-4862-A850-36B6CBE640DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetfull-4.6", "openkit-dotnetfull-4.6.csproj", "{CD01A570-5A69-454C-BEC0-31E7507BEB79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{539C04D2-3EEC-4384-9A42-2491DB9DDD16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{539C04D2-3EEC-4384-9A42-2491DB9DDD16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{539C04D2-3EEC-4384-9A42-2491DB9DDD16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B4C7F47-131E-4862-A850-36B6CBE640DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B4C7F47-131E-4862-A850-36B6CBE640DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B4C7F47-131E-4862-A850-36B6CBE640DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B4C7F47-131E-4862-A850-36B6CBE640DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD01A570-5A69-454C-BEC0-31E7507BEB79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD01A570-5A69-454C-BEC0-31E7507BEB79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD01A570-5A69-454C-BEC0-31E7507BEB79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD01A570-5A69-454C-BEC0-31E7507BEB79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

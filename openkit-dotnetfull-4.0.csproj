@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{539C04D2-3EEC-4384-9A42-2491DB9DDD16}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Dynatrace.OpenKit</RootNamespace>
+    <AssemblyName>openkit-0.2-dotnetfull-4.0</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug40\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release40\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\AssemblyInfo.cs" />
+    <Compile Include="src\API\IAction.cs" />
+    <Compile Include="src\API\IDevice.cs" />
+    <Compile Include="src\API\IOpenKit.cs" />
+    <Compile Include="src\API\ISession.cs" />
+    <Compile Include="src\API\IWebRequestTag.cs" />
+    <Compile Include="src\Core\Action.cs" />
+    <Compile Include="src\Core\BeaconSender.cs" />
+    <Compile Include="src\Core\Configuration.cs" />
+    <Compile Include="src\Core\Device.cs" />
+    <Compile Include="src\Core\DummyAction.cs" />
+    <Compile Include="src\Core\DummySession.cs" />
+    <Compile Include="src\Core\DummyWebRequestTag.cs" />
+    <Compile Include="src\Core\OpenKit.cs" />
+    <Compile Include="src\Core\Session.cs" />
+    <Compile Include="src\Core\SynchronizedQueue.cs" />
+    <Compile Include="src\Core\ThreadIDProvider.cs" />
+    <Compile Include="src\Core\TimeProvider.cs" />
+    <Compile Include="src\Core\WebRequestTagBase.cs" />
+    <Compile Include="src\Core\WebRequestTagHttpClient.cs" />
+    <Compile Include="src\Core\WebRequestTagStringURL.cs" />
+    <Compile Include="src\DotNetZip\Common\CRC32.cs" />
+    <Compile Include="src\DotNetZip\Zlib\Deflate.cs" />
+    <Compile Include="src\DotNetZip\Zlib\DeflateStream.cs" />
+    <Compile Include="src\DotNetZip\Zlib\GZipStream.cs" />
+    <Compile Include="src\DotNetZip\Zlib\Inflate.cs" />
+    <Compile Include="src\DotNetZip\Zlib\InfTree.cs" />
+    <Compile Include="src\DotNetZip\Zlib\ParallelDeflateOutputStream.cs" />
+    <Compile Include="src\DotNetZip\Zlib\Tree.cs" />
+    <Compile Include="src\DotNetZip\Zlib\Zlib.cs" />
+    <Compile Include="src\DotNetZip\Zlib\ZlibBaseStream.cs" />
+    <Compile Include="src\DotNetZip\Zlib\ZlibCodec.cs" />
+    <Compile Include="src\DotNetZip\Zlib\ZlibConstants.cs" />
+    <Compile Include="src\DotNetZip\Zlib\ZlibStream.cs" />
+    <Compile Include="src\OpenKitFactory.cs" />
+    <Compile Include="src\Protocol\Beacon.cs" />
+    <Compile Include="src\Protocol\EventType.cs" />
+    <Compile Include="src\Protocol\HTTPClient.cs" />
+    <Compile Include="src\Protocol\Response.cs" />
+    <Compile Include="src\Protocol\StatusResponse.cs" />
+    <Compile Include="src\Protocol\TimeSyncResponse.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
