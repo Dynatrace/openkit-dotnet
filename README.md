@@ -43,6 +43,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 ## Building the Source
 
 Open `openkit-dotnetfull.sln` in Visual Studio 2017 and build the needed project(s).
+The built dll file(s) `openkit-<version>-dotnetfull-<dotnet_version>.dll` will be located in the `bin/Release<dotnet_version>` directory.
 
 Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framework 4.0.
 
