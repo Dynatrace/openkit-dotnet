@@ -166,7 +166,9 @@ namespace Dynatrace.OpenKit.Core {
         public void Shutdown() {
             shutdown = true;
             if (beaconSenderThread != null) {
-                beaconSenderThread.Interrupt();
+#if !NETCOREAPP1_0
+                beaconSenderThread.Interrupt();                     // not available in .NET Core 1.0, might cause up to 1s delay at shutdown
+#endif
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);
             }
         }
@@ -180,11 +182,15 @@ namespace Dynatrace.OpenKit.Core {
 
         // helper method for sleeping 1s
         private void Sleep() {
+#if !NETCOREAPP1_0
             try {
-                Thread.Sleep(1000);
-            } catch (ThreadInterruptedException) {
+#endif
+            Thread.Sleep(1000);
+#if !NETCOREAPP1_0
+            } catch (ThreadInterruptedException) {                  // not available in .NET Core 1.0
                 // when interrupted (most probably by shutdown()), just wake up and continue execution
             }
+#endif
         }
 
         // calculate the cluster time offset by doing time sync with the Dynatrace cluster

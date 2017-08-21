@@ -42,8 +42,8 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 
 ## Building the Source
 
-Open `openkit-dotnetfull.sln` in Visual Studio 2017 and build the needed project(s).
-The built dll file(s) `openkit-<version>-dotnetfull-<dotnet_version>.dll` will be located in the `bin/Release<dotnet_version>` directory.
+Open `openkit-dotnet.sln` in Visual Studio 2017 and build the needed project(s).
+The built dll file(s) `openkit-<version>-dotnet<dotnet_framework>-<dotnet_version>.dll` will be located under the `<project_name>/bin` directory.
 
 Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framework 4.0.
 
@@ -57,7 +57,6 @@ Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framewo
 
 ## TODOs
 
-* add solutions for .NET Core and UWP
 * add samples/tests
 * add multiple time syncs for Dynatrace
 * move providers from static to instance (multiple OpenKits -> multiple providers)

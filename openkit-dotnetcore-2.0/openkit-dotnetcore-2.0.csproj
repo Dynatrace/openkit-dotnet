@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AssemblyName>openkit-0.2-dotnetcore-2.0</AssemblyName>
+    <RootNamespace>Dynatrace.OpenKit</RootNamespace>
+  </PropertyGroup>
+
+</Project>
