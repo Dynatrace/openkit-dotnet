@@ -22,6 +22,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 
 ## What you cannot do with the OpenKit
 * Create server-side PurePaths (you have to use an ADK for that)
+* Create metrics (you have to use an ADK for that)
 
 ## Design Principles
 * API should be as simple and easy-to-understand as possible
@@ -34,10 +35,10 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 ## Prerequisites
 
 ### Running the OpenKit
-* .NET Framework 4.x+
+* .NET Framework 4.0+ or .NET Core 1.0+
 
 ### Building the Source
-* .NET Framework 4.x+
+* .NET Framework 4.0+ or .NET Core 1.0+
 * Visual Studio 2017 (to open VS solution)
 
 ## Building the Source
@@ -51,18 +52,16 @@ Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framewo
 * TBD
 
 ## Known Current Limitations
-
-* there is no session timeout in the OpenKit
 * it's only possible to have one OpenKit instance running as providers are static
 
 ## TODOs
-
 * add samples/tests
-* add multiple time syncs for Dynatrace
+* add multiple time syncs for Dynatrace, especially for long running applications
 * move providers from static to instance (multiple OpenKits -> multiple providers)
 * prevent re-entrances e.g. of startup/shutdown
 * add HTTPS support and certificate verification
 * HTTP optimizations (reuse connection, pool http client?)
 * provide simple samples to get started as markdown
-* mobile sampling
+* add more verbose logging
+* introduce traffic control
 * currently gzipping is done with code taken from DotNetZip (http://dotnetzip.codeplex.com/), investigate other solution with .NET framework (no luck so far!)
