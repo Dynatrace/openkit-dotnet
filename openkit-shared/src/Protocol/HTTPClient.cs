@@ -124,7 +124,6 @@ namespace Dynatrace.OpenKit.Protocol {
                         }
 
                         content = new ByteArrayContent(gzippedData);
-                        httpClient.DefaultRequestHeaders.Add("Accept-Encoding", "identity, gzip");
                         content.Headers.Add("Content-Encoding", "gzip");
                         content.Headers.Add("Content-Length", gzippedData.Length.ToString());
                     }
