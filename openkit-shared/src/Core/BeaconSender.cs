@@ -132,13 +132,8 @@ namespace Dynatrace.OpenKit.Core {
             // if status response is null, updateSettings() will turn capture off, as there were no initial settings received
             configuration.UpdateSettings(statusResponse);
 
-            if (configuration.IsDynatrace) {
-                // initialize time provider with cluster time offset -> time sync
-                TimeProvider.Initialize(CalculateClusterTimeOffset(), true);
-            } else {
-                // initialize time provider -> no time sync
-                TimeProvider.Initialize(0, false);
-            }
+            // try synchronizing the time provider initially
+            SyncTimeProvider(true);
 
             // start beacon sender thread
             beaconSenderThread = new Thread(new ThreadStart(Run));
@@ -194,7 +189,7 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         // calculate the cluster time offset by doing time sync with the Dynatrace cluster
-        private long CalculateClusterTimeOffset() {
+        private void SyncTimeProvider(bool initialSync) {
             List<long> timeSyncOffsets = new List<long>(TIME_SYNC_REQUESTS);
             // no check for shutdown here, time sync has to be completed
             while (timeSyncOffsets.Count < TIME_SYNC_REQUESTS) {
@@ -215,7 +210,7 @@ namespace Dynatrace.OpenKit.Core {
 
                         timeSyncOffsets.Add(offset);
                     } else {
-                        // if no -> stop time-sync
+                        // if no -> stop time-sync, it's not supported
                         break;
                     }
                 } else {
@@ -225,7 +220,12 @@ namespace Dynatrace.OpenKit.Core {
 
             // time sync requests were *not* successful -> use 0 as cluster time offset
             if (timeSyncOffsets.Count < TIME_SYNC_REQUESTS) {
-                return 0;
+                // if this is the initial sync try, we have to initialize the time provider
+                // in every other case we keep the previous setting
+                if (initialSync) {
+                    TimeProvider.Initialize(0, false);
+                }
+                return;
             }
 
             // time sync requests were successful -> calculate cluster time offset
@@ -253,7 +253,8 @@ namespace Dynatrace.OpenKit.Core {
                 }
             }
 
-            return (long)Math.Round(sum / (double)count);       // return cluster time offset
+            // initialize time provider with cluster time offset
+            TimeProvider.Initialize((long)Math.Round(sum / (double)count), true);
         }
 
     }
