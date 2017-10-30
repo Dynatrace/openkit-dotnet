@@ -9,12 +9,12 @@ using Dynatrace.OpenKit.Protocol;
 using System.Threading;
 using static Dynatrace.OpenKit.Core.OpenKit;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Core.Configuration {
 
     /// <summary>
     ///  The Configuration class holds all configuration settings, both provided by the user and the Dynatrace/AppMon server.
     /// </summary>
-    public class Configuration {
+    public abstract class AbstractConfiguration {
 
         private static readonly bool DEFAULT_CAPTURE = true;							    // default: capture on
     	private static readonly int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;                  // default: wait 2m (in ms) to send beacon
@@ -51,7 +51,7 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public Configuration(string applicationName, string applicationID, long visitorID, string endpointURL, OpenKitType openKitType, bool verbose) {
+        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose) {
             this.verbose = verbose;
 
             this.openKitType = openKitType;
@@ -189,20 +189,10 @@ namespace Dynatrace.OpenKit.Core {
         // *** private methods ***
 
         private void UpdateCurrentHTTPClient() {
-            this.currentHTTPClient = new HTTPClient(CreateBaseURL(), applicationID, serverID, verbose);
+            this.currentHTTPClient = new HTTPClient(CreateBaseURL(endpointURL, monitorName), applicationID, serverID, verbose);
         }
 
-        private string CreateBaseURL() {
-            StringBuilder urlBuilder = new StringBuilder();
-
-            urlBuilder.Append(endpointURL);
-            if (!endpointURL.EndsWith("/") && !monitorName.StartsWith("/")) {
-                urlBuilder.Append('/');
-            }
-            urlBuilder.Append(monitorName);
-
-            return urlBuilder.ToString();
-        }
+        protected abstract string CreateBaseURL(string endpointURL, string monitorName);
 
         // *** properties ***
 

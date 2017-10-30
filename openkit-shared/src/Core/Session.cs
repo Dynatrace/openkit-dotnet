@@ -4,6 +4,7 @@
  * @author: Christian Schwarzbauer
  */
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core {
@@ -17,7 +18,7 @@ namespace Dynatrace.OpenKit.Core {
         private long endTime = -1;
 
         // Configuration and Beacon reference
-        private Configuration configuration;
+        private AbstractConfiguration configuration;
         private Beacon beacon;
 
         // used for taking care to really leave all Actions at the end of this Session
@@ -25,7 +26,7 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public Session(Configuration configuration, string clientIPAddress) {
+        public Session(AbstractConfiguration configuration, string clientIPAddress) {
             this.configuration = configuration;
 
             // beacon has to be created immediately, as the session start time is taken at beacon construction
