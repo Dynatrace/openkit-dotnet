@@ -189,7 +189,11 @@ namespace Dynatrace.OpenKit.Core.Configuration {
         // *** private methods ***
 
         private void UpdateCurrentHTTPClient() {
-            this.currentHTTPClient = new HTTPClient(CreateBaseURL(endpointURL, monitorName), applicationID, serverID, verbose);
+#if NET40
+            this.currentHTTPClient = new HTTPClientWebClient(CreateBaseURL(endpointURL, monitorName), applicationID, serverID, verbose);
+#else
+            this.currentHTTPClient = new HTTPClientHttpClient(CreateBaseURL(endpointURL, monitorName), applicationID, serverID, verbose);
+#endif
         }
 
         protected abstract string CreateBaseURL(string endpointURL, string monitorName);

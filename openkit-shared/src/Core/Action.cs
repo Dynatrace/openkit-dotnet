@@ -80,9 +80,19 @@ namespace Dynatrace.OpenKit.Core {
             return this;
         }
 
+#if NET40
+
+        public IWebRequestTag TagWebRequest(System.Net.WebClient webClient) {
+            return new WebRequestTagWebClient(beacon, this, webClient);
+        }
+
+#else
+
         public IWebRequestTag TagWebRequest(System.Net.Http.HttpClient httpClient) {
             return new WebRequestTagHttpClient(beacon, this, httpClient);
         }
+
+#endif
 
         public IWebRequestTag TagWebRequest(string url) {
             return new WebRequestTagStringURL(beacon, this, url);
