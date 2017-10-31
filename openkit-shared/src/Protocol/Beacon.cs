@@ -8,6 +8,7 @@ using System.Text;
 
 using Dynatrace.OpenKit.Core;
 using System.Threading;
+using Dynatrace.OpenKit.Core.Configuration;
 
 namespace Dynatrace.OpenKit.Protocol {
 
@@ -84,7 +85,7 @@ namespace Dynatrace.OpenKit.Protocol {
         private string basicBeaconData;
 
         // Configuration reference
-        private Configuration configuration;
+        private AbstractConfiguration configuration;
 
         // lists of events and actions currently on the Beacon
         private LinkedList<string> eventDataList = new LinkedList<string>();
@@ -92,7 +93,7 @@ namespace Dynatrace.OpenKit.Protocol {
 
         // *** constructors ***
 
-        public Beacon(Configuration configuration, string clientIPAddress) {
+        public Beacon(AbstractConfiguration configuration, string clientIPAddress) {
             this.sessionNumber = configuration.NextSessionNumber;
             this.sessionStartTime = TimeProvider.GetTimestamp();
             this.configuration = configuration;

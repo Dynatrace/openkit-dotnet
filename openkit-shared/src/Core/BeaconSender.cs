@@ -3,6 +3,7 @@
  *
  * @author: Christian Schwarzbauer
  */
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace Dynatrace.OpenKit.Core {
         private SynchronizedQueue<Session> finishedSessions = new SynchronizedQueue<Session>();
 
         // Configuration reference
-        private Configuration configuration;
+        private AbstractConfiguration configuration;
 
         // beacon sender thread
         private Thread beaconSenderThread;
@@ -41,7 +42,7 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public BeaconSender(Configuration configuration) {
+        public BeaconSender(AbstractConfiguration configuration) {
             this.configuration = configuration;
             shutdown = false;
         }

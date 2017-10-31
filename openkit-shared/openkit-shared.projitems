@@ -17,7 +17,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\API\IWebRequestTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Action.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\BeaconSender.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AbstractConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AppMonConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\DynatraceConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\DynatraceManagedConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\OpenKitType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Device.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\DummyAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\DummySession.cs" />
