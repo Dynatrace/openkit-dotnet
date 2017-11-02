@@ -10,21 +10,25 @@
 
         protected override HTTPResponse GetRequest(string url, string clientIPAddress)
         {
-            System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIPAddress);
-            System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = httpClient.GetAsync(url);
-            responseTask.Wait();
+            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIPAddress))
+            {
+                System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = httpClient.GetAsync(url);
+                responseTask.Wait();
 
-            return CreateHttpResponse(responseTask.Result);
+                return CreateHttpResponse(responseTask.Result);
+            }
         }
 
         protected override HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload)
         {
-            System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIPAddress);
-            System.Net.Http.ByteArrayContent content = CreatePostContent(gzippedPayload);
-            System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = responseTask = httpClient.PostAsync(url, content);
-            responseTask.Wait();
+            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIPAddress))
+            {
+                System.Net.Http.ByteArrayContent content = CreatePostContent(gzippedPayload);
+                System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = responseTask = httpClient.PostAsync(url, content);
+                responseTask.Wait();
 
-            return CreateHttpResponse(responseTask.Result);
+                return CreateHttpResponse(responseTask.Result);
+            }
         }
 
         private static System.Net.Http.HttpClient CreateHttpClient (string clientIPAddress)
