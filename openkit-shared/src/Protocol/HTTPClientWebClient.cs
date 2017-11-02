@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -8,43 +6,6 @@ namespace Dynatrace.OpenKit.Protocol
 
     public class HTTPClientWebClient : HTTPClient
     {
-
-        private class MyWebClient : System.Net.WebClient
-        {
-            public MyWebClient(string clientIPAddress)
-            {
-                if (clientIPAddress != null)
-                {
-                    Headers.Add("X-Client-IP", clientIPAddress);
-                }
-            }
-
-            public System.Net.HttpWebResponse Get(string url)
-            {
-                return (System.Net.HttpWebResponse)GetWebResponse(GetWebRequest(new Uri(url)));
-            }
-
-            public System.Net.HttpWebResponse Post(string url, byte[] gzippedPayload)
-            {
-                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)GetWebRequest(new Uri(url));
-                request.Method = "POST";
-                
-                // if there is compressed data, post it to the server
-                if (gzippedPayload != null && gzippedPayload.Length > 0)
-                {
-                    request.ContentType = "gzip";
-                    request.ContentLength = gzippedPayload.Length;
-
-                    using(System.IO.Stream stream = request.GetRequestStream())
-                    {
-                        stream.Write(gzippedPayload, 0, gzippedPayload.Length);
-                    }
-                }
-
-                // get servers response
-                return (System.Net.HttpWebResponse)request.GetResponse();
-            }
-        }
 
         public HTTPClientWebClient(string baseURL, string applicationID, int serverID, bool verbose) : base(baseURL, applicationID, serverID, verbose)
         {
@@ -86,6 +47,47 @@ namespace Dynatrace.OpenKit.Protocol
                 Response = response,
                 ResponseCode = (int)responseCode
             };
+        }
+
+        private class MyWebClient : System.Net.WebClient
+        {
+            public MyWebClient(string clientIPAddress)
+            {
+                if (clientIPAddress != null)
+                {
+                    Headers.Add("X-Client-IP", clientIPAddress);
+                }
+            }
+
+            public System.Net.HttpWebResponse Get(string url)
+            {
+                System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)GetWebRequest(new Uri(url));
+                return (System.Net.HttpWebResponse)webRequest.GetResponse();
+            }
+
+            public System.Net.HttpWebResponse Post(string url, byte[] gzippedPayload)
+            {
+                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)GetWebRequest(new Uri(url));
+                request.Method = "POST";
+                
+                // if there is compressed data, post it to the server
+                if (gzippedPayload != null && gzippedPayload.Length > 0)
+                {
+                    request.ContentLength = gzippedPayload.Length;
+                    request.Headers.Add("Content-Encoding", "gzip");
+
+                    Headers["Content-Encoding"] = "gzip";
+
+                    using(System.IO.Stream stream = request.GetRequestStream())
+                    {
+                        stream.Write(gzippedPayload, 0, gzippedPayload.Length);
+                        stream.Close();
+                    }
+                }
+
+                // get servers response
+                return (System.Net.HttpWebResponse)request.GetResponse();
+            }
         }
     }
 
