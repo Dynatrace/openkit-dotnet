@@ -57,14 +57,30 @@ namespace Dynatrace.OpenKit.API {
         /// <returns>this Action (for usage as fluent API)</returns>
         IAction ReportError(string errorName, int errorCode, string reason);
 
+#if NET40
+
+        /// <summary>
+        ///  Tags a web request - which is provided via an WebClient - and allows adding timing information to this request.
+        ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
+        ///  the resulting server-side PurePath.
+        /// </summary>
+        /// <param name="webClient">the WebClient of the HTTP request to be tagged and timed</param>
+        /// <returns>a WebRequestTag which allows adding timing information</returns>
+        /// <remarks>This method is for .NET 4.0 only, since <code>System.Net.Http.HttpClient</code> is not available.</remarks>
+        IWebRequestTag TagWebRequest(System.Net.WebClient webClient);
+
+#else
+
         /// <summary>
         ///  Tags a web request - which is provided via an HttpClient - and allows adding timing information to this request.
         ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
         ///  the resulting server-side PurePath.
         /// </summary>
-        /// <param name="httpClient">the URLConnection of the HTTP request to be tagged and timed</param>
+        /// <param name="httpClient">the HttpClient of the HTTP request to be tagged and timed</param>
         /// <returns>a WebRequestTag which allows adding timing information</returns>
         IWebRequestTag TagWebRequest(System.Net.Http.HttpClient httpClient);
+
+#endif
 
         /// <summary>
         ///  Allows tagging and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).

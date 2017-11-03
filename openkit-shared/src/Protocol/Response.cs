@@ -3,25 +3,30 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.Protocol {
+namespace Dynatrace.OpenKit.Protocol
+{
 
     /// <summary>
     ///  Abstract base class for a response to one of the 3 request types (status check, beacon send, time sync).
     /// </summary>
-    public abstract class Response {
+    public abstract class Response
+    {
 
         private int responseCode;
 
         // *** constructors ***
 
-        public Response(int responseCode) {
+        public Response(int responseCode)
+        {
             this.responseCode = responseCode;
         }
 
         // *** properties ***
 
-        public int ResponseCode {
-            get {
+        public int ResponseCode
+        {
+            get
+            {
                 return responseCode;
             }
         }

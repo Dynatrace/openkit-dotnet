@@ -4,13 +4,11 @@
  * @author: Christian Schwarzbauer
  */
 using System;
-using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
-namespace Dynatrace.OpenKit.Protocol {
+namespace Dynatrace.OpenKit.Protocol
+{
 
     /// <summary>
     ///  HTTP client helper which abstracts the 3 basic request types:
@@ -18,9 +16,11 @@ namespace Dynatrace.OpenKit.Protocol {
     ///  - beacon send
     ///  - time sync
     /// </summary>
-    public class HTTPClient {
+    public abstract class HTTPClient
+    {
 
-        public class RequestType {
+        public class RequestType
+        {
 
             public static readonly RequestType STATUS = new RequestType("Status");              // status check
             public static readonly RequestType BEACON = new RequestType("Beacon");				// beacon send
@@ -28,14 +28,22 @@ namespace Dynatrace.OpenKit.Protocol {
 
             private string requestName;
 
-            private RequestType(string requestName) {
+            private RequestType(string requestName)
+            {
                 this.requestName = requestName;
             }
 
-            public string getRequestName() {
+            public string getRequestName()
+            {
                 return requestName;
             }
 
+        }
+
+        public class HTTPResponse
+        {
+            public string Response { get; set; }
+            public int ResponseCode { get; set; }
         }
 
         // request type constants
@@ -60,7 +68,8 @@ namespace Dynatrace.OpenKit.Protocol {
 
         // *** constructors ***
 
-        public HTTPClient(string baseURL, string applicationID, int serverID, bool verbose) {
+        public HTTPClient(string baseURL, string applicationID, int serverID, bool verbose)
+        {
             this.serverID = serverID;
             this.verbose = verbose;
             this.monitorURL = BuildMonitorURL(baseURL, applicationID, serverID);
@@ -70,31 +79,40 @@ namespace Dynatrace.OpenKit.Protocol {
         // *** public methods ***
 
         // sends a status check request and returns a status response
-        public StatusResponse SendStatusRequest() {
+        public StatusResponse SendStatusRequest()
+        {
             return (StatusResponse)SendRequest(RequestType.STATUS, monitorURL, null, null, "GET");
         }
 
         // sends a beacon send request and returns a status response
-        public StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data) {
+        public StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data)
+        {
             return (StatusResponse)SendRequest(RequestType.BEACON, monitorURL, clientIPAddress, data, "POST");
         }
 
         // sends a time sync request and returns a time sync response
-        public TimeSyncResponse SendTimeSyncRequest() {
+        public TimeSyncResponse SendTimeSyncRequest()
+        {
             return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET");
         }
 
         // *** private methods ***
 
         // generic request send with some verbose output and exception handling
-        protected Response SendRequest(RequestType requestType, string url, string clientIPAddress, byte[] data, string method) {
-            try {
-                if (verbose) {
+        protected Response SendRequest(RequestType requestType, string url, string clientIPAddress, byte[] data, string method)
+        {
+            try
+            {
+                if (verbose)
+                {
                     Console.WriteLine("HTTP " + requestType.getRequestName() + " Request: " + url);
                 }
-                return SendRequestInternal(requestType, url, clientIPAddress, data, method);
-            } catch (Exception e) {
-                if (verbose) {
+                return SendRequestInternal(url, clientIPAddress, data, method);
+            }
+            catch (Exception e)
+            {
+                if (verbose)
+                {
                     Console.WriteLine("ERROR: " + requestType.getRequestName() + " Request failed!");
                     Console.WriteLine(e.Message);
                     Console.WriteLine(e.StackTrace);
@@ -104,64 +122,65 @@ namespace Dynatrace.OpenKit.Protocol {
         }
 
         // generic internal request send
-        private Response SendRequestInternal(RequestType requestType, string url, string clientIPAddress, byte[] data, string method) {
+        protected Response SendRequestInternal(string url, string clientIPAddress, byte[] data, string method)
+        {
             int retry = 1;
-            while (true) {
-                try {
-                    System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
+            while (true)
+            {
+                try
+                {
 
-                    if (clientIPAddress != null) {
-                        httpClient.DefaultRequestHeaders.Add("X-Client-IP", clientIPAddress);
-                    }
+                    // if beacon data is available gzip it
+                    byte[] gzippedData = null;
+                    if ((data != null) && (data.Length > 0))
+                    {
+                        gzippedData = GZip(data);
 
-                    // gzip beacon data, if available
-                    ByteArrayContent content = new ByteArrayContent(new byte[] { });            // initialize with empty content, just to be sure
-                    if ((data != null) && (data.Length > 0)) {
-                        byte[] gzippedData = GZip(data);
-
-                        if (verbose) {
+                        if (verbose)
+                        {
                             Console.WriteLine("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
-
-                        content = new ByteArrayContent(gzippedData);
-                        content.Headers.Add("Content-Encoding", "gzip");
-                        content.Headers.Add("Content-Length", gzippedData.Length.ToString());
                     }
 
-                    // sending HTTP request
-                    Task<HttpResponseMessage> responseTask = null;
-                    if (method.Equals("GET")) {
-                        responseTask = httpClient.GetAsync(url);
-                    } else if (method.Equals("POST")) {
-                        responseTask = httpClient.PostAsync(url, content);
-                    } else {
+                    HTTPResponse httpResponse = null;
+                    if (method == "GET")
+                    {
+                        httpResponse = GetRequest(url, clientIPAddress);
+                    }
+                    else if (method == "POST")
+                    {
+                        httpResponse = PostRequest(url, clientIPAddress, gzippedData);
+                    }
+                    else
+                    {
                         return null;
                     }
-                    responseTask.Wait();
 
-                    // reading HTTP response
-                    HttpResponseMessage httpResponse = responseTask.Result;
-                    Task<string> httpResponseContentTask = httpResponse.Content.ReadAsStringAsync();
-                    httpResponseContentTask.Wait();
-                    string response = httpResponseContentTask.Result;
-                    HttpStatusCode responseCode = httpResponse.StatusCode;
-
-                    if (verbose) {
-                        Console.WriteLine("HTTP Response: " + response);
-                        Console.WriteLine("HTTP Response Code: " + (int)responseCode);
+                    if (verbose)
+                    {
+                        Console.WriteLine("HTTP Response: " + httpResponse.Response);
+                        Console.WriteLine("HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
                     // create typed response based on response content
-                    if (response.StartsWith(REQUEST_TYPE_TIMESYNC)) {
-                        return new TimeSyncResponse(response, (int)responseCode);
-                    } else if (response.StartsWith(REQUEST_TYPE_MOBILE)) {
-                        return new StatusResponse(response, (int)responseCode);
-                    } else {
+                    if (httpResponse.Response.StartsWith(REQUEST_TYPE_TIMESYNC))
+                    {
+                        return new TimeSyncResponse(httpResponse.Response, httpResponse.ResponseCode);
+                    }
+                    else if (httpResponse.Response.StartsWith(REQUEST_TYPE_MOBILE))
+                    {
+                        return new StatusResponse(httpResponse.Response, httpResponse.ResponseCode);
+                    }
+                    else
+                    {
                         return null;
                     }
-                } catch (Exception exception) {
+                }
+                catch (Exception exception)
+                {
                     retry++;
-                    if (retry > MAX_SEND_RETRIES) {
+                    if (retry > MAX_SEND_RETRIES)
+                    {
                         throw exception;
                     }
 
@@ -170,8 +189,13 @@ namespace Dynatrace.OpenKit.Protocol {
             }
         }
 
+        protected abstract HTTPResponse GetRequest(string url, string clientIPAddress);
+
+        protected abstract HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload);
+
         // build URL used for status check and beacon send requests
-        private string BuildMonitorURL(string baseURL, string applicationID, int serverID) {
+        private string BuildMonitorURL(string baseURL, string applicationID, int serverID)
+        {
             StringBuilder monitorURLBuilder = new StringBuilder();
 
             monitorURLBuilder.Append(baseURL);
@@ -186,7 +210,8 @@ namespace Dynatrace.OpenKit.Protocol {
         }
 
         // build URL used for time sync requests
-        private string BuildTimeSyncURL(string baseURL) {
+        private string BuildTimeSyncURL(string baseURL)
+        {
             StringBuilder timeSyncURLBuilder = new StringBuilder();
 
             timeSyncURLBuilder.Append(baseURL);
@@ -197,7 +222,8 @@ namespace Dynatrace.OpenKit.Protocol {
         }
 
         // helper method for appending query parameters
-        private void AppendQueryParam(StringBuilder urlBuilder, string key, string value) {
+        private void AppendQueryParam(StringBuilder urlBuilder, string key, string value)
+        {
             urlBuilder.Append('&');
             urlBuilder.Append(key);
             urlBuilder.Append('=');
@@ -205,19 +231,20 @@ namespace Dynatrace.OpenKit.Protocol {
         }
 
         // helper method for gzipping beacon data
-        private static byte[] GZip(byte[] data) {
+        private static byte[] GZip(byte[] data)
+        {
             // gzip code taken from DotNetZip: http://dotnetzip.codeplex.com/
             return Ionic.Zlib.GZipStream.CompressBuffer(data);
         }
 
         // *** properties ***
 
-        public int ServerID {
-            get {
+        public int ServerID
+        {
+            get
+            {
                 return serverID;
             }
         }
-
     }
-
 }

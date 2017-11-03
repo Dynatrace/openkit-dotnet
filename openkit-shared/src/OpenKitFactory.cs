@@ -51,11 +51,11 @@ namespace Dynatrace.OpenKit {
         /// <param name="applicationID">the application ID (must be a valid application UUID)</param>
         /// <param name="visitorID">unique visitor ID</param>
         /// <param name="endpointURL">the URL of the beacon forwarder to send the data to</param>
-        /// <param name="tenantId">the id of the tenant</param>
+        /// <param name="tenantID">the id of the tenant</param>
         /// <returns>Dynatrace Managed instance of the OpenKit</returns>
-        public static IOpenKit CreateDynatraceManagedInstance(string applicationName, string applicationID, long visitorID, string endpointURL, string tenantId)
+        public static IOpenKit CreateDynatraceManagedInstance(string applicationName, string applicationID, long visitorID, string endpointURL, string tenantID)
         {
-            return CreateDynatraceManagedInstance(applicationName, applicationID, visitorID, endpointURL, tenantId, false);
+            return CreateDynatraceManagedInstance(applicationName, applicationID, visitorID, endpointURL, tenantID, false);
         }
 
         /// <summary>
@@ -65,12 +65,12 @@ namespace Dynatrace.OpenKit {
         /// <param name="applicationID">the application ID (must be a valid application UUID)</param>
         /// <param name="visitorID">unique visitor ID</param>
         /// <param name="endpointURL">the URL of the beacon forwarder to send the data to</param>
-        /// <param name="tenantId">the id of the tenant</param>
+        /// <param name="tenantID">the id of the tenant</param>
         /// <param name="verbose">if true, turn on verbose logging on stdout</param>
         /// <returns>Dynatrace Managed instance of the OpenKit</returns>
-        public static IOpenKit CreateDynatraceManagedInstance(string applicationName, string applicationID, long visitorID, string endpointURL, string tenantId, bool verbose)
+        public static IOpenKit CreateDynatraceManagedInstance(string applicationName, string applicationID, long visitorID, string endpointURL, string tenantID, bool verbose)
         {
-            return new Core.OpenKit(new DynatraceManagedConfiguration(tenantId, applicationName, applicationID, visitorID, endpointURL, verbose));
+            return new Core.OpenKit(new DynatraceManagedConfiguration(tenantID, applicationName, applicationID, visitorID, endpointURL, verbose));
         }
 
         /// <summary>

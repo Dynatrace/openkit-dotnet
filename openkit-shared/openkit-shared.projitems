@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagStringURL.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\DotNetZip\Common\CRC32.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\DotNetZip\Zlib\Deflate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\DotNetZip\Zlib\DeflateStream.cs" />
@@ -51,6 +52,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\Beacon.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\EventType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\HTTPClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\HTTPClientHttpClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\HTTPClientWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\Response.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\StatusResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\TimeSyncResponse.cs" />

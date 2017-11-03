@@ -3,12 +3,14 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.Protocol {
+namespace Dynatrace.OpenKit.Protocol
+{
 
     /// <summary>
     ///  Event types used in the beacon protocol.
     /// </summary>
-    public enum EventType {
+    public enum EventType
+    {
         ACTION = 1,                     // Action
         VALUE_STRING = 11,              // captured string
         VALUE_INT = 12,                 // captured int

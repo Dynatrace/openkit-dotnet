@@ -1,47 +1,46 @@
 ﻿/***************************************************
  * (c) 2016-2017 Dynatrace LLC
  *
- * @author: Christian Schwarzbauer
+ * @author: Stefan Eberl
  */
 using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core
 {
-#if (!NET40)
+#if NET40
+
     /// <summary>
     ///  Inherited class of WebRequestTagBase which can be used for tagging and timing of a web request provided via an HttpClient.
     /// </summary>
-    public class WebRequestTagHttpClient : WebRequestTagBase
+    public class WebRequestTagWebClient : WebRequestTagBase
     {
 
         // *** constructors ***
 
         // creates web request tag with a System.Net.Http.HttpClient
-        public WebRequestTagHttpClient(Beacon beacon, Action action, System.Net.Http.HttpClient httpClient) : base(beacon, action)
+        public WebRequestTagWebClient(Beacon beacon, Action action, System.Net.WebClient webClient) : base(beacon, action)
         {
-            if (httpClient != null)
+            if (webClient != null)
             {
-                SetTagOnConnection(httpClient);
+                SetTagOnConnection(webClient);
 
-                this.url = httpClient.BaseAddress.AbsoluteUri;
+                this.url = webClient.BaseAddress;
             }
         }
 
         // *** private methods ***
 
         // set the Dynatrace tag on the provided URLConnection
-        private void SetTagOnConnection(System.Net.Http.HttpClient httpClient)
+        private void SetTagOnConnection(System.Net.WebClient webClient)
         {
             // check if header is already set
-            if (!httpClient.DefaultRequestHeaders.Contains(OpenKitFactory.WEBREQUEST_TAG_HEADER))
+            if (webClient.Headers.Get(OpenKitFactory.WEBREQUEST_TAG_HEADER) == null)
             {
                 // if not yet set -> set it now
-                httpClient.DefaultRequestHeaders.Add(OpenKitFactory.WEBREQUEST_TAG_HEADER, Tag);
+                webClient.Headers.Add(OpenKitFactory.WEBREQUEST_TAG_HEADER, Tag);
             }
         }
 
     }
-
 #endif
-
 }
