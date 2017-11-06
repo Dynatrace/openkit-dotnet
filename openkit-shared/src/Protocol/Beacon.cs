@@ -9,6 +9,7 @@ using System.Text;
 using Dynatrace.OpenKit.Core;
 using System.Threading;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -73,15 +74,13 @@ namespace Dynatrace.OpenKit.Protocol
         private int nextID = 0;
         private int nextSequenceNumber = 0;
 
-        // HTTP client to be used for this Beacon
-        private HTTPClient httpClient = null;
-
         // session number & start time
         private int sessionNumber;
         private long sessionStartTime;
 
         // client IP address
         private string clientIPAddress;
+        private readonly HttpClientConfiguration httpConfiguration;
 
         // basic beacon protocol data
         private string basicBeaconData;
@@ -102,9 +101,10 @@ namespace Dynatrace.OpenKit.Protocol
             this.configuration = configuration;
             this.clientIPAddress = clientIPAddress;
 
-            basicBeaconData = CreateBasicBeaconData();
+            // store the current http configuration
+            this.httpConfiguration = configuration.HttpClientConfig;
 
-            httpClient = configuration.CurrentHTTPClient;
+            basicBeaconData = CreateBasicBeaconData();
         }
 
         // *** public methods ***
@@ -132,7 +132,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             return TAG_PREFIX + "_"
                        + PROTOCOL_VERSION + "_"
-                       + httpClient.ServerID + "_"
+                       + httpConfiguration.ServerId + "_"
                        + configuration.VisitorID + "_"
                        + sessionNumber + "_"
                        + configuration.ApplicationID + "_"
@@ -307,8 +307,9 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // send current state of Beacon
-        public StatusResponse Send()
+        public StatusResponse Send(IHTTPClientProvider httpClientProvider)
         {
+            HTTPClient httpClient = httpClientProvider.CreateClient(httpConfiguration);
             List<byte[]> beaconDataChunks = CreateBeaconDataChunks();
             StatusResponse response = null;
             foreach (byte[] beaconData in beaconDataChunks)

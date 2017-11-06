@@ -5,6 +5,8 @@
  */
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.src.Providers;
 
 namespace Dynatrace.OpenKit.Core {
 
@@ -18,20 +20,27 @@ namespace Dynatrace.OpenKit.Core {
 
         // Configuration reference
         private AbstractConfiguration configuration;
+        private readonly BeaconSender beaconSender;
 
         // dummy Session implementation, used if capture is set to off
         private static DummySession dummySessionInstance = new DummySession();
 
         // *** constructors ***
 
-        public OpenKit(AbstractConfiguration configuration) {
+        public OpenKit(AbstractConfiguration configuration)
+            : this(configuration, new DefaultHTTPClientProvider())
+        {
+        }
+
+        protected OpenKit(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider) {
             this.configuration = configuration;
+            beaconSender = new BeaconSender(configuration, httpClientProvider);
         }
 
         // *** IOpenKit interface methods ***
 
         public void Initialize() {
-            configuration.Initialize();
+            beaconSender.Initialize();
             initialized = true;
         }
 
@@ -48,15 +57,15 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         public ISession CreateSession(string clientIPAddress) {
-            if (initialized && configuration.Capture) {
-                return new Session(configuration, clientIPAddress);
+            if (initialized && configuration.IsCapture) {
+                return new Session(configuration, clientIPAddress, beaconSender);
             } else {
                 return dummySessionInstance;
             }
         }
 
         public void Shutdown() {
-            configuration.Shutdown();
+            beaconSender.Shutdown();
         }
 
     }

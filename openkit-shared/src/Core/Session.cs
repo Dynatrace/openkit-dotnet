@@ -6,6 +6,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core {
 
@@ -19,19 +20,21 @@ namespace Dynatrace.OpenKit.Core {
 
         // Configuration and Beacon reference
         private AbstractConfiguration configuration;
-        private Beacon beacon;
+        private readonly BeaconSender beaconSender;
+        private readonly Beacon beacon;
 
         // used for taking care to really leave all Actions at the end of this Session
         private SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
 
         // *** constructors ***
 
-        public Session(AbstractConfiguration configuration, string clientIPAddress) {
+        public Session(AbstractConfiguration configuration, string clientIPAddress, BeaconSender beaconSender) {
             this.configuration = configuration;
+            this.beaconSender = beaconSender;
 
             // beacon has to be created immediately, as the session start time is taken at beacon construction
             beacon = new Beacon(configuration, clientIPAddress);
-            configuration.StartSession(this);
+            beaconSender.StartSession(this);
         }
 
         // *** ISession interface methods ***
@@ -62,14 +65,14 @@ namespace Dynatrace.OpenKit.Core {
             beacon.EndSession(this);
 
             // finish session on configuration and stop managing it
-            configuration.FinishSession(this);
+            beaconSender.FinishSession(this);
         }
 
         // *** public methods ***
 
         // sends the current Beacon state
-        public StatusResponse SendBeacon() {
-            return beacon.Send();
+        public StatusResponse SendBeacon(IHTTPClientProvider clientProvider) {
+            return beacon.Send(clientProvider);
         }
 
         // *** properties ***

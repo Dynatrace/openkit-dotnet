@@ -3,13 +3,12 @@
  *
  * @author: Christian Schwarzbauer
  */
-using System.Text;
 
 using Dynatrace.OpenKit.Protocol;
 using System.Threading;
-using static Dynatrace.OpenKit.Core.OpenKit;
 
-namespace Dynatrace.OpenKit.Core.Configuration {
+namespace Dynatrace.OpenKit.Core.Configuration
+{
 
     /// <summary>
     ///  The Configuration class holds all configuration settings, both provided by the user and the Dynatrace/AppMon server.
@@ -23,29 +22,25 @@ namespace Dynatrace.OpenKit.Core.Configuration {
     	private static readonly bool DEFAULT_CAPTURE_CRASHES = true;    					// default: capture crashes on
 
         // immutable settings
-        private OpenKitType openKitType;
-    	private string applicationName;
-	    private string applicationID;
-	    private long visitorID;
-        private string endpointURL;
-	    private bool verbose;
+        private readonly OpenKitType openKitType;
+    	private readonly string applicationName;
+	    private readonly string applicationID;
+	    private readonly long visitorID;
+        private readonly string endpointURL;
+	    private readonly bool verbose;
 
 	    // mutable settings
-	    private bool capture;                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
-        private int sendInterval;                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
-        private string monitorName;                 // monitor name part of URL; is only written/read by beacon sender thread -> non-atomic
-        private int serverID;                       // Server ID (needed for Dynatrace cluster); is only written/read by beacon sender thread -> non-atomic
-        private int maxBeaconSize;                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
-        private bool captureErrors;                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
-        private bool captureCrashes;		        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+	    private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
+        private string monitorName;                                 // monitor name part of URL; is only written/read by beacon sender thread -> non-atomic
+        private int maxBeaconSize;                                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
+        private bool captureErrors;                                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        private bool captureCrashes;		                        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        private HttpClientConfiguration httpClientConfiguration; 	// the current http client configuration
 
         // application and device settings
         private string applicationVersion;
         private Device device;
-
-        private HTTPClient currentHTTPClient;       // current HTTP client (depending on endpoint, monitor, name application ID and server ID)
-
-        private BeaconSender beaconSender;
 
         private int nextSessionNumber = 0;
 
@@ -66,49 +61,26 @@ namespace Dynatrace.OpenKit.Core.Configuration {
             capture = DEFAULT_CAPTURE;
             sendInterval = DEFAULT_SEND_INTERVAL;
             monitorName = openKitType.DefaultMonitorName;
-            serverID = openKitType.DefaultServerID;
             maxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
             captureErrors = DEFAULT_CAPTURE_ERRORS;
             captureCrashes = DEFAULT_CAPTURE_CRASHES;
 
             device = new Device();
             applicationVersion = null;
+
+            httpClientConfiguration = new HttpClientConfiguration(
+                    CreateBaseURL(endpointURL, monitorName),
+                    openKitType.DefaultServerID,
+                    applicationID,
+                    verbose);
         }
 
         // *** public methods ***
-
-        // initializes the configuration, called by OpenKit.Initialize()
-        public void Initialize() {
-            // create beacon sender, but do not start beacon sender thread yet
-            beaconSender = new BeaconSender(this);
-
-            // create initial HTTP client
-            UpdateCurrentHTTPClient();
-
-            // block until initial settings are received; initialize beacon sender & starts thread
-            beaconSender.Initialize();
-        }
 
         // return next session number
         public int NextSessionNumber {
             get {
                 return Interlocked.Increment(ref nextSessionNumber);
-            }
-        }
-
-        // called when new Session is created, passes Session to beacon sender to start managing it
-        public void StartSession(Session session) {
-            // if capture is off, there's no need to manage open Sessions
-            if (Capture) {
-                beaconSender.StartSession(session);
-            }
-        }
-
-        // called when Session is ended, passes Session to beacon sender to stop managing it
-        public void FinishSession(Session session) {
-            // if capture is off, there's no need to manage open and finished Sessions
-            if (Capture) {
-                beaconSender.FinishSession(session);
             }
         }
 
@@ -121,9 +93,8 @@ namespace Dynatrace.OpenKit.Core.Configuration {
                 capture = statusResponse.Capture;
             }
 
-            // if capture is off -> clear Sessions on beacon sender and leave other settings on their current values
-            if (!Capture) {
-                beaconSender.ClearSessions();
+            // if capture is off -> leave other settings on their current values
+            if (!IsCapture) {
                 return;
             }
 
@@ -139,20 +110,17 @@ namespace Dynatrace.OpenKit.Core.Configuration {
                 newServerID = openKitType.DefaultServerID;
             }
 
-            // check if URL changed
-            bool urlChanged = false;
-            if (!monitorName.Equals(newMonitorName)) {
-                monitorName = newMonitorName;
-                urlChanged = true;
-            }
-            if (serverID != newServerID) {
-                serverID = newServerID;
-                urlChanged = true;
-            }
+            // check if http config needs to be updated
+            if (!monitorName.Equals(newMonitorName)
+                || httpClientConfiguration.ServerId != newServerID)
+            {
+                httpClientConfiguration = new HttpClientConfiguration(
+                    CreateBaseURL(endpointURL, newMonitorName),
+                    newServerID,
+                    applicationID,
+                    verbose);
 
-            // URL changed -> HTTP client has to be updated
-            if (urlChanged) {
-                UpdateCurrentHTTPClient();
+                monitorName = newMonitorName;
             }
 
             // use send interval from beacon response or default
@@ -179,22 +147,7 @@ namespace Dynatrace.OpenKit.Core.Configuration {
             captureCrashes = statusResponse.CaptureCrashes;
         }
 
-        // shut down configuration -> shut down beacon sender
-        public void Shutdown() {
-            if (beaconSender != null) {
-                beaconSender.Shutdown();
-            }
-        }
-
-        // *** private methods ***
-
-        private void UpdateCurrentHTTPClient() {
-#if NET40
-            this.currentHTTPClient = new HTTPClientWebClient(CreateBaseURL(endpointURL, monitorName), applicationID, serverID, verbose);
-#else
-            this.currentHTTPClient = new HTTPClientHttpClient(CreateBaseURL(endpointURL, monitorName), applicationID, serverID, verbose);
-#endif
-        }
+        // *** protected methods ***
 
         protected abstract string CreateBaseURL(string endpointURL, string monitorName);
 
@@ -230,7 +183,7 @@ namespace Dynatrace.OpenKit.Core.Configuration {
             }
         }
 
-        public bool Capture {
+        public bool IsCapture {
             get {
                 return capture;
             }
@@ -275,12 +228,7 @@ namespace Dynatrace.OpenKit.Core.Configuration {
             }
         }
 
-        public HTTPClient CurrentHTTPClient {
-            get {
-                return currentHTTPClient;
-            }
-        }
-
+        public HttpClientConfiguration HttpClientConfig { get { return httpClientConfiguration; } }
     }
 
 }
