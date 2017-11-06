@@ -21,7 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AppMonConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\DynatraceConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\DynatraceManagedConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\HttpClientConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\HTTPClientConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\OpenKitType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Device.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\DummyAction.cs" />
@@ -58,7 +58,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\Response.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\StatusResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\TimeSyncResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultHttpClientProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\IHttpClientProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultHTTPClientProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\IHTTPClientProvider.cs" />
   </ItemGroup>
 </Project>

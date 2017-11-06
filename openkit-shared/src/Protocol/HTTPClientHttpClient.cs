@@ -10,28 +10,28 @@
 
         protected override HTTPResponse GetRequest(string url, string clientIPAddress)
         {
-            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIPAddress))
+            using (System.Net.Http.HttpClient httpClient = CreateHTTPClient(clientIPAddress))
             {
                 System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = httpClient.GetAsync(url);
                 responseTask.Wait();
 
-                return CreateHttpResponse(responseTask.Result);
+                return CreateHTTPResponse(responseTask.Result);
             }
         }
 
         protected override HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload)
         {
-            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIPAddress))
+            using (System.Net.Http.HttpClient httpClient = CreateHTTPClient(clientIPAddress))
             {
                 System.Net.Http.ByteArrayContent content = CreatePostContent(gzippedPayload);
                 System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = responseTask = httpClient.PostAsync(url, content);
                 responseTask.Wait();
 
-                return CreateHttpResponse(responseTask.Result);
+                return CreateHTTPResponse(responseTask.Result);
             }
         }
 
-        private static System.Net.Http.HttpClient CreateHttpClient (string clientIPAddress)
+        private static System.Net.Http.HttpClient CreateHTTPClient (string clientIPAddress)
         {
             System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
             if (clientIPAddress != null)
@@ -54,7 +54,7 @@
             return content;
         }
 
-        private static HTTPResponse CreateHttpResponse(System.Net.Http.HttpResponseMessage result)
+        private static HTTPResponse CreateHTTPResponse(System.Net.Http.HttpResponseMessage result)
         {
             System.Threading.Tasks.Task<string> httpResponseContentTask = result.Content.ReadAsStringAsync();
             httpResponseContentTask.Wait();

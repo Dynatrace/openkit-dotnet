@@ -5,13 +5,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// <summary>
     /// The HttpClientConfiguration holds all http client related settings
     /// </summary>
-    public class HttpClientConfiguration
+    public class HTTPClientConfiguration
     {
-        public HttpClientConfiguration(String baseUrl, int serverId, string applicationId, bool verbose)
+        public HTTPClientConfiguration(String baseUrl, int serverID, string applicationID, bool verbose)
         {
             BaseUrl = baseUrl;
-            ServerId = serverId;
-            ApplicationId = applicationId;
+            ServerID = serverID;
+            ApplicationID = applicationID;
             IsVerbose = verbose;
         }
 
@@ -23,12 +23,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// <summary>
         /// The server id to be used for the http client
         /// </summary>
-        public int ServerId { get; private set; }
+        public int ServerID { get; private set; }
 
         /// <summary>
         /// The application id for the http client
         /// </summary>
-        public string ApplicationId { get; private set; }
+        public string ApplicationID { get; private set; }
 
         /// <summary>
         /// If <code>true</code> logging is enabled

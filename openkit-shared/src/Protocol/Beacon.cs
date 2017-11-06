@@ -80,7 +80,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         // client IP address
         private string clientIPAddress;
-        private readonly HttpClientConfiguration httpConfiguration;
+        private readonly HTTPClientConfiguration httpConfiguration;
 
         // basic beacon protocol data
         private string basicBeaconData;
@@ -132,7 +132,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             return TAG_PREFIX + "_"
                        + PROTOCOL_VERSION + "_"
-                       + httpConfiguration.ServerId + "_"
+                       + httpConfiguration.ServerID + "_"
                        + configuration.VisitorID + "_"
                        + sessionNumber + "_"
                        + configuration.ApplicationID + "_"

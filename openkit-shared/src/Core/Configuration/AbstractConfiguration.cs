@@ -23,20 +23,20 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // immutable settings
         private readonly OpenKitType openKitType;
-    	private readonly string applicationName;
-	    private readonly string applicationID;
-	    private readonly long visitorID;
+        private readonly string applicationName;
+        private readonly string applicationID;
+        private readonly long visitorID;
         private readonly string endpointURL;
-	    private readonly bool verbose;
+        private readonly bool verbose;
 
 	    // mutable settings
-	    private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
         private string monitorName;                                 // monitor name part of URL; is only written/read by beacon sender thread -> non-atomic
         private int maxBeaconSize;                                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
         private bool captureErrors;                                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private bool captureCrashes;		                        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
-        private HttpClientConfiguration httpClientConfiguration; 	// the current http client configuration
+        private HTTPClientConfiguration httpClientConfiguration; 	// the current http client configuration
 
         // application and device settings
         private string applicationVersion;
@@ -68,7 +68,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             device = new Device();
             applicationVersion = null;
 
-            httpClientConfiguration = new HttpClientConfiguration(
+            httpClientConfiguration = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, monitorName),
                     openKitType.DefaultServerID,
                     applicationID,
@@ -112,9 +112,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // check if http config needs to be updated
             if (!monitorName.Equals(newMonitorName)
-                || httpClientConfiguration.ServerId != newServerID)
+                || httpClientConfiguration.ServerID != newServerID)
             {
-                httpClientConfiguration = new HttpClientConfiguration(
+                httpClientConfiguration = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, newMonitorName),
                     newServerID,
                     applicationID,
@@ -228,7 +228,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
-        public HttpClientConfiguration HttpClientConfig { get { return httpClientConfiguration; } }
+        public HTTPClientConfiguration HttpClientConfig { get { return httpClientConfiguration; } }
     }
 
 }
