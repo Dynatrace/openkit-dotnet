@@ -4,12 +4,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class DynatraceManagedConfiguration : AbstractConfiguration
     {
-        private readonly string tenantId;
+        private readonly string tenantID;
 
-        public DynatraceManagedConfiguration(string tenantId, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose)
+        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose)
             : base(OpenKitType.DYNATRACE, applicationName, applicationID, visitorID, endpointURL, verbose)
         {
-            this.tenantId = tenantId;
+            this.tenantID = tenantID;
         }
 
         protected override string CreateBaseURL(string endpointURL, string monitorName)
@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             urlBuilder.Append(monitorName);
             urlBuilder.Append('/');
 
-            urlBuilder.Append(tenantId);
+            urlBuilder.Append(tenantID);
 
             return urlBuilder.ToString();
         }

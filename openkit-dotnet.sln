@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.3
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "openkit-shared", "openkit-shared\openkit-shared.shproj", "{CC87C275-EFBD-4B40-AC4C-E4B1558B6564}"
 EndProject
@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetfull-4.6", "o
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "openkit-dotnetcore-1.0", "openkit-dotnetcore-1.0\openkit-dotnetcore-1.0.csproj", "{486AE757-931F-4591-A7F6-BAE9022A55CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetcore-2.0", "openkit-dotnetcore-2.0\openkit-dotnetcore-2.0.csproj", "{F2525F6B-2FA2-4E77-AF82-386EFF02D96C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "openkit-dotnetcore-2.0", "openkit-dotnetcore-2.0\openkit-dotnetcore-2.0.csproj", "{F2525F6B-2FA2-4E77-AF82-386EFF02D96C}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
