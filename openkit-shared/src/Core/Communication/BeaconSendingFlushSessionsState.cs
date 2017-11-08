@@ -1,0 +1,41 @@
+﻿using System;
+
+namespace Dynatrace.OpenKit.Core.Communication
+{
+    /// <summary>
+    /// In this state open sessions are finished. After that all sessions are sent to the server.
+    /// 
+    /// Transitions to:
+    /// <ul>
+    ///     <li><code>BeaconSendingTerminalState</code></li>
+    /// </ul>
+    /// 
+    /// </summary>
+    internal class BeaconSendingFlushSessionsState : AbstractBeaconSendingState
+    {
+        public BeaconSendingFlushSessionsState() : base(false) {}
+
+        protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
+
+        protected override void DoExecute(BeaconSendingContext context)
+        {
+            // end open sessions -> will be finished afterwards
+            var openSessions = context.GetAllOpenSessions();
+            foreach (var openSession in openSessions)
+            {
+                openSession.End();
+            }
+
+            // flush already finished (and previously opened) sessions
+            var finishedSession = context.GetNextFinishedSession();
+            while (finishedSession != null)
+            {
+                finishedSession.SendBeacon(context.HTTPClientProvider);
+                finishedSession = context.GetNextFinishedSession();
+            }
+
+            // make last state transition to terminal state
+            context.CurrentState = new BeaconSendingTerminalState();
+        }
+    }
+}

@@ -65,7 +65,7 @@ namespace Dynatrace.OpenKit.Core
 
                 StatusResponse statusResponse = null;
                 // check capture mode
-                if (configuration.IsCapture)
+                if (configuration.IsCaptureOn)
                 {
                     statusResponse = null;
 
@@ -134,7 +134,7 @@ namespace Dynatrace.OpenKit.Core
             configuration.UpdateSettings(statusResponse);
 
             // if capture is off -> clear sessions
-            if (!configuration.IsCapture)
+            if (!configuration.IsCaptureOn)
             {
                 ClearSessions();
             }

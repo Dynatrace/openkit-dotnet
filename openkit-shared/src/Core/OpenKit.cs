@@ -57,7 +57,7 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         public ISession CreateSession(string clientIPAddress) {
-            if (initialized && configuration.IsCapture) {
+            if (initialized && configuration.IsCaptureOn) {
                 return new Session(configuration, clientIPAddress, beaconSender);
             } else {
                 return dummySessionInstance;

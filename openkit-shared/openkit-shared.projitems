@@ -17,6 +17,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\API\IWebRequestTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Action.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\BeaconSender.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\AbstractBeaconSendingState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingInitState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingFlushSessionsState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingStateCaptureOffState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingStateCaptureOnState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingTerminalState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingTimeSyncState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AbstractConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AppMonConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\DynatraceConfiguration.cs" />
@@ -60,5 +68,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\TimeSyncResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultHTTPClientProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\IHTTPClientProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\ITimingProvider.cs" />
   </ItemGroup>
 </Project>
