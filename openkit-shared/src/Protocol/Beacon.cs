@@ -19,6 +19,9 @@ namespace Dynatrace.OpenKit.Protocol
     /// </summary>
     public class Beacon
     {
+        // Initial time to sleep after the first failed beacon send attempt.
+        private const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
+
 
         // basic data constants
         private const string BEACON_KEY_PROTOCOL_VERSION = "vv";
@@ -307,17 +310,42 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // send current state of Beacon
-        public StatusResponse Send(IHTTPClientProvider httpClientProvider)
+        public StatusResponse Send(IHTTPClientProvider httpClientProvider, int numRetries)
         {
             HTTPClient httpClient = httpClientProvider.CreateClient(httpConfiguration);
             List<byte[]> beaconDataChunks = CreateBeaconDataChunks();
             StatusResponse response = null;
             foreach (byte[] beaconData in beaconDataChunks)
             {
-                response = httpClient.SendBeaconRequest(clientIPAddress, beaconData);
+                response = SendBeaconRequest(httpClient, beaconData, numRetries);
             }
 
             // only return last status response for updating the settings
+            return response;
+        }
+
+        private StatusResponse SendBeaconRequest(HTTPClient httpClient, byte[] beaconData, int numRetries)
+        {
+            StatusResponse response = null;
+            var retry = 0;
+            var retrySleepMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
+
+            for(var i = 0; i < numRetries; i++)
+            {
+                response = httpClient.SendBeaconRequest(clientIPAddress, beaconData);
+                if (response != null)
+                {
+                    // success
+                    break;
+                }
+
+                if (retry < numRetries)
+                {
+                    Thread.Sleep(retrySleepMillis);
+                    retrySleepMillis *= 2;
+                }
+            }
+
             return response;
         }
 

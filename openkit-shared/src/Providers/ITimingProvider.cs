@@ -13,6 +13,6 @@
         /// Sleep given amount of milliseconds.
         /// </summary>
         /// <param name="milliseconds">Milliseconds to sleep</param>
-        void Sleep(long milliseconds);
+        void Sleep(int milliseconds);
     }
 }

@@ -8,11 +8,12 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// Transitions to:
     /// <ul>
     ///     <li><code>BeaconSendingTerminalState</code></li>
-    /// </ul>
-    /// 
+    /// </ul> 
     /// </summary>
     internal class BeaconSendingFlushSessionsState : AbstractBeaconSendingState
     {
+        public const int BEACON_SEND_RETRY_ATTEMPTS = 1;
+
         public BeaconSendingFlushSessionsState() : base(false) {}
 
         protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
@@ -30,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var finishedSession = context.GetNextFinishedSession();
             while (finishedSession != null)
             {
-                finishedSession.SendBeacon(context.HTTPClientProvider);
+                finishedSession.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
                 finishedSession = context.GetNextFinishedSession();
             }
 

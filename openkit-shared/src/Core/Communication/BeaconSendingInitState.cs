@@ -16,7 +16,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     internal class BeaconSendingInitState : AbstractBeaconSendingState
     {
         public const int MAX_INITIAL_STATUS_REQUEST_RETRIES = 5;
-        public const long INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
+        public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
 
         internal BeaconSendingInitState() : base(false) { }
 
@@ -53,7 +53,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (context.IsShutdownRequested || (statusResponse == null))
             {
                 // initial configuration request was either terminated from outside or the config could not be retrieved
-                // TODO stefan.eberl@dynatrace.com - Define some better error handling if init failed!
                 context.InitCompleted(false);
                 context.CurrentState = new BeaconSendingTerminalState();
             }

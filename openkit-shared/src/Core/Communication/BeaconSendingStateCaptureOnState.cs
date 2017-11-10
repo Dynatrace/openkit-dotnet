@@ -7,17 +7,14 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to 
     /// <ul>
-    ///     <li><code>BeaconSendingTimeSyncState</code> is <code>TIME_SYNC_RE_EXECUTE_DURATION</code> is reached</li>
+    ///     <li><code>BeaconSendingTimeSyncState</code> if <code>BeaconSendingTimeSyncState.IsTimeSyncRequired == true</code></li>
     ///     <li><code>BeaconSendingStateCaptureOffState</code> if IsCaptureOn is <code>false</code></li>
     ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingStateCaptureOnState : AbstractBeaconSendingState
     {
-        /// <summary>
-        ///  Time period for re-execute of time sync every two hours value in ms
-        /// </summary>
-        public const long TIME_SYNC_RE_EXECUTE_DURATION = 2 * 60 * 60 * 1000;  // 2 h
+        public const int BEACON_SEND_RETRY_ATTEMPTS = 3;
 
         /// <summary>
         /// stores the last status response
@@ -31,7 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         protected override void DoExecute(BeaconSendingContext context)
         {
             // every two hours a time sync shall be performed
-            if (IsTimeSyncRequired(context))
+            if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
             {
                 context.CurrentState = new BeaconSendingTimeSyncState();
                 return;
@@ -51,21 +48,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             HandleStatusResponse(context);
         }
 
-        private bool IsTimeSyncRequired(BeaconSendingContext context)
-        {
-            var timeStamp = context.CurrentTimestamp;
-
-            return ((context.LastTimeSyncTime < 0) ||
-                ((timeStamp - context.LastTimeSyncTime) > TIME_SYNC_RE_EXECUTE_DURATION));
-        }
-
         private void SendFinishedSessions(BeaconSendingContext context)
         {
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
             var finishedSession = context.GetNextFinishedSession();
             while (finishedSession != null)
             {
-                finishedSession.SendBeacon(context.HTTPClientProvider);
+                finishedSession.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
                 finishedSession = context.GetNextFinishedSession();
             }
         }
@@ -81,7 +70,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var openSessions = context.GetAllOpenSessions();
             foreach (var session in openSessions)
             {
-                session.SendBeacon(context.HTTPClientProvider);
+                session.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
             }
         }
 

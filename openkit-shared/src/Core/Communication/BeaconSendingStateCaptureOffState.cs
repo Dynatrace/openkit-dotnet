@@ -11,7 +11,6 @@ namespace Dynatrace.OpenKit.Core.Communication
     ///     <li><code>BeaconSendingTimeSyncState</code> if IsCaptureOn is <code>true</code></li>
     ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
     /// </ul>
-    /// 
     /// </summary>
     internal class BeaconSendingStateCaptureOffState : AbstractBeaconSendingState
     {
@@ -30,7 +29,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var currentTime = context.CurrentTimestamp;
 
-            var delta = currentTime - (context.LastStatusCheckTime + STATUS_CHECK_INTERVAL);
+            var delta = (int) (currentTime - (context.LastStatusCheckTime + STATUS_CHECK_INTERVAL));
             if (delta > 0 && !context.IsShutdownRequested)
             {
                 // still have some time to sleep

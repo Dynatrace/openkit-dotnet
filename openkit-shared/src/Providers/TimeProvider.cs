@@ -5,7 +5,7 @@
  */
 using System;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Providers {
 
     /// <summary>
     ///  Class for providing timestamps, time durations and cluster time conversions.

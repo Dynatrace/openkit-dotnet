@@ -6,9 +6,12 @@ using System.Threading;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
+    /// <summary>
+    /// State context for beacon sending
+    /// </summary>
     internal class BeaconSendingContext
     {
-        internal const long DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
+        internal const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
 
         /** container storing all open sessions */
         private readonly SynchronizedQueue<Session> openSessions = new SynchronizedQueue<Session>();
@@ -21,8 +24,12 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         /** countdown latch updated when init was done - which can either be success or failure */
         private readonly CountdownEvent countdownEvent = new CountdownEvent(1);
+
         /** boolean indicating whether init was successful or not */
         private bool initSucceeded = false;
+
+        /** boolean indicating whether the server supports a time sync or not. */
+        private bool timeSyncSupported = true;
 
         /// <summary>
         /// Constructor
@@ -51,10 +58,18 @@ namespace Dynatrace.OpenKit.Core.Communication
         public long LastStatusCheckTime { get; set; }
         public long LastTimeSyncTime { get; set; }
 
+        public bool IsTimeSyncSupported { get { return timeSyncSupported; } }
         public bool IsShutdownRequested { get { return shutdown; } }
         public long CurrentTimestamp { get { return TimingProvider.ProvideTimestampInMilliseconds(); } }
         public int SendInterval { get { return Configuration.SendInterval; } }
         public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
+        public bool IsInTerminalState { get { return CurrentState.IsTerminalState; } }
+
+
+        public void DisableTimeSyncSupport()
+        {
+            timeSyncSupported = false;
+        }
 
         public void ExecuteCurrentState()
         {
@@ -88,7 +103,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Sleep(DEFAULT_SLEEP_TIME_MILLISECONDS);
         }
 
-        public void Sleep(long millis)
+        public void Sleep(int millis)
         {
             TimingProvider.Sleep(millis);
         }
@@ -111,6 +126,19 @@ namespace Dynatrace.OpenKit.Core.Communication
         public List<Session> GetAllOpenSessions()
         {
             return openSessions.ToList();
+        }
+
+        public void StartSession(Session session)
+        {
+            openSessions.Put(session);
+        }
+
+        public void FinishSession(Session session)
+        {
+            if (openSessions.Remove(session))
+            {
+                finishedSessions.Put(session);
+            }
         }
 
         private void ClearAllSessions()

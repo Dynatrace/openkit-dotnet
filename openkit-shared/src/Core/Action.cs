@@ -5,6 +5,7 @@
  */
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core {
 

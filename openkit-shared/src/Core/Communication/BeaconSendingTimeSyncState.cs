@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dynatrace.OpenKit.Providers;
+using System;
 using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -14,13 +15,13 @@ namespace Dynatrace.OpenKit.Core.Communication
     ///     <li><code>BeaconSendingStateCaptureOffState</code> if IsCaptureOn is <code>false</code></li>
     ///     li><code>BeaconSendingTerminalState</code> on shutdown</li>
     /// </ul>
-    /// 
     /// </summary>
     internal class BeaconSendingTimeSyncState : AbstractBeaconSendingState
     {
         public const int TIME_SYNC_REQUESTS = 5;
         public const int TIME_SYNC_RETRY_COUNT = 5;
-        public const long INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
+        public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
+        public const int TIME_SYNC_INTERVAL_IN_MILLIS = 2 * 60 * 60 * 1000;
 
         private readonly bool initialTimeSync;
 
@@ -46,34 +47,18 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(BeaconSendingContext context)
         {
-            var timeSyncOffsets = ExecuteTimeSyncRequests(context);
-
-            // time sync requests were NOT succesfull -> use 0 as cluster time offset
-            if (timeSyncOffsets.Count < TIME_SYNC_REQUESTS)
+            if (!IsTimeSyncRequired(context))
             {
-                // if this is the initial sync try, we have to initialize the time provider
-                // in every other case we keep the previous setting
-                if (initialTimeSync)
-                {
-                    // TODO thomas.grassauer@dynatrace.com - initialize timeprovider with 0
-                }
-
-                // if time sync failed, always go to capture off staet
-                context.CurrentState = new BeaconSendingStateCaptureOffState();
+                // make state transition based on configuration - since time sync does not need to be supported or might not be required
+                SetNextState(context);
                 return;
             }
 
-            var clusterTimeOffset = ComputeClusterTimeOffset(timeSyncOffsets);
+            // execute time sync requests - note during initial sync it might be possible
+            // that the time sync capability is disabled.
+            var timeSyncOffsets = ExecuteTimeSyncRequests(context);
 
-            // state transition
-            if(context.IsCaptureOn)
-            {
-                context.CurrentState = new BeaconSendingStateCaptureOnState();
-            }
-            else
-            {
-                context.CurrentState = new BeaconSendingStateCaptureOffState();
-            }
+            HandleTimeSyncResponses(context, timeSyncOffsets);
 
             // set init complete if initial time sync
             if (initialTimeSync)
@@ -82,7 +67,41 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             context.LastTimeSyncTime = context.CurrentTimestamp;
-        }        
+        }
+
+        private void HandleTimeSyncResponses(BeaconSendingContext context, List<long> timeSyncOffsets)
+        {
+            // time sync requests were *not* successful -> use 0 as cluster time offset
+            if (timeSyncOffsets.Count < TIME_SYNC_REQUESTS)
+            {
+                HandleErroneousTimeSyncRequest(context);
+                return;
+            }
+
+            // initialize time provider with cluster time offset
+            TimeProvider.Initialize(ComputeClusterTimeOffset(timeSyncOffsets), true);
+        }
+
+        private void HandleErroneousTimeSyncRequest(BeaconSendingContext context)
+        {
+            // if this is the initial sync try, we have to initialize the time provider
+            // in every other case we keep the previous setting
+            if (initialTimeSync) 
+            {
+                TimeProvider.Initialize(0, false);
+            }
+
+            if (context.IsTimeSyncSupported)
+            {
+                // in case of time sync failure when it's supported, go to capture off state
+                context.CurrentState = new BeaconSendingStateCaptureOffState();
+            }
+            else
+            {
+                // otherwise set the next state based on the configuration
+                SetNextState(context);
+            }
+        }
 
         private List<long> ExecuteTimeSyncRequests(BeaconSendingContext context)
         {
@@ -116,6 +135,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                     else
                     {
                         // if no -> stop time sync, it's not supported
+                        context.DisableTimeSyncSupport();
                         break;
                     }
                 }
@@ -160,6 +180,36 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             return (long)Math.Round(sum / (double)count);
+        }
+
+        /// <summary>
+        /// Helper method to check if a time sync is required
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static bool IsTimeSyncRequired(BeaconSendingContext context)
+        {
+            if (!context.IsTimeSyncSupported)
+            {
+                // time sync not supported by server, therefore not required
+                return false;
+            }
+
+            return ((context.LastTimeSyncTime < 0) 
+                || (context.CurrentTimestamp - context.LastTimeSyncTime > TIME_SYNC_INTERVAL_IN_MILLIS));
+        }
+
+        private static void SetNextState(BeaconSendingContext context)
+        {
+            // state transition
+            if (context.IsCaptureOn)
+            {
+                context.CurrentState = new BeaconSendingStateCaptureOnState();
+            }
+            else
+            {
+                context.CurrentState = new BeaconSendingStateCaptureOffState();
+            }
         }
     }
 }

@@ -38,8 +38,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Session.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\SynchronizedQueue.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\ThreadIDProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\TimeProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\ThreadIDProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\TimeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagStringURL.cs" />
@@ -67,6 +67,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\StatusResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\TimeSyncResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultHTTPClientProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultTimingProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\IHTTPClientProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\ITimingProvider.cs" />
   </ItemGroup>
