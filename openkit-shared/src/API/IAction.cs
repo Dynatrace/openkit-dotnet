@@ -57,7 +57,7 @@ namespace Dynatrace.OpenKit.API {
         /// <returns>this Action (for usage as fluent API)</returns>
         IAction ReportError(string errorName, int errorCode, string reason);
 
-#if NET40
+#if NET40 || NET35
 
         /// <summary>
         ///  Tags a web request - which is provided via an WebClient - and allows adding timing information to this request.
