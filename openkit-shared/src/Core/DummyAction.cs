@@ -51,7 +51,7 @@ namespace Dynatrace.OpenKit.Core {
             return this;
         }
 
-#if NET40
+#if NET40 || NET35
 
         public IWebRequestTag TagWebRequest(System.Net.WebClient webClient)
         {

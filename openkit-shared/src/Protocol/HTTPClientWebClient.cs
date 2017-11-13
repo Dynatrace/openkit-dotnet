@@ -2,7 +2,7 @@
 
 namespace Dynatrace.OpenKit.Protocol
 {
-#if NET40
+#if NET40 || NET35
 
     public class HTTPClientWebClient : HTTPClient
     {
