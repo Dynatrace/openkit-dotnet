@@ -7,7 +7,7 @@ using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core
 {
-#if (!NET40)
+#if (!NET40 && !NET35)
     /// <summary>
     ///  Inherited class of WebRequestTagBase which can be used for tagging and timing of a web request provided via an HttpClient.
     /// </summary>

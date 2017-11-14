@@ -8,7 +8,7 @@ namespace Dynatrace.OpenKit.src.Providers
     {
         public HTTPClient CreateClient(HTTPClientConfiguration configuration)
         {
-#if NET40
+#if NET40 || NET35
             return new HTTPClientWebClient(configuration.BaseUrl, configuration.ApplicationID, configuration.ServerID, configuration.IsVerbose); // HttpClient is not availalbe in .NET 4.0
 #else
             return new HTTPClientHttpClient(configuration.BaseUrl, configuration.ApplicationID, configuration.ServerID, configuration.IsVerbose);
