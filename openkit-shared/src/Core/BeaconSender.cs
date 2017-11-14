@@ -15,7 +15,7 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public class BeaconSender
     {
-        private static readonly int SHUTDOWN_TIMEOUT = 10 * 1000;                  // wait max 10s (in ms) for beacon sender to complete data sending during shutdown
+        private const int SHUTDOWN_TIMEOUT = 10 * 1000;                  // wait max 10s (in ms) for beacon sender to complete data sending during shutdown
 
         // beacon sender thread
         private Thread beaconSenderThread;

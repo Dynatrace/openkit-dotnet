@@ -8,12 +8,22 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to
     /// <ul>
-    ///     <li><code>BeaconSendingTimeSyncState</code> if IsCaptureOn is <code>true</code></li>
+    ///     <li><code>BeaconSendingTimeSyncState</code> if IsCaptureOn is <code>true</code> and time sync is required</li>
+    ///     <li><code>BeaconSendingStateCaptureOnState</code> if IsCaputreOn is <code>true</code> and time sync is NOT required</li>
     ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingStateCaptureOffState : AbstractBeaconSendingState
     {
+        /// <summary>
+        /// Number of retries for the status request
+        /// </summary>
+        public const int STATUS_REQUEST_RETRIES = 5;
+        /// <summary>
+        /// Inital sleep time for retries in milliseconds
+        /// </summary>
+        public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
+
         /// <summary>
         ///  Time period for re-execute of status check
         /// </summary>
@@ -37,12 +47,34 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             // send the status request
-            statusResponse = context.GetHTTPClient().SendStatusRequest();
+            SendStatusRequests(context);
 
+            // process the response
             HandleStatusResponse(context);
 
             // update the last status check time in any case
             context.LastStatusCheckTime = currentTime;
+        }
+
+        private void SendStatusRequests(BeaconSendingContext context)
+        {
+            var retry = 0;
+            int sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
+
+            while (retry++ < STATUS_REQUEST_RETRIES && !context.IsShutdownRequested)
+            {
+                statusResponse = context.GetHTTPClient().SendStatusRequest();
+                if (statusResponse != null)
+                {
+                    break; // got the response
+                }
+
+                if (retry < STATUS_REQUEST_RETRIES)
+                {
+                    context.Sleep(sleepTimeInMillis);
+                    sleepTimeInMillis *= 2;
+                }
+            }
         }
 
         private void HandleStatusResponse(BeaconSendingContext context)
@@ -55,8 +87,16 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.HandleStatusResponse(statusResponse);
             if (context.IsCaptureOn)
             {
-                // capturing is turned on -> make state transition to CaptureOne (via TimeSync)
-                context.CurrentState = new BeaconSendingTimeSyncState(false);
+                if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
+                {
+                    // switch to time sync
+                    context.CurrentState = new BeaconSendingTimeSyncState(false);
+                }
+                else
+                {
+                    // switch to capture on
+                    context.CurrentState = new BeaconSendingStateCaptureOnState();
+                }                
             }
         }
     }

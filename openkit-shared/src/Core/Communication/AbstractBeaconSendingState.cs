@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Execute the current state
         /// 
-        /// In case shutdown was requested, a state transition is performed by this method to the <see cref=""/>
+        /// In case shutdown was requested, a state transition is performed by this method to the <code>ShutdownState</code>
         /// </summary>
         /// <param name="context"></param>
         public void Execute(BeaconSendingContext context)

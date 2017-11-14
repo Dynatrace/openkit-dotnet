@@ -36,19 +36,19 @@ namespace Dynatrace.OpenKit.Core.Communication
             StatusResponse statusResponse;
             var retry = 0;
             var sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
+
             do
             {
                 retry++;
                 statusResponse = context.GetHTTPClient().SendStatusRequest();
 
-                // if no (valid) status response was received -> sleep 2s [4s, 8s, ...] and then retry (max 5 times altogether)
-                if (statusResponse == null)
+                // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s] and then retry (max 5 times altogether)
+                if (RetryStatusRequest(context, statusResponse, retry))
                 {
                     context.Sleep(sleepTimeInMillis);
                     sleepTimeInMillis *= 2;
                 }
-            }
-            while (!context.IsShutdownRequested && (statusResponse == null) && (retry < MAX_INITIAL_STATUS_REQUEST_RETRIES));
+            } while (RetryStatusRequest(context, statusResponse, retry));
 
             if (context.IsShutdownRequested || (statusResponse == null))
             {
@@ -62,6 +62,13 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.HandleStatusResponse(statusResponse);
                 context.CurrentState = new BeaconSendingTimeSyncState(true);
             }
+        }
+
+        private static bool RetryStatusRequest(BeaconSendingContext context, StatusResponse statusResponse, int retry)
+        {
+            return !context.IsShutdownRequested
+                && (statusResponse == null)
+                && (retry < MAX_INITIAL_STATUS_REQUEST_RETRIES);
         }
     }
 }

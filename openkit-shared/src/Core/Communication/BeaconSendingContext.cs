@@ -28,6 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /** boolean indicating whether init was successful or not */
         private bool initSucceeded = false;
 
+        // TODO - stefan.eberl@dynatrace.com - Implement - TimeSync re-sync possibility.
         /** boolean indicating whether the server supports a time sync or not. */
         private bool timeSyncSupported = true;
 
