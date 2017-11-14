@@ -7,6 +7,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public AppMonConfiguration(string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose) 
             : base(OpenKitType.APPMON, applicationName, applicationID, visitorID, endpointURL, verbose)
         {
+            HttpClientConfig = new HTTPClientConfiguration(
+                    CreateBaseURL(endpointURL, OpenKitType.APPMON.DefaultMonitorName),
+                    OpenKitType.APPMON.DefaultServerID,
+                    applicationID,
+                    verbose);
         }
 
         protected override string CreateBaseURL(string endpointURL, string monitorName)

@@ -141,7 +141,7 @@ namespace Dynatrace.OpenKit.Protocol
                             Console.WriteLine("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
-
+                                                         
                     HTTPResponse httpResponse = null;
                     if (method == "GET")
                     {
@@ -160,6 +160,12 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         Console.WriteLine("HTTP Response: " + httpResponse.Response);
                         Console.WriteLine("HTTP Response Code: " + httpResponse.ResponseCode);
+                    }
+
+                    if (httpResponse.ResponseCode >= 400)
+                    {
+                        // an error occurred -> return null
+                        return null;
                     }
 
                     // create typed response based on response content
