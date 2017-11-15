@@ -116,7 +116,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
 
             // no check for shutdown here, time sync has to be completed
-            while (timeSyncOffsets.Count < TIME_SYNC_REQUESTS && retry++ < TIME_SYNC_RETRY_COUNT && !context.IsShutdownRequested)
+            while (timeSyncOffsets.Count < TIME_SYNC_REQUESTS && !context.IsShutdownRequested)
             {
                 // doExecute time-sync request and take timestamps
                 var requestSendTime = context.CurrentTimestamp;
@@ -144,10 +144,16 @@ namespace Dynatrace.OpenKit.Core.Communication
                         break;
                     }
                 }
+                else if (retry >= TIME_SYNC_RETRY_COUNT)
+                {
+                    // retry limit reached
+                    break;
+                }
                 else
                 {
                     context.Sleep(sleepTimeInMillis);
                     sleepTimeInMillis *= 2;
+                    retry++;
                 }
             }
 

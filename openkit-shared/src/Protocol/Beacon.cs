@@ -333,7 +333,6 @@ namespace Dynatrace.OpenKit.Protocol
             while (true)
             {
                 response = httpClient.SendBeaconRequest(clientIPAddress, beaconData);
-                retry++;
                 if (response != null || (retry >= numRetries))
                 {
                     // success OR max retry count reached
@@ -342,6 +341,7 @@ namespace Dynatrace.OpenKit.Protocol
 
                 Thread.Sleep(retrySleepMillis);
                 retrySleepMillis *= 2;
+                retry++;
             }
 
             return response;
