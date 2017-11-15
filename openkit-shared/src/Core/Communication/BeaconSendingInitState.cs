@@ -33,22 +33,24 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.LastOpenSessionBeaconSendTime = currentTimestamp;
             context.LastStatusCheckTime = currentTimestamp;
 
-            StatusResponse statusResponse;
+            StatusResponse statusResponse = null;
             var retry = 0;
             var sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
 
-            do
+            while (true)
             {
-                retry++;
                 statusResponse = context.GetHTTPClient().SendStatusRequest();
 
                 // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s] and then retry (max 5 times altogether)
-                if (RetryStatusRequest(context, statusResponse, retry))
+                if (!RetryStatusRequest(context, statusResponse, retry))
                 {
-                    context.Sleep(sleepTimeInMillis);
-                    sleepTimeInMillis *= 2;
+                    break;
                 }
-            } while (RetryStatusRequest(context, statusResponse, retry));
+
+                context.Sleep(sleepTimeInMillis);
+                sleepTimeInMillis *= 2;
+                retry++;
+            }
 
             if (context.IsShutdownRequested || (statusResponse == null))
             {

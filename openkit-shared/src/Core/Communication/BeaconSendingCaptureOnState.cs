@@ -12,7 +12,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
     /// </ul>
     /// </summary>
-    internal class BeaconSendingStateCaptureOnState : AbstractBeaconSendingState
+    internal class BeaconSendingCaptureOnState : AbstractBeaconSendingState
     {
         public const int BEACON_SEND_RETRY_ATTEMPTS = 3;
 
@@ -21,7 +21,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         private StatusResponse statusResponse = null;
 
-        public BeaconSendingStateCaptureOnState() : base(false) {}
+        public BeaconSendingCaptureOnState() : base(false) {}
 
         protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
@@ -30,6 +30,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // every two hours a time sync shall be performed
             if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
             {
+                // transition to time sync state. if cature on is still true after time sync we will end up in the CaputerOnState again
                 context.CurrentState = new BeaconSendingTimeSyncState();
                 return;
             }
@@ -45,7 +46,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             SendOpenSessions(context);
 
             // check if send interval spent -> send current beacon(s) of open Sessions
-            HandleStatusResponse(context);
+            HandleStatusResponse(context, statusResponse);
         }
 
         private void SendFinishedSessions(BeaconSendingContext context)
@@ -54,7 +55,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var finishedSession = context.GetNextFinishedSession();
             while (finishedSession != null)
             {
-                finishedSession.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
+                statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
                 finishedSession = context.GetNextFinishedSession();
             }
         }
@@ -64,17 +65,20 @@ namespace Dynatrace.OpenKit.Core.Communication
             var currentTimestamp = context.CurrentTimestamp;
             if (currentTimestamp <= context.LastOpenSessionBeaconSendTime + context.SendInterval)
             {
-                return; // still some time to send open sessions
+                return; // some time left until open sessions need to be sent
             }
 
             var openSessions = context.GetAllOpenSessions();
             foreach (var session in openSessions)
             {
-                session.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
+                statusResponse = session.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
             }
+
+            // update open session send timestamp
+            context.LastOpenSessionBeaconSendTime = currentTimestamp;
         }
 
-        private void HandleStatusResponse(BeaconSendingContext context)
+        private static void HandleStatusResponse(BeaconSendingContext context, StatusResponse statusResponse)
         {
             if (statusResponse == null)
             {
@@ -85,7 +89,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (!context.IsCaptureOn)
             {
                 // capturing is turned off -> make state transition
-                context.CurrentState = new BeaconSendingStateCaptureOffState();
+                context.CurrentState = new BeaconSendingCaptureOffState();
             }
         }        
     }

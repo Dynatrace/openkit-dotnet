@@ -21,8 +21,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingInitState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingFlushSessionsState.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingStateCaptureOffState.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingStateCaptureOnState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingCaptureOffState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingCaptureOnState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingTerminalState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingTimeSyncState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AbstractConfiguration.cs" />

@@ -20,14 +20,14 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(BeaconSendingContext context)
         {
-            // end open sessions -> will be finished afterwards
+            // end open sessions -> will be flushed afterwards
             var openSessions = context.GetAllOpenSessions();
             foreach (var openSession in openSessions)
             {
                 openSession.End();
             }
 
-            // flush already finished (and previously opened) sessions
+            // flush finished (and previously ended) sessions
             var finishedSession = context.GetNextFinishedSession();
             while (finishedSession != null)
             {

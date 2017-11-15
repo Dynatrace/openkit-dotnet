@@ -8,12 +8,11 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to
     /// <ul>
-    ///     <li><code>BeaconSendingTimeSyncState</code> if IsCaptureOn is <code>true</code> and time sync is required</li>
     ///     <li><code>BeaconSendingStateCaptureOnState</code> if IsCaputreOn is <code>true</code> and time sync is NOT required</li>
     ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
     /// </ul>
     /// </summary>
-    internal class BeaconSendingStateCaptureOffState : AbstractBeaconSendingState
+    internal class BeaconSendingCaptureOffState : AbstractBeaconSendingState
     {
         /// <summary>
         /// Number of retries for the status request
@@ -29,9 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         public const int STATUS_CHECK_INTERVAL = 2 * 60 * 60 * 1000;    // wait 2h (in ms) for next status request
 
-        private StatusResponse statusResponse;
-
-        public BeaconSendingStateCaptureOffState() : base(false) {}
+        public BeaconSendingCaptureOffState() : base(false) {}
 
         protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
@@ -47,37 +44,41 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             // send the status request
-            SendStatusRequests(context);
+            var statusResponse = SendStatusRequest(context);
 
             // process the response
-            HandleStatusResponse(context);
+            HandleStatusResponse(context, statusResponse);
 
             // update the last status check time in any case
             context.LastStatusCheckTime = currentTime;
         }
 
-        private void SendStatusRequests(BeaconSendingContext context)
+        private static StatusResponse SendStatusRequest(BeaconSendingContext context)
         {
             var retry = 0;
             int sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
 
-            while (retry++ < STATUS_REQUEST_RETRIES && !context.IsShutdownRequested)
+            StatusResponse statusResponse = null;
+
+            while (true)
             {
                 statusResponse = context.GetHTTPClient().SendStatusRequest();
-                if (statusResponse != null)
+
+                // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s] and then retry (max 5 times altogether)
+                if (!RetryStatusRequest(context, statusResponse, retry))
                 {
-                    break; // got the response
+                    break;
                 }
 
-                if (retry < STATUS_REQUEST_RETRIES)
-                {
-                    context.Sleep(sleepTimeInMillis);
-                    sleepTimeInMillis *= 2;
-                }
+                context.Sleep(sleepTimeInMillis);
+                sleepTimeInMillis *= 2;
+                retry++;
             }
+
+            return statusResponse;
         }
 
-        private void HandleStatusResponse(BeaconSendingContext context)
+        private static void HandleStatusResponse(BeaconSendingContext context, StatusResponse statusResponse)
         {
             if (statusResponse == null)
             {
@@ -87,17 +88,16 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.HandleStatusResponse(statusResponse);
             if (context.IsCaptureOn)
             {
-                if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
-                {
-                    // switch to time sync
-                    context.CurrentState = new BeaconSendingTimeSyncState(false);
-                }
-                else
-                {
-                    // switch to capture on
-                    context.CurrentState = new BeaconSendingStateCaptureOnState();
-                }                
+                // transition to capture on state
+                context.CurrentState = new BeaconSendingCaptureOnState();
             }
+        }
+
+        private static bool RetryStatusRequest(BeaconSendingContext context, StatusResponse statusResponse, int retry)
+        {
+            return !context.IsShutdownRequested
+                && (statusResponse == null)
+                && (retry < STATUS_REQUEST_RETRIES);
         }
     }
 }

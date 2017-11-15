@@ -65,13 +65,15 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 context.InitCompleted(true);
             }
-
-            context.LastTimeSyncTime = context.CurrentTimestamp;
+            
         }
 
         private void HandleTimeSyncResponses(BeaconSendingContext context, List<long> timeSyncOffsets)
         {
-            // time sync requests were *not* successful -> use 0 as cluster time offset
+            // time sync requests were *not* successful
+            // -OR-
+            // time sync requests are not supported by the server (e.g. AppMon)
+            // -> use 0 as cluster time offset
             if (timeSyncOffsets.Count < TIME_SYNC_REQUESTS)
             {
                 HandleErroneousTimeSyncRequest(context);
@@ -80,6 +82,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // initialize time provider with cluster time offset
             TimeProvider.Initialize(ComputeClusterTimeOffset(timeSyncOffsets), true);
+
+            // update the last sync time
+            context.LastTimeSyncTime = context.CurrentTimestamp;
         }
 
         private void HandleErroneousTimeSyncRequest(BeaconSendingContext context)
@@ -94,7 +99,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (context.IsTimeSyncSupported)
             {
                 // in case of time sync failure when it's supported, go to capture off state
-                context.CurrentState = new BeaconSendingStateCaptureOffState();
+                context.CurrentState = new BeaconSendingCaptureOffState();
             }
             else
             {
@@ -204,11 +209,11 @@ namespace Dynatrace.OpenKit.Core.Communication
             // state transition
             if (context.IsCaptureOn)
             {
-                context.CurrentState = new BeaconSendingStateCaptureOnState();
+                context.CurrentState = new BeaconSendingCaptureOnState();
             }
             else
             {
-                context.CurrentState = new BeaconSendingStateCaptureOffState();
+                context.CurrentState = new BeaconSendingCaptureOffState();
             }
         }
     }

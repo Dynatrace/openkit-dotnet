@@ -330,20 +330,18 @@ namespace Dynatrace.OpenKit.Protocol
             var retry = 0;
             var retrySleepMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
 
-            for(var i = 0; i < numRetries; i++)
+            while (true)
             {
                 response = httpClient.SendBeaconRequest(clientIPAddress, beaconData);
-                if (response != null)
+                retry++;
+                if (response != null || (retry >= numRetries))
                 {
-                    // success
-                    break;
+                    // success OR max retry count reached
+                    break; 
                 }
 
-                if (retry < numRetries)
-                {
-                    Thread.Sleep(retrySleepMillis);
-                    retrySleepMillis *= 2;
-                }
+                Thread.Sleep(retrySleepMillis);
+                retrySleepMillis *= 2;
             }
 
             return response;
