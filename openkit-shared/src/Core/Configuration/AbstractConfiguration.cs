@@ -13,13 +13,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// <summary>
     ///  The Configuration class holds all configuration settings, both provided by the user and the Dynatrace/AppMon server.
     /// </summary>
-    public abstract class AbstractConfiguration {
+    public abstract class AbstractConfiguration
+    {
 
-        private static readonly bool DEFAULT_CAPTURE = true;							    // default: capture on
-    	private static readonly int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;                  // default: wait 2m (in ms) to send beacon
-        private static readonly int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;                    // default: max 30KB (in B) to send in one beacon
-        private static readonly bool DEFAULT_CAPTURE_ERRORS = true; 						// default: capture errors on
-    	private static readonly bool DEFAULT_CAPTURE_CRASHES = true;    					// default: capture crashes on
+        private const bool DEFAULT_CAPTURE = true;                  // default: capture on
+        private const int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;    // default: wait 2m (in ms) to send beacon
+        private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;      // default: max 30KB (in B) to send in one beacon
+        private const bool DEFAULT_CAPTURE_ERRORS = true;           // default: capture errors on
+        private const bool DEFAULT_CAPTURE_CRASHES = true;          // default: capture crashes on
 
         // immutable settings
         private readonly OpenKitType openKitType;
@@ -29,14 +30,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private readonly string endpointURL;
         private readonly bool verbose;
 
-	    // mutable settings
+        // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
         private string monitorName;                                 // monitor name part of URL; is only written/read by beacon sender thread -> non-atomic
         private int maxBeaconSize;                                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
         private bool captureErrors;                                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private bool captureCrashes;		                        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
-        private HTTPClientConfiguration httpClientConfiguration; 	// the current http client configuration
 
         // application and device settings
         private string applicationVersion;
@@ -46,7 +46,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** constructors ***
 
-        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose) {
+        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose)
+        {
             this.verbose = verbose;
 
             this.openKitType = openKitType;
@@ -67,54 +68,57 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             device = new Device();
             applicationVersion = null;
-
-            httpClientConfiguration = new HTTPClientConfiguration(
-                    CreateBaseURL(endpointURL, monitorName),
-                    openKitType.DefaultServerID,
-                    applicationID,
-                    verbose);
         }
 
         // *** public methods ***
 
         // return next session number
-        public int NextSessionNumber {
-            get {
+        public int NextSessionNumber
+        {
+            get
+            {
                 return Interlocked.Increment(ref nextSessionNumber);
             }
         }
 
         // updates settings based on a status response
-        public void UpdateSettings(StatusResponse statusResponse) {
+        public void UpdateSettings(StatusResponse statusResponse)
+        {
             // if invalid status response OR response code != 200 -> capture off
-            if ((statusResponse == null) || (statusResponse.ResponseCode != 200)) {
+            if ((statusResponse == null) || (statusResponse.ResponseCode != 200))
+            {
                 capture = false;
-            } else {
+            }
+            else
+            {
                 capture = statusResponse.Capture;
             }
 
             // if capture is off -> leave other settings on their current values
-            if (!IsCapture) {
+            if (!IsCapture)
+            {
                 return;
             }
 
             // use monitor name from beacon response or default
             string newMonitorName = statusResponse.MonitorName;
-            if (newMonitorName == null) {
+            if (newMonitorName == null)
+            {
                 newMonitorName = openKitType.DefaultMonitorName;
             }
 
             // use server id from beacon response or default
             int newServerID = statusResponse.ServerID;
-            if (newServerID == -1) {
+            if (newServerID == -1)
+            {
                 newServerID = openKitType.DefaultServerID;
             }
 
             // check if http config needs to be updated
             if (!monitorName.Equals(newMonitorName)
-                || httpClientConfiguration.ServerID != newServerID)
+                || HttpClientConfig.ServerID != newServerID)
             {
-                httpClientConfiguration = new HTTPClientConfiguration(
+                HttpClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, newMonitorName),
                     newServerID,
                     applicationID,
@@ -125,20 +129,24 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // use send interval from beacon response or default
             int newSendInterval = statusResponse.SendInterval;
-            if (newSendInterval == -1) {
+            if (newSendInterval == -1)
+            {
                 newSendInterval = DEFAULT_SEND_INTERVAL;
             }
             // check if send interval has to be updated
-            if (sendInterval != newSendInterval) {
+            if (sendInterval != newSendInterval)
+            {
                 sendInterval = newSendInterval;
             }
 
             // use max beacon size from beacon response or default
             int newMaxBeaconSize = statusResponse.MaxBeaconSize;
-            if (newMaxBeaconSize == -1) {
+            if (newMaxBeaconSize == -1)
+            {
                 newMaxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
             }
-            if (maxBeaconSize != newMaxBeaconSize) {
+            if (maxBeaconSize != newMaxBeaconSize)
+            {
                 maxBeaconSize = newMaxBeaconSize;
             }
 
@@ -153,82 +161,107 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** properties ***
 
-        public bool IsDynatrace {
-            get {
+        public bool IsDynatrace
+        {
+            get
+            {
                 return openKitType == OpenKitType.DYNATRACE;            // object comparison is possible here
             }
         }
 
-        public string ApplicationName {
-            get {
+        public string ApplicationName
+        {
+            get
+            {
                 return applicationName;
             }
         }
 
-        public string ApplicationID {
-            get {
+        public string ApplicationID
+        {
+            get
+            {
                 return applicationID;
             }
         }
 
-        public long VisitorID {
-            get {
+        public long VisitorID
+        {
+            get
+            {
                 return visitorID;
             }
         }
 
-        public bool IsVerbose {
-            get {
+        public bool IsVerbose
+        {
+            get
+            {
                 return verbose;
             }
         }
 
-        public bool IsCapture {
-            get {
+        public bool IsCapture
+        {
+            get
+            {
                 return capture;
             }
         }
 
-        public int SendInterval {
-            get {
+        public int SendInterval
+        {
+            get
+            {
                 return sendInterval;
             }
         }
 
-        public int MaxBeaconSize {
-            get {
+        public int MaxBeaconSize
+        {
+            get
+            {
                 return maxBeaconSize;
             }
         }
 
-        public bool CaptureErrors {
-            get {
+        public bool CaptureErrors
+        {
+            get
+            {
                 return captureErrors;
             }
         }
 
-        public bool CaptureCrashes {
-            get {
+        public bool CaptureCrashes
+        {
+            get
+            {
                 return captureCrashes;
             }
         }
 
-        public string ApplicationVersion {
-            get {
+        public string ApplicationVersion
+        {
+            get
+            {
                 return applicationVersion;
             }
-            set {
+            set
+            {
                 this.applicationVersion = value;
             }
         }
 
-        public Device Device {
-            get {
+        public Device Device
+        {
+            get
+            {
                 return device;
             }
         }
 
-        public HTTPClientConfiguration HttpClientConfig { get { return httpClientConfiguration; } }
+        public HTTPClientConfiguration HttpClientConfig { get; protected set; }
     }
 
 }
