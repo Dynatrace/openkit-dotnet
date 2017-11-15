@@ -22,8 +22,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         /** boolean indicating whether shutdown was requested or not */
         private bool shutdown;
 
-        /** countdown latch updated when init was done - which can either be success or failure */
-        private readonly CountdownEvent countdownEvent = new CountdownEvent(1);
+        /** reset event is set when init was done - which can either be success or failure */
+        private readonly ManualResetEvent countdownEvent = new ManualResetEvent(false);
 
         /** boolean indicating whether init was successful or not */
         private bool initSucceeded = false;
@@ -84,14 +84,14 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public bool WaitForInit()
         {
-            countdownEvent.Wait();
+            countdownEvent.WaitOne();
             return initSucceeded;
         }
 
         public void InitCompleted(bool success)
         {
             initSucceeded = success;
-            countdownEvent.Signal();
+            countdownEvent.Set();
         }
 
         public HTTPClient GetHTTPClient()

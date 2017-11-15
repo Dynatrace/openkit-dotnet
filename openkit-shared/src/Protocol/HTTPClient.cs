@@ -54,6 +54,10 @@ namespace Dynatrace.OpenKit.Protocol
         private const string QUERY_KEY_SERVER_ID = "srvid";
         private const string QUERY_KEY_APPLICATION = "app";
         private const string QUERY_KEY_VERSION = "va";
+        private const string QUERY_KEY_PLATFORM_TYPE = "pt";
+
+        // constant query parameter values
+        private const string PLATFORM_TYPE_OPENKIT = "1";
 
         // connection constants
         private const int MAX_SEND_RETRIES = 3;
@@ -141,7 +145,7 @@ namespace Dynatrace.OpenKit.Protocol
                             Console.WriteLine("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
-
+                                                         
                     HTTPResponse httpResponse = null;
                     if (method == "GET")
                     {
@@ -160,6 +164,12 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         Console.WriteLine("HTTP Response: " + httpResponse.Response);
                         Console.WriteLine("HTTP Response Code: " + httpResponse.ResponseCode);
+                    }
+
+                    if (httpResponse.ResponseCode >= 400)
+                    {
+                        // an error occurred -> return null
+                        return null;
                     }
 
                     // create typed response based on response content
@@ -205,6 +215,7 @@ namespace Dynatrace.OpenKit.Protocol
             AppendQueryParam(monitorURLBuilder, QUERY_KEY_SERVER_ID, serverID.ToString());
             AppendQueryParam(monitorURLBuilder, QUERY_KEY_APPLICATION, applicationID);
             AppendQueryParam(monitorURLBuilder, QUERY_KEY_VERSION, Beacon.OPENKIT_VERSION);
+            AppendQueryParam(monitorURLBuilder, QUERY_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
 
             return monitorURLBuilder.ToString();
         }
