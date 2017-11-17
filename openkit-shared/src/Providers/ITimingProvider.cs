@@ -1,5 +1,8 @@
 ﻿namespace Dynatrace.OpenKit.Providers
 {
+    /// <summary>
+    /// Interface providing timing related functionality
+    /// </summary>
     public interface ITimingProvider
     {
         /// <summary>

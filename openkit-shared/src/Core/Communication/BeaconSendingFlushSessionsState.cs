@@ -12,7 +12,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingFlushSessionsState : AbstractBeaconSendingState
     {
-        public const int BEACON_SEND_RETRY_ATTEMPTS = 1;
+        public const int BEACON_SEND_RETRY_ATTEMPTS = 0; // do not retry beacon sending on error
 
         public BeaconSendingFlushSessionsState() : base(false) {}
 

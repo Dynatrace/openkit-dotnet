@@ -14,7 +14,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingCaptureOnState : AbstractBeaconSendingState
     {
-        public const int BEACON_SEND_RETRY_ATTEMPTS = 3;
+        public const int BEACON_SEND_RETRY_ATTEMPTS = 2;
 
         /// <summary>
         /// stores the last status response

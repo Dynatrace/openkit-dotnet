@@ -11,26 +11,19 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingContext
     {
-        internal const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
+        public const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
 
-        /** container storing all open sessions */
+        // container storing all open sessions 
         private readonly SynchronizedQueue<Session> openSessions = new SynchronizedQueue<Session>();
 
-        /** container storing all finished sessions */
+        // container storing all finished sessions 
         private readonly SynchronizedQueue<Session> finishedSessions = new SynchronizedQueue<Session>();
 
-        /** boolean indicating whether shutdown was requested or not */
-        private bool shutdown;
+        // reset event is set when init was done - which can either be success or failure 
+        private readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
 
-        /** reset event is set when init was done - which can either be success or failure */
-        private readonly ManualResetEvent countdownEvent = new ManualResetEvent(false);
-
-        /** boolean indicating whether init was successful or not */
+        // boolean indicating whether init was successful or not
         private bool initSucceeded = false;
-
-        // TODO - stefan.eberl@dynatrace.com - Implement - TimeSync re-sync possibility.
-        /** boolean indicating whether the server supports a time sync or not. */
-        private bool timeSyncSupported = true;
 
         /// <summary>
         /// Constructor
@@ -54,66 +47,97 @@ namespace Dynatrace.OpenKit.Core.Communication
         public IHTTPClientProvider HTTPClientProvider { get; }
         public ITimingProvider TimingProvider { get; }
 
-        public AbstractBeaconSendingState CurrentState { get; set; }
-        public long LastOpenSessionBeaconSendTime { get; set; }
-        public long LastStatusCheckTime { get; set; }
-        public long LastTimeSyncTime { get; set; }
+        public AbstractBeaconSendingState CurrentState { get; internal set; }
+        public long LastOpenSessionBeaconSendTime { get; internal set; }
+        public long LastStatusCheckTime { get; internal set; }
+        public long LastTimeSyncTime { get; internal set; }
 
-        public bool IsTimeSyncSupported { get { return timeSyncSupported; } }
-        public bool IsShutdownRequested { get { return shutdown; } }
+        public bool IsTimeSyncSupported { get; private set; }
+        public bool IsShutdownRequested { get; private set; }
         public long CurrentTimestamp { get { return TimingProvider.ProvideTimestampInMilliseconds(); } }
         public int SendInterval { get { return Configuration.SendInterval; } }
         public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
         public bool IsInTerminalState { get { return CurrentState.IsTerminalState; } }
 
-
+        /// <summary>
+        /// Disables the time sync support
+        /// </summary>
         public void DisableTimeSyncSupport()
         {
-            timeSyncSupported = false;
+            IsTimeSyncSupported = false;
         }
 
+        /// <summary>
+        /// Executes the current state
+        /// </summary>
         public void ExecuteCurrentState()
         {
             CurrentState.Execute(this);
         }
 
+        /// <summary>
+        /// Requests a shotdown
+        /// </summary>
         public void RequestShutdown()
         {
-            shutdown = true;
+            IsShutdownRequested = true;
         }
 
+        /// <summary>
+        /// Waits for the init to be finished
+        /// </summary>
+        /// <returns></returns>
         public bool WaitForInit()
         {
-            countdownEvent.WaitOne();
+            resetEvent.WaitOne();
             return initSucceeded;
         }
 
+        /// <summary>
+        /// Set the result of the init step. 
+        /// </summary>
+        /// <param name="success"><code>True</code> if init was successful otherwise false</param>
         public void InitCompleted(bool success)
         {
             initSucceeded = success;
-            countdownEvent.Set();
+            resetEvent.Set();
         }
 
+        /// <summary>
+        /// Returns an instance of HTTPClient using the current configuration
+        /// </summary>
+        /// <returns></returns>
         public HTTPClient GetHTTPClient()
         {
             return HTTPClientProvider.CreateClient(Configuration.HttpClientConfig);
         }
 
+        /// <summary>
+        /// Sleeps <code>DEFAULT_SLEEP_TIME_MILLISECONDS</code> millis
+        /// </summary>
         public void Sleep()
         {
             Sleep(DEFAULT_SLEEP_TIME_MILLISECONDS);
         }
 
+        /// <summary>
+        /// Sleeps the given amount of time
+        /// </summary>
+        /// <param name="millis"></param>
         public void Sleep(int millis)
         {
             TimingProvider.Sleep(millis);
         }
         
+        /// <summary>
+        /// Updates the configuration based on the provided status response.
+        /// </summary>
+        /// <param name="statusResponse"></param>
         public void HandleStatusResponse(StatusResponse statusResponse)
         {
             Configuration.UpdateSettings(statusResponse);
 
-            if (!Configuration.IsCaptureOn) {
+            if (!IsCaptureOn) {
                 // capture was turned off
                 ClearAllSessions();
             }
