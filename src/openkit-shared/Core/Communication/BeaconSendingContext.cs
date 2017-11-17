@@ -9,9 +9,9 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// <summary>
     /// State context for beacon sending
     /// </summary>
-    internal class BeaconSendingContext
+    internal class BeaconSendingContext : IBeaconSendingContext
     {
-        internal const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
+        public const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
 
         /** container storing all open sessions */
         private readonly SynchronizedQueue<Session> openSessions = new SynchronizedQueue<Session>();
@@ -82,6 +82,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             shutdown = true;
         }
 
+        /// <summary>
+        /// Waits for init to be finished and returns the result
+        /// </summary>
+        /// <returns>Returns <code>true</code> if successful otherwise <code>false</code></returns>
         public bool WaitForInit()
         {
             countdownEvent.WaitOne();
@@ -94,7 +98,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             countdownEvent.Set();
         }
 
-        public HTTPClient GetHTTPClient()
+        public IHTTPClient GetHTTPClient()
         {
             return HTTPClientProvider.CreateClient(Configuration.HttpClientConfig);
         }

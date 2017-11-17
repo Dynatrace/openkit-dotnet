@@ -23,9 +23,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public BeaconSendingCaptureOnState() : base(false) {}
 
-        protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
+        internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
-        protected override void DoExecute(BeaconSendingContext context)
+        protected override void DoExecute(IBeaconSendingContext context)
         {
             // every two hours a time sync shall be performed
             if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
@@ -49,7 +49,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             HandleStatusResponse(context, statusResponse);
         }
 
-        private void SendFinishedSessions(BeaconSendingContext context)
+        private void SendFinishedSessions(IBeaconSendingContext context)
         {
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
             var finishedSession = context.GetNextFinishedSession();
@@ -60,7 +60,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private void SendOpenSessions(BeaconSendingContext context)
+        private void SendOpenSessions(IBeaconSendingContext context)
         {
             var currentTimestamp = context.CurrentTimestamp;
             if (currentTimestamp <= context.LastOpenSessionBeaconSendTime + context.SendInterval)
@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.LastOpenSessionBeaconSendTime = currentTimestamp;
         }
 
-        private static void HandleStatusResponse(BeaconSendingContext context, StatusResponse statusResponse)
+        private static void HandleStatusResponse(IBeaconSendingContext context, StatusResponse statusResponse)
         {
             if (statusResponse == null)
             {

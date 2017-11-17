@@ -20,14 +20,14 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         internal BeaconSendingInitState() : base(false) { }
 
-        protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
+        internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
 
-        protected override void OnInterrupted(BeaconSendingContext context)
+        internal override void OnInterrupted(IBeaconSendingContext context)
         {
             context.InitCompleted(false);
         }
 
-        protected override void DoExecute(BeaconSendingContext context)
+        protected override void DoExecute(IBeaconSendingContext context)
         {
             var currentTimestamp = context.CurrentTimestamp;
             context.LastOpenSessionBeaconSendTime = currentTimestamp;
@@ -66,7 +66,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private static bool RetryStatusRequest(BeaconSendingContext context, StatusResponse statusResponse, int retry)
+        private static bool RetryStatusRequest(IBeaconSendingContext context, StatusResponse statusResponse, int retry)
         {
             return !context.IsShutdownRequested
                 && (statusResponse == null)

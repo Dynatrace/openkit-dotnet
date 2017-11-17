@@ -44,6 +44,9 @@ namespace Dynatrace.OpenKit.Protocol
         // parses status check response
         private void ParseResponse(string response)
         {
+            if (string.IsNullOrEmpty(response))
+                return;
+
             string[] tokens = response.Split(new Char[] { '&', '=' });
 
             int index = 0;

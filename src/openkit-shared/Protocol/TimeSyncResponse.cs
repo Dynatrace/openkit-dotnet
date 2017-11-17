@@ -15,8 +15,8 @@ namespace Dynatrace.OpenKit.Protocol
     {
 
         // time sync response constants
-        private const string RESPONSE_KEY_REQUEST_RECEIVE_TIME = "t1";
-        private const string RESPONSE_KEY_RESPONSE_SEND_TIME = "t2";
+        internal const string RESPONSE_KEY_REQUEST_RECEIVE_TIME = "t1";
+        internal const string RESPONSE_KEY_RESPONSE_SEND_TIME = "t2";
 
         // timestamps contained in time sync response
         private long requestReceiveTime = -1;

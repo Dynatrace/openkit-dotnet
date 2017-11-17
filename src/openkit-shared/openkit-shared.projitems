@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingCaptureOnState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTerminalState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\IBeaconSendingContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\AbstractConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\AppMonConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\DynatraceConfiguration.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Session.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SynchronizedQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Protocol\IHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TimeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagBase.cs" />

@@ -5,6 +5,7 @@
  */
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -35,3 +36,12 @@ using System.Runtime.InteropServices;
 //
 [assembly: AssemblyVersion("0.2.0.0")]
 [assembly: AssemblyFileVersion("0.2.0.0")]
+
+// Expose internal classes to test assemblies
+[assembly: InternalsVisibleTo("openkit-dotnetcore-2.0.Tests")]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-3.5.Tests")]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.0.Tests")]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.5.Tests")]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.6.Tests")]
+// Expose internal classes to NSubstitute
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")] 

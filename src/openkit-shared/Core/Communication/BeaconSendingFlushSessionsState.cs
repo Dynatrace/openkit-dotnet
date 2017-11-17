@@ -16,9 +16,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public BeaconSendingFlushSessionsState() : base(false) {}
 
-        protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
+        internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
 
-        protected override void DoExecute(BeaconSendingContext context)
+        protected override void DoExecute(IBeaconSendingContext context)
         {
             // end open sessions -> will be flushed afterwards
             var openSessions = context.GetAllOpenSessions();

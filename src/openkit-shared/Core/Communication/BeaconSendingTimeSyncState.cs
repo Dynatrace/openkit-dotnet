@@ -31,13 +31,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             this.initialTimeSync = initialTimeSync;
         }
 
-        protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
+        internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
 
         /// <summary>
         /// Sets init completed to false
         /// </summary>
         /// <param name="context"></param>
-        protected override void OnInterrupted(BeaconSendingContext context)
+        internal override void OnInterrupted(IBeaconSendingContext context)
         {
             if (initialTimeSync)
             {
@@ -45,7 +45,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        protected override void DoExecute(BeaconSendingContext context)
+        protected override void DoExecute(IBeaconSendingContext context)
         {
             if (!IsTimeSyncRequired(context))
             {
@@ -65,10 +65,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 context.InitCompleted(true);
             }
-            
         }
 
-        private void HandleTimeSyncResponses(BeaconSendingContext context, List<long> timeSyncOffsets)
+        private void HandleTimeSyncResponses(IBeaconSendingContext context, List<long> timeSyncOffsets)
         {
             // time sync requests were *not* successful
             // -OR-
@@ -85,9 +84,12 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // update the last sync time
             context.LastTimeSyncTime = context.CurrentTimestamp;
+
+            // perform transition to next state
+            SetNextState(context);
         }
 
-        private void HandleErroneousTimeSyncRequest(BeaconSendingContext context)
+        private void HandleErroneousTimeSyncRequest(IBeaconSendingContext context)
         {
             // if this is the initial sync try, we have to initialize the time provider
             // in every other case we keep the previous setting
@@ -108,7 +110,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private List<long> ExecuteTimeSyncRequests(BeaconSendingContext context)
+        private List<long> ExecuteTimeSyncRequests(IBeaconSendingContext context)
         {
             var timeSyncOffsets = new List<long>(TIME_SYNC_REQUESTS);
 
@@ -198,7 +200,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static bool IsTimeSyncRequired(BeaconSendingContext context)
+        public static bool IsTimeSyncRequired(IBeaconSendingContext context)
         {
             if (!context.IsTimeSyncSupported)
             {
@@ -210,7 +212,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 || (context.CurrentTimestamp - context.LastTimeSyncTime > TIME_SYNC_INTERVAL_IN_MILLIS));
         }
 
-        private static void SetNextState(BeaconSendingContext context)
+        private static void SetNextState(IBeaconSendingContext context)
         {
             // state transition
             if (context.IsCaptureOn)

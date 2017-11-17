@@ -10,6 +10,6 @@ namespace Dynatrace.OpenKit.Providers
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        HTTPClient CreateClient(HTTPClientConfiguration configuration);
+        IHTTPClient CreateClient(HTTPClientConfiguration configuration);
     }
 }

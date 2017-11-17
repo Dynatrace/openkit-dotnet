@@ -30,9 +30,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public BeaconSendingCaptureOffState() : base(false) {}
 
-        protected override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
+        internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
-        protected override void DoExecute(BeaconSendingContext context)
+        protected override void DoExecute(IBeaconSendingContext context)
         {
             var currentTime = context.CurrentTimestamp;
 
@@ -53,7 +53,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.LastStatusCheckTime = currentTime;
         }
 
-        private static StatusResponse SendStatusRequest(BeaconSendingContext context)
+        private static StatusResponse SendStatusRequest(IBeaconSendingContext context)
         {
             var retry = 0;
             int sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             return statusResponse;
         }
 
-        private static void HandleStatusResponse(BeaconSendingContext context, StatusResponse statusResponse)
+        private static void HandleStatusResponse(IBeaconSendingContext context, StatusResponse statusResponse)
         {
             if (statusResponse == null)
             {
@@ -93,7 +93,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private static bool RetryStatusRequest(BeaconSendingContext context, StatusResponse statusResponse, int retry)
+        private static bool RetryStatusRequest(IBeaconSendingContext context, StatusResponse statusResponse, int retry)
         {
             return !context.IsShutdownRequested
                 && (statusResponse == null)

@@ -7,7 +7,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal abstract class AbstractBeaconSendingState
     {
-        protected AbstractBeaconSendingState(bool isTerminalState)
+        internal AbstractBeaconSendingState(bool isTerminalState)
         {
             IsTerminalState = isTerminalState;
         }
@@ -20,7 +20,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Get an instance of the <code>AbstractBeaconSendingState</code> to which a transition is made upon shutdown request.
         /// </summary>
-        protected abstract AbstractBeaconSendingState ShutdownState { get; }
+        internal abstract AbstractBeaconSendingState ShutdownState { get; }
 
         /// <summary>
         /// Execute the current state
@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// In case shutdown was requested, a state transition is performed by this method to the <code>ShutdownState</code>
         /// </summary>
         /// <param name="context"></param>
-        public void Execute(BeaconSendingContext context)
+        public void Execute(IBeaconSendingContext context)
         {
 #if !NETCOREAPP1_0
             try
@@ -55,7 +55,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Performs cleanup on interrupt if necessary
         /// </summary>
-        protected virtual void OnInterrupted(BeaconSendingContext context)
+        internal virtual void OnInterrupted(IBeaconSendingContext context)
         {
             // default -> do nothing
         }
@@ -64,6 +64,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Executes the current state
         /// </summary>
         /// <param name="context">The state's context</param>
-        protected abstract void DoExecute(BeaconSendingContext context);
+        protected abstract void DoExecute(IBeaconSendingContext context);
     }
 }

@@ -7,9 +7,9 @@
     {
         public BeaconSendingTerminalState() : base(true) { }
 
-        protected override AbstractBeaconSendingState ShutdownState => this;
+        internal override AbstractBeaconSendingState ShutdownState => this;
 
-        protected override void DoExecute(BeaconSendingContext context)
+        protected override void DoExecute(IBeaconSendingContext context)
         {
             context.RequestShutdown();
         }

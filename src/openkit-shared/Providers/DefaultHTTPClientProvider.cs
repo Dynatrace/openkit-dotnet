@@ -6,7 +6,7 @@ namespace Dynatrace.OpenKit.src.Providers
 {
     public class DefaultHTTPClientProvider : IHTTPClientProvider
     {
-        public HTTPClient CreateClient(HTTPClientConfiguration configuration)
+        public IHTTPClient CreateClient(HTTPClientConfiguration configuration)
         {
 #if NET40 || NET35
             return new HTTPClientWebClient(configuration.BaseUrl, configuration.ApplicationID, configuration.ServerID, configuration.IsVerbose); // HttpClient is not availalbe in .NET 4.0

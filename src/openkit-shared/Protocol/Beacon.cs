@@ -312,8 +312,8 @@ namespace Dynatrace.OpenKit.Protocol
         // send current state of Beacon
         public StatusResponse Send(IHTTPClientProvider httpClientProvider, int numRetries)
         {
-            HTTPClient httpClient = httpClientProvider.CreateClient(httpConfiguration);
-            List<byte[]> beaconDataChunks = CreateBeaconDataChunks();
+            var httpClient = httpClientProvider.CreateClient(httpConfiguration);
+            var beaconDataChunks = CreateBeaconDataChunks();
             StatusResponse response = null;
             foreach (byte[] beaconData in beaconDataChunks)
             {
@@ -324,7 +324,7 @@ namespace Dynatrace.OpenKit.Protocol
             return response;
         }
 
-        private StatusResponse SendBeaconRequest(HTTPClient httpClient, byte[] beaconData, int numRetries)
+        private StatusResponse SendBeaconRequest(IHTTPClient httpClient, byte[] beaconData, int numRetries)
         {
             StatusResponse response = null;
             var retry = 0;

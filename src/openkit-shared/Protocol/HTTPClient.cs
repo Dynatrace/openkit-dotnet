@@ -16,7 +16,7 @@ namespace Dynatrace.OpenKit.Protocol
     ///  - beacon send
     ///  - time sync
     /// </summary>
-    public abstract class HTTPClient
+    public abstract class HTTPClient : IHTTPClient
     {
 
         public class RequestType
@@ -246,16 +246,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // gzip code taken from DotNetZip: http://dotnetzip.codeplex.com/
             return Ionic.Zlib.GZipStream.CompressBuffer(data);
-        }
-
-        // *** properties ***
-
-        public int ServerID
-        {
-            get
-            {
-                return serverID;
-            }
         }
     }
 }
