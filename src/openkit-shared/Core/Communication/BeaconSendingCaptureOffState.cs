@@ -64,7 +64,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 statusResponse = context.GetHTTPClient().SendStatusRequest();
 
-                // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s] and then retry (max 5 times altogether)
+                // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s, 16s] and then retry (max 6 times altogether)
                 if (!RetryStatusRequest(context, statusResponse, retry))
                 {
                     break;
@@ -95,9 +95,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private static bool RetryStatusRequest(IBeaconSendingContext context, StatusResponse statusResponse, int retry)
         {
-            return !context.IsShutdownRequested
-                && (statusResponse == null)
-                && (retry < STATUS_REQUEST_RETRIES);
+            return (statusResponse == null)
+                && (retry < STATUS_REQUEST_RETRIES)
+                && !context.IsShutdownRequested;
         }
     }
 }

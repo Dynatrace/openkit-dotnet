@@ -12,8 +12,8 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// Transitions to:
     /// <ul>
     ///     <li><code>BeaconSendingStateCaptureOnState</code> if IsCaptureOn is <code>true</code></li>
-    ///     <li><code>BeaconSendingStateCaptureOffState</code> if IsCaptureOn is <code>false</code></li>
-    ///     li><code>BeaconSendingTerminalState</code> on shutdown</li>
+    ///     <li><code>BeaconSendingStateCaptureOffState</code> if IsCaptureOn is <code>false</code> or time sync failed</li>
+    ///     <li><code>BeaconSendingTerminalState</code> on shutdown</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingTimeSyncState : AbstractBeaconSendingState
@@ -21,12 +21,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         public const int TIME_SYNC_REQUESTS = 5;
         public const int TIME_SYNC_RETRY_COUNT = 5;
         public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
-        public const int TIME_SYNC_INTERVAL_IN_MILLIS = 2 * 60 * 60 * 1000;
+        public const int TIME_SYNC_INTERVAL_IN_MILLIS = 2 * 60 * 60 * 1000; // 2 h
 
         private readonly bool initialTimeSync;
 
-        public BeaconSendingTimeSyncState() : base(false) { }
-        public BeaconSendingTimeSyncState(bool initialTimeSync) : this()
+        public BeaconSendingTimeSyncState() : this(false) { }
+        public BeaconSendingTimeSyncState(bool initialTimeSync) : base(false)
         {
             this.initialTimeSync = initialTimeSync;
         }
