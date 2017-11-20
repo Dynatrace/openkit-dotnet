@@ -17,6 +17,10 @@
     <ProjectReference Include="..\..\src\openkit-dotnetcore-2.0\openkit-dotnetcore-2.0.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup> 
+  
   <Import Project="..\openkit-shared-tests\openkit-shared-tests.projitems" Label="Shared" />
 
 </Project>

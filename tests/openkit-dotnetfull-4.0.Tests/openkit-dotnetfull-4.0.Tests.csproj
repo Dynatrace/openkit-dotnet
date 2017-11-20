@@ -45,9 +45,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\src\openkit-dotnetfull-4.0\openkit-dotnetfull-4.0.csproj">
       <Project>{b2a9f5b6-7f0a-44a9-be0f-862b0c9a3020}</Project>
       <Name>openkit-dotnetfull-4.0</Name>
@@ -58,6 +55,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\openkit-shared-tests\openkit-shared-tests.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
