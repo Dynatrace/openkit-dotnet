@@ -28,13 +28,13 @@ namespace Dynatrace.OpenKit.Core {
         // *** constructors ***
 
         public OpenKit(AbstractConfiguration configuration)
-            : this(configuration, new DefaultHTTPClientProvider())
+            : this(configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider())
         {
         }
 
-        protected OpenKit(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider) {
+        protected OpenKit(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider) {
             this.configuration = configuration;
-            beaconSender = new BeaconSender(configuration, httpClientProvider);
+            beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
         }
 
         // *** IOpenKit interface methods ***
@@ -57,7 +57,7 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         public ISession CreateSession(string clientIPAddress) {
-            if (initialized && configuration.IsCapture) {
+            if (initialized && configuration.IsCaptureOn) {
                 return new Session(configuration, clientIPAddress, beaconSender);
             } else {
                 return dummySessionInstance;

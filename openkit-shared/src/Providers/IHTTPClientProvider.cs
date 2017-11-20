@@ -3,6 +3,9 @@ using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Providers
 {
+    /// <summary>
+    /// Interface providing a method to create a new http client
+    /// </summary>
     public interface IHTTPClientProvider
     {
         /// <summary>

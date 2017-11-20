@@ -37,9 +37,13 @@ namespace Dynatrace.OpenKit.Core {
         // get an item from the queue i.e. removes it (from the beginning)
         public T Get() {
             lock (list) {
-                T entry = list.First.Value;
+                var first = list.First;
+
+                if (first == null)
+                    return default(T);
+                
                 list.RemoveFirst();
-                return entry;
+                return first.Value;
             }
         }
 

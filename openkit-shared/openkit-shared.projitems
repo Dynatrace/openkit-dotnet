@@ -17,6 +17,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\API\IWebRequestTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Action.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\BeaconSender.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\AbstractBeaconSendingState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingInitState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingFlushSessionsState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingCaptureOffState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingCaptureOnState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingTerminalState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Core\Communication\BeaconSendingTimeSyncState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AbstractConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\AppMonConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Configuration\DynatraceConfiguration.cs" />
@@ -30,8 +38,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\Session.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\SynchronizedQueue.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\ThreadIDProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)src\Core\TimeProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\ThreadIDProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\TimeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Core\WebRequestTagStringURL.cs" />
@@ -59,6 +67,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\StatusResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Protocol\TimeSyncResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultHTTPClientProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\DefaultTimingProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)src\Providers\IHTTPClientProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)src\Providers\ITimingProvider.cs" />
   </ItemGroup>
 </Project>

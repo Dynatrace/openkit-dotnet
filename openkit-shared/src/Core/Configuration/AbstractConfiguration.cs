@@ -95,7 +95,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
 
             // if capture is off -> leave other settings on their current values
-            if (!IsCapture)
+            if (!IsCaptureOn)
             {
                 return;
             }
@@ -201,7 +201,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
-        public bool IsCapture
+        public bool IsCaptureOn
         {
             get
             {

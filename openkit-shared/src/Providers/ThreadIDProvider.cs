@@ -5,7 +5,7 @@
  */
 using System.Threading;
 
-namespace Dynatrace.OpenKit.Protocol {
+namespace Dynatrace.OpenKit.Providers {
 
     /// <summary>
     ///  Class for providing a thread ID.

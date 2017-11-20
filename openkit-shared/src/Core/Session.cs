@@ -71,8 +71,8 @@ namespace Dynatrace.OpenKit.Core {
         // *** public methods ***
 
         // sends the current Beacon state
-        public StatusResponse SendBeacon(IHTTPClientProvider clientProvider) {
-            return beacon.Send(clientProvider);
+        public StatusResponse SendBeacon(IHTTPClientProvider clientProvider, int numRetries) {
+            return beacon.Send(clientProvider, numRetries);
         }
 
         // *** properties ***
