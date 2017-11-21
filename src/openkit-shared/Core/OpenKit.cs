@@ -6,7 +6,6 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
-using Dynatrace.OpenKit.src.Providers;
 
 namespace Dynatrace.OpenKit.Core {
 

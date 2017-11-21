@@ -29,3 +29,6 @@ build/
 **/[Pp]ackages/*
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
+
+#axocover
+.axoCover/*
