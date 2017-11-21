@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingFlushSessionsStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingInitStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\ConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConfiguration.cs" />
   </ItemGroup>
 </Project>
