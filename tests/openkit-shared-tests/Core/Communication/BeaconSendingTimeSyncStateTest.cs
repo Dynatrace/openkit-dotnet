@@ -7,7 +7,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     public class BeaconSendingTimeSyncStateTest
     {
         private long currentTime = 0;
-        private long lastTimeSyncTime = -1;
+        private long lastTimeSyncTime = 0;
 
         private IHTTPClient httpClient;
         private IBeaconSendingContext context;
@@ -198,7 +198,6 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.Sleep(1000);  // start with 1 sec again
             });
         }
-
 
         private static TimeSyncResponse CreateValidTimeResponse(long receiveTime, long delta)
         {

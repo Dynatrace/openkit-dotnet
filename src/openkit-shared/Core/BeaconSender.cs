@@ -20,11 +20,16 @@ namespace Dynatrace.OpenKit.Core
         // beacon sender thread
         private Thread beaconSenderThread;
         // sending state context
-        private readonly BeaconSendingContext context;
+        private readonly IBeaconSendingContext context;
 
         public BeaconSender(AbstractConfiguration configuration, IHTTPClientProvider clientProvider, ITimingProvider provider)
+            : this(new BeaconSendingContext(configuration, clientProvider, provider))
         {
-            context = new BeaconSendingContext(configuration, clientProvider, provider);
+        }
+
+        internal BeaconSender(IBeaconSendingContext context)
+        {
+            this.context = context;
         }
 
         public bool Initialize()

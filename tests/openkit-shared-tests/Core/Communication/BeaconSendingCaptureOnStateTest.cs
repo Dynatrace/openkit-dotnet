@@ -1,36 +1,67 @@
-﻿using Dynatrace.OpenKit.Protocol;
+﻿using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingCaptureOnStateTest
     {
+        private AbstractConfiguration config = new TestConfiguration();
+        private Queue<Session> finishedSessions;
+        private List<Session> openSessions;
         private long currentTime = 0;
-        private long lastTimeSyncTime = -1;
+        private long lastTimeSyncTime = 1;
+        private long lastOpenSessionSendTime = -1;
 
         private IHTTPClient httpClient;
+        private ITimingProvider timingProvider;
         private IBeaconSendingContext context;
+        private BeaconSender beaconSender;
+        private IHTTPClientProvider httpClientProvider;
 
         [SetUp]
         public void Setup()
         {
-            currentTime = 0;
-            lastTimeSyncTime = -1;
+            currentTime = 1;
+            lastTimeSyncTime = 1;
+            lastOpenSessionSendTime = -1;
+            openSessions = new List<Session>();
+            finishedSessions = new Queue<Session>();
 
+            // http client
             httpClient = Substitute.For<IHTTPClient>();
+
+            // provider
+            timingProvider = Substitute.For<ITimingProvider>();
+            timingProvider.ProvideTimestampInMilliseconds().Returns(x => { return ++currentTime; }); // every access is a tick
+            httpClientProvider = Substitute.For<IHTTPClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+
+            // context
             context = Substitute.For<IBeaconSendingContext>();
-            context.GetHTTPClient().Returns(httpClient);
+            context.HTTPClientProvider.Returns(x => httpClientProvider);
+            context.GetHTTPClient().Returns(x => httpClient);
+            context.LastTimeSyncTime.Returns(x => currentTime); // always return the current time to prevent re-sync
+
+            // beacon sender
+            beaconSender = new BeaconSender(config, httpClientProvider, timingProvider);
 
             // return true by default
             context.IsTimeSyncSupported.Returns(true);
 
             // current time getter
-            context.CurrentTimestamp.Returns(x => { return ++currentTime; }); // every access is a tick
+            context.CurrentTimestamp.Returns(x => timingProvider.ProvideTimestampInMilliseconds()); 
 
             // last time sycn getter + setter
             context.LastTimeSyncTime = Arg.Do<long>(x => lastTimeSyncTime = x); 
-            context.LastTimeSyncTime = lastTimeSyncTime; // init with -1
+            context.LastTimeSyncTime = lastTimeSyncTime;
+
+            // sessions
+            context.GetAllOpenSessions().Returns(openSessions);
+            context.GetNextFinishedSession().Returns(x => (finishedSessions.Count == 0) ? null : finishedSessions.Dequeue());
         }
 
         [Test]
@@ -68,6 +99,196 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             context.Received(1).CurrentState = Arg.Any<BeaconSendingTimeSyncState>();
+        }
+
+        [Test]
+        public void TransitionToCaptureOffStateIsPerformed()
+        {
+            // given
+            var clientIp = "127.0.0.1";
+            context.IsCaptureOn.Returns(false);
+            var statusResponse = new StatusResponse(string.Empty, 200);
+
+            // TODO - thomas.grassauer@dynatrace.com - check this!!!!
+            // at least one send request has to be performed. otherwise context.IsCaptureOn will never be evaluated
+            finishedSessions.Enqueue(CreateValidSession(clientIp));
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
+
+            // when
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            context.Received(1).CurrentState = Arg.Any<BeaconSendingCaptureOffState>();
+        }
+
+        [Test]
+        public void TransitionToFlushStateIsPerformedOnShutdown()
+        {
+            // given
+            context.IsShutdownRequested.Returns(true);
+
+            // when
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            context.Received(1).CurrentState = Arg.Any<BeaconSendingFlushSessionsState>();
+        }
+
+        [Test]
+        public void BeaconSendingIsRetriedForFinishedSessions()
+        {
+            // TODO - thomas.grassauer@dynatrace.com - we do not want to sleep ... we need an to replace Thread.Sleep() in Beacon.SendBeaconRequest
+
+            // given 
+            var clientIp = "127.0.0.1";
+            finishedSessions.Enqueue(CreateValidSession(clientIp));
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => null);
+
+            // when 
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            httpClient.Received(BeaconSendingCaptureOnState.BEACON_SEND_RETRY_ATTEMPTS + 1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+        }
+
+        [Test]
+        public void BeaconSendingIsRetriedForOpenSessions()
+        {
+            // TODO - thomas.grassauer@dynatrace.com - we do not want to sleep ... we need an to replace Thread.Sleep() in Beacon.SendBeaconRequest
+
+            // given 
+            var clientIp = "127.0.0.1";
+
+            var lastSendTime = 1;
+            var sendInterval = 1000;
+
+            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
+            context.SendInterval.Returns(sendInterval);
+            context.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => null);
+
+            openSessions.Add(CreateValidSession(clientIp));
+
+            // when 
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            httpClient.Received(BeaconSendingCaptureOnState.BEACON_SEND_RETRY_ATTEMPTS + 1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+        }
+
+        [Test]
+        public void FinishedSessionsAreSent()
+        {
+            // given 
+            var clientIp = "127.0.0.1";
+            var statusResponse = new StatusResponse(string.Empty, 200);
+
+            finishedSessions.Enqueue(CreateValidSession(clientIp));
+            finishedSessions.Enqueue(CreateValidSession(clientIp));
+            finishedSessions.Enqueue(CreateValidSession(clientIp));
+
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
+
+            // when 
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            httpClient.Received(3).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+            context.Received(1).HandleStatusResponse(statusResponse);
+            Assert.That(finishedSessions.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void EmptyFinishedSessionsAreNotSent()
+        {
+            // given 
+            var clientIp = "127.0.0.1";
+
+            finishedSessions.Enqueue(CreateEmptySession(clientIp));
+
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(string.Empty, 200));
+
+            // when 
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            httpClient.DidNotReceive().SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+            Assert.That(finishedSessions.Count, Is.EqualTo(0)); // assert empty sessions
+            context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
+        }
+
+        [Test]
+        public void OpenSessionsAreSentIfSendIntervalIsExceeded()
+        {
+            // given
+            var clientIp = "127.0.0.1";
+
+            var lastSendTime = 1;
+            var sendInterval = 1000;
+            var statusResponse = new StatusResponse(string.Empty, 200);
+
+            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
+            context.SendInterval.Returns(sendInterval);
+            context.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
+
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
+
+            openSessions.Add(CreateValidSession(clientIp));
+
+            // when 
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            httpClient.Received(1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+            context.Received(1).HandleStatusResponse(statusResponse);
+            Assert.That(context.LastOpenSessionBeaconSendTime, Is.EqualTo(context.CurrentTimestamp)); // assert send time update
+        }
+
+        [Test]
+        public void OpenSessionsAreNotSentIfSendIntervalIsNotExceeded()
+        {
+            // given
+            var clientIp = "127.0.0.1";
+
+            var lastSendTime = 1;
+            var sendInterval = 1000;
+
+            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
+            context.SendInterval.Returns(sendInterval);
+            context.CurrentTimestamp.Returns(lastSendTime + 1);
+
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(string.Empty, 200));
+
+            openSessions.Add(CreateValidSession(clientIp));
+
+            // when 
+            var target = new BeaconSendingCaptureOnState();
+            target.Execute(context);
+
+            // then
+            httpClient.DidNotReceive().SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+            context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
+        }
+
+        private Session CreateValidSession(string clientIp)
+        {
+            var session = new Session(config, clientIp, beaconSender);
+
+            session.EnterAction("Foo").LeaveAction();
+
+            return session;
+        }
+
+        private Session CreateEmptySession(string clientIp)
+        {
+            return new Session(config, clientIp, beaconSender);
         }
     }
 }
