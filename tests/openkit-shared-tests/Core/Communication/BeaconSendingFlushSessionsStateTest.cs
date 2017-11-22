@@ -49,7 +49,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingFlushSessionsState();
 
             // then
-            Assert.That(target.IsTerminalState, Is.EqualTo(false));
+            Assert.That(target.IsTerminalState, Is.False);
         }
 
         [Test]

@@ -71,7 +71,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             // then
-            Assert.That(target.IsTerminalState, Is.EqualTo(false));
+            Assert.That(target.IsTerminalState, Is.False);
         }
 
         [Test]
@@ -200,7 +200,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             httpClient.Received(3).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
             context.Received(1).HandleStatusResponse(statusResponse);
-            Assert.That(finishedSessions.Count, Is.EqualTo(0));
+            Assert.That(finishedSessions, Is.Empty);
         }
 
         [Test]

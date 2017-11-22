@@ -205,9 +205,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.FinishSession(session);
 
             // then
-            Assert.That(target.GetAllOpenSessions().Count, Is.EqualTo(0));
+            Assert.That(target.GetAllOpenSessions(), Is.Empty);
             Assert.That(target.GetNextFinishedSession(), Is.SameAs(session));
-            Assert.That(target.GetNextFinishedSession(), Is.EqualTo(null));
+            Assert.That(target.GetNextFinishedSession(), Is.Null);
         }
     }
 }
