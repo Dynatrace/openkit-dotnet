@@ -1,8 +1,7 @@
-﻿using Dynatrace.OpenKit.Providers;
-using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 
-namespace Dynatrace.OpenKit.src.Providers
+namespace Dynatrace.OpenKit.Providers
 {
     public class DefaultHTTPClientProvider : IHTTPClientProvider
     {

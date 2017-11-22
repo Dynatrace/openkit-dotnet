@@ -21,7 +21,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             timingProvider = Substitute.For<ITimingProvider>();
             nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
         }
-
+        
         [Test]
         public void ContextIsInitializedWithInitState()
         {
@@ -191,5 +191,23 @@ namespace Dynatrace.OpenKit.Core.Communication
             timingProvider.Received(1).Sleep(expected);
         }
 
+        [Test]
+        public void SessionIsMovedToFinished()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            // TODO - thomas.grassauer@dynatrace.com - session adds itself ... should we keep this?
+            var session = new Session(config, "127.0.0.1", new BeaconSender(target));
+
+            Assert.That(target.GetAllOpenSessions().Count, Is.EqualTo(1));
+
+            // when
+            target.FinishSession(session);
+
+            // then
+            Assert.That(target.GetAllOpenSessions(), Is.Empty);
+            Assert.That(target.GetNextFinishedSession(), Is.SameAs(session));
+            Assert.That(target.GetNextFinishedSession(), Is.Null);
+        }
     }
 }

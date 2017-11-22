@@ -36,7 +36,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var currentTime = context.CurrentTimestamp;
 
-            var delta = (int) (currentTime - (context.LastStatusCheckTime + STATUS_CHECK_INTERVAL));
+            var delta = (int) (STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));
             if (delta > 0 && !context.IsShutdownRequested)
             {
                 // still have some time to sleep
