@@ -1,4 +1,5 @@
 ﻿using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -8,8 +9,9 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to
     /// <ul>
-    ///     <li><code>BeaconSendingStateCaptureOnState</code> if IsCaputreOn is <code>true</code> and time sync is NOT required</li>
-    ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
+    ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaputreOn is <code>true</code> and time sync is NOT required</li>
+    ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown</li>
+    ///     <li><see cref="BeaconSendingTimeSyncState"/> if initial time sync failed</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingCaptureOffState : AbstractBeaconSendingState
@@ -44,7 +46,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             // send the status request
-            var statusResponse = SendStatusRequest(context);
+            var statusResponse = BeaconSendingRequestUtil.SendStatusRequest(context, STATUS_REQUEST_RETRIES, INITIAL_RETRY_SLEEP_TIME_MILLISECONDS);
 
             // process the response
             HandleStatusResponse(context, statusResponse);
@@ -53,51 +55,23 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.LastStatusCheckTime = currentTime;
         }
 
-        private static StatusResponse SendStatusRequest(IBeaconSendingContext context)
-        {
-            var retry = 0;
-            int sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
-
-            StatusResponse statusResponse = null;
-
-            while (true)
-            {
-                statusResponse = context.GetHTTPClient().SendStatusRequest();
-
-                // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s, 16s] and then retry (max 6 times altogether)
-                if (!RetryStatusRequest(context, statusResponse, retry))
-                {
-                    break;
-                }
-
-                context.Sleep(sleepTimeInMillis);
-                sleepTimeInMillis *= 2;
-                retry++;
-            }
-
-            return statusResponse;
-        }
-
         private static void HandleStatusResponse(IBeaconSendingContext context, StatusResponse statusResponse)
         {
-            if (statusResponse == null)
+            if (statusResponse != null)
             {
-                return; // nothing to handle
+                context.HandleStatusResponse(statusResponse);
             }
-
-            context.HandleStatusResponse(statusResponse);
-            if (context.IsCaptureOn)
+            // if initial time sync failed before
+            if (context.IsTimeSyncSupported && !TimeProvider.IsTimeSynced)
             {
-                // transition to capture on state
+                // then retry initial time sync
+                context.CurrentState = new BeaconSendingTimeSyncState(true);
+            }
+            else if (statusResponse != null && context.IsCaptureOn)
+            {
+                // capturing is re-enabled again, but only if we received a response from the server
                 context.CurrentState = new BeaconSendingCaptureOnState();
             }
-        }
-
-        private static bool RetryStatusRequest(IBeaconSendingContext context, StatusResponse statusResponse, int retry)
-        {
-            return (statusResponse == null)
-                && (retry < STATUS_REQUEST_RETRIES)
-                && !context.IsShutdownRequested;
         }
     }
 }

@@ -468,7 +468,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(timestampBuilder, BEACON_KEY_SESSION_START_TIME, TimeProvider.ConvertToClusterTime(sessionStartTime));
             AddKeyValuePair(timestampBuilder, BEACON_KEY_TIMESYNC_TIME, TimeProvider.GetLastInitTimeInClusterTime());
-            if (!TimeProvider.TimeSynced)
+            if (!TimeProvider.IsTimeSynced)
             {
                 AddKeyValuePair(timestampBuilder, BEACON_KEY_TRANSMISSION_TIME, TimeProvider.GetTimestamp());
             }

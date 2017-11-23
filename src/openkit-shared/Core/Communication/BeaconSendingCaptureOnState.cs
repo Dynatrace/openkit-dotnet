@@ -7,9 +7,9 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to 
     /// <ul>
-    ///     <li><code>BeaconSendingTimeSyncState</code> if <code>BeaconSendingTimeSyncState.IsTimeSyncRequired == true</code></li>
-    ///     <li><code>BeaconSendingStateCaptureOffState</code> if IsCaptureOn is <code>false</code></li>
-    ///     <li><code>BeaconSendingFlushSessionsState</code> on shutdown</li>
+    ///     <li><see cref="BeaconSendingTimeSyncState"/> if <code><see cref="BeaconSendingTimeSyncState.IsTimeSyncRequired(IBeaconSendingContext)"/> == true</code></li>
+    ///     <li><see cref="BeaconSendingCaptureOffState"/> if IsCaptureOn is <code>false</code></li>
+    ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingCaptureOnState : AbstractBeaconSendingState

@@ -14,9 +14,6 @@ namespace Dynatrace.OpenKit.Core {
     /// </summary>
     public class OpenKit : IOpenKit {        
 
-        // only set to true after initialized() was called and calls to the OpenKit are allowed
-        private bool initialized;
-
         // Configuration reference
         private AbstractConfiguration configuration;
         private readonly BeaconSender beaconSender;
@@ -31,41 +28,55 @@ namespace Dynatrace.OpenKit.Core {
         {
         }
 
-        protected OpenKit(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider) {
+        protected OpenKit(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
+        {
             this.configuration = configuration;
             beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
         }
 
         // *** IOpenKit interface methods ***
 
-        public void Initialize() {
+        public void Initialize()
+        {
             beaconSender.Initialize();
-            initialized = true;
         }
 
+        public  bool WaitForInitCompletion()
+        {
+            return beaconSender.WaitForInitCompletion();
+        }
+        
+        public bool WaitForInitCompletion(int timeoutMillis)
+        {
+            return beaconSender.WaitForInitCompletion(timeoutMillis);
+        }
+
+        public bool IsInitialized => beaconSender.IsInitialized;
+
         public string ApplicationVersion {
-            set {
+            set
+            {
                 configuration.ApplicationVersion = value;
             }
         }
-           
-        public IDevice Device {
-            get {
-                return configuration.Device;
-            }
-        }
 
-        public ISession CreateSession(string clientIPAddress) {
-            if (initialized && configuration.IsCaptureOn) {
+        public IDevice Device => configuration.Device;
+
+        public ISession CreateSession(string clientIPAddress)
+        {
+            if (IsInitialized && configuration.IsCaptureOn)
+            {
                 return new Session(configuration, clientIPAddress, beaconSender);
-            } else {
+            }
+            else
+            {
                 return dummySessionInstance;
             }
         }
 
-        public void Shutdown() {
+        public void Shutdown()
+        {
             beaconSender.Shutdown();
         }
-
     }
 }

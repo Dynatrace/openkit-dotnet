@@ -34,9 +34,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void CurrentStateIsSet()
         {
-            BeaconSendingContext target = new BeaconSendingContext(config, clientProvider, timingProvider);
-
-            target.CurrentState = nonTerminalStateMock;
+            BeaconSendingContext target = new BeaconSendingContext(config, clientProvider, timingProvider)
+            {
+                CurrentState = nonTerminalStateMock
+            };
 
             Assert.AreSame(nonTerminalStateMock, target.CurrentState);
         }
@@ -44,8 +45,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void ExecuteIsCalledOnCurrentState()
         {
-            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
-            target.CurrentState = nonTerminalStateMock;
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider)
+            {
+                CurrentState = nonTerminalStateMock
+            };
 
             target.ExecuteCurrentState();
 
@@ -53,25 +56,89 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ResetEventIsOnInitSuccess()
+        public void ResetEventIsSetOnInitSuccess()
         {
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
             target.InitCompleted(true);
             var actual = target.WaitForInit();
 
-            Assert.True(actual);
+            Assert.That(actual, Is.True);
         }
 
         [Test]
-        public void ResetEventIsOnInitFailed()
+        public void ResetEventIsSetOnInitFailed()
         {
+            
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
             target.InitCompleted(false);
             var actual = target.WaitForInit();
 
-            Assert.False(actual);
+            Assert.That(actual, Is.False);
+        }
+        
+        [Test]
+        public void IsInitializedOnInitSuccess()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            target.InitCompleted(true);
+
+            // when, then
+            Assert.That(target.IsInitialized, Is.True);
+        }
+
+        [Test]
+        public void IsInitializedOnInitFailed()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            target.InitCompleted(false);
+
+            // when, then
+            Assert.That(target.IsInitialized, Is.False);
+        }
+
+        [Test]
+        public void WaitForInitWhenTimeoutExpires()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+
+            // when waiting for init completion with a timeout of 1ms
+            var obtained = target.WaitForInit(1);
+
+            // then the result must be false, since init was never set, but timeout expired
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void WaitForInitWhenWithTimeoutSuccess()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            target.InitCompleted(true);
+
+            // when waiting for init completion with a timeout of 1ms
+            var obtained = target.WaitForInit(1);
+
+            // then the result must be false, since init was never set, but timeout expired
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void WaitForInitWhenWithTimeoutFailed()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            target.InitCompleted(false);
+
+            // when waiting for init completion with a timeout of 1ms
+            var obtained = target.WaitForInit(1);
+
+            // then the result must be false, since init was never set, but timeout expired
+            Assert.That(obtained, Is.False);
         }
 
         [Test]
