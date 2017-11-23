@@ -1,4 +1,5 @@
 ﻿using Dynatrace.OpenKit.Protocol;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -18,6 +19,19 @@ namespace Dynatrace.OpenKit.Core.Communication
         public const int MAX_INITIAL_STATUS_REQUEST_RETRIES = 5;
         public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
 
+        // delays between consecutive initial status requests
+        internal static readonly int[] REINIT_DELAY_MILLISECONDS =
+        {
+            1 * 60 * 1000, // 1 minute in milliseconds
+            5 * 60 * 1000, // 5 minutes in milliseconds
+            15 * 60 * 1000, // 15 minutes in milliseconds
+            1 * 60 * 60 * 1000, // 1 hour in millisecondsd
+            2 * 60 * 60 * 1000 // 2 housrs in milliseconds
+        };
+
+        // current index into RE_INIT_DELAY_MILLISECONDS
+        private int reinitializeDelayIndex = 0;
+
         internal BeaconSendingInitState() : base(false) { }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
@@ -29,36 +43,32 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(IBeaconSendingContext context)
         {
-            var currentTimestamp = context.CurrentTimestamp;
-            context.LastOpenSessionBeaconSendTime = currentTimestamp;
-            context.LastStatusCheckTime = currentTimestamp;
-
-            StatusResponse statusResponse = null;
-            var retry = 0;
-            var sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
-
+            StatusResponse statusResponse;
             while (true)
             {
-                statusResponse = context.GetHTTPClient().SendStatusRequest();
+                long currentTimestamp = context.CurrentTimestamp;
+                context.LastOpenSessionBeaconSendTime = currentTimestamp;
+                context.LastStatusCheckTime = currentTimestamp;
 
-                // if no (valid) status response was received -> sleep 1s [2s, 4s, 8s, 16s] and then retry (max 6 times altogether)
-                if (!RetryStatusRequest(context, statusResponse, retry))
+                statusResponse = BeaconSendingRequestUtil.SendStatusRequest(context, MAX_INITIAL_STATUS_REQUEST_RETRIES, INITIAL_RETRY_SLEEP_TIME_MILLISECONDS);
+                if (context.IsShutdownRequested || statusResponse != null)
                 {
+                    // shutdown was requested or a status response was received
                     break;
                 }
 
-                context.Sleep(sleepTimeInMillis);
-                sleepTimeInMillis *= 2;
-                retry++;
+                // status request needs to be sent again after some delay
+                context.Sleep(REINIT_DELAY_MILLISECONDS[reinitializeDelayIndex]);
+                reinitializeDelayIndex = Math.Min(reinitializeDelayIndex + 1, REINIT_DELAY_MILLISECONDS.Length - 1); // ensure no out of bounds
             }
 
-            if (context.IsShutdownRequested || (statusResponse == null))
+            if (context.IsShutdownRequested)
             {
-                // initial configuration request was either terminated from outside or the config could not be retrieved
+                // shutdown was requested -> abort init with failure
+                // transition to shutdown state is handled by base class
                 context.InitCompleted(false);
-                context.CurrentState = new BeaconSendingTerminalState();
             }
-            else
+            else if (statusResponse != null)
             {
                 // success -> continue with time sync
                 context.HandleStatusResponse(statusResponse);
