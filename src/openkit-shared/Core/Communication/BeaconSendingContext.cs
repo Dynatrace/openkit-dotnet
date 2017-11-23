@@ -1,6 +1,7 @@
 ﻿using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -22,8 +23,11 @@ namespace Dynatrace.OpenKit.Core.Communication
         // reset event is set when init was done - which can either be success or failure 
         private readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
 
-        // boolean indicating whether init was successful or not
-        private bool initSucceeded = false;
+        // boolean indicating whether shutdown was requested or not (accessed by multiple threads)
+        private volatile bool isShutdownRequested = false;
+        
+        // boolean indicating whether init was successful or not (accessed by multiple threads)
+        private volatile bool initSucceeded = false;
 
         /// <summary>
         /// Constructor
@@ -52,8 +56,19 @@ namespace Dynatrace.OpenKit.Core.Communication
         public long LastStatusCheckTime { get; set; }
         public long LastTimeSyncTime { get; set; }
 
+        public bool IsInitialized => initSucceeded;
         public bool IsTimeSyncSupported { get; private set; }
-        public bool IsShutdownRequested { get; private set; }
+        public bool IsShutdownRequested
+        {
+            get
+            {
+                return isShutdownRequested;
+            }
+            private set
+            {
+                isShutdownRequested = value;
+            }
+        }
         public long CurrentTimestamp { get { return TimingProvider.ProvideTimestampInMilliseconds(); } }
         public int SendInterval { get { return Configuration.SendInterval; } }
         public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
@@ -90,6 +105,16 @@ namespace Dynatrace.OpenKit.Core.Communication
         public bool WaitForInit()
         {
             resetEvent.WaitOne();
+            return initSucceeded;
+        }
+
+        /// <summary>
+        /// Waits for the init to be finished or time
+        /// </summary>
+        /// <returns></returns>
+        public bool WaitForInit(int timeoutMillis)
+        {
+            resetEvent.WaitOne(TimeSpan.FromMilliseconds(timeoutMillis));
             return initSucceeded;
         }
 

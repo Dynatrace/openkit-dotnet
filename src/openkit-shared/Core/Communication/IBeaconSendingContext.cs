@@ -21,6 +21,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         long LastStatusCheckTime { get; set; }
         long LastTimeSyncTime { get; set; }
 
+        bool IsInitialized { get; }
         bool IsTimeSyncSupported { get; }
         bool IsShutdownRequested { get; }
         long CurrentTimestamp { get; }
@@ -35,6 +36,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         void RequestShutdown();
 
         bool WaitForInit();
+
+        bool WaitForInit(int timeoutMillis);
 
         void InitCompleted(bool success);
 

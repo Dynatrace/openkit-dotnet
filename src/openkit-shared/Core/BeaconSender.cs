@@ -32,6 +32,8 @@ namespace Dynatrace.OpenKit.Core
             this.context = context;
         }
 
+        public bool IsInitialized => context.IsInitialized;
+
         public bool Initialize()
         {
             // create sending thread
@@ -52,6 +54,16 @@ namespace Dynatrace.OpenKit.Core
             }
 
             return success;
+        }
+
+        public bool WaitForInitCompletion()
+        {
+            return context.WaitForInit();
+        }
+
+        public bool WaitForInitCompletion(int timeoutMillis)
+        {
+            return context.WaitForInit(timeoutMillis);
         }
 
         public void Shutdown()
@@ -82,5 +94,4 @@ namespace Dynatrace.OpenKit.Core
             context.FinishSession(session);
         }
     }
-
 }

@@ -16,6 +16,43 @@ namespace Dynatrace.OpenKit.API {
         /// </summary>
         void Initialize();
 
+
+        /// <summary>
+        /// Waits until OpenKit is fully initialized.
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// The calling thread is blocked until OpenKit is fully initialized or until OpenKit is shut down using the
+        /// <see cref="IOpenKit.Shutdown"/>@link #shutdown()} method.
+        /// 
+        /// Due to misconfiguration in the {@link com.dynatrace.openkit.OpenKitFactory} when creating the 
+        /// instance(e.g.wrong endpoint URL) this method might hang indefinitely, unless <see cref="IOpenKit.Shutdown"/> is called.
+        /// </remarks>
+        /// 
+        /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> when a shutdown request was made. </returns>
+        bool WaitForInitCompletion();
+
+        /// <summary>
+        /// Waits until OpenKit is fully initialized or the given timeout expired.
+        /// </summary>
+        /// 
+        /// <remarks>
+        /// The calling thread is blocked until OpenKit is fully initialized or until OpenKit is shut down using the
+        /// <see cref="IOpenKit.Shutdown"/> method or the timeout expired.
+        /// 
+        /// Due to misconfiguration in the {@link com.dynatrace.openkit.OpenKitFactory} when creating the 
+        /// instance(e.g.wrong endpoint URL) this method might hang indefinitely, unless <see cref="IOpenKit.Shutdown"/> is called or timeout expires.
+        /// </remarks>
+        /// 
+        /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> when a shutdown request was made. </returns>
+        bool WaitForInitCompletion(int timeoutMillis);
+        
+        /// <summary>
+        /// Gets a boolean flag indicating whether OpenKit is initialized or not.
+        /// </summary>
+        /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> if OpenKit still performs initialization.</returns>
+        bool IsInitialized { get; }
+
         /// <summary>
         ///  Defines the version of the application.
         /// </summary>
@@ -40,7 +77,5 @@ namespace Dynatrace.OpenKit.API {
         ///  Shuts down the OpenKit, ending all open Sessions and waiting for them to be sent.
         /// </summary>
         void Shutdown();
-
     }
-
 }
