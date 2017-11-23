@@ -6,7 +6,6 @@ using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
-    [TestFixture]
     public class BeaconSendingContextTest
     {
         private AbstractConfiguration config;
@@ -57,7 +56,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ResetEventIsOnInitSuccess()
+        public void ResetEventIsSetOnInitSuccess()
         {
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
@@ -68,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ResetEventIsOnInitFailed()
+        public void ResetEventIsSetOnInitFailed()
         {
             
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);

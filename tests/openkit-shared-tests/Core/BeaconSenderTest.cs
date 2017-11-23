@@ -7,7 +7,6 @@ using System.Text;
 
 namespace Dynatrace.OpenKit.Core
 {
-    [TestFixture]
     public class BeaconSenderTest
     {
         private IBeaconSendingContext context;
