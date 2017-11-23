@@ -14,9 +14,6 @@ namespace Dynatrace.OpenKit.Core {
     /// </summary>
     public class OpenKit : IOpenKit {        
 
-        // only set to true after initialized() was called and calls to the OpenKit are allowed
-        private bool initialized;
-
         // Configuration reference
         private AbstractConfiguration configuration;
         private readonly BeaconSender beaconSender;
@@ -42,7 +39,6 @@ namespace Dynatrace.OpenKit.Core {
         public void Initialize()
         {
             beaconSender.Initialize();
-            initialized = true;
         }
 
         public  bool WaitForInitCompletion()
@@ -68,7 +64,7 @@ namespace Dynatrace.OpenKit.Core {
 
         public ISession CreateSession(string clientIPAddress)
         {
-            if (initialized && configuration.IsCaptureOn)
+            if (IsInitialized && configuration.IsCaptureOn)
             {
                 return new Session(configuration, clientIPAddress, beaconSender);
             }
