@@ -23,12 +23,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
         public const int TIME_SYNC_INTERVAL_IN_MILLIS = 2 * 60 * 60 * 1000; // 2 h
 
-        private readonly bool initialTimeSync;
+        internal bool IsInitialTimeSync { get; private set; }
 
         public BeaconSendingTimeSyncState() : this(false) { }
         public BeaconSendingTimeSyncState(bool initialTimeSync) : base(false)
         {
-            this.initialTimeSync = initialTimeSync;
+            IsInitialTimeSync = initialTimeSync;
         }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <param name="context"></param>
         internal override void OnInterrupted(IBeaconSendingContext context)
         {
-            if (initialTimeSync)
+            if (IsInitialTimeSync)
             {
                 context.InitCompleted(false);
             }
@@ -61,7 +61,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             HandleTimeSyncResponses(context, timeSyncOffsets);
 
             // set init complete if initial time sync
-            if (initialTimeSync)
+            if (IsInitialTimeSync)
             {
                 context.InitCompleted(true);
             }
@@ -93,7 +93,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // if this is the initial sync try, we have to initialize the time provider
             // in every other case we keep the previous setting
-            if (initialTimeSync) 
+            if (IsInitialTimeSync) 
             {
                 TimeProvider.Initialize(0, false);
             }
