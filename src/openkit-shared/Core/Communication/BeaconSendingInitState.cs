@@ -10,8 +10,8 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to:
     /// <ul>
-    ///     <li><code>BeaconSendingTerminalState</code> if initial status request failed or on shutdown</li>
-    ///     <li><code>BeaconSendingTimeSyncState</code> if initial status request succeeded</li>
+    ///     <li><see cref="BeaconSendingTerminalState"/> upon shutdown request</li>
+    ///     <li><see cref="BeaconSendingTimeSyncState"/> if initial status request succeeded</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingInitState : AbstractBeaconSendingState

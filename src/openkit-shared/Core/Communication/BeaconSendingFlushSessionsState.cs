@@ -7,7 +7,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to:
     /// <ul>
-    ///     <li><code>BeaconSendingTerminalState</code></li>
+    ///     <li><see cref="BeaconSendingTerminalState"/></li>
     /// </ul> 
     /// </summary>
     internal class BeaconSendingFlushSessionsState : AbstractBeaconSendingState

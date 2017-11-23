@@ -11,9 +11,9 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to:
     /// <ul>
-    ///     <li><code>BeaconSendingStateCaptureOnState</code> if IsCaptureOn is <code>true</code></li>
-    ///     <li><code>BeaconSendingStateCaptureOffState</code> if IsCaptureOn is <code>false</code> or time sync failed</li>
-    ///     <li><code>BeaconSendingTerminalState</code> on shutdown</li>
+    ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaptureOn is <code>true</code></li>
+    ///     <li><see cref="BeaconSendingCaptureOffState"/> if IsCaptureOn is <code>false</code> or time sync failed</li>
+    ///     <li><see cref="BeaconSendingTerminalState"/> on shutdown</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingTimeSyncState : AbstractBeaconSendingState
