@@ -11,8 +11,11 @@ using System.Threading;
 namespace Dynatrace.OpenKit.Core
 {
     /// <summary>
-    ///  The BeaconSender is responsible for asynchronously sending the Beacons to the provided endpoint.
+    /// The BeaconSender is responsible for asynchronously sending the Beacons to the provided endpoint.
     /// </summary>
+    /// <remarks>
+    /// The <code>BeaconSender</code> manages the thread running OpenKit communication in the background.
+    /// </remarks>
     public class BeaconSender
     {
         private const int SHUTDOWN_TIMEOUT = 10 * 1000;                  // wait max 10s (in ms) for beacon sender to complete data sending during shutdown
