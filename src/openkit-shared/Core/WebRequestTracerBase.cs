@@ -10,11 +10,11 @@ using Dynatrace.OpenKit.Providers;
 namespace Dynatrace.OpenKit.Core {
 
     /// <summary>
-    ///  Abstract base class implementation of the IWebRequestTag interface.
+    ///  Abstract base class implementation of the IWebRequestTracer interface.
     /// </summary>
-    public abstract class WebRequestTagBase : IWebRequestTag {
+    public abstract class WebRequestTracerBase : IWebRequestTracer {
 
-        // Dynatrace tag that has to be used for tagging the web request
+        // Dynatrace tag that has to be used for tracing the web request
         private string tag = null;
 
         // HTTP information: URL & response code
@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public WebRequestTagBase(Beacon beacon, Action action) {
+        public WebRequestTracerBase(Beacon beacon, Action action) {
             this.beacon = beacon;
             this.action = action;
 
@@ -43,7 +43,7 @@ namespace Dynatrace.OpenKit.Core {
             tag = beacon.CreateTag(action, startSequenceNo);
         }
 
-        // *** IWebRequestTag interface methods ***
+        // *** IWebRequestTracer interface methods ***
 
         public string Tag {
             get {

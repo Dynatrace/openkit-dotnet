@@ -15,7 +15,7 @@ namespace Dynatrace.OpenKit {
     public class OpenKitFactory {
 
         /// <summary>
-        ///  Name of Dynatrace HTTP header which is used for tagging web requests.
+        ///  Name of Dynatrace HTTP header which is used for tracing web requests.
         /// </summary>
         public const string WEBREQUEST_TAG_HEADER = "X-dynaTrace";
 

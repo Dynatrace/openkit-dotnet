@@ -45,10 +45,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\IHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TimeProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagHttpClient.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagStringURL.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagWebClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerStringURL.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Common\CRC32.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Zlib\Deflate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Zlib\DeflateStream.cs" />

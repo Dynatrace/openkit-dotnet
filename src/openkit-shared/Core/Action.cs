@@ -78,20 +78,20 @@ namespace Dynatrace.OpenKit.Core {
 
 #if NET40 || NET35
 
-        public IWebRequestTag TagWebRequest(System.Net.WebClient webClient) {
-            return new WebRequestTagWebClient(beacon, this, webClient);
+        public IWebRequestTracer TraceWebRequest(System.Net.WebClient webClient) {
+            return new WebRequestTracerWebClient(beacon, this, webClient);
         }
 
 #else
 
-        public IWebRequestTag TagWebRequest(System.Net.Http.HttpClient httpClient) {
-            return new WebRequestTagHttpClient(beacon, this, httpClient);
+        public IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient) {
+            return new WebRequestTracerHttpClient(beacon, this, httpClient);
         }
 
 #endif
 
-        public IWebRequestTag TagWebRequest(string url) {
-            return new WebRequestTagStringURL(beacon, this, url);
+        public IWebRequestTracer TraceWebRequest(string url) {
+            return new WebRequestTracerStringURL(beacon, this, url);
         }
 
         public IAction LeaveAction()

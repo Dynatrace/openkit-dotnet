@@ -8,9 +8,9 @@ using Dynatrace.OpenKit.API;
 namespace Dynatrace.OpenKit.Core {
 
     /// <summary>
-    ///  Dummy implementation of the IWebRequestTag interface, used when capture is off.
+    ///  Dummy implementation of the IWebRequestTracer interface, used when capture is off.
     /// </summary>
-    class DummyWebRequestTag : IWebRequestTag {
+    class DummyWebRequestTracer : IWebRequestTracer {
 
         public string Tag {
             get {
