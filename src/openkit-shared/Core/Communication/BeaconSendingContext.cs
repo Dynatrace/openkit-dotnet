@@ -44,6 +44,12 @@ namespace Dynatrace.OpenKit.Core.Communication
             HTTPClientProvider = httpClientProvider;
             TimingProvider = timingProvider;
 
+            // set time sync supported to true
+            IsTimeSyncSupported = true;
+            // set last time sync time to -1
+            LastTimeSyncTime = -1;
+
+            // set current state to init state
             CurrentState = new BeaconSendingInitState();
         }
 
