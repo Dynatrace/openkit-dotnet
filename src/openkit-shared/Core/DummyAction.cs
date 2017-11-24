@@ -10,7 +10,7 @@ namespace Dynatrace.OpenKit.Core {
     /// <summary>
     ///  Dummy implementation of the IAction interface, used when capture is off.
     /// </summary>
-    class DummyAction : IAction
+    class DummyAction : IRootAction
     {
 
         private static readonly DummyWebRequestTag dummyWebRequestTagInstance = new DummyWebRequestTag();

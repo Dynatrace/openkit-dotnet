@@ -19,7 +19,6 @@ namespace Dynatrace.OpenKit.Core {
         private long endTime = -1;
 
         // Configuration and Beacon reference
-        private AbstractConfiguration configuration;
         private readonly BeaconSender beaconSender;
         private readonly Beacon beacon;
 
@@ -29,7 +28,6 @@ namespace Dynatrace.OpenKit.Core {
         // *** constructors ***
 
         public Session(AbstractConfiguration configuration, string clientIPAddress, BeaconSender beaconSender) {
-            this.configuration = configuration;
             this.beaconSender = beaconSender;
 
             // beacon has to be created immediately, as the session start time is taken at beacon construction
@@ -39,8 +37,8 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** ISession interface methods ***
 
-        public IAction EnterAction(string actionName) {
-            return new Action(beacon, actionName, openRootActions);
+        public IRootAction EnterAction(string actionName) {
+            return new RootAction(beacon, actionName, openRootActions);
         }
 
         public void ReportCrash(string errorName, string reason, string stacktrace) {

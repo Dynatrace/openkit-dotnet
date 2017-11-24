@@ -15,7 +15,7 @@ namespace Dynatrace.OpenKit.API {
         /// </summary>
         /// <param name="actionName">name of the Action</param>
         /// <returns>Action instance to work with</returns>
-        IAction EnterAction(string actionName);
+        IRootAction EnterAction(string actionName);
 
         /// <summary>
         ///  Reports a crash with a specified error name, crash reason and a stacktrace.

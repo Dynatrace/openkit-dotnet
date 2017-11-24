@@ -8,14 +8,7 @@ namespace Dynatrace.OpenKit.API {
     /// <summary>
     ///  This interface provides functionality to create (child) Actions, report events/values/errors and tag web requests.
     /// </summary>
-    public interface IAction {
-
-        /// <summary>
-        ///  Enters a (child) Action with a specified name on this Action.
-        /// </summary>
-        /// <param name="actionName">name of the Action</param>
-        /// <returns>Action instance to work with</returns>
-        IAction EnterAction(string actionName);
+    public interface IAction {       
 
         /// <summary>
         ///  Reports an event with a specified name (but without any value).
