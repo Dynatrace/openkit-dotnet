@@ -6,7 +6,7 @@
 namespace Dynatrace.OpenKit.API {
 
     /// <summary>
-    ///  This interface provides functionality to create (child) Actions, report events/values/errors and traces web requests.
+    ///  This interface provides functionality to report events/values/errors and traces web requests.
     /// </summary>
     public interface IAction {       
 
@@ -59,7 +59,7 @@ namespace Dynatrace.OpenKit.API {
         /// </summary>
         /// <param name="webClient">the WebClient of the HTTP request to be traced and timed</param>
         /// <returns>a WebRequestTracer which allows adding timing information</returns>
-        /// <remarks>This method is for .NET 4.0 only, since <code>System.Net.Http.HttpClient</code> is not available.</remarks>
+        /// <remarks>This method is for .NET 4.0 and .NET 3.5 only, since <code>System.Net.Http.HttpClient</code> is not available.</remarks>
         IWebRequestTracer TraceWebRequest(System.Net.WebClient webClient);
 
 #else
