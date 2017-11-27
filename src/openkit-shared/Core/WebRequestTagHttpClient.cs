@@ -9,15 +9,15 @@ namespace Dynatrace.OpenKit.Core
 {
 #if (!NET40 && !NET35)
     /// <summary>
-    ///  Inherited class of WebRequestTagBase which can be used for tagging and timing of a web request provided via an HttpClient.
+    ///  Inherited class of WebRequestTracerBase which can be used for tracing and timing of a web request provided via an HttpClient.
     /// </summary>
-    public class WebRequestTagHttpClient : WebRequestTagBase
+    public class WebRequestTracerHttpClient : WebRequestTracerBase
     {
 
         // *** constructors ***
 
-        // creates web request tag with a System.Net.Http.HttpClient
-        public WebRequestTagHttpClient(Beacon beacon, Action action, System.Net.Http.HttpClient httpClient) : base(beacon, action)
+        // creates web request tracer with a System.Net.Http.HttpClient
+        public WebRequestTracerHttpClient(Beacon beacon, Action action, System.Net.Http.HttpClient httpClient) : base(beacon, action)
         {
             if (httpClient != null)
             {
@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Core
 
         // *** private methods ***
 
-        // set the Dynatrace tag on the provided URLConnection
+        // set the Dynatrace tracer on the provided URLConnection
         private void SetTagOnConnection(System.Net.Http.HttpClient httpClient)
         {
             // check if header is already set

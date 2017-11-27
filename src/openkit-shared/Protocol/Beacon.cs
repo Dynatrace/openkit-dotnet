@@ -287,20 +287,20 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // add web request to the provided Action
-        public void AddWebRequest(Action parentAction, WebRequestTagBase webRequestTag)
+        public void AddWebRequest(Action parentAction, WebRequestTracerBase webRequestTracer)
         {
             StringBuilder eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.WEBREQUEST, webRequestTag.URL);
+            BuildBasicEventData(eventBuilder, EventType.WEBREQUEST, webRequestTracer.URL);
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, webRequestTag.StartSequenceNo);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime(webRequestTag.StartTime));
-            AddKeyValuePair(eventBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, webRequestTag.EndSequenceNo);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_1, webRequestTag.EndTime - webRequestTag.StartTime);
-            if (webRequestTag.ResponseCode != -1)
+            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, webRequestTracer.StartSequenceNo);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime(webRequestTracer.StartTime));
+            AddKeyValuePair(eventBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, webRequestTracer.EndSequenceNo);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_1, webRequestTracer.EndTime - webRequestTracer.StartTime);
+            if (webRequestTracer.ResponseCode != -1)
             {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_RESPONSECODE, webRequestTag.ResponseCode);
+                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_RESPONSECODE, webRequestTracer.ResponseCode);
             }
 
             lock (eventDataList)

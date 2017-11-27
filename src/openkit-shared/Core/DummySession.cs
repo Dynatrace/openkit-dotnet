@@ -14,7 +14,7 @@ namespace Dynatrace.OpenKit.Core {
 
         private static DummyAction dummyActionInstance = new DummyAction();
 
-        public IAction EnterAction(string actionName) {
+        public IRootAction EnterAction(string actionName) {
             // return DummyAction and do nothing
             return dummyActionInstance;
         }

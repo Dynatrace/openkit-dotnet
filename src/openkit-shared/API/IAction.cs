@@ -6,16 +6,9 @@
 namespace Dynatrace.OpenKit.API {
 
     /// <summary>
-    ///  This interface provides functionality to create (child) Actions, report events/values/errors and tag web requests.
+    ///  This interface provides functionality to create (child) Actions, report events/values/errors and traces web requests.
     /// </summary>
-    public interface IAction {
-
-        /// <summary>
-        ///  Enters a (child) Action with a specified name on this Action.
-        /// </summary>
-        /// <param name="actionName">name of the Action</param>
-        /// <returns>Action instance to work with</returns>
-        IAction EnterAction(string actionName);
+    public interface IAction {       
 
         /// <summary>
         ///  Reports an event with a specified name (but without any value).
@@ -60,38 +53,38 @@ namespace Dynatrace.OpenKit.API {
 #if NET40 || NET35
 
         /// <summary>
-        ///  Tags a web request - which is provided via an WebClient - and allows adding timing information to this request.
+        ///  Traces a web request - which is provided via an WebClient - and allows adding timing information to this request.
         ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
         ///  the resulting server-side PurePath.
         /// </summary>
-        /// <param name="webClient">the WebClient of the HTTP request to be tagged and timed</param>
-        /// <returns>a WebRequestTag which allows adding timing information</returns>
+        /// <param name="webClient">the WebClient of the HTTP request to be traced and timed</param>
+        /// <returns>a WebRequestTracer which allows adding timing information</returns>
         /// <remarks>This method is for .NET 4.0 only, since <code>System.Net.Http.HttpClient</code> is not available.</remarks>
-        IWebRequestTag TagWebRequest(System.Net.WebClient webClient);
+        IWebRequestTracer TraceWebRequest(System.Net.WebClient webClient);
 
 #else
 
         /// <summary>
-        ///  Tags a web request - which is provided via an HttpClient - and allows adding timing information to this request.
+        ///  Traces a web request - which is provided via an HttpClient - and allows adding timing information to this request.
         ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
         ///  the resulting server-side PurePath.
         /// </summary>
-        /// <param name="httpClient">the HttpClient of the HTTP request to be tagged and timed</param>
-        /// <returns>a WebRequestTag which allows adding timing information</returns>
-        IWebRequestTag TagWebRequest(System.Net.Http.HttpClient httpClient);
+        /// <param name="httpClient">the HttpClient of the HTTP request to be traced and timed</param>
+        /// <returns>a WebRequestTracer which allows adding timing information</returns>
+        IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient);
 
 #endif
 
         /// <summary>
-        ///  Allows tagging and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
+        ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
         ///  In this case the Dynatrace HTTP header (OpenKitFactory.WEBREQUEST_TAG_HEADER) has to be set manually to the
-        ///  tag value of this WebRequestTag.
+        ///  traces value of this WebRequestTracer.
         ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
         ///  the resulting server-side PurePath.
         /// </summary>
-        /// <param name="url">the URL of the web request to be tagged and timed</param>
-        /// <returns>a WebRequestTag which allows getting the tag value and adding timing information</returns>
-        IWebRequestTag TagWebRequest(string url);
+        /// <param name="url">the URL of the web request to be traced and timed</param>
+        /// <returns>a WebRequestTracer which allows getting the tag value and adding timing information</returns>
+        IWebRequestTracer TraceWebRequest(string url);
 
         /// <summary>
         ///  Leaves this Action.

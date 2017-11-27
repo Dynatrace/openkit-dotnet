@@ -10,10 +10,10 @@ namespace Dynatrace.OpenKit.Core {
     /// <summary>
     ///  Dummy implementation of the IAction interface, used when capture is off.
     /// </summary>
-    class DummyAction : IAction
+    class DummyAction : IRootAction
     {
 
-        private static readonly DummyWebRequestTag dummyWebRequestTagInstance = new DummyWebRequestTag();
+        private static readonly DummyWebRequestTracer dummyWebRequestTracerInstance = new DummyWebRequestTracer();
 
         public IAction EnterAction(string actionName)
         {
@@ -53,26 +53,26 @@ namespace Dynatrace.OpenKit.Core {
 
 #if NET40 || NET35
 
-        public IWebRequestTag TagWebRequest(System.Net.WebClient webClient)
+        public IWebRequestTracer TraceWebRequest(System.Net.WebClient webClient)
         {
-            // return DummyWebRequestTag and do nothing
-            return dummyWebRequestTagInstance;
+            // return DummyWebRequestTracer and do nothing
+            return dummyWebRequestTracerInstance;
         }
 
 #else
 
-        public IWebRequestTag TagWebRequest(System.Net.Http.HttpClient httpClient)
+        public IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient)
         {
             // return DummyWebRequestTag and do nothing
-            return dummyWebRequestTagInstance;
+            return dummyWebRequestTracerInstance;
         }
 
 #endif
 
-        public IWebRequestTag TagWebRequest(string url)
+        public IWebRequestTracer TraceWebRequest(string url)
         {
             // return DummyWebRequestTag and do nothing
-            return dummyWebRequestTagInstance;
+            return dummyWebRequestTracerInstance;
         }
 
         public IAction LeaveAction()

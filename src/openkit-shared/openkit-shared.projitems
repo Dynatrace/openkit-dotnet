@@ -9,6 +9,7 @@
     <Import_RootNamespace>Dynatrace.OpenKit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)API\IRootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IDevice.cs" />
@@ -38,15 +39,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\DummySession.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DummyWebRequestTag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenKit.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\RootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Session.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SynchronizedQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\IHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TimeProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagHttpClient.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagStringURL.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagWebClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerStringURL.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Common\CRC32.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Zlib\Deflate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Zlib\DeflateStream.cs" />

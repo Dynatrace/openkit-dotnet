@@ -29,7 +29,6 @@ namespace Dynatrace.OpenKit.Core {
         private Beacon beacon;
 
         // data structures for managing IAction hierarchies
-        private SynchronizedQueue<IAction> openChildActions = new SynchronizedQueue<IAction>();
         private SynchronizedQueue<IAction> thisLevelActions = null;
 
         // *** constructors ***
@@ -37,7 +36,7 @@ namespace Dynatrace.OpenKit.Core {
         public Action(Beacon beacon, string name, SynchronizedQueue<IAction> parentActions) : this(beacon, name, null, parentActions) {
         }
 
-        public Action(Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions) {
+        internal Action(Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions) {
             this.beacon = beacon;
             this.parentAction = parentAction;
 
@@ -51,10 +50,6 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         // *** IAction interface methods ***
-
-        public IAction EnterAction(string actionName) {
-            return new Action(beacon, actionName, this, openChildActions);
-        }
 
         public IAction ReportEvent(string eventName) {
             beacon.ReportEvent(this, eventName);
@@ -83,34 +78,34 @@ namespace Dynatrace.OpenKit.Core {
 
 #if NET40 || NET35
 
-        public IWebRequestTag TagWebRequest(System.Net.WebClient webClient) {
-            return new WebRequestTagWebClient(beacon, this, webClient);
+        public IWebRequestTracer TraceWebRequest(System.Net.WebClient webClient) {
+            return new WebRequestTracerWebClient(beacon, this, webClient);
         }
 
 #else
 
-        public IWebRequestTag TagWebRequest(System.Net.Http.HttpClient httpClient) {
-            return new WebRequestTagHttpClient(beacon, this, httpClient);
+        public IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient) {
+            return new WebRequestTracerHttpClient(beacon, this, httpClient);
         }
 
 #endif
 
-        public IWebRequestTag TagWebRequest(string url) {
-            return new WebRequestTagStringURL(beacon, this, url);
+        public IWebRequestTracer TraceWebRequest(string url) {
+            return new WebRequestTracerStringURL(beacon, this, url);
         }
 
-        public IAction LeaveAction() {
+        public IAction LeaveAction()
+        {
             // check if leaveAction() was already called before by looking at endTime
-            if (endTime != -1) {
+            if (endTime != -1)
+            {
                 return parentAction;
             }
 
-            // leave all open Child-Actions
-            while (!openChildActions.IsEmpty()) {
-                IAction action = openChildActions.Get();
-                action.LeaveAction();
-            }
+            return DoLeaveAction();
+        }
 
+        protected virtual IAction DoLeaveAction() {
             // set end time and end sequence number
             endTime = TimeProvider.GetTimestamp();
             endSequenceNo = beacon.NextSequenceNumber;
