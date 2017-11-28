@@ -180,11 +180,29 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void TimeSyncSupportIsTrueByDefault()
+        {
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+
+            Assert.That(target.IsTimeSyncSupported, Is.True);
+        }
+
+        [Test]
+        public void LastTimeSyncTimeIsInitializedWithMinus1()
+        {
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+
+            var expected = -1;
+
+            Assert.AreEqual(expected, target.LastTimeSyncTime);
+        }
+
+        [Test]
         public void LastTimeSyncTimeIsSet()
         {
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
-            Assert.AreEqual(0, target.LastTimeSyncTime);
+            Assert.AreEqual(-1, target.LastTimeSyncTime);
 
             var expected = 17;
             target.LastTimeSyncTime = expected;
