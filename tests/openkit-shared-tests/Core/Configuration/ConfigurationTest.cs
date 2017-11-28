@@ -7,6 +7,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
     {
         private const string host = "localhost:9999";
         private const string tenantId = "asdf";
+        private const string applicationName = "testApp";
 
         [Test]
         public void SaasUrlIsCorrect()
@@ -37,11 +38,22 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantUrl = string.Format("https://{0}", host);
 
-            var target = new AppMonConfiguration("", "", 17, tenantUrl, false);
+            var target = new AppMonConfiguration("", 17, tenantUrl, false);
 
             var expected = String.Format("{0}/dynaTraceMonitor", tenantUrl);
 
             Assert.That(expected, Is.EqualTo(target.HttpClientConfig.BaseUrl));
+        }
+
+        [Test]
+        public void ApplicationIdAndApplicationNameIdenticalForAppMonConfig()
+        {
+            var target = new AppMonConfiguration(applicationName, 17, "", false);
+
+            var expected = applicationName;
+
+            Assert.That(expected, Is.EqualTo(target.ApplicationID));
+            Assert.That(expected, Is.EqualTo(target.ApplicationName));
         }
     }
 }

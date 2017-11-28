@@ -77,25 +77,23 @@ namespace Dynatrace.OpenKit {
         ///  Creates a Dynatrace AppMon instance of the OpenKit.
         /// </summary>
         /// <param name="applicationName">the application name</param>
-        /// <param name="applicationID">the application ID</param>
         /// <param name="visitorID">unique visitor ID</param>
         /// <param name="endpointURL">the URL of the Java/Webserver Agent to send the data to</param>
         /// <returns>Dynatrace AppMon instance of the OpenKit</returns>
-        public static IOpenKit CreateAppMonInstance(string applicationName, string applicationID, long visitorID, string endpointURL) {
-            return CreateAppMonInstance(applicationName, applicationID, visitorID, endpointURL, false);
+        public static IOpenKit CreateAppMonInstance(string applicationName, long visitorID, string endpointURL) {
+            return CreateAppMonInstance(applicationName, visitorID, endpointURL, false);
         }
 
         /// <summary>
         ///  Creates a Dynatrace AppMon instance of the OpenKit, optionally with verbose logging.
         /// </summary>
         /// <param name="applicationName">the application name</param>
-        /// <param name="applicationID">the application ID</param>
         /// <param name="visitorID">unique visitor ID</param>
         /// <param name="endpointURL">the URL of the Java/Webserver Agent to send the data to</param>
         /// <param name="verbose">if true, turn on verbose logging on stdout</param>
         /// <returns>Dynatrace AppMon instance of the OpenKit</returns>
-        public static IOpenKit CreateAppMonInstance(string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose) {
-            return new Core.OpenKit(new AppMonConfiguration(applicationName, applicationID, visitorID, endpointURL, verbose));
+        public static IOpenKit CreateAppMonInstance(string applicationName, long visitorID, string endpointURL, bool verbose) {
+            return new Core.OpenKit(new AppMonConfiguration(applicationName, visitorID, endpointURL, verbose));
         }
 
     }
