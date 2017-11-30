@@ -31,7 +31,17 @@ namespace Dynatrace.OpenKit.Core.Communication
             IsInitialTimeSync = initialTimeSync;
         }
 
-        internal override AbstractBeaconSendingState ShutdownState => IsInitialTimeSync ? new BeaconSendingTerminalState() : (AbstractBeaconSendingState)new BeaconSendingFlushSessionsState();
+        internal override AbstractBeaconSendingState ShutdownState
+        {
+            get
+            {
+                if (IsInitialTimeSync)
+                {
+                    return new BeaconSendingTerminalState();
+                }
+                return new BeaconSendingFlushSessionsState();
+            }
+        }
 
         /// <summary>
         /// Sets init completed to false
