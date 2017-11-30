@@ -1,12 +1,12 @@
-# Dynatrace OpenKit - .NET example
+# Dynatrace OpenKit - .NET Example
 
-The following document shall provide an in depth overview, how OpenKit can be used from
+The following document provides an in depth overview, how OpenKit can be used from
 developer's point of view. It explains the usage of all the API methods.  
 
 To make it more obvious for the reader which data types are used, all examples below
 avoid C#'s auto type deduction feature.
 
-## Obtaining an OpenKit instance
+## Obtaining an OpenKit Instance
 
 OpenKit instances are obtained from the `OpenKitFactory` class.  
 Depending on the used backend system (Dynatrace SaaS/Dynatrace Managed/AppMon), the factory provides 
@@ -138,7 +138,7 @@ int timeoutInMilliseconds = 10 * 1000;
 bool success = openKit.WaitForInitCompletion(timeoutInMilliseconds);
 ```
 
-The method returns `false` in case the timeout expired or `Shutdown` has been invoked in the mean time
+The method returns `false` in case the timeout expired or `Shutdown` has been invoked in the meantime
 and `true` to indicate successful initialization.  
 
 To verify if OpenKit has been initialized, use the `IsInitialized` property as shown in the example below.
@@ -151,7 +151,7 @@ if (isInitialized) {
 }
 ```
 
-## Providing further Application information
+## Providing further Application Information
 
 If multiple version's of the same applications are monitored by OpenKit, it's quite useful
 to set the application's version in OpenKit.  
@@ -161,7 +161,7 @@ string applicationVersion = "1.2.3.4";
 openKit.ApplicationVersion = applicationVersion;
 ```
 
-## Providing Device specific information
+## Providing Device specific Information
 
 Sometimes it might also be quite useful to provide information about the device the application
 is running on. The example below shows how to achieve this.
@@ -226,7 +226,7 @@ The example below shows how an exception might be reported.
         } catch (Exception e) {
             string errorName = e.GetType().ToString();
             string reason = e.Message;
-            string stacktrace = e.StackTrace
+            string stacktrace = e.StackTrace;
             // and now report the application crash via the session
             session.reportCrash(errorName, reason, stacktrace);
         }
@@ -246,7 +246,7 @@ IRootAction rootAction = session.EnterAction(rootActionName);
 Since `IRootAction` extends the `IAction` interface all further methods are the same for both interfaces, except
 for creating child actions, which can only be done with an `IRootAction`.
 
-## Entering a child Action
+## Entering a Child Action
 
 To start a child `IAction` from a previously started `IRootAction` use the `EnterAction` method from
 `IRootAction`, as demonstrated below.
@@ -277,9 +277,9 @@ action.ReportEvent(eventName);
 rootAction.ReportEvent(eventName);
 ```
 
-## Report Key-value pairs
+## Report Key-Value Pairs
 
-Key-value pairs can also be reported via an `IAction` as shown in the example below.
+Key-Value Pairs can also be reported via an `IAction` as shown in the example below.
 Overloaded methods exist for the following value types:
 * int
 * double
@@ -317,7 +317,7 @@ action.ReportError(errorName, errorCode, reason);
 
 One of the most powerful OpenKit features is web request tracing. When the application starts a web
 request (e.g. HTTP GET) a special tag can be attached to the header. This special header allows
-Dynatrace SaaS/Dynatrace Managed/AppMon to correlate with a server side PurePath. 
+Dynatrace SaaS/Dynatrace Managed/AppMon to correlate Actions with a server side PurePath. 
 
 Since .NET 3.5 and 4.0 do not support `HttpClient`, the `WebClient` class is supported for those two
 versions. `HttpClient` is supported for .NET 4.5 and above.
@@ -367,7 +367,7 @@ using (HttpClient httpClient = new HttpClient())
         using (HttpContent content = response.Content)
         {
             // ... Read the string.
-            string downloadedData = await content.ReadAsStringAsync();
+            downloadedData = await content.ReadAsStringAsync();
         }
     }
 
@@ -386,7 +386,7 @@ The field name can be obtained from `OpenKitFactory.WEBREQUEST_TAG_HEADER` and t
 from `Tag` property (see class `WebRequestTracer`).
 
 ```cs
-String url = "http://www.my-backend.com/api/v3/users";
+string url = "http://www.my-backend.com/api/v3/users";
 
 // create the WebRequestTracer
 IWebRequestTracer webRequestTracer = action.TraceWebRequest(url);
@@ -404,7 +404,7 @@ webRequestTracer.StopTiming();
 ```
 
 
-## Terminating the OpenKit instance
+## Terminating the OpenKit Instance
 
 When an OpenKit instance is no longer needed (e.g. the application using OpenKit is shut down), the previously
 obtained instance can be cleared by invoking the `Shutdown` method.  
