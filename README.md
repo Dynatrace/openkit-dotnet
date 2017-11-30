@@ -99,7 +99,7 @@ A named `Event` is attached to an `IAction` and contains a name.
 
 ### Key-Value Pairs
 
-For an `IAction` Key-Value Pairs can also be reported. The key is always a string
+For an `IAction` key-value pairs can also be reported. The key is always a string
 and the value may be an integer (int), a floating point (double) or a string.
 
 ### Errors & Crashes

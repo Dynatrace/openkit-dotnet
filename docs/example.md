@@ -279,7 +279,7 @@ rootAction.ReportEvent(eventName);
 
 ## Report Key-Value Pairs
 
-Key-Value Pairs can also be reported via an `IAction` as shown in the example below.
+Key-value pairs can also be reported via an `IAction` as shown in the example below.
 Overloaded methods exist for the following value types:
 * int
 * double
@@ -317,7 +317,7 @@ action.ReportError(errorName, errorCode, reason);
 
 One of the most powerful OpenKit features is web request tracing. When the application starts a web
 request (e.g. HTTP GET) a special tag can be attached to the header. This special header allows
-Dynatrace SaaS/Dynatrace Managed/AppMon to correlate Actions with a server side PurePath. 
+Dynatrace SaaS/Dynatrace Managed/AppMon to correlate actions with a server side PurePath. 
 
 Since .NET 3.5 and 4.0 do not support `HttpClient`, the `WebClient` class is supported for those two
 versions. `HttpClient` is supported for .NET 4.5 and above.
