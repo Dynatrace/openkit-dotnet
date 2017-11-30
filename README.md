@@ -17,7 +17,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 ## What you can do with the OpenKit
 * Create Sessions and User Actions
 * Report values, events, errors and crashes
-* Tag web requests to server-side PurePaths
+* Trace web requests to server-side PurePaths
 * Use it together with Dynatrace or AppMon
 
 ## What you cannot do with the OpenKit
@@ -31,14 +31,15 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * No usage of third-party libraries, should run without any dependencies
 * Avoid usage of newest .NET APIs, should be running on older .NET runtimes, too
 * Avoid usage of too much .NET-specific APIs to allow rather easy porting to other languages
+* Design reentrant APIs and document them
 
 ## Prerequisites
 
 ### Running the OpenKit
-* .NET Framework 4.0+ or .NET Core 1.0+
+* .NET Framework 3.5+ or .NET Core 1.0+
 
 ### Building the Source
-* .NET Framework 4.0+ or .NET Core 1.0+
+* .NET Framework 3.5+ or .NET Core 1.0+
 * Visual Studio 2017 (to open VS solution)
 
 ## Building the Source
@@ -46,10 +47,96 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 Open `openkit-dotnet.sln` in Visual Studio 2017 and build the needed project(s).
 The built dll file(s) `openkit-<version>-dotnet<dotnet_framework>-<dotnet_version>.dll` will be located under the `<project_name>/bin` directory.
 
-Note: System.Net.Http.dll has to be deployed when using OpenKit for .NET Framework 4.0.
-
 ## General Concepts
-* TBD
+
+In this part the concepts used throughout OpenKit are explained. A short sample how to use OpenKit is
+also provided. For detailed code samples have a look into [example.md](docs/example.md).
+
+### OpenKit
+
+An `IOpenKit` instance is responsible for getting and setting application relevant information, e.g.
+the application's version and device specific information.  
+Furthermore the `IOpenKit` is responsible for creating user sessions (see `ISession`).
+  
+Although it would be possible to have multiple `IOpenKit` instances connected to the same endpoint
+(Dynatrace/AppMon) within one process, there should be one unique instance. `IOpenKit` is designed to be
+thread safe and therefore the instance can be shared among threads.  
+
+On application shutdown, `Shutdown()` needs to be called on the OpenKit instance.
+
+### Device
+
+An `IDevice` instance, which can be retrieved from an `IOpenKit` instance, contains methods
+for setting device specific information. It's not mandatory for the application developer to
+provide this information, reasonable default values exist.  
+However when the application is run on multiple different devices it might be quite handy
+to know details about the used device (e.g device identifier, device manufacturer, operating system).
+
+### Session
+
+An `ISession` represents kind of a user session, similar to a browser session in a web application.
+However the application developer is free to choose how to treat an `ISession`.  
+The `ISession` is used to create `IRootAction` instances and report application crashes.  
+
+When an `ISession` is no longer required, it's highly recommended to end it, using the `ISession.End()` method. 
+
+### RootAction and Action
+
+The `IRootAction` and `IAction` are named hierarchical nodes for timing and attaching further details.
+An `IRootAction` is created from the `ISession` and it can create `IAction` instances. Both, `IRootAction` and
+`IAction`, provide the possibility to attach key-value pairs, named events and errors, and are used 
+for tracing web requests.
+
+### WebRequestTracer
+
+When the application developer wants to trace a web request, which is served by a service 
+instrumented by Dynatrace, an `IWebRequestTracer` should be used, which can be
+requested from an `IAction`.  
+
+### Named Events
+
+A named `Event` is attached to an `IAction` and contains a name.
+
+### Key-Value Pairs
+
+For an `IAction` Key-Value Pairs can also be reported. The key is always a string
+and the value may be an integer (int), a floating point (double) or a string.
+
+### Errors & Crashes
+
+Errors are a way to report an erroneous condition on an `IAction`.  
+Crashes are used to report (unhandled) exceptions on an `ISession`.
+
+
+## Example
+
+This small example provides a rough overview how OpenKit can be used.  
+Detailed explanation is available in [example.md](docs/example.md).
+
+```cs
+string applicationName = "My OpenKit application";
+string applicationID = "application-id";
+long visitorID = 42L;
+string endpointURL = "https://tenantid.beaconurl.com";
+
+IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, visitorID, endpointURL);
+openKit.Initialize();
+openKit.WaitForInitCompletion();
+
+string clientIP = "8.8.8.8";
+ISession session = openKit.CreateSession(clientIP);
+
+string rootActionName = "rootActionName";
+IRootAction rootAction = session.EnterAction(rootActionName);
+
+string childActionName = "childAction";
+IAction childAction = rootAction.EnterAction(childActionName);
+
+childAction.LeaveAction();
+rootAction.LeaveAction();
+session.End();
+openKit.ShutDown();
+``` 
 
 ## Known Current Limitations
 * it's only possible to have one OpenKit instance running as providers are static

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2008
+VisualStudioVersion = 15.0.27004.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "openkit-shared", "src\openkit-shared\openkit-shared.shproj", "{CC87C275-EFBD-4B40-AC4C-E4B1558B6564}"
 EndProject
@@ -32,6 +32,17 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetfull-4.6.Tests", "tests\openkit-dotnetfull-4.6.Tests\openkit-dotnetfull-4.6.Tests.csproj", "{8B8FAE28-F255-4391-8370-31DD894011C2}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "openkit-shared-tests", "tests\openkit-shared-tests\openkit-shared-tests.shproj", "{48F4FB14-CC59-44B1-83DA-B85D9E2A1CCB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F02D384C-D466-45A8-AFD5-1BB3D2EEC4D7}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{69C1C941-3821-480C-A8EC-DC0FD4AD6712}"
+	ProjectSection(SolutionItems) = preProject
+		docs\example.md = docs\example.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -251,6 +262,7 @@ Global
 		{7394F6AA-300D-4FB0-BB2C-9CB22DABD514} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
 		{8B8FAE28-F255-4391-8370-31DD894011C2} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
 		{48F4FB14-CC59-44B1-83DA-B85D9E2A1CCB} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
+		{69C1C941-3821-480C-A8EC-DC0FD4AD6712} = {F02D384C-D466-45A8-AFD5-1BB3D2EEC4D7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F480439E-DC91-4B89-853A-4BBA4C5539F1}
