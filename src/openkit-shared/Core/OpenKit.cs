@@ -53,7 +53,8 @@ namespace Dynatrace.OpenKit.Core {
 
         public bool IsInitialized => beaconSender.IsInitialized;
 
-        public string ApplicationVersion {
+        public string ApplicationVersion
+        {
             set
             {
                 configuration.ApplicationVersion = value;

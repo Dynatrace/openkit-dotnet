@@ -15,7 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)API\IDevice.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IOpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\ISession.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)API\IWebRequestTag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)API\IWebRequestTracer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Action.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BeaconSender.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\AbstractBeaconSendingState.cs" />
@@ -37,7 +37,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Device.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DummyAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DummySession.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\DummyWebRequestTag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\DummyWebRequestTracer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Session.cs" />
@@ -46,7 +46,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TimeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTagHttpClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerStringURL.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Common\CRC32.cs" />
