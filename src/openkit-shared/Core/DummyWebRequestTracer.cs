@@ -25,11 +25,11 @@ namespace Dynatrace.OpenKit.Core {
             }
         }
 
-        public void StartTiming() {
+        public void Start() {
             // do nothing
         }
 
-        public void StopTiming() {
+        public void Stop() {
             // do nothing
         }
     }

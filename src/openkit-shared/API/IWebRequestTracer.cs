@@ -25,12 +25,12 @@ namespace Dynatrace.OpenKit.API {
         /// <summary>
         ///  Starts the web request timing. Should be called when the web request is initiated.
         /// </summary>
-        void StartTiming();
+        void Start();
 
         /// <summary>
         ///  Stops the web request timing. Should be called when the web request is finished.
         /// </summary>
-        void StopTiming();
+        void Stop();
 
     }
 

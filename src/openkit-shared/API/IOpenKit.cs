@@ -3,18 +3,14 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.API {
+namespace Dynatrace.OpenKit.API
+{
 
     /// <summary>
     ///  This interface provides basic OpenKit functionality, like creating a Session and shutting down the OpenKit.
     /// </summary>
-    public interface IOpenKit {
-
-        /// <summary>
-        ///  Initializes the OpenKit, which includes waiting for the OpenKit to receive its initial settings from the Dynatrace/Appmon server.
-        ///  Must be done before any other calls to the OpenKit, otherwise those calls to the OpenKit will do nothing.
-        /// </summary>
-        void Initialize();
+    public interface IOpenKit
+    {
 
         /// <summary>
         /// Waits until OpenKit is fully initialized.
