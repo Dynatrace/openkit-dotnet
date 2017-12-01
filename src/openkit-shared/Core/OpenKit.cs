@@ -7,12 +7,14 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Core
+{
 
     /// <summary>
     ///  Actual implementation of the IOpenKit interface.
     /// </summary>
-    public class OpenKit : IOpenKit {        
+    public class OpenKit : IOpenKit
+    {        
 
         // Configuration reference
         private AbstractConfiguration configuration;
@@ -33,13 +35,20 @@ namespace Dynatrace.OpenKit.Core {
             this.configuration = configuration;
             beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
         }
-
-        // *** IOpenKit interface methods ***
-
-        public void Initialize()
+        
+        /// <summary>
+        /// Initialize this OpenKit instance.
+        /// </summary>
+        /// <remarks>
+        /// This method starts the <see cref="BeaconSender"/>  and is called directly after
+        /// the instance has been created in <see cref="OpenKitFactory"/>.
+        /// </remarks>
+        internal void Initialize()
         {
             beaconSender.Initialize();
         }
+
+        // *** IOpenKit interface methods ***
 
         public  bool WaitForInitCompletion()
         {
