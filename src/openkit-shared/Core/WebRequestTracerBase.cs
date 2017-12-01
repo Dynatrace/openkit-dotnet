@@ -60,11 +60,11 @@ namespace Dynatrace.OpenKit.Core {
             }
         }
 
-        public void StartTiming() {
+        public void Start() {
             startTime = TimeProvider.GetTimestamp();
         }
 
-        public void StopTiming() {
+        public void Stop() {
             endTime = TimeProvider.GetTimestamp();
             endSequenceNo = beacon.NextSequenceNumber;
 
