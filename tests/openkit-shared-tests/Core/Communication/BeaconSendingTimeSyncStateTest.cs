@@ -45,13 +45,23 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ShutdownStateIsTerminalState()
+        public void ShutdownStateIsTerminalStateForInitialTimeSync()
+        {
+            // when
+            var target = new BeaconSendingTimeSyncState(true);
+
+            // then
+            Assert.That(target.ShutdownState, Is.InstanceOf<BeaconSendingTerminalState>());
+        }
+
+        [Test]
+        public void ShutdownStateIsFlushSessionStateForTimeReSync()
         {
             // when
             var target = new BeaconSendingTimeSyncState();
 
             // then
-            Assert.That(target.ShutdownState, Is.InstanceOf(typeof(BeaconSendingTerminalState)));
+            Assert.That(target.ShutdownState, Is.InstanceOf<BeaconSendingFlushSessionsState>());
         }
 
         [Test]
