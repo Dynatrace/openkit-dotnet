@@ -99,6 +99,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         // *** constructors ***
 
+        /// <summary>
+        /// Creates a new instance of type Beacon
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="clientIPAddress"></param>
         public Beacon(AbstractConfiguration configuration, string clientIPAddress)
             : this(configuration, clientIPAddress, new DefaultThreadIDProvider())
         {
@@ -124,9 +129,11 @@ namespace Dynatrace.OpenKit.Protocol
             basicBeaconData = CreateBasicBeaconData();
         }
 
-        // *** public methods ***
+        // *** public properties ***
 
-        // create next ID
+        /// <summary>
+        /// create next ID
+        /// </summary>
         public int NextID
         {
             get
@@ -135,7 +142,9 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // create next sequence number
+        /// <summary>
+        /// create next sequence number
+        /// </summary>
         public int NextSequenceNumber
         {
             get
@@ -164,7 +173,14 @@ namespace Dynatrace.OpenKit.Protocol
             get { return (new List<string>(actionDataList)).AsReadOnly(); }
         }
 
-        // create web request tag
+        // *** public methods ***
+
+        /// <summary>
+        /// create web request tag
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="sequenceNo"></param>
+        /// <returns></returns>
         public string CreateTag(Action parentAction, int sequenceNo)
         {
             return TAG_PREFIX + "_"
@@ -178,7 +194,10 @@ namespace Dynatrace.OpenKit.Protocol
                        + sequenceNo;
         }
 
-        // add an Action to this Beacon
+        /// <summary>
+        /// add an Action to this Beacon
+        /// </summary>
+        /// <param name="action"></param>
         public void AddAction(Action action)
         {
             StringBuilder actionBuilder = new StringBuilder();
@@ -198,7 +217,10 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // end Session on this Beacon
+        /// <summary>
+        /// end Session on this Beacon
+        /// </summary>
+        /// <param name="session"></param>
         public void EndSession(Session session)
         {
             StringBuilder eventBuilder = new StringBuilder();
@@ -215,7 +237,12 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // report int value on the provided Action
+        /// <summary>
+        /// report int value on the provided Action
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="valueName"></param>
+        /// <param name="value"></param>
         public void ReportValue(Action parentAction, string valueName, int value)
         {
             StringBuilder eventBuilder = new StringBuilder();
@@ -229,7 +256,12 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // report double value on the provided Action
+        /// <summary>
+        /// report double value on the provided Action
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="valueName"></param>
+        /// <param name="value"></param>
         public void ReportValue(Action parentAction, string valueName, double value)
         {
             StringBuilder eventBuilder = new StringBuilder();
@@ -243,7 +275,12 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // report string value on the provided Action
+        /// <summary>
+        /// report string value on the provided Action
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="valueName"></param>
+        /// <param name="value"></param>        
         public void ReportValue(Action parentAction, string valueName, string value)
         {
             StringBuilder eventBuilder = new StringBuilder();
@@ -257,7 +294,11 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // report named event on the provided Action
+        /// <summary>
+        /// report named event on the provided Action
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="eventName"></param>
         public void ReportEvent(Action parentAction, string eventName)
         {
             StringBuilder eventBuilder = new StringBuilder();
@@ -270,7 +311,13 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // report error on the provided Action
+        /// <summary>
+        /// report error on the provided Action
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="errorName"></param>
+        /// <param name="errorCode"></param>
+        /// <param name="reason"></param>
         public void ReportError(Action parentAction, string errorName, int errorCode, string reason)
         {
             // if capture errors is off -> do nothing
@@ -295,7 +342,12 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // report a crash
+        /// <summary>
+        /// report a crash
+        /// </summary>
+        /// <param name="errorName"></param>
+        /// <param name="reason"></param>
+        /// <param name="stacktrace"></param>
         public void ReportCrash(string errorName, string reason, string stacktrace)
         {
             // if capture crashes is off -> do nothing
@@ -320,7 +372,11 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // add web request to the provided Action
+        /// <summary>
+        /// add web request to the provided Action
+        /// </summary>
+        /// <param name="parentAction"></param>
+        /// <param name="webRequestTracer"></param>
         public void AddWebRequest(Action parentAction, WebRequestTracerBase webRequestTracer)
         {
             StringBuilder eventBuilder = new StringBuilder();
@@ -343,22 +399,17 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // identify user
+        /// <summary>
+        /// Identify the user
+        /// </summary>
+        /// <param name="userId"></param>
         public void IdentifyUser(string userId)
-        {
-            IdentifyUser(userId, null);
-        }
-
-        // identify user
-        public void IdentifyUser(string userId, Action parentAction)
         {
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userId);
 
-            // set parent action id if provided
-            var parentActionId = parentAction == null ? 0 : parentAction.ID;
-            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentActionId);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
 
@@ -368,7 +419,12 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // send current state of Beacon
+        /// <summary>
+        /// send current state of Beacon
+        /// </summary>
+        /// <param name="httpClientProvider"></param>
+        /// <param name="numRetries"></param>
+        /// <returns></returns>
         public StatusResponse Send(IHTTPClientProvider httpClientProvider, int numRetries)
         {
             var httpClient = httpClientProvider.CreateClient(httpConfiguration);
@@ -383,6 +439,9 @@ namespace Dynatrace.OpenKit.Protocol
             return response;
         }
 
+        // *** private methods ***
+
+        // helper method for beacon sending with retries
         private StatusResponse SendBeaconRequest(IHTTPClient httpClient, byte[] beaconData, int numRetries)
         {
             StatusResponse response = null;
@@ -405,8 +464,6 @@ namespace Dynatrace.OpenKit.Protocol
 
             return response;
         }
-
-        // *** private methods ***
 
         // helper method for building events
         private void BuildEvent(StringBuilder builder, EventType eventType, string name, Action parentAction)

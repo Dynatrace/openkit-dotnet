@@ -8,13 +8,14 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Core
+{
 
     /// <summary>
     ///  Actual implementation of the ISession interface.
     /// </summary>
-    public class Session : ISession {
-
+    public class Session : ISession
+    {
         // end time of this Session
         private long endTime = -1;
 
@@ -27,7 +28,8 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public Session(AbstractConfiguration configuration, string clientIPAddress, BeaconSender beaconSender) {
+        public Session(AbstractConfiguration configuration, string clientIPAddress, BeaconSender beaconSender)
+        {
             this.beaconSender = beaconSender;
 
             // beacon has to be created immediately, as the session start time is taken at beacon construction
@@ -37,22 +39,27 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** ISession interface methods ***
 
-        public IRootAction EnterAction(string actionName) {
+        public IRootAction EnterAction(string actionName)
+        {
             return new RootAction(beacon, actionName, openRootActions);
         }
 
-        public void ReportCrash(string errorName, string reason, string stacktrace) {
+        public void ReportCrash(string errorName, string reason, string stacktrace)
+        {
             beacon.ReportCrash(errorName, reason, stacktrace);
         }
 
-        public void End() {
+        public void End()
+        {
             // check if end() was already called before by looking at endTime
-            if (endTime != -1) {
+            if (endTime != -1)
+            {
                 return;
             }
 
             // leave all Root-Actions for sanity reasons
-            while (!openRootActions.IsEmpty()) {
+            while (!openRootActions.IsEmpty())
+            {
                 IAction action = openRootActions.Get();
                 action.LeaveAction();
             }
@@ -69,7 +76,8 @@ namespace Dynatrace.OpenKit.Core {
         // *** public methods ***
 
         // sends the current Beacon state
-        public StatusResponse SendBeacon(IHTTPClientProvider clientProvider, int numRetries) {
+        public StatusResponse SendBeacon(IHTTPClientProvider clientProvider, int numRetries)
+        {
             return beacon.Send(clientProvider, numRetries);
         }
 
@@ -80,12 +88,13 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** properties ***
 
-        public long EndTime {
-            get {
+        public long EndTime
+        {
+            get
+            {
                 return endTime;
             }
         }
 
     }
-
 }

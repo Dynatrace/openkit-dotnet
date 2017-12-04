@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(target.Count, Is.EqualTo(1));
             // TODO - thomas.grassaue@dynatrace.com - ignore timestamp for now (due to static provider)
-            StringAssert.StartsWith(string.Format("et=60&na={0}&it=0&pa=0&s0=1&t0=", userID), target[0]);
+            Assert.That(target[0], Does.StartWith(string.Format("et=60&na={0}&it=0&pa=0&s0=1&t0=", userID)));
         }
     }
 }
