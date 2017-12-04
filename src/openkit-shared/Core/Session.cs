@@ -73,6 +73,11 @@ namespace Dynatrace.OpenKit.Core {
             return beacon.Send(clientProvider, numRetries);
         }
 
+        public void IdentifyUser(string userId)
+        {
+            beacon.IdentifyUser(userId);
+        }
+
         // *** properties ***
 
         public long EndTime {

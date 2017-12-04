@@ -10,6 +10,7 @@ using Dynatrace.OpenKit.Core;
 using System.Threading;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
+using System.Collections.ObjectModel;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -83,6 +84,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         // client IP address
         private string clientIPAddress;
+        private readonly IThreadIDProvider threadIdProvider;
         private readonly HTTPClientConfiguration httpConfiguration;
 
         // basic beacon protocol data
@@ -98,11 +100,23 @@ namespace Dynatrace.OpenKit.Protocol
         // *** constructors ***
 
         public Beacon(AbstractConfiguration configuration, string clientIPAddress)
+            : this(configuration, clientIPAddress, new DefaultThreadIDProvider())
+        {
+        }
+
+        /// <summary>
+        /// Internal constructor for testing purposes
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="clientIPAddress"></param>
+        /// <param name="threadIdProvider"></param>
+        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, IThreadIDProvider threadIdProvider)
         {
             this.sessionNumber = configuration.NextSessionNumber;
             this.sessionStartTime = TimeProvider.GetTimestamp();
             this.configuration = configuration;
             this.clientIPAddress = clientIPAddress;
+            this.threadIdProvider = threadIdProvider;
 
             // store the current http configuration
             this.httpConfiguration = configuration.HttpClientConfig;
@@ -130,6 +144,26 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
+        /// <summary>
+        /// Returns an immutable list of the event data
+        /// 
+        /// Used for testing
+        /// </summary>
+        internal ReadOnlyCollection<string> EventDataList
+        {
+            get { return (new List<string>(eventDataList)).AsReadOnly(); }
+        }
+
+        /// <summary>
+        /// Returns an immutable list of the action data
+        /// 
+        /// Used for testing
+        /// </summary>
+        internal ReadOnlyCollection<string> ActionDataList
+        {
+            get { return (new List<string>(actionDataList)).AsReadOnly(); }
+        }
+
         // create web request tag
         public string CreateTag(Action parentAction, int sequenceNo)
         {
@@ -140,7 +174,7 @@ namespace Dynatrace.OpenKit.Protocol
                        + sessionNumber + "_"
                        + configuration.ApplicationID + "_"
                        + parentAction.ID + "_"
-                       + ThreadIDProvider.ThreadID + "_"
+                       + threadIdProvider.ThreadID + "_"
                        + sequenceNo;
         }
 
@@ -309,6 +343,31 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
+        // identify user
+        public void IdentifyUser(string userId)
+        {
+            IdentifyUser(userId, null);
+        }
+
+        // identify user
+        public void IdentifyUser(string userId, Action parentAction)
+        {
+            StringBuilder eventBuilder = new StringBuilder();
+
+            BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userId);
+
+            // set parent action id if provided
+            var parentActionId = parentAction == null ? 0 : parentAction.ID;
+            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentActionId);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
+
+            lock (eventDataList)
+            {
+                eventDataList.AddLast(eventBuilder.ToString());
+            }
+        }
+
         // send current state of Beacon
         public StatusResponse Send(IHTTPClientProvider httpClientProvider, int numRetries)
         {
@@ -367,7 +426,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 AddKeyValuePair(builder, BEACON_KEY_NAME, Truncate(name));
             }
-            AddKeyValuePair(builder, BEACON_KEY_THREAD_ID, ThreadIDProvider.ThreadID);
+            AddKeyValuePair(builder, BEACON_KEY_THREAD_ID, threadIdProvider.ThreadID);
         }
 
         // creates (possibly) multiple beacon chunks based on max beacon size
