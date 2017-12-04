@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <AssemblyName>openkit-0.2-dotnetcore-2.0</AssemblyName>
+    <AssemblyName>openkit-0.3-dotnetcore-2.0</AssemblyName>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
