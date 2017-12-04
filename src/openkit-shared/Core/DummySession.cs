@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Core {
 
         public void IdentifyUser(string userId)
         {
-            throw new System.NotImplementedException();
+            // do nothing
         }
     }
 
