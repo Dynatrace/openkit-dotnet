@@ -199,6 +199,15 @@ ISession sessionWithArgument = openKit.CreateSession(clientIPAddress);
 ISession sessionWithoutArgument = openKit.CreateSession();
 ```
 
+## Identify User
+
+Users can be identified by calling `IdentifyUser` on an `ISession` instance. This enables you to search and 
+filter specific user sessions and analyze individual user behavior over time in the backend.
+
+```cs
+session.IdentifyUser("jane.doe@example.com");
+```
+
 ## Finishing a Session
 
 When an `ISession` is no longer needed, it should be ended by invoking the `End` method.  
@@ -262,8 +271,8 @@ To leave an `IAction` simply use the `Leave` method. The method returns the pare
 if it has no parent.
 
 ```cs
-IAction parentAsAction = action.Leave(); // returns the appropriate RootAction
-IAction parent = parentAsAction.Leave(); // will always return null
+IAction parentAction = action.Leave(); // returns the appropriate RootAction
+IAction parent = parentAction.Leave(); // will always return null
 ```
 
 ## Report Named Event

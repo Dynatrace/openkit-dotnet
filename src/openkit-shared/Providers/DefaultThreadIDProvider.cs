@@ -10,9 +10,9 @@ namespace Dynatrace.OpenKit.Providers {
     /// <summary>
     ///  Class for providing a thread ID.
     /// </summary>
-    public class ThreadIDProvider {
+    public class DefaultThreadIDProvider : IThreadIDProvider {
 
-        public static int ThreadID {
+        public int ThreadID {
             get {
                 return Thread.CurrentThread.ManagedThreadId;
             }

@@ -43,7 +43,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Session.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SynchronizedQueue.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\IHttpClient.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Providers\ThreadIDProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\IThreadIDProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TimeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerHttpClient.cs" />
