@@ -12,13 +12,13 @@ namespace Dynatrace.OpenKit.Core.Util {
     ///  Utility to check if a InetAddress is valid
     /// </summary>
     public class InetAddressValidator {
-        private static Regex IpV4Regex = new Regex("^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
+        private static readonly Regex IpV4Regex = new Regex("^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
 
-        private static Regex IpV6Regex = new Regex("^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
+        private static readonly Regex IpV6Regex = new Regex("^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
 
-        private static Regex IpV6HexCompressedRegex = new Regex("^((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)$");
+        private static readonly Regex IpV6HexCompressedRegex = new Regex("^((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)$");
 
-        private static Regex IpV6MixedRegex = new Regex("(?ix)(?<![:.\\w])                                     # Anchor address\n" +
+        private static readonly Regex IpV6MixedRegex = new Regex("(?ix)(?<![:.\\w])                                     # Anchor address\n" +
                             "(?:\n" +
                             " (?:[A-F0-9]{1,4}:){6}                                # Non-compressed\n" +
                             "|(?=(?:[A-F0-9]{0,4}:){2,6}                           # Compressed with 2 to 6 colons\n" +
