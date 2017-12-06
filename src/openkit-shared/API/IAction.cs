@@ -42,7 +42,7 @@ namespace Dynatrace.OpenKit.API {
         IAction ReportValue(string valueName, string value);
 
         /// <summary>
-        ///  Reports an error with a specified name, error code and a reason.
+        ///  Reports an error with a specified name, error code and reason.
         /// </summary>
         /// <param name="errorName">name of this error</param>
         /// <param name="errorCode">numeric error code of this error</param>
@@ -89,7 +89,7 @@ namespace Dynatrace.OpenKit.API {
         /// <summary>
         ///  Leaves this Action.
         /// </summary>
-        /// <returns>this Action (for usage as fluent API)</returns>
+        /// <returns>the parent Action, or null if there is no parent Action</returns>
         IAction LeaveAction();
 
     }
