@@ -127,7 +127,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
             else
             {
-                this.clientIPAddress = "";
+                this.clientIPAddress = string.Empty;
             }
             this.threadIdProvider = threadIdProvider;
 
