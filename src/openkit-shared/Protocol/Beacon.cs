@@ -11,6 +11,7 @@ using System.Threading;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using System.Collections.ObjectModel;
+using Dynatrace.OpenKit.Core.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -120,7 +121,14 @@ namespace Dynatrace.OpenKit.Protocol
             this.sessionNumber = configuration.NextSessionNumber;
             this.sessionStartTime = TimeProvider.GetTimestamp();
             this.configuration = configuration;
-            this.clientIPAddress = clientIPAddress;
+            if (InetAddressValidator.IsValidIP(clientIPAddress))
+            {
+                this.clientIPAddress = clientIPAddress;
+            }
+            else
+            {
+                this.clientIPAddress = "";
+            }
             this.threadIdProvider = threadIdProvider;
 
             // store the current http configuration
