@@ -19,11 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingRequestUtilTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\ConfigurationTest.cs" />
-<<<<<<< Updated upstream
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
-=======
     <Compile Include="$(MSBuildThisFileDirectory)Core\Util\InetAddressValidatorTest.cs" />
->>>>>>> Stashed changes
     <Compile Include="$(MSBuildThisFileDirectory)TestConfiguration.cs" />
   </ItemGroup>
 </Project>
