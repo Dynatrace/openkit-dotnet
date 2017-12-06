@@ -15,13 +15,13 @@ namespace Dynatrace.OpenKit.Protocol
     {
 
         // status response constants
-        private const string RESPONSE_KEY_CAPTURE = "cp";
-        private const string RESPONSE_KEY_SEND_INTERVAL = "si";
-        private const string RESPONSE_KEY_MONITOR_NAME = "bn";
-        private const string RESPONSE_KEY_SERVER_ID = "id";
-        private const string RESPONSE_KEY_MAX_BEACON_SIZE = "bl";
-        private const string RESPONSE_KEY_CAPTURE_ERRORS = "er";
-        private const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
+        public const string RESPONSE_KEY_CAPTURE = "cp";
+        public const string RESPONSE_KEY_SEND_INTERVAL = "si";
+        public const string RESPONSE_KEY_MONITOR_NAME = "bn";
+        public const string RESPONSE_KEY_SERVER_ID = "id";
+        public const string RESPONSE_KEY_MAX_BEACON_SIZE = "bl";
+        public const string RESPONSE_KEY_CAPTURE_ERRORS = "er";
+        public const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
 
         // settings contained in status response
         private bool capture = true;
