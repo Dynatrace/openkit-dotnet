@@ -15,12 +15,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public abstract class AbstractConfiguration
     {
-
-        private const bool DEFAULT_CAPTURE = false;                 // default: capture off
-        private const int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;    // default: wait 2m (in ms) to send beacon
-        private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;      // default: max 30KB (in B) to send in one beacon
-        private const bool DEFAULT_CAPTURE_ERRORS = true;           // default: capture errors on
-        private const bool DEFAULT_CAPTURE_CRASHES = true;          // default: capture crashes on
+        private const bool DEFAULT_CAPTURE = false;                     // default: capture off
+        private const int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;        // default: wait 2m (in ms) to send beacon
+        private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
+        private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
+        private const bool DEFAULT_CAPTURE_CRASHES = true;              // default: capture crashes on
+        private const string DEFAULT_APPLICATION_VERSION = "0.3";       // default: '0.3'
 
         // immutable settings
         private readonly OpenKitType openKitType;
@@ -68,7 +68,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             captureCrashes = DEFAULT_CAPTURE_CRASHES;
 
             device = new Device();
-            applicationVersion = null;
+            applicationVersion = DEFAULT_APPLICATION_VERSION;
         }
 
         // *** public methods ***
@@ -275,7 +275,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
             set
             {
-                this.applicationVersion = value;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    this.applicationVersion = value;
+                }
             }
         }
 

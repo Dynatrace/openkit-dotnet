@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\AbstractConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\ConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Util\InetAddressValidatorTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConfiguration.cs" />
   </ItemGroup>
 </Project>

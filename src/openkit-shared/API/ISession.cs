@@ -18,7 +18,7 @@ namespace Dynatrace.OpenKit.API {
         IRootAction EnterAction(string actionName);
 
         /// <summary>
-        /// Tags a session with the provided userId
+        ///  Tags a session with the provided userId
         /// </summary>
         /// <param name="userId"></param>
         void IdentifyUser(string userId);
@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.API {
         void ReportCrash(string errorName, string reason, string stacktrace);
 
         /// <summary>
-        ///  Ends this Session and marks it as finished for sending.
+        ///  Ends this Session and marks it as ready for immediate sending.
         /// </summary>
         void End();
 

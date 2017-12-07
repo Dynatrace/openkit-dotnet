@@ -7,43 +7,44 @@ namespace Dynatrace.OpenKit.API
 {
 
     /// <summary>
-    ///  This interface provides basic OpenKit functionality, like creating a Session and shutting down the OpenKit.
+    ///  This interface provides basic OpenKit functionality, like creating a Session and shutting down OpenKit.
     /// </summary>
     public interface IOpenKit
     {
 
         /// <summary>
-        /// Waits until OpenKit is fully initialized.
+        ///  Waits until OpenKit is fully initialized.
         /// </summary>
         /// 
         /// <remarks>
         /// The calling thread is blocked until OpenKit is fully initialized or until OpenKit is shut down using the
         /// <see cref="IOpenKit.Shutdown"/>@link #shutdown()} method.
         /// 
-        /// Due to misconfiguration in the {@link com.dynatrace.openkit.OpenKitFactory} when creating the 
-        /// instance (e.g.wrong endpoint URL) this method might hang indefinitely, unless <see cref="IOpenKit.Shutdown"/> is called.
+        /// Be aware, if {@link com.dynatrace.openkit.OpenKitFactory} is wrongly configured, for example when creating an
+        /// instance with an incorrect endpoint URL, then this method might hang indefinitely, unless <see cref="IOpenKit.Shutdown"/> is called.
         /// </remarks>
         /// 
         /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> when a shutdown request was made. </returns>
         bool WaitForInitCompletion();
 
         /// <summary>
-        /// Waits until OpenKit is fully initialized or the given timeout expired.
+        ///  Waits until OpenKit is fully initialized or the given timeout expired.
         /// </summary>
         /// 
         /// <remarks>
-        /// The calling thread is blocked until OpenKit is fully initialized or until OpenKit is shut down using the
-        /// <see cref="IOpenKit.Shutdown"/> method or the timeout expired.
+        ///  The calling thread is blocked until OpenKit is fully initialized or until OpenKit is shut down using the
+        ///  <see cref="IOpenKit.Shutdown"/> method or the timeout expired.
         /// 
-        /// Due to misconfiguration in the {@link com.dynatrace.openkit.OpenKitFactory} when creating the 
-        /// instance (e.g.wrong endpoint URL) this method might hang indefinitely, unless <see cref="IOpenKit.Shutdown"/> is called or timeout expires.
+        ///  Be aware, if {@link com.dynatrace.openkit.OpenKitFactory} is wrongly configured, for example when creating an
+        ///  instance with an incorrect endpoint URL, then this method might hang indefinitely, unless <see cref="IOpenKit.Shutdown"/> is called 
+        ///  or timeout expires.
         /// </remarks>
         /// 
         /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> when a shutdown request was made. </returns>
         bool WaitForInitCompletion(int timeoutMillis);
         
         /// <summary>
-        /// Gets a boolean flag indicating whether OpenKit is initialized or not.
+        ///  Returns whether OpenKit is initialized or not.
         /// </summary>
         /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> if OpenKit still performs initialization.</returns>
         bool IsInitialized { get; }

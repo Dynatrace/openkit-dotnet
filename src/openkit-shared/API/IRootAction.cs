@@ -1,7 +1,7 @@
 ﻿namespace Dynatrace.OpenKit.API
 {
     /// <summary>
-    ///  This interface provides the same functionality as IAction and in addition allows to create child actions
+    ///  This interface provides the same functionality as IAction, additionally it allows to create child actions
     /// </summary>
     public interface IRootAction : IAction
     {
