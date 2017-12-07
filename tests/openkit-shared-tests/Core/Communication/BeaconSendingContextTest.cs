@@ -294,5 +294,19 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.GetNextFinishedSession(), Is.SameAs(session));
             Assert.That(target.GetNextFinishedSession(), Is.Null);
         }
+
+        [Test]
+        public void DisableCaptureDisablesItInTheConfiguration()
+        {
+            // given
+            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            config.EnableCapture();
+
+            // when disabling capture
+            target.DisableCapture();
+
+            // then it's disabled again
+            Assert.That(config.IsCaptureOn, Is.False);
+        }
     }
 }

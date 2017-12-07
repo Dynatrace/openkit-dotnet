@@ -219,10 +219,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(actionBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, action.EndSequenceNo);
             AddKeyValuePair(actionBuilder, BEACON_KEY_TIME_1, action.EndTime - action.StartTime);
 
-            lock (actionDataList)
-            {
-                actionDataList.AddLast(actionBuilder.ToString());
-            }
+            AddActionData(actionBuilder);
         }
 
         /// <summary>
@@ -239,11 +236,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime(session.EndTime));
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
+
 
         /// <summary>
         /// report int value on the provided Action
@@ -258,10 +253,7 @@ namespace Dynatrace.OpenKit.Protocol
             BuildEvent(eventBuilder, EventType.VALUE_INT, valueName, parentAction);
             AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, value);
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -277,10 +269,7 @@ namespace Dynatrace.OpenKit.Protocol
             BuildEvent(eventBuilder, EventType.VALUE_DOUBLE, valueName, parentAction);
             AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, value);
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -296,10 +285,7 @@ namespace Dynatrace.OpenKit.Protocol
             BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, parentAction);
             AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, Truncate(value));
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -313,10 +299,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             BuildEvent(eventBuilder, EventType.NAMED_EVENT, eventName, parentAction);
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -344,10 +327,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_CODE, errorCode);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -374,10 +354,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -401,10 +378,7 @@ namespace Dynatrace.OpenKit.Protocol
                 AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_RESPONSECODE, webRequestTracer.ResponseCode);
             }
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -421,10 +395,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
 
-            lock (eventDataList)
-            {
-                eventDataList.AddLast(eventBuilder.ToString());
-            }
+            AddEventData(eventBuilder);
         }
 
         /// <summary>
@@ -447,7 +418,40 @@ namespace Dynatrace.OpenKit.Protocol
             return response;
         }
 
+        internal void ClearData()
+        {
+            lock (eventDataList)
+            {
+                lock (actionDataList)
+                {
+                    eventDataList.Clear();
+                    actionDataList.Clear();
+                }
+            }
+        }
+
         // *** private methods ***
+        private void AddActionData(StringBuilder actionBuilder)
+        {
+            lock (actionDataList)
+            {
+                if (configuration.IsCaptureOn)
+                {
+                    actionDataList.AddLast(actionBuilder.ToString());
+                }
+            }
+        }
+
+        private void AddEventData(StringBuilder eventBuilder)
+        {
+            lock (eventDataList)
+            {
+                if (configuration.IsCaptureOn)
+                {
+                    eventDataList.AddLast(eventBuilder.ToString());
+                }
+            }
+        }
 
         // helper method for beacon sending with retries
         private StatusResponse SendBeaconRequest(IHTTPClient httpClient, byte[] beaconData, int numRetries)
@@ -649,7 +653,5 @@ namespace Dynatrace.OpenKit.Protocol
             }
             return name;
         }
-
     }
-
 }

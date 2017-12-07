@@ -15,8 +15,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public abstract class AbstractConfiguration
     {
-
-        private const bool DEFAULT_CAPTURE = true;                      // default: capture on
+        private const bool DEFAULT_CAPTURE = false;                     // default: capture off
         private const int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;        // default: wait 2m (in ms) to send beacon
         private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
         private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
@@ -38,6 +37,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private int maxBeaconSize;                                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
         private bool captureErrors;                                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private bool captureCrashes;		                        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        // TODO stefan.eberl@dynatrace.com - 2017-12-06 - capture/captureErrors/captureCrashes must be thread safe (APM-114816)
 
         // application and device settings
         private string applicationVersion;
@@ -88,11 +88,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // if invalid status response OR response code != 200 -> capture off
             if ((statusResponse == null) || (statusResponse.ResponseCode != 200))
             {
-                capture = false;
+                IsCaptureOn = false;
             }
             else
             {
-                capture = statusResponse.Capture;
+                IsCaptureOn = statusResponse.Capture;
             }
 
             // if capture is off -> leave other settings on their current values
@@ -152,8 +152,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
 
             // use capture settings for errors and crashes
-            captureErrors = statusResponse.CaptureErrors;
-            captureCrashes = statusResponse.CaptureCrashes;
+            CaptureErrors = statusResponse.CaptureErrors;
+            CaptureCrashes = statusResponse.CaptureCrashes;
+        }
+
+        internal void EnableCapture()
+        {
+            IsCaptureOn = true;
+        }
+
+        internal void DisableCapture()
+        {
+            IsCaptureOn = false;
         }
 
         // *** protected methods ***
@@ -202,11 +212,16 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
+        // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool IsCaptureOn
         {
             get
             {
                 return capture;
+            }
+            private set
+            {
+                capture = value;
             }
         }
 
@@ -226,19 +241,29 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
+        // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool CaptureErrors
         {
             get
             {
                 return captureErrors;
             }
+            private set
+            {
+                captureErrors = value;
+            }
         }
 
+        // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool CaptureCrashes
         {
             get
             {
                 return captureCrashes;
+            }
+            private set
+            {
+                captureCrashes = value;
             }
         }
 
@@ -267,5 +292,4 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public HTTPClientConfiguration HttpClientConfig { get; protected set; }
     }
-
 }

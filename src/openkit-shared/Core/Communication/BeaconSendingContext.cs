@@ -3,6 +3,7 @@ using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -79,6 +80,14 @@ namespace Dynatrace.OpenKit.Core.Communication
         public int SendInterval { get { return Configuration.SendInterval; } }
         public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
         public bool IsInTerminalState { get { return CurrentState.IsTerminalState; } }
+
+        /// <summary>
+        /// Gets a readonly list of all finished sessions.
+        /// </summary>
+        /// <remarks>
+        /// This property is only for testing purposes.
+        /// </remarks>
+        internal ReadOnlyCollection<Session> FinishedSessions => finishedSessions.ToList().AsReadOnly();
 
         /// <summary>
         /// Disables the time sync support
@@ -159,7 +168,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             TimingProvider.Sleep(millis);
         }
-        
+
+        public void DisableCapture()
+        {
+            Configuration.DisableCapture();
+            ClearAllSessionData();
+        }
+
         /// <summary>
         /// Updates the configuration based on the provided status response.
         /// </summary>
@@ -170,7 +185,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             if (!IsCaptureOn) {
                 // capture was turned off
-                ClearAllSessions();
+                ClearAllSessionData();
             }
         }
 
@@ -197,10 +212,19 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private void ClearAllSessions()
+        private void ClearAllSessionData()
         {
-            openSessions.Clear();
-            finishedSessions.Clear();
+            var session = finishedSessions.Get();
+            while (session != null)
+            {
+                session.ClearCapturedData();
+                session = finishedSessions.Get();
+            }
+            
+            foreach(var openSession in openSessions.ToList())
+            {
+                openSession.ClearCapturedData();
+            }
         }
     }
 }
