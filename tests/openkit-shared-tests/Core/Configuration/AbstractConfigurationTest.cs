@@ -4,7 +4,6 @@ using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
-    [TestFixture]
     class AbstractConfigurationTest
     {
         [Test]
