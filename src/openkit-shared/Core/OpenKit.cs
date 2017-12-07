@@ -20,9 +20,6 @@ namespace Dynatrace.OpenKit.Core
         private AbstractConfiguration configuration;
         private readonly BeaconSender beaconSender;
 
-        // dummy Session implementation, used if capture is set to off
-        private static DummySession dummySessionInstance = new DummySession();
-
         // *** constructors ***
 
         public OpenKit(AbstractConfiguration configuration)
@@ -74,14 +71,7 @@ namespace Dynatrace.OpenKit.Core
 
         public ISession CreateSession(string clientIPAddress)
         {
-            if (IsInitialized && configuration.IsCaptureOn)
-            {
-                return new Session(configuration, clientIPAddress, beaconSender);
-            }
-            else
-            {
-                return dummySessionInstance;
-            }
+            return new Session(configuration, clientIPAddress, beaconSender);
         }
 
         public void Shutdown()

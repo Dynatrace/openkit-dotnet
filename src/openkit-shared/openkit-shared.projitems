@@ -35,9 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\HTTPClientConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Device.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\DummyAction.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\DummySession.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\DummyWebRequestTracer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Session.cs" />
