@@ -112,15 +112,12 @@ IOpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, visitorI
 
 ## Initializing OpenKit
 
-After the OpenKit instance is obtained, the `Initialize` method must be called. Since initialization
-happens asynchronously the application developer might want to wait until initialization completes, as
-shown in the example below.
+When obtaining an OpenKit instance from `OpenKitFactory` the instance starts an automatic 
+initialization phase. Since initialization happens asynchronously the application developers 
+might want to wait until initialization completes, as shown in the example below.
 
 ```cs
-// initialize previously obtained OpenKit instance
-openKit.Initialize();
-
-// and wait until it's fully initialized
+// wait until the OpenKit instance is fully initialized
 bool success = openKit.WaitForInitCompletion();
 ```
 
@@ -130,10 +127,7 @@ indicates whether the OpenKit instance has been initialized or `Shutdown` has be
 An overloaded method exists to wait a given amount of time for OpenKit to initialize as shown in the
 following example.
 ```cs
-// initialize previously obtained OpenKit instance
-openKit.Initialize();
-
-// wait 10 seconds for OpenKit
+// wait 10 seconds for OpenKit to complete initialization
 int timeoutInMilliseconds = 10 * 1000;
 bool success = openKit.WaitForInitCompletion(timeoutInMilliseconds);
 ```
@@ -143,7 +137,7 @@ and `true` to indicate successful initialization.
 
 To verify if OpenKit has been initialized, use the `IsInitialized` property as shown in the example below.
 ```cs
-bool isInitialized = openKit.IsInitialized();
+bool isInitialized = openKit.IsInitialized;
 if (isInitialized) {
     System.out.println("OpenKit is initialized");
 } else {
