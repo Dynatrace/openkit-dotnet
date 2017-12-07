@@ -125,7 +125,6 @@ long visitorID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 
 IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, visitorID, endpointURL);
-openKit.Initialize();
 openKit.WaitForInitCompletion();
 
 string clientIP = "8.8.8.8";
