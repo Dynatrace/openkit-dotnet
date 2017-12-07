@@ -47,6 +47,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         void Sleep(int millis);
 
+        void DisableCapture();
+
         void HandleStatusResponse(StatusResponse statusResponse);
 
         Session GetNextFinishedSession();

@@ -86,6 +86,14 @@ namespace Dynatrace.OpenKit.Core
             beacon.IdentifyUser(userId);
         }
 
+        /// <summary>
+        /// Clear captured beacon data.
+        /// </summary>
+        internal void ClearCapturedData()
+        {
+            beacon.ClearData();
+        }
+
         // *** properties ***
 
         public long EndTime

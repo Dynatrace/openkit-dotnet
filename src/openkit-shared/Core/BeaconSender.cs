@@ -85,10 +85,7 @@ namespace Dynatrace.OpenKit.Core
         // when starting a new Session, put it into open Sessions
         public void StartSession(Session session)
         {
-            if (context.IsCaptureOn)
-            {
-                context.StartSession(session);
-            }
+            context.StartSession(session);
         }
 
         // when finishing a Session, remove it from open Sessions and put it into finished Sessions

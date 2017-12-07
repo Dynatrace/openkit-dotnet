@@ -45,6 +45,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.HTTPClientProvider.Returns(x => httpClientProvider);
             context.GetHTTPClient().Returns(x => httpClient);
             context.LastTimeSyncTime.Returns(x => currentTime); // always return the current time to prevent re-sync
+            context.IsCaptureOn.Returns(true);
 
             // beacon sender
             beaconSender = new BeaconSender(config, httpClientProvider, timingProvider);

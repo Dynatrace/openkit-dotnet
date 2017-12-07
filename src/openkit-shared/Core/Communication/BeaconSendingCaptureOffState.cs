@@ -36,6 +36,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(IBeaconSendingContext context)
         {
+            context.DisableCapture();
+
             var currentTime = context.CurrentTimestamp;
 
             var delta = (int) (STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));

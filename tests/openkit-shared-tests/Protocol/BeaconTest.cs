@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider);
-            var action = new Core.Action(target, "TestAction", new SynchronizedQueue<IAction>());
+            var action = new Action(target, "TestAction", new SynchronizedQueue<IAction>());
             action.ReportEvent("TestEvent").ReportValue("TheAnswerToLifeTheUniverseAndEverything", 42);
             target.AddAction(action);
 
