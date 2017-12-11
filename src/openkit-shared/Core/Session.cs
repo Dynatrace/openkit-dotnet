@@ -28,12 +28,11 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public Session(AbstractConfiguration configuration, string clientIPAddress, BeaconSender beaconSender)
+        public Session(BeaconSender beaconSender, Beacon beacon)
         {
             this.beaconSender = beaconSender;
+            this.beacon = beacon;
 
-            // beacon has to be created immediately, as the session start time is taken at beacon construction
-            beacon = new Beacon(configuration, clientIPAddress);
             beaconSender.StartSession(this);
         }
 
