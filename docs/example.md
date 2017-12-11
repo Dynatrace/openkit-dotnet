@@ -18,17 +18,17 @@ need to distinguish between different backend systems.
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 
 // by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, visitorID, endpointURL);
+IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, deviceID, endpointURL);
 ```
 
 * The `applicationName` parameter is the application's name created before in Dynatrace SaaS.
 * The `applicationID` parameter is the unique identifier of the application in Dynatrace Saas. The
 application's id can be found in the settings page of the custom application in Dynatrace.
-* The `visitorID` is a unique identifier, which might be used to uniquely identify a device.
+* The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
 * The `endpointURL` denotes the Dynatrace SaaS cluster endpoint OpenKit communicates with and 
   is shown when creating the application in Dynatrace SaaS.
 The endpoint URL can be found in the settings page of the custom application in Dynatrace.
@@ -40,12 +40,12 @@ To enable verbose mode, use the following example.
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 bool verbose = true;
 
 // by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, visitorID, endpointURL, verbose);
+IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, deviceID, endpointURL, verbose);
 ```
 
 ### Dynatrace Managed
@@ -54,18 +54,18 @@ An OpenKit instance for Dynatrace Managed can be obtained in a similar manner, a
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 string tenantID = "tenant-id";
 
 // by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName, applicationID, visitorID, endpointURL, tenantID);
+IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName, applicationID, deviceID, endpointURL, tenantID);
 ```
 
 * The `applicationName` parameter is the application's name created before in Dynatrace Managed.
 * The `applicationID` parameter is the unique identifier of the application in Dynatrace Managed. The
 application's id can be found in the settings page of the custom application in Dynatrace.
-* The `visitorID` is a unique identifier, which might be used to uniquely identify a device.
+* The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
 * The `endpointURL` denotes the Dynatrace Managed endpoint OpenKit communicates with. The endpoint URL can be found in 
 the settings page of the custom application in Dynatrace.
 * The `tenantID` is the tenant used by Dynatrace Managed.
@@ -74,13 +74,13 @@ Again an overloaded method exists to enable verbose logging, as shown below.
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://beaconurl.com";
 string tenantID = "tenant-id";
 bool verbose = true;
 
 // by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName, applicationID, visitorID, endpointURL, tenantID, verbose);
+IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName, applicationID, deviceID, endpointURL, tenantID, verbose);
 ```
 
 ### AppMon
@@ -88,26 +88,26 @@ IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName
 The example below demonstrates how to connect an OpenKit application to an AppMon endpoint.
 ```cs
 string applicationName = "My OpenKit application";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://beaconurl.com";
 
 // by default verbose logging is disabled
-OpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, visitorID, endpointURL);
+OpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, deviceID, endpointURL);
 ```
 
 * The `applicationName` parameter is the application's name in AppMon and is also used as the application's id.
-* The `visitorID` is a unique identifier, which might be used to uniquely identify a device.
+* The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
 * The `endpointURL` denotes the AppMon endpoint OpenKit communicates with.
 
 If verbose OpenKit logging output is wanted, an overloaded method can be used as demonstrated below.
 ```cs
 string applicationName = "My OpenKit application";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 bool verbose = true;
 
 // by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, visitorID, endpointURL, verbose);
+IOpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, deviceID, endpointURL, verbose);
 ```
 
 ## Initializing OpenKit

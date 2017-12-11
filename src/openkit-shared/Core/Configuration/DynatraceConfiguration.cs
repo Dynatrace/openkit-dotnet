@@ -4,8 +4,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class DynatraceConfiguration : AbstractConfiguration
     {
-        public DynatraceConfiguration(string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose) 
-            : base(OpenKitType.DYNATRACE, applicationName, applicationID, visitorID, endpointURL, verbose)
+        public DynatraceConfiguration(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose) 
+            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
         {
             HttpClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),

@@ -194,7 +194,7 @@ namespace Dynatrace.OpenKit.Protocol
             return TAG_PREFIX + "_"
                        + PROTOCOL_VERSION + "_"
                        + httpConfiguration.ServerID + "_"
-                       + configuration.VisitorID + "_"
+                       + configuration.DeviceID + "_"
                        + sessionNumber + "_"
                        + configuration.ApplicationID + "_"
                        + parentAction.ID + "_"
@@ -384,12 +384,12 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Identify the user
         /// </summary>
-        /// <param name="userId"></param>
-        public void IdentifyUser(string userId)
+        /// <param name="userTag"></param>
+        public void IdentifyUser(string userTag)
         {
             StringBuilder eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userId);
+            BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userTag);
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
@@ -567,8 +567,8 @@ namespace Dynatrace.OpenKit.Protocol
             }
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
 
-            // visitor ID, session number and IP address
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.VisitorID);
+            // device/visitor ID, session number and IP address
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, sessionNumber);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
 
