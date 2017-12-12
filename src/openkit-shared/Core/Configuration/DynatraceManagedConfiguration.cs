@@ -6,8 +6,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
     {
         private readonly string tenantID;
 
-        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose)
-            : base(OpenKitType.DYNATRACE, applicationName, applicationID, visitorID, endpointURL, verbose)
+        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose)
+            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
         {
             this.tenantID = tenantID;
 

@@ -18,7 +18,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * Create Sessions and User Actions
 * Report values, events, errors and crashes
 * Trace web requests to server-side PurePaths
-* Sessions can be tagged with a user id
+* Sessions can be tagged with a user tag
 * Use it together with Dynatrace or AppMon
 
 ## What you cannot do with the OpenKit
@@ -110,7 +110,7 @@ Crashes are used to report (unhandled) exceptions on an `ISession`.
 
 ### Identify Users
 
-OpenKit enables you to tag sessions with unique user ids. The user id is a string 
+OpenKit enables you to tag sessions with unique user tags. The user tag is a String 
 that allows to uniquely identify a single user.
 
 ## Example
@@ -121,10 +121,10 @@ Detailed explanation is available in [example.md](docs/example.md).
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
-long visitorID = 42L;
+long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 
-IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, visitorID, endpointURL);
+IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, deviceID, endpointURL);
 openKit.WaitForInitCompletion();
 
 string clientIP = "8.8.8.8";

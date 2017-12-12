@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private readonly OpenKitType openKitType;
         private readonly string applicationName;
         private readonly string applicationID;
-        private readonly long visitorID;
+        private readonly long deviceID;
         private readonly string endpointURL;
         private readonly bool verbose;
 
@@ -47,7 +47,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** constructors ***
 
-        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose)
+        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose)
         {
             this.verbose = verbose;
 
@@ -56,7 +56,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // immutable settings
             this.applicationName = applicationName;
             this.applicationID = applicationID;
-            this.visitorID = visitorID;
+            this.deviceID = deviceID;
             this.endpointURL = endpointURL;
 
             // mutable settings
@@ -196,11 +196,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
-        public long VisitorID
+        public long DeviceID
         {
             get
             {
-                return visitorID;
+                return deviceID;
             }
         }
 

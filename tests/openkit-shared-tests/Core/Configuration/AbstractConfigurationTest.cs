@@ -103,8 +103,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             {
             }
 
-            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long visitorID, string endpointURL, bool verbose) :
-                base(openKitType, applicationName, applicationID, visitorID, endpointURL, verbose)
+            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose) :
+                base(openKitType, applicationName, applicationID, deviceID, endpointURL, verbose)
             {
                 HttpClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, verbose);
             }

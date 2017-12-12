@@ -18,10 +18,10 @@ namespace Dynatrace.OpenKit.API {
         IRootAction EnterAction(string actionName);
 
         /// <summary>
-        ///  Tags a session with the provided userId
+        ///  Tags a session with the provided <code>userTag</code>
         /// </summary>
-        /// <param name="userId"></param>
-        void IdentifyUser(string userId);
+        /// <param name="userTag"></param>
+        void IdentifyUser(string userTag);
 
         /// <summary>
         ///  Reports a crash with a specified error name, crash reason and a stacktrace.

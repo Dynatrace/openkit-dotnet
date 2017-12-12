@@ -21,16 +21,16 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beacon = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider);
-            var userID = "myTestUser";
+            var userTag = "myTestUser";
     
             // when
-            beacon.IdentifyUser(userID);
+            beacon.IdentifyUser(userTag);
             var target = beacon.EventDataList;
 
             // then
             Assert.That(target.Count, Is.EqualTo(1));
             // TODO - thomas.grassaue@dynatrace.com - ignore timestamp for now (due to static provider)
-            Assert.That(target[0], Does.StartWith($"et=60&na={userID}&it=0&pa=0&s0=1&t0="));
+            Assert.That(target[0], Does.StartWith($"et=60&na={userTag}&it=0&pa=0&s0=1&t0="));
         }
 
         [Test]
