@@ -5,6 +5,7 @@
  */
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core
@@ -19,18 +20,23 @@ namespace Dynatrace.OpenKit.Core
         // Configuration reference
         private AbstractConfiguration configuration;
         private readonly BeaconSender beaconSender;
+        private readonly IThreadIDProvider threadIDProvider;
 
         // *** constructors ***
 
         public OpenKit(AbstractConfiguration configuration)
-            : this(configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider())
+            : this(configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider(), new DefaultThreadIDProvider())
         {
         }
 
-        protected OpenKit(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
+        protected OpenKit(AbstractConfiguration configuration,
+            IHTTPClientProvider httpClientProvider, 
+            ITimingProvider timingProvider, 
+            IThreadIDProvider threadIDProvider)
         {
             this.configuration = configuration;
             beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
+            this.threadIDProvider = threadIDProvider;
         }
         
         /// <summary>
@@ -71,7 +77,10 @@ namespace Dynatrace.OpenKit.Core
 
         public ISession CreateSession(string clientIPAddress)
         {
-            return new Session(configuration, clientIPAddress, beaconSender);
+            // create beacon for session
+            var beacon = new Beacon(configuration, clientIPAddress, threadIDProvider);
+            // create session
+            return new Session(beaconSender, beacon);
         }
 
         public void Shutdown()

@@ -278,18 +278,18 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
         }
 
-        private Session CreateValidSession(string clientIp)
+        private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(config, clientIp, beaconSender);
+            var session = new Session(beaconSender, new Beacon(config, clientIP));
 
             session.EnterAction("Foo").LeaveAction();
 
             return session;
         }
 
-        private Session CreateEmptySession(string clientIp)
+        private Session CreateEmptySession(string clientIP)
         {
-            return new Session(config, clientIp, beaconSender);
+            return new Session(beaconSender, new Beacon(config, clientIP));
         }
     }
 }
