@@ -64,7 +64,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.HandleStatusResponse(statusResponse);
             }
             // if initial time sync failed before
-            if (context.IsTimeSyncSupported && !TimeProvider.IsTimeSynced)
+            if (context.IsTimeSyncSupported && !context.IsTimeSynced)
             {
                 // then retry initial time sync
                 context.CurrentState = new BeaconSendingTimeSyncState(true);

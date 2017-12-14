@@ -281,7 +281,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
-            // TODO - thomas.grassauer@dynatrace.com - session adds itself ... should we keep this?
             var session = new Session(new BeaconSender(target), new Beacon(config, "127.0.0.1"));
 
             Assert.That(target.GetAllOpenSessions().Count, Is.EqualTo(1));

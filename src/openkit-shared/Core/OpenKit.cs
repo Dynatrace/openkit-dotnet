@@ -18,7 +18,8 @@ namespace Dynatrace.OpenKit.Core
     {        
 
         // Configuration reference
-        private AbstractConfiguration configuration;
+        private readonly AbstractConfiguration configuration;
+        private readonly ITimingProvider timingProvider;
         private readonly BeaconSender beaconSender;
         private readonly IThreadIDProvider threadIDProvider;
 
@@ -35,6 +36,7 @@ namespace Dynatrace.OpenKit.Core
             IThreadIDProvider threadIDProvider)
         {
             this.configuration = configuration;
+            this.timingProvider = timingProvider;
             beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
             this.threadIDProvider = threadIDProvider;
         }
@@ -78,7 +80,7 @@ namespace Dynatrace.OpenKit.Core
         public ISession CreateSession(string clientIPAddress)
         {
             // create beacon for session
-            var beacon = new Beacon(configuration, clientIPAddress, threadIDProvider);
+            var beacon = new Beacon(configuration, clientIPAddress, threadIDProvider, timingProvider);
             // create session
             return new Session(beaconSender, beacon);
         }

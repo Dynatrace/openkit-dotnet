@@ -85,7 +85,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         // client IP address
         private string clientIPAddress;
+
+        // providers
         private readonly IThreadIDProvider threadIdProvider;
+        private readonly ITimingProvider timingProvider;
+
+        // configuration
         private readonly HTTPClientConfiguration httpConfiguration;
 
         // basic beacon protocol data
@@ -106,7 +111,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
         public Beacon(AbstractConfiguration configuration, string clientIPAddress)
-            : this(configuration, clientIPAddress, new DefaultThreadIDProvider())
+            : this(configuration, clientIPAddress, new DefaultThreadIDProvider(), new DefaultTimingProvider())
         {
         }
 
@@ -116,10 +121,15 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
         /// <param name="threadIdProvider"></param>
-        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, IThreadIDProvider threadIdProvider)
+        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, 
+            IThreadIDProvider threadIdProvider, ITimingProvider timingProvider)
         {
+            this.threadIdProvider = threadIdProvider;
+            this.timingProvider = timingProvider;
+
             this.sessionNumber = configuration.NextSessionNumber;
-            this.sessionStartTime = TimeProvider.GetTimestamp();
+            this.sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
+
             this.configuration = configuration;
             if (InetAddressValidator.IsValidIP(clientIPAddress))
             {
@@ -129,7 +139,6 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 this.clientIPAddress = string.Empty;
             }
-            this.threadIdProvider = threadIdProvider;
 
             // store the current http configuration
             this.httpConfiguration = configuration.HttpClientConfig;
@@ -158,6 +167,17 @@ namespace Dynatrace.OpenKit.Protocol
             get
             {
                 return Interlocked.Increment(ref nextSequenceNumber);
+            }
+        }
+
+        /// <summary>
+        /// Get the current timestamp in milliseconds by delegating to TimingProvider
+        /// </summary>
+        public long CurrentTimestamp
+        {
+            get
+            {
+                return timingProvider.ProvideTimestampInMilliseconds();
             }
         }
 
@@ -215,7 +235,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(actionBuilder, BEACON_KEY_ACTION_ID, action.ID);
             AddKeyValuePair(actionBuilder, BEACON_KEY_PARENT_ACTION_ID, action.ParentID);
             AddKeyValuePair(actionBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, action.StartSequenceNo);
-            AddKeyValuePair(actionBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime(action.StartTime));
+            AddKeyValuePair(actionBuilder, BEACON_KEY_TIME_0, timingProvider.GetTimeSinceLastInitTime(action.StartTime));
             AddKeyValuePair(actionBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, action.EndSequenceNo);
             AddKeyValuePair(actionBuilder, BEACON_KEY_TIME_1, action.EndTime - action.StartTime);
 
@@ -234,7 +254,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime(session.EndTime));
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, timingProvider.GetTimeSinceLastInitTime(session.EndTime));
 
             AddEventData(eventBuilder);
         }
@@ -323,7 +343,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, timingProvider.TimeSinceLastInitTime);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_CODE, errorCode);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
 
@@ -350,7 +370,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);                                  // no parent action
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, timingProvider.TimeSinceLastInitTime);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
 
@@ -370,7 +390,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, webRequestTracer.StartSequenceNo);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime(webRequestTracer.StartTime));
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, timingProvider.GetTimeSinceLastInitTime(webRequestTracer.StartTime));
             AddKeyValuePair(eventBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, webRequestTracer.EndSequenceNo);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_1, webRequestTracer.EndTime - webRequestTracer.StartTime);
             if (webRequestTracer.ResponseCode != -1)
@@ -393,7 +413,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, timingProvider.TimeSinceLastInitTime);
 
             AddEventData(eventBuilder);
         }
@@ -469,7 +489,7 @@ namespace Dynatrace.OpenKit.Protocol
                     break; 
                 }
 
-                Thread.Sleep(retrySleepMillis);
+                timingProvider.Sleep(retrySleepMillis);
                 retrySleepMillis *= 2;
                 retry++;
             }
@@ -484,7 +504,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(builder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
             AddKeyValuePair(builder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(builder, BEACON_KEY_TIME_0, TimeProvider.GetTimeSinceLastInitTime());
+            AddKeyValuePair(builder, BEACON_KEY_TIME_0, timingProvider.TimeSinceLastInitTime);
         }
 
         // helper method for building basic event data
@@ -594,11 +614,11 @@ namespace Dynatrace.OpenKit.Protocol
         {
             StringBuilder timestampBuilder = new StringBuilder();
 
-            AddKeyValuePair(timestampBuilder, BEACON_KEY_SESSION_START_TIME, TimeProvider.ConvertToClusterTime(sessionStartTime));
-            AddKeyValuePair(timestampBuilder, BEACON_KEY_TIMESYNC_TIME, TimeProvider.GetLastInitTimeInClusterTime());
-            if (!TimeProvider.IsTimeSynced)
+            AddKeyValuePair(timestampBuilder, BEACON_KEY_SESSION_START_TIME, timingProvider.ConvertToClusterTime(sessionStartTime));
+            AddKeyValuePair(timestampBuilder, BEACON_KEY_TIMESYNC_TIME, timingProvider.LastInitTimeInClusterTime);
+            if (!timingProvider.IsTimeSyncSupported)
             {
-                AddKeyValuePair(timestampBuilder, BEACON_KEY_TRANSMISSION_TIME, TimeProvider.GetTimestamp());
+                AddKeyValuePair(timestampBuilder, BEACON_KEY_TRANSMISSION_TIME, timingProvider.ProvideTimestampInMilliseconds());
             }
 
             return timestampBuilder.ToString();
