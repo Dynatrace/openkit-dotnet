@@ -14,7 +14,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         private List<Session> openSessions;
         private long currentTime = 0;
         private long lastTimeSyncTime = 1;
-        private long lastOpenSessionSendTime = -1;
 
         private IHTTPClient httpClient;
         private ITimingProvider timingProvider;
@@ -27,7 +26,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             currentTime = 1;
             lastTimeSyncTime = 1;
-            lastOpenSessionSendTime = -1;
             openSessions = new List<Session>();
             finishedSessions = new Queue<Session>();
 

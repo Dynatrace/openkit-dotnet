@@ -123,7 +123,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                     CreateBaseURL(endpointURL, newMonitorName),
                     newServerID,
                     applicationID,
-                    verbose);
+                    verbose,
+                    HttpClientConfig.SSLTrustManager);
 
                 monitorName = newMonitorName;
             }

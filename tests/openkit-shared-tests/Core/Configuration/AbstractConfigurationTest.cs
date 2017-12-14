@@ -1,4 +1,5 @@
 ﻿using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Protocol.SSL;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -106,7 +107,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose) :
                 base(openKitType, applicationName, applicationID, deviceID, endpointURL, verbose)
             {
-                HttpClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, verbose);
+                HttpClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, verbose, new SSLStrictTrustManager());
             }
 
             protected override string CreateBaseURL(string endpointURL, string monitorName)

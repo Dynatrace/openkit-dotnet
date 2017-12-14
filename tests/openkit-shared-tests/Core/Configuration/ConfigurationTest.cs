@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Dynatrace.OpenKit.Protocol.SSL;
+using NUnit.Framework;
 using System;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -14,7 +15,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantUrl = string.Format("https://{0}.{1}", tenantId, host);
 
-            var target = new DynatraceConfiguration("", "", 17, tenantUrl, false);
+            var target = new DynatraceConfiguration("", "", 17, tenantUrl, false, new SSLStrictTrustManager());
 
             var expected = String.Format("{0}/mbeacon", tenantUrl);
 
@@ -26,7 +27,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantUrl = string.Format("https://{0}", host);
 
-            var target = new DynatraceManagedConfiguration(tenantId, "", "", 17, tenantUrl, false);
+            var target = new DynatraceManagedConfiguration(tenantId, "", "", 17, tenantUrl, false, new SSLStrictTrustManager());
 
             var expected = String.Format("{0}/mbeacon/{1}", tenantUrl, tenantId);
 
@@ -38,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantUrl = string.Format("https://{0}", host);
 
-            var target = new AppMonConfiguration("", 17, tenantUrl, false);
+            var target = new AppMonConfiguration("", 17, tenantUrl, false, new SSLStrictTrustManager());
 
             var expected = String.Format("{0}/dynaTraceMonitor", tenantUrl);
 
@@ -48,7 +49,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void ApplicationIdAndApplicationNameIdenticalForAppMonConfig()
         {
-            var target = new AppMonConfiguration(applicationName, 17, "", false);
+            var target = new AppMonConfiguration(applicationName, 17, "", false, new SSLStrictTrustManager());
 
             var expected = applicationName;
 
