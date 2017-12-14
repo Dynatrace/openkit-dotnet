@@ -4,7 +4,6 @@ using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
-    [TestFixture]
     public class BeaconSendingTerminalStateTest
     {
         private IHTTPClient httpClient;
@@ -15,13 +14,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             httpClient = Substitute.For<IHTTPClient>();
             context = Substitute.For<IBeaconSendingContext>();
-            context.GetHTTPClient().Returns(httpClient);
         }
 
         [Test]
         public void StateIsTerminal()
         {
-            // when
+            // given
             var target = new BeaconSendingTerminalState();
 
             // then
@@ -31,20 +29,20 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void TerminalStateIsNextStateIfTransitionFromTerminalStateOccurs()
         {
-            //when
+            //given
             var target = new BeaconSendingTerminalState();
 
             //then
-            Assert.That(Is.ReferenceEquals(target.ShutdownState, target), Is.True);
+            Assert.That(target.ShutdownState,Is.SameAs(target));
         }
 
         [Test]
         public void TerminalStateCallsShutdownOnExecution()
         {
-            // given
-            
-            // when
+            //given
             var target = new BeaconSendingTerminalState();
+
+            // when
             target.Execute(context);
 
             // then
