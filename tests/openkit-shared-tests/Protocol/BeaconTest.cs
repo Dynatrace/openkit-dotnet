@@ -45,11 +45,10 @@ namespace Dynatrace.OpenKit.Protocol
             var bytesSent = 123;
 
             //when
-            webRequest.Start().SetBytesSent(bytesSent).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"}));
         }
 
         [Test]
@@ -63,11 +62,10 @@ namespace Dynatrace.OpenKit.Protocol
             var bytesSent = 0;
 
             //when
-            webRequest.Start().SetBytesSent(bytesSent).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"}));
         }
 
         [Test]
@@ -80,11 +78,10 @@ namespace Dynatrace.OpenKit.Protocol
             var webRequest = new WebRequestTracerStringURL(target, action, testURL);
 
             //when
-            webRequest.Start().SetBytesSent(-1).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesSent(-1).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0" }));
         }
 
         [Test]
@@ -98,11 +95,10 @@ namespace Dynatrace.OpenKit.Protocol
             var bytesReceived = 12321;
 
             //when
-            webRequest.Start().SetBytesReceived(bytesReceived).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}" }));
         }
 
         [Test]
@@ -116,11 +112,10 @@ namespace Dynatrace.OpenKit.Protocol
             var bytesReceived = 0;
 
             //when
-            webRequest.Start().SetBytesReceived(bytesReceived).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}" }));
         }
 
         [Test]
@@ -133,11 +128,10 @@ namespace Dynatrace.OpenKit.Protocol
             var webRequest = new WebRequestTracerStringURL(target, action, testURL);
 
             //when
-            webRequest.Start().SetBytesReceived(-1).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesReceived(-1).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0" }));
         }
 
         [Test]
@@ -152,11 +146,10 @@ namespace Dynatrace.OpenKit.Protocol
             var bytesSent = 123;
 
             //when
-            webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop();
-            target.AddWebRequest(action, webRequest);
+            webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList[0], Does.StartWith($"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs=123&br=12321"));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs=123&br=12321" }));
         }
 
         [Test]

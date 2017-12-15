@@ -34,7 +34,8 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public WebRequestTracerBase(Beacon beacon, Action action) {
+        public WebRequestTracerBase(Beacon beacon, Action action)
+        {
             this.beacon = beacon;
             this.action = action;
 
@@ -86,29 +87,25 @@ namespace Dynatrace.OpenKit.Core {
             }
         }
 
-        public string Tag {
+        public string Tag
+        {
             get {
                 return tag;
             }
         }
 
-        public int ResponseCode {
+        public int ResponseCode
+        {
             get
             {
                 return responseCode;
             }
-            private set
-            {
-                SetResponseCode(value);
-            }
         }
 
-        public int BytesSent {
+        public int BytesSent
+        {
             get {
                 return bytesSent;
-            }
-            private set {
-                SetBytesSent(value);
             }
         }
 
@@ -118,19 +115,16 @@ namespace Dynatrace.OpenKit.Core {
             {
                 return bytesReceived;
             }
-            private set
-            {
-                SetBytesReceived(value);
-            }
         }
    
-        public IWebRequestTracer Start() {
+        public IWebRequestTracer Start()
+        {
             startTime = beacon.CurrentTimestamp;
             return this;
-
         }
 
-        public void Stop() {
+        public void Stop()
+        {
             endTime = beacon.CurrentTimestamp;
             endSequenceNo = beacon.NextSequenceNumber;
 

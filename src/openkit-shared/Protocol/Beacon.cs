@@ -399,11 +399,11 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_RESPONSECODE, webRequestTracer.ResponseCode);
             }
-            if (webRequestTracer.BytesSent != -1)
+            if (webRequestTracer.BytesSent > -1)
             {
                 AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_BYTES_SEND, webRequestTracer.BytesSent);
             }
-            if (webRequestTracer.BytesReceived != -1)
+            if (webRequestTracer.BytesReceived > -1)
             {
                 AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_BYTES_RECEIVED, webRequestTracer.BytesReceived);
             }
