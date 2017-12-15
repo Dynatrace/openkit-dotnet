@@ -61,11 +61,11 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         public void Start() {
-            startTime = TimeProvider.GetTimestamp();
+            startTime = beacon.CurrentTimestamp;
         }
 
         public void Stop() {
-            endTime = TimeProvider.GetTimestamp();
+            endTime = beacon.CurrentTimestamp;
             endSequenceNo = beacon.NextSequenceNumber;
 
             // add web request to beacon

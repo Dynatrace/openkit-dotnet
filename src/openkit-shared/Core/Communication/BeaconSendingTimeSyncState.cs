@@ -13,7 +13,8 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// <ul>
     ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaptureOn is <code>true</code></li>
     ///     <li><see cref="BeaconSendingCaptureOffState"/> if IsCaptureOn is <code>false</code> or time sync failed</li>
-    ///     <li><see cref="BeaconSendingTerminalState"/> on shutdown</li>
+    ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown if not initial time sync</li>
+    ///     <li><see cref="BeaconSendingTerminalState"/> on shutdown if initial time sync</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingTimeSyncState : AbstractBeaconSendingState
@@ -90,7 +91,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             // initialize time provider with cluster time offset
-            TimeProvider.Initialize(ComputeClusterTimeOffset(timeSyncOffsets), true);
+            context.InitializeTimeSync(ComputeClusterTimeOffset(timeSyncOffsets), true);
 
             // update the last sync time
             context.LastTimeSyncTime = context.CurrentTimestamp;
@@ -105,7 +106,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // in every other case we keep the previous setting
             if (IsInitialTimeSync) 
             {
-                TimeProvider.Initialize(0, false);
+                context.InitializeTimeSync(0, context.IsTimeSyncSupported);
             }
 
             if (context.IsTimeSyncSupported)

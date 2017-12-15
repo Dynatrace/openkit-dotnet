@@ -62,9 +62,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         public long LastOpenSessionBeaconSendTime { get; set; }
         public long LastStatusCheckTime { get; set; }
         public long LastTimeSyncTime { get; set; }
+        public bool IsTimeSyncSupported { get; private set; }
+        public bool IsTimeSynced {
+            get { return !IsTimeSyncSupported || LastTimeSyncTime >= 0; }
+        }
 
         public bool IsInitialized => initSucceeded;
-        public bool IsTimeSyncSupported { get; private set; }
+        
         public bool IsShutdownRequested
         {
             get
@@ -89,81 +93,54 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </remarks>
         internal ReadOnlyCollection<Session> FinishedSessions => finishedSessions.ToList().AsReadOnly();
 
-        /// <summary>
-        /// Disables the time sync support
-        /// </summary>
         public void DisableTimeSyncSupport()
         {
             IsTimeSyncSupported = false;
         }
 
-        /// <summary>
-        /// Executes the current state
-        /// </summary>
         public void ExecuteCurrentState()
         {
             CurrentState.Execute(this);
         }
 
-        /// <summary>
-        /// Requests a shotdown
-        /// </summary>
         public void RequestShutdown()
         {
             IsShutdownRequested = true;
         }
 
-        /// <summary>
-        /// Waits for the init to be finished
-        /// </summary>
-        /// <returns></returns>
         public bool WaitForInit()
         {
             resetEvent.WaitOne();
             return initSucceeded;
         }
 
-        /// <summary>
-        /// Waits for the init to be finished or time
-        /// </summary>
-        /// <returns></returns>
         public bool WaitForInit(int timeoutMillis)
         {
             resetEvent.WaitOne(TimeSpan.FromMilliseconds(timeoutMillis));
             return initSucceeded;
         }
-
-        /// <summary>
-        /// Set the result of the init step. 
-        /// </summary>
-        /// <param name="success"><code>True</code> if init was successful otherwise false</param>
+        
         public void InitCompleted(bool success)
         {
             initSucceeded = success;
             resetEvent.Set();
         }
+        
+        public void InitializeTimeSync(long clusterTimeOffset, bool isTimeSyncSupported)
+        {
+            TimingProvider.Initialze(clusterTimeOffset, isTimeSyncSupported);
+        }
 
-        /// <summary>
-        /// Returns an instance of HTTPClient using the current configuration
-        /// </summary>
-        /// <returns></returns>
         public IHTTPClient GetHTTPClient()
         {
             return HTTPClientProvider.CreateClient(Configuration.HttpClientConfig);
         }
-
-        /// <summary>
-        /// Sleeps <code>DEFAULT_SLEEP_TIME_MILLISECONDS</code> millis
-        /// </summary>
+        
         public void Sleep()
         {
             Sleep(DEFAULT_SLEEP_TIME_MILLISECONDS);
         }
-
-        /// <summary>
-        /// Sleeps the given amount of time
-        /// </summary>
-        /// <param name="millis"></param>
+        
         public void Sleep(int millis)
         {
             TimingProvider.Sleep(millis);
@@ -174,11 +151,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Configuration.DisableCapture();
             ClearAllSessionData();
         }
-
-        /// <summary>
-        /// Updates the configuration based on the provided status response.
-        /// </summary>
-        /// <param name="statusResponse"></param>
+        
         public void HandleStatusResponse(StatusResponse statusResponse)
         {
             Configuration.UpdateSettings(statusResponse);

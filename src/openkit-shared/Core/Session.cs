@@ -63,7 +63,7 @@ namespace Dynatrace.OpenKit.Core
                 action.LeaveAction();
             }
 
-            endTime = TimeProvider.GetTimestamp();
+            endTime = beacon.CurrentTimestamp;
 
             // create end session data on beacon
             beacon.EndSession(this);
