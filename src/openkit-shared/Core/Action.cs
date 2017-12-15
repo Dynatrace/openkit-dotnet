@@ -40,7 +40,7 @@ namespace Dynatrace.OpenKit.Core {
             this.beacon = beacon;
             this.parentAction = parentAction;
 
-            this.startTime = TimeProvider.GetTimestamp();
+            this.startTime = beacon.CurrentTimestamp;
             this.startSequenceNo = beacon.NextSequenceNumber;
             this.id = beacon.NextID;
             this.name = name;
@@ -107,7 +107,7 @@ namespace Dynatrace.OpenKit.Core {
 
         protected virtual IAction DoLeaveAction() {
             // set end time and end sequence number
-            endTime = TimeProvider.GetTimestamp();
+            endTime = beacon.CurrentTimestamp;
             endSequenceNo = beacon.NextSequenceNumber;
 
             // add Action to Beacon

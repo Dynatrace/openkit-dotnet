@@ -1,5 +1,4 @@
 ﻿using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -33,10 +32,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             // last time sycn getter + setter
             context.LastStatusCheckTime = Arg.Do<long>(x => lastStatusCheckTime = x);
             context.LastStatusCheckTime = lastStatusCheckTime; // init with -1
-
-            // by default the initial time sync is already executed
-            TimeProvider.Initialize(0, true);
-
         }
 
         [Test]
@@ -64,6 +59,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             context.IsCaptureOn.Returns(true);
+            context.IsTimeSyncSupported.Returns(true);
+            context.IsTimeSynced.Returns(true);
             httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200));
 
             // when
@@ -81,7 +78,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
             context.IsTimeSyncSupported.Returns(true);
             httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200));
-            TimeProvider.Initialize(0, false); // not yet synched
 
             var target = new BeaconSendingCaptureOffState();
 

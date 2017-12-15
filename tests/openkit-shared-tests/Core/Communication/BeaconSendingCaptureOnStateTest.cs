@@ -108,8 +108,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(false);
             var statusResponse = new StatusResponse(string.Empty, 200);
 
-            // TODO - thomas.grassauer@dynatrace.com - check this!!!!
-            // at least one send request has to be performed. otherwise context.IsCaptureOn will never be evaluated
             finishedSessions.Enqueue(CreateValidSession(clientIp));
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
@@ -137,9 +135,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         [Test]
         public void BeaconSendingIsRetriedForFinishedSessions()
-        {
-            // TODO - thomas.grassauer@dynatrace.com - we do not want to sleep ... we need an to replace Thread.Sleep() in Beacon.SendBeaconRequest
-
+        {            
             // given 
             var clientIp = "127.0.0.1";
             finishedSessions.Enqueue(CreateValidSession(clientIp));
@@ -156,8 +152,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void BeaconSendingIsRetriedForOpenSessions()
         {
-            // TODO - thomas.grassauer@dynatrace.com - we do not want to sleep ... we need an to replace Thread.Sleep() in Beacon.SendBeaconRequest
-
             // given 
             var clientIp = "127.0.0.1";
 

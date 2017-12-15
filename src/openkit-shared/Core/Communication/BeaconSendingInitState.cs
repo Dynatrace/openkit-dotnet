@@ -75,13 +75,5 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.CurrentState = new BeaconSendingTimeSyncState(true);
             }
         }
-
-        private static bool RetryStatusRequest(IBeaconSendingContext context, StatusResponse statusResponse, int retry)
-        {
-            return statusResponse == null
-                && (retry < MAX_INITIAL_STATUS_REQUEST_RETRIES)
-                && !context.IsShutdownRequested;
-                
-        }
     }
 }

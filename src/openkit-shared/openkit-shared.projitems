@@ -44,9 +44,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\IHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\SSL\SSLBlindTrustManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\SSL\SSLStrictTrustManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\IThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Providers\TimeProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerStringURL.cs" />
@@ -74,7 +74,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\StatusResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\TimeSyncResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultHTTPClientProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\IHTTPClientProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ITimingProvider.cs" />
   </ItemGroup>

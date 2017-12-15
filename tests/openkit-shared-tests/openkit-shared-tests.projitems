@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingCaptureOnStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingContextTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingFlushSessionsStateTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTerminalStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingInitStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingRequestUtilTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
@@ -22,6 +23,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\ConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Util\InetAddressValidatorTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingIDProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConfiguration.cs" />
   </ItemGroup>
 </Project>
