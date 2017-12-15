@@ -6,12 +6,14 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Core
+{
 
     /// <summary>
     ///  Abstract base class implementation of the IWebRequestTracer interface.
     /// </summary>
-    public abstract class WebRequestTracerBase : IWebRequestTracer {
+    public abstract class WebRequestTracerBase : IWebRequestTracer
+    {
 
         // Dynatrace tag that has to be used for tracing the web request
         private string tag = null;
@@ -89,7 +91,8 @@ namespace Dynatrace.OpenKit.Core {
 
         public string Tag
         {
-            get {
+            get
+            {
                 return tag;
             }
         }
@@ -104,7 +107,8 @@ namespace Dynatrace.OpenKit.Core {
 
         public int BytesSent
         {
-            get {
+            get
+            {
                 return bytesSent;
             }
         }
@@ -116,7 +120,7 @@ namespace Dynatrace.OpenKit.Core {
                 return bytesReceived;
             }
         }
-   
+
         public IWebRequestTracer Start()
         {
             startTime = beacon.CurrentTimestamp;
