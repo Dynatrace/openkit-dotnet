@@ -1,4 +1,5 @@
-﻿using System.Net.Security;
+﻿using System;
+using System.Net.Security;
 using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol.SSL
@@ -17,6 +18,14 @@ namespace Dynatrace.OpenKit.Protocol.SSL
     /// </remarks>
     public class SSLBlindTrustManager : ISSLTrustManager
     {
+        public SSLBlindTrustManager()
+        {
+            Console.WriteLine("###########################################################");
+            Console.WriteLine("# WARNING: YOU ARE BYPASSING SSL CERTIFICATE VALIDATION!! #");
+            Console.WriteLine("#                 USE AT YOUR OWN RISK!!                  #");
+            Console.WriteLine("###########################################################");
+        }
+
         public RemoteCertificateValidationCallback ServerCertificateValidationCallback
         {
             get
