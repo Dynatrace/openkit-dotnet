@@ -63,6 +63,8 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BEACON_KEY_ERROR_REASON = "rs";
         private const string BEACON_KEY_ERROR_STACKTRACE = "st";
         private const string BEACON_KEY_WEBREQUEST_RESPONSECODE = "rc";
+        private const string BEACON_KEY_WEBREQUEST_BYTES_SEND = "bs";
+        private const string BEACON_KEY_WEBREQUEST_BYTES_RECEIVED = "br";
 
         // version constants
         public const string OPENKIT_VERSION = "7.0.0000";
@@ -396,6 +398,14 @@ namespace Dynatrace.OpenKit.Protocol
             if (webRequestTracer.ResponseCode != -1)
             {
                 AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_RESPONSECODE, webRequestTracer.ResponseCode);
+            }
+            if (webRequestTracer.BytesSent > -1)
+            {
+                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_BYTES_SEND, webRequestTracer.BytesSent);
+            }
+            if (webRequestTracer.BytesReceived > -1)
+            {
+                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_BYTES_RECEIVED, webRequestTracer.BytesReceived);
             }
 
             AddEventData(eventBuilder);
