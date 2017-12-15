@@ -18,19 +18,38 @@ namespace Dynatrace.OpenKit.API {
         string Tag { get; }
 
         /// <summary>
-        ///  Sets the response code of this web request. Has to be called before WebRequestTracer.stopTiming().
-        /// </summary>
-        int ResponseCode { set; }
-
-        /// <summary>
         ///  Starts the web request timing. Should be called when the web request is initiated.
         /// </summary>
-        void Start();
+        IWebRequestTracer Start();
 
         /// <summary>
         ///  Stops the web request timing. Should be called when the web request is finished.
         /// </summary>
         void Stop();
+
+        /// <summary>
+        ///  Sets the response code on the web request
+        /// </summary>
+        /// <param name="responseCode">return code provided by server response</param>
+        /// <returns></returns>
+        IWebRequestTracer SetResponseCode(int responseCode);
+
+        /// <summary>
+        /// Sets the amount of sent bytes of the web request
+        /// </summary>
+        /// <param name="bytesSent">number of bytes sent by the web request</param>
+        /// <returns></returns>
+        IWebRequestTracer SetBytesSent(int bytesSent);
+
+        /// <summary>
+        /// Sets the amount of received bytes of the web request
+        /// </summary>
+        /// <param name="bytesReceived">number of bytes received by the web request</param>
+        /// <returns></returns>
+        IWebRequestTracer SetBytesReceived(int bytesReceived);
+
+
+
 
     }
 

@@ -5,7 +5,6 @@
  */
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core {
 
@@ -17,9 +16,11 @@ namespace Dynatrace.OpenKit.Core {
         // Dynatrace tag that has to be used for tracing the web request
         private string tag = null;
 
-        // HTTP information: URL & response code
+        // HTTP information: URL & response code, bytesSent, bytesReceived
         protected string url = "<unknown>";
         private int responseCode = -1;
+        private int bytesSent = -1;
+        private int bytesReceived = -1;
 
         // start/end time & sequence number
         private long startTime = -1;
@@ -45,6 +46,46 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** IWebRequestTracer interface methods ***
 
+        public string URL
+        {
+            get
+            {
+                return url;
+            }
+        }
+
+        public long StartTime
+        {
+            get
+            {
+                return startTime;
+            }
+        }
+
+        public long EndTime
+        {
+            get
+            {
+                return endTime;
+            }
+        }
+
+        public int StartSequenceNo
+        {
+            get
+            {
+                return startSequenceNo;
+            }
+        }
+
+        public int EndSequenceNo
+        {
+            get
+            {
+                return endSequenceNo;
+            }
+        }
+
         public string Tag {
             get {
                 return tag;
@@ -52,16 +93,41 @@ namespace Dynatrace.OpenKit.Core {
         }
 
         public int ResponseCode {
-            get {
+            get
+            {
                 return responseCode;
             }
-            set {
-                responseCode = value;
+            private set
+            {
+                SetResponseCode(value);
             }
         }
 
-        public void Start() {
+        public int BytesSent {
+            get {
+                return bytesSent;
+            }
+            private set {
+                SetBytesSent(value);
+            }
+        }
+
+        public int BytesReceived
+        {
+            get
+            {
+                return bytesReceived;
+            }
+            private set
+            {
+                SetBytesReceived(value);
+            }
+        }
+   
+        public IWebRequestTracer Start() {
             startTime = beacon.CurrentTimestamp;
+            return this;
+
         }
 
         public void Stop() {
@@ -72,38 +138,23 @@ namespace Dynatrace.OpenKit.Core {
             beacon.AddWebRequest(action, this);
         }
 
-        // *** properties ***
-
-        public string URL {
-            get {
-                return url;
-            }
+        public IWebRequestTracer SetResponseCode(int responseCode)
+        {
+            this.responseCode = responseCode;
+            return this;
         }
 
-        public long StartTime {
-            get {
-                return startTime;
-            }
+        public IWebRequestTracer SetBytesSent(int bytesSent)
+        {
+            this.bytesSent = bytesSent;
+            return this;
         }
 
-        public long EndTime {
-            get {
-                return endTime;
-            }
+        public IWebRequestTracer SetBytesReceived(int bytesReceived)
+        {
+            this.bytesReceived = bytesReceived;
+            return this;
         }
-
-        public int StartSequenceNo {
-            get {
-                return startSequenceNo;
-            }
-        }
-
-        public int EndSequenceNo {
-            get {
-                return endSequenceNo;
-            }
-        }
-
     }
 
 }
