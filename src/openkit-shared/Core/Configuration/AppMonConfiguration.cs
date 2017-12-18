@@ -16,7 +16,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public AppMonConfiguration(string applicationName, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager) 
             : base(OpenKitType.APPMON, applicationName, applicationName, deviceID, endpointURL, verbose)
         {
-            HttpClientConfig = new HTTPClientConfiguration(
+            HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.APPMON.DefaultMonitorName),
                     OpenKitType.APPMON.DefaultServerID,
                     applicationName,

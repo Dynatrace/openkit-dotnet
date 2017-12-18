@@ -8,7 +8,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public DynatraceConfiguration(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager) 
             : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
         {
-            HttpClientConfig = new HTTPClientConfiguration(
+            HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),
                     OpenKitType.DYNATRACE.DefaultServerID,
                     applicationID,

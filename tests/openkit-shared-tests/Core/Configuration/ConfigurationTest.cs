@@ -11,39 +11,39 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const string applicationName = "testApp";
 
         [Test]
-        public void SaasUrlIsCorrect()
+        public void SaasURLIsCorrect()
         {
-            var tenantUrl = string.Format("https://{0}.{1}", tenantId, host);
+            var tenantURL = string.Format("https://{0}.{1}", tenantId, host);
 
-            var target = new DynatraceConfiguration("", "", 17, tenantUrl, false, new SSLStrictTrustManager());
+            var target = new DynatraceConfiguration("", "", 17, tenantURL, false, new SSLStrictTrustManager());
 
-            var expected = String.Format("{0}/mbeacon", tenantUrl);
+            var expected = String.Format("{0}/mbeacon", tenantURL);
 
-            Assert.That(expected, Is.EqualTo(target.HttpClientConfig.BaseUrl));
+            Assert.That(expected, Is.EqualTo(target.HTTPClientConfig.BaseURL));
         }
 
         [Test]
-        public void ManagedUrlIsCorrect()
+        public void ManagedURLIsCorrect()
         {
-            var tenantUrl = string.Format("https://{0}", host);
+            var tenantURL = string.Format("https://{0}", host);
 
-            var target = new DynatraceManagedConfiguration(tenantId, "", "", 17, tenantUrl, false, new SSLStrictTrustManager());
+            var target = new DynatraceManagedConfiguration(tenantId, "", "", 17, tenantURL, false, new SSLStrictTrustManager());
 
-            var expected = String.Format("{0}/mbeacon/{1}", tenantUrl, tenantId);
+            var expected = String.Format("{0}/mbeacon/{1}", tenantURL, tenantId);
 
-            Assert.That(expected, Is.EqualTo(target.HttpClientConfig.BaseUrl));
+            Assert.That(expected, Is.EqualTo(target.HTTPClientConfig.BaseURL));
         }
 
         [Test]
-        public void AppMonUrlIsCorrect()
+        public void AppMonURLIsCorrect()
         {
-            var tenantUrl = string.Format("https://{0}", host);
+            var tenantURL = string.Format("https://{0}", host);
 
-            var target = new AppMonConfiguration("", 17, tenantUrl, false, new SSLStrictTrustManager());
+            var target = new AppMonConfiguration("", 17, tenantURL, false, new SSLStrictTrustManager());
 
-            var expected = String.Format("{0}/dynaTraceMonitor", tenantUrl);
+            var expected = String.Format("{0}/dynaTraceMonitor", tenantURL);
 
-            Assert.That(expected, Is.EqualTo(target.HttpClientConfig.BaseUrl));
+            Assert.That(expected, Is.EqualTo(target.HTTPClientConfig.BaseURL));
         }
 
         [Test]

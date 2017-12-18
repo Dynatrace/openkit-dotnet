@@ -78,8 +78,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             serverID = configuration.ServerID;
             verbose = configuration.IsVerbose;
-            monitorURL = BuildMonitorURL(configuration.BaseUrl, configuration.ApplicationID, configuration.ServerID);
-            timeSyncURL = BuildTimeSyncURL(configuration.BaseUrl);
+            monitorURL = BuildMonitorURL(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
+            timeSyncURL = BuildTimeSyncURL(configuration.BaseURL);
         }
 
         // *** public methods ***

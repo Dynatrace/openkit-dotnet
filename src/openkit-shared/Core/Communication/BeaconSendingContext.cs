@@ -133,7 +133,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public IHTTPClient GetHTTPClient()
         {
-            return HTTPClientProvider.CreateClient(Configuration.HttpClientConfig);
+            return HTTPClientProvider.CreateClient(Configuration.HTTPClientConfig);
         }
         
         public void Sleep()

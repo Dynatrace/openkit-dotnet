@@ -8,7 +8,7 @@ namespace Dynatrace.OpenKit
         public TestConfiguration()
             : base(OpenKitType.DYNATRACE, "", "", 0, "", false)
         {
-            HttpClientConfig = new HTTPClientConfiguration("", 0, "", false, new SSLStrictTrustManager());
+            HTTPClientConfig = new HTTPClientConfiguration("", 0, "", false, new SSLStrictTrustManager());
             EnableCapture();
         }
 

@@ -12,7 +12,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             this.tenantID = tenantID;
 
-            HttpClientConfig = new HTTPClientConfiguration(
+            HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),
                     OpenKitType.DYNATRACE.DefaultServerID,
                     applicationID,
