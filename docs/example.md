@@ -386,9 +386,9 @@ using (HttpClient httpClient = new HttpClient())
             downloadedData = await content.ReadAsStringAsync();
         }
     }
-
+    
     // stop timing
-    webRequestTracer.StopTiming();
+    webRequestTracer.Stop();
 }
 
 // do something useful with downloadedData
@@ -411,12 +411,14 @@ IWebRequestTracer webRequestTracer = action.TraceWebRequest(url);
 string headerName = OpenKitFactory.WEBREQUEST_TAG_HEADER;
 string headerValue = webRequestTracer.Tag;
 
-webRequestTracer.StartTiming();
+webRequestTracer.Start();
 
 // perform the request here & do not forget to add the HTTP header
 
-webRequestTracer.ResponseCode = 200;
-webRequestTracer.StopTiming();
+webRequestTracer.SetBytesSent(12345);     // 12345 bytes sent
+webRequestTracer.SetBytesReceived(67890); // 67890 bytes received
+webRequestTracer.SetResponseCode(200);    // 200 was the response code
+webRequestTracer.Stop();
 ```
 
 
