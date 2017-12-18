@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Dynatrace.OpenKit.API;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -12,14 +13,15 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// <param name="deviceID">id identifying the device</param>
         /// <param name="endpointURL">URL of the endpoint</param>
         /// <param name="verbose">if set to <code>true</code> enables debug output</param>
-        public AppMonConfiguration(string applicationName, long deviceID, string endpointURL, bool verbose) 
+        public AppMonConfiguration(string applicationName, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager) 
             : base(OpenKitType.APPMON, applicationName, applicationName, deviceID, endpointURL, verbose)
         {
             HttpClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.APPMON.DefaultMonitorName),
                     OpenKitType.APPMON.DefaultServerID,
                     applicationName,
-                    verbose);
+                    verbose,
+                    sslTrustManager);
         }
 
         protected override string CreateBaseURL(string endpointURL, string monitorName)

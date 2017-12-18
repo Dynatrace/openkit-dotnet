@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dynatrace.OpenKit.API;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -7,12 +8,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class HTTPClientConfiguration
     {
-        public HTTPClientConfiguration(String baseUrl, int serverID, string applicationID, bool verbose)
+        public HTTPClientConfiguration(String baseUrl, int serverID, string applicationID, bool verbose, ISSLTrustManager sslTrustManager)
         {
             BaseUrl = baseUrl;
             ServerID = serverID;
             ApplicationID = applicationID;
             IsVerbose = verbose;
+            SSLTrustManager = sslTrustManager;
         }
 
         /// <summary>
@@ -34,5 +36,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// If <code>true</code> logging is enabled
         /// </summary>
         public bool IsVerbose { get; private set; }
+
+
+        public ISSLTrustManager SSLTrustManager { get; private set; }
     }
 }

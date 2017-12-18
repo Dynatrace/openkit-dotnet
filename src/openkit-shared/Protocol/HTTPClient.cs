@@ -3,6 +3,8 @@
  *
  * @author: Christian Schwarzbauer
  */
+using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using System;
 using System.Text;
 using System.Threading;
@@ -45,7 +47,7 @@ namespace Dynatrace.OpenKit.Protocol
             public string Response { get; set; }
             public int ResponseCode { get; set; }
         }
-
+        
         // request type constants
         private const string REQUEST_TYPE_MOBILE = "type=m";
         private const string REQUEST_TYPE_TIMESYNC = "type=mts";
@@ -64,20 +66,20 @@ namespace Dynatrace.OpenKit.Protocol
         private const int RETRY_SLEEP_TIME = 200;       // retry sleep time in ms
 
         // URLs for requests
-        private string monitorURL;
-        private string timeSyncURL;
+        private readonly string monitorURL;
+        private readonly string timeSyncURL;
 
-        private int serverID;
-        private bool verbose;
+        private readonly int serverID;
+        private readonly bool verbose;
 
         // *** constructors ***
 
-        public HTTPClient(string baseURL, string applicationID, int serverID, bool verbose)
+        public HTTPClient(HTTPClientConfiguration configuration)
         {
-            this.serverID = serverID;
-            this.verbose = verbose;
-            this.monitorURL = BuildMonitorURL(baseURL, applicationID, serverID);
-            this.timeSyncURL = BuildTimeSyncURL(baseURL);
+            serverID = configuration.ServerID;
+            verbose = configuration.IsVerbose;
+            monitorURL = BuildMonitorURL(configuration.BaseUrl, configuration.ApplicationID, configuration.ServerID);
+            timeSyncURL = BuildTimeSyncURL(configuration.BaseUrl);
         }
 
         // *** public methods ***

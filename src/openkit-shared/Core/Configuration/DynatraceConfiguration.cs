@@ -1,17 +1,19 @@
-﻿using System.Text;
+﻿using Dynatrace.OpenKit.API;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class DynatraceConfiguration : AbstractConfiguration
     {
-        public DynatraceConfiguration(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose) 
+        public DynatraceConfiguration(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager) 
             : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
         {
             HttpClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),
                     OpenKitType.DYNATRACE.DefaultServerID,
                     applicationID,
-                    verbose);
+                    verbose,
+                    sslTrustManager);
         }
 
         protected override string CreateBaseURL(string endpointURL, string monitorName)
