@@ -104,6 +104,7 @@ namespace Dynatrace.OpenKit {
         /// <param name="endpointURL">the URL of the beacon forwarder to send the data to</param>
         /// <param name="tenantID">the id of the tenant</param>
         /// <param name="verbose">if true, turn on verbose logging on stdout</param>
+        /// <param name="sslTrustManager">For overriding SSL certificate checks</param>
         /// <returns>Dynatrace Managed instance of the OpenKit</returns>
         public static IOpenKit CreateDynatraceManagedInstance(string applicationName, string applicationID, long deviceID, string endpointURL, string tenantID, bool verbose, ISSLTrustManager sslTrustManager)
         {
@@ -148,6 +149,7 @@ namespace Dynatrace.OpenKit {
         /// <param name="deviceID">unique device identifier</param>
         /// <param name="endpointURL">the URL of the Java/Webserver Agent to send the data to</param>
         /// <param name="verbose">if true, turn on verbose logging on stdout</param>
+        /// <param name="sslTrustManager">For overriding SSL certificate checks</param>
         /// <returns>Dynatrace AppMon instance of the OpenKit</returns>
         public static IOpenKit CreateAppMonInstance(string applicationName, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager)
         {

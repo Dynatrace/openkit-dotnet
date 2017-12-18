@@ -1,4 +1,4 @@
-﻿using Dynatrace.OpenKit.Protocol.SSL;
+﻿using Dynatrace.OpenKit.API;
 using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -7,7 +7,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
     {
         private readonly string tenantID;
 
-        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, API.ISSLTrustManager sslTrustManager)
+        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager)
             : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
         {
             this.tenantID = tenantID;
