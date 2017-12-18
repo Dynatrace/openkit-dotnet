@@ -238,7 +238,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var actual = target.GetHTTPClient();
 
-            clientProvider.Received(1).CreateClient(config.HttpClientConfig);
+            clientProvider.Received(1).CreateClient(config.HTTPClientConfig);
         }
 
         [Test]

@@ -8,9 +8,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class HTTPClientConfiguration
     {
-        public HTTPClientConfiguration(String baseUrl, int serverID, string applicationID, bool verbose, ISSLTrustManager sslTrustManager)
+        public HTTPClientConfiguration(String baseURL, int serverID, string applicationID, bool verbose, ISSLTrustManager sslTrustManager)
         {
-            BaseUrl = baseUrl;
+            BaseURL = baseURL;
             ServerID = serverID;
             ApplicationID = applicationID;
             IsVerbose = verbose;
@@ -18,9 +18,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         /// <summary>
-        /// The base Url for the http client
+        /// The base URL for the http client
         /// </summary>
-        public string BaseUrl { get; private set; }
+        public string BaseURL { get; private set; }
 
         /// <summary>
         /// The server id to be used for the http client

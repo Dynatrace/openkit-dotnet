@@ -143,7 +143,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             // store the current http configuration
-            this.httpConfiguration = configuration.HttpClientConfig;
+            this.httpConfiguration = configuration.HTTPClientConfig;
 
             basicBeaconData = CreateBasicBeaconData();
         }
