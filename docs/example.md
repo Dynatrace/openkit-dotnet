@@ -112,13 +112,13 @@ IOpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, deviceID
 
 ## SSL/TLS Security in OpenKit
 
-All OpenKit internal communication to the backend happens via HTTPS (TLS/SSL based on .NET Framework support).
+All OpenKit communication to the backend happens via HTTPS (TLS/SSL based on .NET Framework support).
 By default OpenKit expects valid server certificates.
 However it is possible, if really needed, to bypass TLS/SSL certificate validation. This can be achieved by
 passing an implementation of `ISSLTrustManager` to the previously mentioned OpenKit factory methods.
 
-:warning: We do **NOT** recommend bypassing TLS/SSL server certificate validation, since this opens
-a vulnerability to man-in-the-middle attacks.
+:warning: We do **NOT** recommend bypassing TLS/SSL server certificate validation, since this allows
+man-in-the-middle attacks.
 
 Keep in mind on .NET 3.5 and 4.0 server certificate validation can only be overwritten on global level via
 the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request basis.  
