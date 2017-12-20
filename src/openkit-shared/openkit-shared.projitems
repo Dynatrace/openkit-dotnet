@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)API\IRootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\ISSLTrustManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)API\OpenKitConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IDevice.cs" />
