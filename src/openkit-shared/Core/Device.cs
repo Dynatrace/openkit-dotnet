@@ -12,15 +12,10 @@ namespace Dynatrace.OpenKit.Core {
     /// </summary>
     public class Device : IDevice {
 
-        //defaults for OpenKit devices
-        private const string DEFAULT_OPERATING_SYSTEM = "OpenKit 0.3";
-        private const string DEFAULT_MANUFACTURER = "Dynatrace";
-        private const string DEFAULT_DEVICE_ID = "OpenKitDevice";
-
         // platform information
-        private string operatingSystem = DEFAULT_OPERATING_SYSTEM;
-        private string manufacturer = DEFAULT_MANUFACTURER;
-        private string modelID = DEFAULT_DEVICE_ID;
+        private string operatingSystem = OpenKitConstants.DEFAULT_OPERATING_SYSTEM;
+        private string manufacturer = OpenKitConstants.DEFAULT_MANUFACTURER;
+        private string modelID = OpenKitConstants.DEFAULT_DEVICE_ID;
 
         // *** IDevice interface methods & propreties ***
 
