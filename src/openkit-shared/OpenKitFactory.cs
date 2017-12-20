@@ -6,6 +6,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit {
 
@@ -60,7 +61,7 @@ namespace Dynatrace.OpenKit {
         /// <returns>Dynatrace SaaS instance of the OpenKit</returns>
         public static IOpenKit CreateDynatraceInstance(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager)
         {
-            var openKit = new Core.OpenKit(new DynatraceConfiguration(applicationName, applicationID, deviceID, endpointURL, verbose, sslTrustManager));
+            var openKit = new Core.OpenKit(new DynatraceConfiguration(applicationName, applicationID, deviceID, endpointURL, verbose, sslTrustManager, new DefaultSessionIDProvider()));
             openKit.Initialize();
 
             return openKit;
@@ -108,7 +109,7 @@ namespace Dynatrace.OpenKit {
         /// <returns>Dynatrace Managed instance of the OpenKit</returns>
         public static IOpenKit CreateDynatraceManagedInstance(string applicationName, string applicationID, long deviceID, string endpointURL, string tenantID, bool verbose, ISSLTrustManager sslTrustManager)
         {
-            var openKit = new Core.OpenKit(new DynatraceManagedConfiguration(tenantID, applicationName, applicationID, deviceID, endpointURL, verbose, sslTrustManager));
+            var openKit = new Core.OpenKit(new DynatraceManagedConfiguration(tenantID, applicationName, applicationID, deviceID, endpointURL, verbose, sslTrustManager, new DefaultSessionIDProvider()));
             openKit.Initialize();
 
             return openKit;
@@ -136,7 +137,7 @@ namespace Dynatrace.OpenKit {
         /// <returns>Dynatrace AppMon instance of the OpenKit</returns>
         public static IOpenKit CreateAppMonInstance(string applicationName, long deviceID, string endpointURL, bool verbose)
         {
-            var openKit = new Core.OpenKit(new AppMonConfiguration(applicationName, deviceID, endpointURL, verbose, new SSLStrictTrustManager()));
+            var openKit = new Core.OpenKit(new AppMonConfiguration(applicationName, deviceID, endpointURL, verbose, new SSLStrictTrustManager(), new DefaultSessionIDProvider()));
             openKit.Initialize();
 
             return openKit;
@@ -153,7 +154,7 @@ namespace Dynatrace.OpenKit {
         /// <returns>Dynatrace AppMon instance of the OpenKit</returns>
         public static IOpenKit CreateAppMonInstance(string applicationName, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager)
         {
-            var openKit = new Core.OpenKit(new AppMonConfiguration(applicationName, deviceID, endpointURL, verbose, sslTrustManager));
+            var openKit = new Core.OpenKit(new AppMonConfiguration(applicationName, deviceID, endpointURL, verbose, sslTrustManager, new DefaultSessionIDProvider()));
             openKit.Initialize();
 
             return openKit;
