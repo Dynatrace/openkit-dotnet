@@ -117,13 +117,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // check if http config needs to be updated
             if (!monitorName.Equals(newMonitorName)
-                || HttpClientConfig.ServerID != newServerID)
+                || HTTPClientConfig.ServerID != newServerID)
             {
-                HttpClientConfig = new HTTPClientConfiguration(
+                HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, newMonitorName),
                     newServerID,
                     applicationID,
-                    verbose);
+                    verbose,
+                    HTTPClientConfig.SSLTrustManager);
 
                 monitorName = newMonitorName;
             }
@@ -290,6 +291,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
-        public HTTPClientConfiguration HttpClientConfig { get; protected set; }
+        public HTTPClientConfiguration HTTPClientConfig { get; protected set; }
     }
 }

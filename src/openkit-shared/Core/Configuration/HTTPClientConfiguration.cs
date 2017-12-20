@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dynatrace.OpenKit.API;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -7,18 +8,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class HTTPClientConfiguration
     {
-        public HTTPClientConfiguration(String baseUrl, int serverID, string applicationID, bool verbose)
+        public HTTPClientConfiguration(String baseURL, int serverID, string applicationID, bool verbose, ISSLTrustManager sslTrustManager)
         {
-            BaseUrl = baseUrl;
+            BaseURL = baseURL;
             ServerID = serverID;
             ApplicationID = applicationID;
             IsVerbose = verbose;
+            SSLTrustManager = sslTrustManager;
         }
 
         /// <summary>
-        /// The base Url for the http client
+        /// The base URL for the http client
         /// </summary>
-        public string BaseUrl { get; private set; }
+        public string BaseURL { get; private set; }
 
         /// <summary>
         /// The server id to be used for the http client
@@ -34,5 +36,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// If <code>true</code> logging is enabled
         /// </summary>
         public bool IsVerbose { get; private set; }
+
+
+        public ISSLTrustManager SSLTrustManager { get; private set; }
     }
 }

@@ -35,6 +35,124 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void CanAddSentBytesToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+            var bytesSent = 123;
+
+            //when
+            webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"}));
+        }
+
+        [Test]
+        public void CanAddSentBytesValueZeroToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+            var bytesSent = 0;
+
+            //when
+            webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"}));
+        }
+
+        [Test]
+        public void CannotAddSentBytesWithInvalidValueSmallerZeroToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+
+            //when
+            webRequest.Start().SetBytesSent(-1).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0" }));
+        }
+
+        [Test]
+        public void CanAddReceivedBytesToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+            var bytesReceived = 12321;
+
+            //when
+            webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}" }));
+        }
+
+        [Test]
+        public void CanAddReceivedBytesValueZeroToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+            var bytesReceived = 0;
+
+            //when
+            webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}" }));
+        }
+
+        [Test]
+        public void CannotAddReceivedBytesWithInvalidValueSmallerZeroToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+
+            //when
+            webRequest.Start().SetBytesReceived(-1).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0" }));
+        }
+
+        [Test]
+        public void CanAddBothSentBytesAndReceivedBytesToWebRequestTracer()
+        {
+            //given
+            var target = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var action = new Action(target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var testURL = "127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(target, action, testURL);
+            var bytesReceived = 12321;
+            var bytesSent = 123;
+
+            //when
+            webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
+
+            //then
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs=123&br=12321" }));
+        }
+
+        [Test]
         public void CanAddRootActionIfCaptureIsOn()
         {
             // given

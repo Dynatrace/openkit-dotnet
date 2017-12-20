@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Dynatrace.OpenKit.Core.Configuration;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -6,14 +6,20 @@ namespace Dynatrace.OpenKit.Protocol
 
     public class HTTPClientWebClient : HTTPClient
     {
+        private static bool remoteCertificateValidationCallbackInitialized = false;
 
-        public HTTPClientWebClient(string baseURL, string applicationID, int serverID, bool verbose) : base(baseURL, applicationID, serverID, verbose)
+        public HTTPClientWebClient(HTTPClientConfiguration configuration) : base(configuration)
         {
+            if (!remoteCertificateValidationCallbackInitialized)
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SSLTrustManager?.ServerCertificateValidationCallback;
+                remoteCertificateValidationCallbackInitialized = true;
+            }
         }
 
         protected override HTTPResponse GetRequest(string url, string clientIPAddress)
         {
-            using (MyWebClient webClient = new MyWebClient(clientIPAddress))
+            using (WrappedWebClient webClient = new WrappedWebClient(clientIPAddress))
             {
                 using (System.Net.HttpWebResponse response = webClient.Get(url))
                 {
@@ -24,7 +30,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         protected override HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload)
         {
-            using (MyWebClient webClient = new MyWebClient(clientIPAddress))
+            using (WrappedWebClient webClient = new WrappedWebClient(clientIPAddress))
             {
                 using (System.Net.HttpWebResponse response = webClient.Post(url, gzippedPayload))
                 {
@@ -49,9 +55,9 @@ namespace Dynatrace.OpenKit.Protocol
             };
         }
 
-        private class MyWebClient : System.Net.WebClient
+        private class WrappedWebClient : System.Net.WebClient
         {
-            public MyWebClient(string clientIPAddress)
+            public WrappedWebClient(string clientIPAddress)
             {
                 if (clientIPAddress != null)
                 {
@@ -61,13 +67,13 @@ namespace Dynatrace.OpenKit.Protocol
 
             public System.Net.HttpWebResponse Get(string url)
             {
-                System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)GetWebRequest(new Uri(url));
+                System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
                 return (System.Net.HttpWebResponse)webRequest.GetResponse();
             }
 
             public System.Net.HttpWebResponse Post(string url, byte[] gzippedPayload)
             {
-                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)GetWebRequest(new Uri(url));
+                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
                 request.Method = "POST";
                 
                 // if there is compressed data, post it to the server

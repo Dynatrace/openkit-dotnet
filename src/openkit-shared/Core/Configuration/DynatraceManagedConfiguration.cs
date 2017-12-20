@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Dynatrace.OpenKit.API;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -6,16 +7,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
     {
         private readonly string tenantID;
 
-        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose)
+        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager)
             : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
         {
             this.tenantID = tenantID;
 
-            HttpClientConfig = new HTTPClientConfiguration(
+            HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),
                     OpenKitType.DYNATRACE.DefaultServerID,
                     applicationID,
-                    verbose);
+                    verbose,
+                    sslTrustManager);
         }
 
         protected override string CreateBaseURL(string endpointURL, string monitorName)
