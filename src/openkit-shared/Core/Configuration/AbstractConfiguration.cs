@@ -4,6 +4,7 @@
  * @author: Christian Schwarzbauer
  */
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
@@ -20,7 +21,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
         private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
         private const bool DEFAULT_CAPTURE_CRASHES = true;              // default: capture crashes on
-        private const string DEFAULT_APPLICATION_VERSION = "0.3";       // default: '0.3'
 
         // immutable settings
         private readonly OpenKitType openKitType;
@@ -68,9 +68,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
             captureCrashes = DEFAULT_CAPTURE_CRASHES;
 
             device = new Device();
-            applicationVersion = DEFAULT_APPLICATION_VERSION;
+            applicationVersion = OpenKitConstants.DEFAULT_APPLICATION_VERSION;
 
             this.sessionIDProvider = sessionIDProvider;
+
         }
 
         // *** public methods ***
