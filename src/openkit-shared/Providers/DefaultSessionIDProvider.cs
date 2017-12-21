@@ -31,8 +31,8 @@ namespace Dynatrace.OpenKit.Providers
                     initialIntegerOffset = 0;
                 }
                 initialIntegerOffset += 1;
+                return initialIntegerOffset;
             }
-            return initialIntegerOffset;
         }
     }
 }
