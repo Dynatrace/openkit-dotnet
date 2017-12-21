@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Providers
             var sessionIDTwo = provider.GetNextSessionID();
 
             // then
-            Assert.That(sessionIDOne + 1 == sessionIDTwo);
+            Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
         }
     }
 }

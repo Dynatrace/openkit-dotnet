@@ -109,7 +109,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var sessionIDTwo = target.NextSessionNumber;
 
             //then
-            Assert.IsTrue(sessionIDOne + 1 == sessionIDTwo);
+            Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
         }
 
         private sealed class TestConfiguration : AbstractConfiguration

@@ -8,14 +8,12 @@
 
         public int GetNextSessionID()
         {
-            lock (syncLock)
+            if (initialIntegerOffset == int.MaxValue)
             {
-                if (initialIntegerOffset == int.MaxValue)
-                {
-                    initialIntegerOffset = 0;
-                }
-                initialIntegerOffset += 1;
+                initialIntegerOffset = 0;
             }
+            initialIntegerOffset += 1;
+
             return initialIntegerOffset;
         }
     }
