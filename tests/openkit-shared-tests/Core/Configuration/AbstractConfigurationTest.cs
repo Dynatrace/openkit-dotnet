@@ -115,14 +115,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private sealed class TestConfiguration : AbstractConfiguration
         {
             internal TestConfiguration() :
-                this(OpenKitType.DYNATRACE, "", "", 42, "", true, new TestSessionIDProvider())
+                this(OpenKitType.DYNATRACE, "", "", 42, "", new TestSessionIDProvider())
             {
             }
 
-            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISessionIDProvider sessionIDProvider) :
-                base(openKitType, applicationName, applicationID, deviceID, endpointURL, verbose, sessionIDProvider)
+            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, ISessionIDProvider sessionIDProvider) :
+                base(openKitType, applicationName, applicationID, deviceID, endpointURL, sessionIDProvider)
             {
-                HTTPClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, verbose, new SSLStrictTrustManager());
+                HTTPClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, new SSLStrictTrustManager());
             }
 
             protected override string CreateBaseURL(string endpointURL, string monitorName)

@@ -9,6 +9,7 @@
     <Import_RootNamespace>Dynatrace.OpenKit</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)API\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IRootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\ISSLTrustManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\OpenKitConstants.cs" />
@@ -20,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)API\IWebRequestTracer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Action.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BeaconSender.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\DefaultLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\AbstractBeaconSendingState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingInitState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingContext.cs" />

@@ -8,8 +8,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
     {
         private readonly string tenantID;
 
-        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager, ISessionIDProvider sessionIDProvider)
-            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose, sessionIDProvider)
+        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, ISSLTrustManager sslTrustManager, ISessionIDProvider sessionIDProvider)
+            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, sessionIDProvider)
         {
             this.tenantID = tenantID;
 
@@ -17,7 +17,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),
                     OpenKitType.DYNATRACE.DefaultServerID,
                     applicationID,
-                    verbose,
                     sslTrustManager);
         }
 

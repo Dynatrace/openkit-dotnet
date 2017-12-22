@@ -6,9 +6,9 @@ namespace Dynatrace.OpenKit
     public class TestConfiguration : AbstractConfiguration
     {
         public TestConfiguration()
-            : base(OpenKitType.DYNATRACE, "", "", 0, "", false, new Providers.TestSessionIDProvider())
+            : base(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider())
         {
-            HTTPClientConfig = new HTTPClientConfiguration("", 0, "", false, new SSLStrictTrustManager());
+            HTTPClientConfig = new HTTPClientConfiguration("", 0, "", new SSLStrictTrustManager());
             EnableCapture();
         }
 

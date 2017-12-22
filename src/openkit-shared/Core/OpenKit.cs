@@ -25,12 +25,13 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public OpenKit(AbstractConfiguration configuration)
-            : this(configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider(), new DefaultThreadIDProvider())
+        public OpenKit(ILogger logger, AbstractConfiguration configuration)
+            : this(logger, configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider(), new DefaultThreadIDProvider())
         {
         }
 
-        protected OpenKit(AbstractConfiguration configuration,
+        protected OpenKit(ILogger logger,
+            AbstractConfiguration configuration,
             IHTTPClientProvider httpClientProvider, 
             ITimingProvider timingProvider, 
             IThreadIDProvider threadIDProvider)

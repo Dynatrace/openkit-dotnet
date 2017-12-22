@@ -214,7 +214,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void CanGetHttpClient()
         {
-            var expected = Substitute.For<HTTPClient>(new HTTPClientConfiguration("", 0, "", false, null));
+            var expected = Substitute.For<HTTPClient>(new HTTPClientConfiguration("", 0, "", null));
 
             clientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(expected);
 
@@ -232,7 +232,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             clientProvider
                 .CreateClient(Arg.Any<HTTPClientConfiguration>())
-                .Returns(Substitute.For<HTTPClient>(new HTTPClientConfiguration("", 0, "", false, null)));
+                .Returns(Substitute.For<HTTPClient>(new HTTPClientConfiguration("", 0, "", null)));
 
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
