@@ -1,12 +1,13 @@
 ﻿using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Providers;
 using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class DynatraceConfiguration : AbstractConfiguration
     {
-        public DynatraceConfiguration(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager) 
-            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
+        public DynatraceConfiguration(string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager, ISessionIDProvider sessionIDProvider)
+            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose, sessionIDProvider)
         {
             HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.DYNATRACE.DefaultMonitorName),

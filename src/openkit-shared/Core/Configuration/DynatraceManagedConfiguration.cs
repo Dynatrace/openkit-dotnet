@@ -1,4 +1,5 @@
 ﻿using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Providers;
 using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -7,8 +8,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
     {
         private readonly string tenantID;
 
-        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager)
-            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose)
+        public DynatraceManagedConfiguration(string tenantID, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager, ISessionIDProvider sessionIDProvider)
+            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, verbose, sessionIDProvider)
         {
             this.tenantID = tenantID;
 

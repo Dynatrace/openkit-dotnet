@@ -6,7 +6,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
-using System.Threading;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -43,11 +43,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private string applicationVersion;
         private Device device;
 
-        private int nextSessionNumber = 0;
+        private ISessionIDProvider sessionIDProvider;
 
         // *** constructors ***
 
-        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose)
+        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISessionIDProvider sessionIDProvider)
         {
             this.verbose = verbose;
 
@@ -69,6 +69,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             device = new Device();
             applicationVersion = OpenKitConstants.DEFAULT_APPLICATION_VERSION;
+
+            this.sessionIDProvider = sessionIDProvider;
+
         }
 
         // *** public methods ***
@@ -78,7 +81,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             get
             {
-                return Interlocked.Increment(ref nextSessionNumber);
+                return sessionIDProvider.GetNextSessionID();
             }
         }
 

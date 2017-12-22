@@ -1,5 +1,6 @@
 ﻿using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Protocol.SSL;
+using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -97,15 +98,29 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(target.IsCaptureOn, Is.False);
         }
 
+        [Test]
+        public void ConsecutiveCallsToNextSessionNumberIncrementTheSessionID()
+        {
+            //given
+            var target = new TestConfiguration();
+
+            // when retrieving two sessionIDs
+            var sessionIDOne = target.NextSessionNumber;
+            var sessionIDTwo = target.NextSessionNumber;
+
+            //then
+            Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
+        }
+
         private sealed class TestConfiguration : AbstractConfiguration
         {
             internal TestConfiguration() :
-                this(OpenKitType.DYNATRACE, "", "", 42, "", true)
+                this(OpenKitType.DYNATRACE, "", "", 42, "", true, new TestSessionIDProvider())
             {
             }
 
-            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose) :
-                base(openKitType, applicationName, applicationID, deviceID, endpointURL, verbose)
+            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISessionIDProvider sessionIDProvider) :
+                base(openKitType, applicationName, applicationID, deviceID, endpointURL, verbose, sessionIDProvider)
             {
                 HTTPClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, verbose, new SSLStrictTrustManager());
             }
