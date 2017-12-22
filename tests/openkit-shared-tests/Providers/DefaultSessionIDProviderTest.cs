@@ -19,7 +19,7 @@ namespace Dynatrace.OpenKit.Providers
         public void DefaultSessionIDProviderReturnsConsecutiveIDs()
         {
             // given
-            var provider = new DefaultSessionIDProvider();
+            var provider = new DefaultSessionIDProvider(int.MaxValue/2);
 
             // when
             var sessionIDOne = provider.GetNextSessionID();
@@ -27,6 +27,32 @@ namespace Dynatrace.OpenKit.Providers
 
             // then
             Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
+        }
+
+        [Test]
+        public void aProviderInitializedWithMaxIntValueProvidesMinSessionIdValueAtNextCall()
+        {
+            //given
+            DefaultSessionIDProvider provider = new DefaultSessionIDProvider(int.MaxValue);
+
+            //when
+            int actual = provider.GetNextSessionID();
+
+            //then
+            Assert.That(actual, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void aProviderInitializedWithZeroProvidesMinSessionIdValueAtNextCall()
+        {
+            //given
+            DefaultSessionIDProvider provider = new DefaultSessionIDProvider(0);
+
+            //when
+            int actual = provider.GetNextSessionID();
+
+            //then
+            Assert.That(actual, Is.EqualTo(1));
         }
     }
 }

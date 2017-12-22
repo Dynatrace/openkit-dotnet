@@ -16,10 +16,11 @@ namespace Dynatrace.OpenKit.Providers
 
         private static readonly object syncLock = new object();
 
-        public DefaultSessionIDProvider()
+        public DefaultSessionIDProvider() : this(new Random().Next()) {}
+
+        internal DefaultSessionIDProvider(int initialOffset)
         {
-            Random randomGenerator = new Random();
-            initialIntegerOffset = randomGenerator.Next();
+            initialIntegerOffset = initialOffset;
         }
 
         public int GetNextSessionID()
