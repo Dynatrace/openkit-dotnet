@@ -12,6 +12,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using System.Collections.ObjectModel;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -105,6 +106,8 @@ namespace Dynatrace.OpenKit.Protocol
         private LinkedList<string> eventDataList = new LinkedList<string>();
         private LinkedList<string> actionDataList = new LinkedList<string>();
 
+        private ILogger logger;
+
         // *** constructors ***
 
         /// <summary>
@@ -112,8 +115,8 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
-        public Beacon(AbstractConfiguration configuration, string clientIPAddress)
-            : this(configuration, clientIPAddress, new DefaultThreadIDProvider(), new DefaultTimingProvider())
+        public Beacon(ILogger logger, AbstractConfiguration configuration, string clientIPAddress)
+            : this(logger, configuration, clientIPAddress, new DefaultThreadIDProvider(), new DefaultTimingProvider())
         {
         }
 
@@ -123,7 +126,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
         /// <param name="threadIdProvider"></param>
-        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, 
+        internal Beacon(ILogger logger, AbstractConfiguration configuration, string clientIPAddress, 
             IThreadIDProvider threadIdProvider, ITimingProvider timingProvider)
         {
             this.threadIdProvider = threadIdProvider;
@@ -146,6 +149,8 @@ namespace Dynatrace.OpenKit.Protocol
             this.httpConfiguration = configuration.HTTPClientConfig;
 
             basicBeaconData = CreateBasicBeaconData();
+
+            this.logger = logger;
         }
 
         // *** public properties ***
@@ -436,7 +441,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <returns></returns>
         public StatusResponse Send(IHTTPClientProvider httpClientProvider, int numRetries)
         {
-            var httpClient = httpClientProvider.CreateClient(httpConfiguration);
+            var httpClient = httpClientProvider.CreateClient(logger, httpConfiguration);
             var beaconDataChunks = CreateBeaconDataChunks();
             StatusResponse response = null;
             foreach (byte[] beaconData in beaconDataChunks)

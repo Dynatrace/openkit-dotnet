@@ -1,4 +1,5 @@
-﻿using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Providers
@@ -11,8 +12,9 @@ namespace Dynatrace.OpenKit.Providers
         /// <summary>
         /// Returns an HTTPClient based on the provided configuration
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        IHTTPClient CreateClient(HTTPClientConfiguration configuration);
+        IHTTPClient CreateClient(ILogger logger, HTTPClientConfiguration configuration);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -20,10 +21,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IBeaconSendingContext context;
         private BeaconSender beaconSender;
         private IHTTPClientProvider httpClientProvider;
+        private ILogger logger;
 
         [SetUp]
         public void Setup()
         {
+            logger = new DefaultLogger(true);
+
             currentTime = 1;
             lastTimeSyncTime = 1;
             openSessions = new List<Session>();
@@ -36,7 +40,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             timingProvider = Substitute.For<ITimingProvider>();
             timingProvider.ProvideTimestampInMilliseconds().Returns(x => { return ++currentTime; }); // every access is a tick
             httpClientProvider = Substitute.For<IHTTPClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+            httpClientProvider.CreateClient(Arg.Any<ILogger>(), Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
@@ -46,7 +50,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
 
             // beacon sender
-            beaconSender = new BeaconSender(config, httpClientProvider, timingProvider);
+            beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
 
             // return true by default
             context.IsTimeSyncSupported.Returns(true);
@@ -272,7 +276,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(beaconSender, new Beacon(config, clientIP));
+            var session = new Session(beaconSender, new Beacon(logger, config, clientIP));
 
             session.EnterAction("Foo").LeaveAction();
 
@@ -281,7 +285,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateEmptySession(string clientIP)
         {
-            return new Session(beaconSender, new Beacon(config, clientIP));
+            return new Session(beaconSender, new Beacon(logger, config, clientIP));
         }
     }
 }

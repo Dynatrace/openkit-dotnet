@@ -1,4 +1,5 @@
 ﻿using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -8,7 +9,7 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private static bool remoteCertificateValidationCallbackInitialized = false;
 
-        public HTTPClientWebClient(HTTPClientConfiguration configuration) : base(configuration)
+        public HTTPClientWebClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
             if (!remoteCertificateValidationCallbackInitialized)
             {

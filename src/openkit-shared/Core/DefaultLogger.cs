@@ -20,7 +20,7 @@ namespace Dynatrace.OpenKit.Core
 
         public void error(string message, Exception exception)
         {
-            Console.WriteLine("[ERROR] " + message + "[ " + exception.ToString() + "]");
+            Console.WriteLine("[ERROR] " + message + "[ " + exception.Message + "] " + "\n" + exception.StackTrace);
         }
 
         public void warn(string message)

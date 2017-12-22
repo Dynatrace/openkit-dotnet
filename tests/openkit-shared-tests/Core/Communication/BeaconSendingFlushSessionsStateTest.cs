@@ -1,4 +1,5 @@
-﻿using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -27,7 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
             httpClientProvider = Substitute.For<IHTTPClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+            httpClientProvider.CreateClient(Arg.Any<ILogger>(), Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
@@ -81,7 +82,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(beaconSender, new Beacon(new TestConfiguration(), clientIP));
+            var session = new Session(beaconSender, new Beacon(new DefaultLogger(true), new TestConfiguration(), clientIP));
 
             session.EnterAction("Foo").LeaveAction();
 
