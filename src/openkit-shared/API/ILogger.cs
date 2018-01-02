@@ -4,6 +4,10 @@ using System.Text;
 
 namespace Dynatrace.OpenKit.API
 {
+    /// <summary>
+    /// This interface provides logging functionality to OpenKit. By subclassing OpenKit
+    /// can make use of custom loggers.
+    /// </summary>
     public interface ILogger
     {
         /// <summary>
@@ -41,25 +45,25 @@ namespace Dynatrace.OpenKit.API
         /// Returns a flag if error messages are enabled
         /// </summary>
         /// <returns>Flag if errors are enabled</returns>
-        bool IsErrorEnabled();
+        bool ErrorEnabled { get; }
 
         /// <summary>
         /// Returns a flag if warning messages are enabled
         /// </summary>
         /// <returns>Flag if warning messages are enabled</returns>
-        bool IsWarnEnabled();
+        bool WarnEnabled { get; }
 
         /// <summary>
         /// Returns a flag if info messages are enabled
         /// </summary>
         /// <returns>Flag if info messages are enabled</returns>
-        bool IsInfoEnabled();
+        bool InfoEnabled { get; }
 
         /// <summary>
         /// Returns a flag if debug messages are enabled
         /// </summary>
         /// <returns>Flag if debug messages are enabled</returns>
-        bool IsDebugEnabled();
+        bool DebugEnabled { get; }
 
     }
 }

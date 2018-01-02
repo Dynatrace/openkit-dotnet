@@ -109,7 +109,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             try
             {
-                if (logger.IsDebugEnabled())
+                if (logger.DebugEnabled)
                 {
                     logger.Debug("HTTP " + requestType.getRequestName() + " Request: " + url);
                 }
@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         gzippedData = GZip(data);
 
-                        if (logger.IsDebugEnabled())
+                        if (logger.DebugEnabled)
                         {
                            logger.Debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
@@ -157,7 +157,7 @@ namespace Dynatrace.OpenKit.Protocol
                         return null;
                     }
 
-                    if (logger.IsDebugEnabled())
+                    if (logger.DebugEnabled)
                     {
                         logger.Debug("HTTP Response: " + httpResponse.Response);
                         logger.Debug("HTTP Response Code: " + httpResponse.ResponseCode);

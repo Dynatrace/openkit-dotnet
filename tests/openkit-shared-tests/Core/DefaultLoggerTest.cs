@@ -14,7 +14,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(true);
 
             //then
-            Assert.That(log.IsErrorEnabled(), Is.True);
+            Assert.That(log.ErrorEnabled, Is.True);
         }
 
         [Test]
@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(true);
 
             //then
-            Assert.That(log.IsWarnEnabled(), Is.True);
+            Assert.That(log.WarnEnabled, Is.True);
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(true);
 
             //then
-            Assert.That(log.IsInfoEnabled(), Is.True);
+            Assert.That(log.InfoEnabled, Is.True);
         }
 
         [Test]
@@ -44,7 +44,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(true);
 
             //then
-            Assert.That(log.IsDebugEnabled(), Is.True);
+            Assert.That(log.DebugEnabled, Is.True);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(false);
 
             //then
-            Assert.That(log.IsErrorEnabled(), Is.True);
+            Assert.That(log.ErrorEnabled, Is.True);
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(false);
 
             //then
-            Assert.That(log.IsWarnEnabled(), Is.True);
+            Assert.That(log.WarnEnabled, Is.True);
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(false);
 
             //then
-            Assert.That(log.IsInfoEnabled(), Is.False);
+            Assert.That(log.InfoEnabled, Is.False);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace Dynatrace.OpenKit.Core
             DefaultLogger log = new DefaultLogger(false);
 
             //then
-            Assert.That(log.IsDebugEnabled(), Is.False);
+            Assert.That(log.DebugEnabled, Is.False);
         }
     }
 }

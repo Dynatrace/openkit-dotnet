@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         // boolean indicating whether init was successful or not (accessed by multiple threads)
         private volatile bool initSucceeded = false;
 
-        private ILogger logger;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Constructor

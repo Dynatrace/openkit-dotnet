@@ -106,7 +106,7 @@ namespace Dynatrace.OpenKit.Protocol
         private LinkedList<string> eventDataList = new LinkedList<string>();
         private LinkedList<string> actionDataList = new LinkedList<string>();
 
-        private ILogger logger;
+        private readonly ILogger logger;
 
         // *** constructors ***
 
