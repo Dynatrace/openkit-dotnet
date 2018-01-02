@@ -7,8 +7,8 @@ namespace Dynatrace.OpenKit.Core
 {
     class DefaultLoggerTest
     {
-    [Test]
-    public void DefaultLoggerWithVerboseOutputWritesErrorLevelMessages()
+        [Test]
+        public void DefaultLoggerWithVerboseOutputWritesErrorLevelMessages()
         {
             //given
             DefaultLogger log = new DefaultLogger(true);
