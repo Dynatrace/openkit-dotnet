@@ -109,15 +109,15 @@ namespace Dynatrace.OpenKit.Protocol
         {
             try
             {
-                if (logger.isDebugEnabled())
+                if (logger.IsDebugEnabled())
                 {
-                    logger.debug("HTTP " + requestType.getRequestName() + " Request: " + url);
+                    logger.Debug("HTTP " + requestType.getRequestName() + " Request: " + url);
                 }
                 return SendRequestInternal(url, clientIPAddress, data, method);
             }
             catch (Exception e)
             {
-                logger.error(requestType.getRequestName() + " Request failed!", e);
+                logger.Error(requestType.getRequestName() + " Request failed!", e);
             }
             return null;
         }
@@ -137,9 +137,9 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         gzippedData = GZip(data);
 
-                        if (logger.isDebugEnabled())
+                        if (logger.IsDebugEnabled())
                         {
-                           logger.debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
+                           logger.Debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
                                                          
@@ -157,10 +157,10 @@ namespace Dynatrace.OpenKit.Protocol
                         return null;
                     }
 
-                    if (logger.isDebugEnabled())
+                    if (logger.IsDebugEnabled())
                     {
-                        logger.debug("HTTP Response: " + httpResponse.Response);
-                        logger.debug("HTTP Response Code: " + httpResponse.ResponseCode);
+                        logger.Debug("HTTP Response: " + httpResponse.Response);
+                        logger.Debug("HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
                     if (httpResponse.ResponseCode >= 400)

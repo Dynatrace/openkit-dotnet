@@ -13,47 +13,47 @@ namespace Dynatrace.OpenKit.Core
             this.verbose = verbose;
         }
 
-        public void error(string message)
+        public void Error(string message)
         {
             Console.WriteLine("[ERROR] " + message);
         }
 
-        public void error(string message, Exception exception)
+        public void Error(string message, Exception exception)
         {
             Console.WriteLine("[ERROR] " + message + "[ " + exception.Message + "] " + "\n" + exception.StackTrace);
         }
 
-        public void warn(string message)
+        public void Warn(string message)
         {
             Console.WriteLine("[WARN ] " + message);
         }
 
-        public void info(string message)
+        public void Info(string message)
         {
             Console.WriteLine("[INFO ] " + message);
         }
 
-        public void debug(string message)
+        public void Debug(string message)
         {
             Console.WriteLine("[DEBUG] " + message);
         }
 
-        public bool isErrorEnabled()
+        public bool IsErrorEnabled()
         {
             return true;
         }
  
-        public bool isWarnEnabled()
+        public bool IsWarnEnabled()
         {
             return true;
         }
 
-        public bool isInfoEnabled()
+        public bool IsInfoEnabled()
         {
             return verbose;
         }
 
-        public bool isDebugEnabled()
+        public bool IsDebugEnabled()
         {
             return verbose;
         }
