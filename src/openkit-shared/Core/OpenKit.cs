@@ -81,7 +81,7 @@ namespace Dynatrace.OpenKit.Core
         public ISession CreateSession(string clientIPAddress)
         {
             // create beacon for session
-            var beacon = new Beacon(logger, configuration, clientIPAddress, threadIDProvider, timingProvider);
+            var beacon = new Beacon(configuration, clientIPAddress, threadIDProvider, timingProvider);
             // create session
             return new Session(beaconSender, beacon);
         }

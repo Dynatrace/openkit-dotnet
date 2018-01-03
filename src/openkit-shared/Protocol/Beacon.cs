@@ -106,8 +106,6 @@ namespace Dynatrace.OpenKit.Protocol
         private LinkedList<string> eventDataList = new LinkedList<string>();
         private LinkedList<string> actionDataList = new LinkedList<string>();
 
-        private readonly ILogger logger;
-
         // *** constructors ***
 
         /// <summary>
@@ -115,8 +113,8 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
-        public Beacon(ILogger logger, AbstractConfiguration configuration, string clientIPAddress)
-            : this(logger, configuration, clientIPAddress, new DefaultThreadIDProvider(), new DefaultTimingProvider())
+        public Beacon(AbstractConfiguration configuration, string clientIPAddress)
+            : this(configuration, clientIPAddress, new DefaultThreadIDProvider(), new DefaultTimingProvider())
         {
         }
 
@@ -126,7 +124,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
         /// <param name="threadIdProvider"></param>
-        internal Beacon(ILogger logger, AbstractConfiguration configuration, string clientIPAddress, 
+        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, 
             IThreadIDProvider threadIdProvider, ITimingProvider timingProvider)
         {
             this.threadIdProvider = threadIdProvider;
@@ -149,8 +147,6 @@ namespace Dynatrace.OpenKit.Protocol
             this.httpConfiguration = configuration.HTTPClientConfig;
 
             basicBeaconData = CreateBasicBeaconData();
-
-            this.logger = logger;
         }
 
         // *** public properties ***

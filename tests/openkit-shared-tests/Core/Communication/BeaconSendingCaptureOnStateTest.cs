@@ -21,13 +21,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IBeaconSendingContext context;
         private BeaconSender beaconSender;
         private IHTTPClientProvider httpClientProvider;
-        private ILogger logger;
 
         [SetUp]
         public void Setup()
         {
-            logger = new DefaultLogger(true);
-
             currentTime = 1;
             lastTimeSyncTime = 1;
             openSessions = new List<Session>();
@@ -276,7 +273,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(beaconSender, new Beacon(logger, config, clientIP));
+            var session = new Session(beaconSender, new Beacon(config, clientIP));
 
             session.EnterAction("Foo").LeaveAction();
 
@@ -285,7 +282,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateEmptySession(string clientIP)
         {
-            return new Session(beaconSender, new Beacon(logger, config, clientIP));
+            return new Session(beaconSender, new Beacon(config, clientIP));
         }
     }
 }

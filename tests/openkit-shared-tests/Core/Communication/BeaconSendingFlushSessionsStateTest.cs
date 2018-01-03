@@ -81,7 +81,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(beaconSender, new Beacon(new DefaultLogger(true), new TestConfiguration(), clientIP));
+            var session = new Session(beaconSender, new Beacon(new TestConfiguration(), clientIP));
 
             session.EnterAction("Foo").LeaveAction();
 

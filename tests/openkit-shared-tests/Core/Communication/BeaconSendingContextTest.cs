@@ -283,7 +283,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
-            var session = new Session(new BeaconSender(target), new Beacon(logger, config, "127.0.0.1"));
+            var session = new Session(new BeaconSender(target), new Beacon(config, "127.0.0.1"));
 
             Assert.That(target.GetAllOpenSessions().Count, Is.EqualTo(1));
 
