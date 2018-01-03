@@ -8,7 +8,7 @@ namespace Dynatrace.OpenKit.Core
     {
         private readonly bool verbose;
 
-        static readonly string DATEFORMAT = "yyyy-MM-dd'T'HH:mm:ss.fffzz'00'";
+        const string DATEFORMAT = "O";
 
         public DefaultLogger(bool verbose)
         {
@@ -27,8 +27,7 @@ namespace Dynatrace.OpenKit.Core
 
         public void Error(string message, Exception exception)
         {
-            Console.WriteLine(GetUTCTime() + " [ERROR] " + message);
-            Console.WriteLine(exception.ToString());
+            Console.WriteLine(GetUTCTime() + " [ERROR] " + message + Environment.NewLine + exception.ToString());
         }
 
         public void Warn(string message)
