@@ -3,7 +3,6 @@
  *
  * @author: Christian Schwarzbauer
  */
-using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
@@ -26,8 +25,8 @@ namespace Dynatrace.OpenKit.Core
         // sending state context
         private readonly IBeaconSendingContext context;
 
-        public BeaconSender(ILogger logger, AbstractConfiguration configuration, IHTTPClientProvider clientProvider, ITimingProvider provider)
-            : this(new BeaconSendingContext(logger, configuration, clientProvider, provider))
+        public BeaconSender(AbstractConfiguration configuration, IHTTPClientProvider clientProvider, ITimingProvider provider)
+            : this(new BeaconSendingContext(configuration, clientProvider, provider))
         {
         }
 

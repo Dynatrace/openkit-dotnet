@@ -6,7 +6,14 @@ namespace Dynatrace.OpenKit.Providers
 {
     public class DefaultHTTPClientProvider : IHTTPClientProvider
     {
-        public IHTTPClient CreateClient(ILogger logger, HTTPClientConfiguration configuration)
+        private readonly ILogger logger;
+
+        public DefaultHTTPClientProvider(ILogger logger)
+        {
+            this.logger = logger;
+        }
+
+        public IHTTPClient CreateClient(HTTPClientConfiguration configuration)
         {
 #if NET40 || NET35
             return new HTTPClientWebClient(logger, configuration); // HttpClient is not availalbe in .NET 4.0

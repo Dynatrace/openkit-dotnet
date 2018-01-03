@@ -40,7 +40,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             timingProvider = Substitute.For<ITimingProvider>();
             timingProvider.ProvideTimestampInMilliseconds().Returns(x => { return ++currentTime; }); // every access is a tick
             httpClientProvider = Substitute.For<IHTTPClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<ILogger>(), Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
@@ -50,7 +50,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
 
             // beacon sender
-            beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
+            beaconSender = new BeaconSender(config, httpClientProvider, timingProvider);
 
             // return true by default
             context.IsTimeSyncSupported.Returns(true);

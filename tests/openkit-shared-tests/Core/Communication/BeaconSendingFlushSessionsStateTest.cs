@@ -1,5 +1,4 @@
-﻿using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -28,7 +27,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
             httpClientProvider = Substitute.For<IHTTPClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<ILogger>(), Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();

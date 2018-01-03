@@ -1,5 +1,4 @@
-﻿using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using System;
@@ -31,8 +30,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         // boolean indicating whether init was successful or not (accessed by multiple threads)
         private volatile bool initSucceeded = false;
 
-        private readonly ILogger logger;
-
         /// <summary>
         /// Constructor
         /// 
@@ -42,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <param name="configuration"></param>
         /// <param name="httpClientProvider"></param>
         /// <param name="timingProvider"></param>
-        public BeaconSendingContext(ILogger logger, AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
+        public BeaconSendingContext( AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
         {
             Configuration = configuration;
             HTTPClientProvider = httpClientProvider;
@@ -55,8 +52,6 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // set current state to init state
             CurrentState = new BeaconSendingInitState();
-
-            this.logger = logger;
         }
 
         public AbstractConfiguration Configuration { get; }
@@ -138,7 +133,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public IHTTPClient GetHTTPClient()
         {
-            return HTTPClientProvider.CreateClient(logger, Configuration.HTTPClientConfig);
+            return HTTPClientProvider.CreateClient(Configuration.HTTPClientConfig);
         }
         
         public void Sleep()

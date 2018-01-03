@@ -27,21 +27,19 @@ namespace Dynatrace.OpenKit.Core
         // *** constructors ***
 
         public OpenKit(ILogger logger, AbstractConfiguration configuration)
-            : this(logger, configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider(), new DefaultThreadIDProvider())
+            : this(configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
         {
         }
 
-        protected OpenKit(ILogger logger,
-            AbstractConfiguration configuration,
+        protected OpenKit(AbstractConfiguration configuration,
             IHTTPClientProvider httpClientProvider, 
             ITimingProvider timingProvider, 
             IThreadIDProvider threadIDProvider)
         {
             this.configuration = configuration;
             this.timingProvider = timingProvider;
-            beaconSender = new BeaconSender(logger, configuration, httpClientProvider, timingProvider);
+            beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
             this.threadIDProvider = threadIDProvider;
-            this.logger = logger;
         }
         
         /// <summary>
