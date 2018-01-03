@@ -8,12 +8,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class HTTPClientConfiguration
     {
-        public HTTPClientConfiguration(String baseURL, int serverID, string applicationID, bool verbose, ISSLTrustManager sslTrustManager)
+        public HTTPClientConfiguration(String baseURL, int serverID, string applicationID, ISSLTrustManager sslTrustManager)
         {
             BaseURL = baseURL;
             ServerID = serverID;
             ApplicationID = applicationID;
-            IsVerbose = verbose;
             SSLTrustManager = sslTrustManager;
         }
 

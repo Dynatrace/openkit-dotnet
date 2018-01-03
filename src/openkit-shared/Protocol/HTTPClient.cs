@@ -70,14 +70,14 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly string timeSyncURL;
 
         private readonly int serverID;
-        private readonly bool verbose;
+        private readonly ILogger logger;
 
         // *** constructors ***
 
-        public HTTPClient(HTTPClientConfiguration configuration)
+        public HTTPClient(ILogger logger, HTTPClientConfiguration configuration)
         {
+            this.logger = logger;
             serverID = configuration.ServerID;
-            verbose = configuration.IsVerbose;
             monitorURL = BuildMonitorURL(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
             timeSyncURL = BuildTimeSyncURL(configuration.BaseURL);
         }
@@ -109,20 +109,15 @@ namespace Dynatrace.OpenKit.Protocol
         {
             try
             {
-                if (verbose)
+                if (logger.IsDebugEnabled)
                 {
-                    Console.WriteLine("HTTP " + requestType.getRequestName() + " Request: " + url);
+                    logger.Debug("HTTP " + requestType.getRequestName() + " Request: " + url);
                 }
                 return SendRequestInternal(url, clientIPAddress, data, method);
             }
             catch (Exception e)
             {
-                if (verbose)
-                {
-                    Console.WriteLine("ERROR: " + requestType.getRequestName() + " Request failed!");
-                    Console.WriteLine(e.Message);
-                    Console.WriteLine(e.StackTrace);
-                }
+                logger.Error(requestType.getRequestName() + " Request failed!", e);
             }
             return null;
         }
@@ -142,9 +137,9 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         gzippedData = GZip(data);
 
-                        if (verbose)
+                        if (logger.IsDebugEnabled)
                         {
-                            Console.WriteLine("Beacon Payload: " + Encoding.UTF8.GetString(data));
+                           logger.Debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
                                                          
@@ -162,10 +157,10 @@ namespace Dynatrace.OpenKit.Protocol
                         return null;
                     }
 
-                    if (verbose)
+                    if (logger.IsDebugEnabled)
                     {
-                        Console.WriteLine("HTTP Response: " + httpResponse.Response);
-                        Console.WriteLine("HTTP Response Code: " + httpResponse.ResponseCode);
+                        logger.Debug("HTTP Response: " + httpResponse.Response);
+                        logger.Debug("HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
                     if (httpResponse.ResponseCode >= 400)

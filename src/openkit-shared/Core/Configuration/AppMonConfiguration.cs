@@ -14,14 +14,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// <param name="deviceID">id identifying the device</param>
         /// <param name="endpointURL">URL of the endpoint</param>
         /// <param name="verbose">if set to <code>true</code> enables debug output</param>
-        public AppMonConfiguration(string applicationName, long deviceID, string endpointURL, bool verbose, ISSLTrustManager sslTrustManager, ISessionIDProvider sessionIDProvider) 
-            : base(OpenKitType.APPMON, applicationName, applicationName, deviceID, endpointURL, verbose, sessionIDProvider)
+        public AppMonConfiguration(string applicationName, long deviceID, string endpointURL, ISSLTrustManager sslTrustManager, ISessionIDProvider sessionIDProvider) 
+            : base(OpenKitType.APPMON, applicationName, applicationName, deviceID, endpointURL, sessionIDProvider)
         {
             HTTPClientConfig = new HTTPClientConfiguration(
                     CreateBaseURL(endpointURL, OpenKitType.APPMON.DefaultMonitorName),
                     OpenKitType.APPMON.DefaultServerID,
                     applicationName,
-                    verbose,
                     sslTrustManager);
         }
 

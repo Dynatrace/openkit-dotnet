@@ -28,7 +28,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private readonly string applicationID;
         private readonly long deviceID;
         private readonly string endpointURL;
-        private readonly bool verbose;
 
         // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
@@ -47,10 +46,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** constructors ***
 
-        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, bool verbose, ISessionIDProvider sessionIDProvider)
+        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, ISessionIDProvider sessionIDProvider)
         {
-            this.verbose = verbose;
-
             this.openKitType = openKitType;
 
             // immutable settings
@@ -126,7 +123,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
                     CreateBaseURL(endpointURL, newMonitorName),
                     newServerID,
                     applicationID,
-                    verbose,
                     HTTPClientConfig.SSLTrustManager);
 
                 monitorName = newMonitorName;
@@ -205,14 +201,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             get
             {
                 return deviceID;
-            }
-        }
-
-        public bool IsVerbose
-        {
-            get
-            {
-                return verbose;
             }
         }
 

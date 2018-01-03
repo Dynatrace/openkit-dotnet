@@ -15,7 +15,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantURL = string.Format("https://{0}.{1}", tenantId, host);
 
-            var target = new DynatraceConfiguration("", "", 17, tenantURL, false, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
+            var target = new DynatraceConfiguration("", "", 17, tenantURL, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
 
             var expected = String.Format("{0}/mbeacon", tenantURL);
 
@@ -27,7 +27,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantURL = string.Format("https://{0}", host);
 
-            var target = new DynatraceManagedConfiguration(tenantId, "", "", 17, tenantURL, false, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
+            var target = new DynatraceManagedConfiguration(tenantId, "", "", 17, tenantURL, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
 
             var expected = String.Format("{0}/mbeacon/{1}", tenantURL, tenantId);
 
@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var tenantURL = string.Format("https://{0}", host);
 
-            var target = new AppMonConfiguration("", 17, tenantURL, false, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
+            var target = new AppMonConfiguration("", 17, tenantURL, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
 
             var expected = String.Format("{0}/dynaTraceMonitor", tenantURL);
 
@@ -49,7 +49,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void ApplicationIdAndApplicationNameIdenticalForAppMonConfig()
         {
-            var target = new AppMonConfiguration(applicationName, 17, "", false, new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
+            var target = new AppMonConfiguration(applicationName, 17, "", new SSLStrictTrustManager(), new Providers.TestSessionIDProvider());
 
             var expected = applicationName;
 

@@ -12,6 +12,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using System.Collections.ObjectModel;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol
 {

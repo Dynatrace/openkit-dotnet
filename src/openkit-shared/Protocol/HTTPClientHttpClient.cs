@@ -1,4 +1,5 @@
-﻿using Dynatrace.OpenKit.Core.Configuration;
+﻿using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -8,7 +9,7 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
 
-        public HTTPClientHttpClient(HTTPClientConfiguration configuration) : base(configuration)
+        public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
             remoteCertificateValidationCallback = configuration.SSLTrustManager?.ServerCertificateValidationCallback;
         }

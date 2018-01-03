@@ -3,7 +3,6 @@ using NUnit.Framework;
 using NSubstitute;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Communication;
 
 namespace Dynatrace.OpenKit.Protocol
 {

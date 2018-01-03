@@ -22,11 +22,12 @@ namespace Dynatrace.OpenKit.Core
         private readonly ITimingProvider timingProvider;
         private readonly BeaconSender beaconSender;
         private readonly IThreadIDProvider threadIDProvider;
+        private readonly ILogger logger;
 
         // *** constructors ***
 
-        public OpenKit(AbstractConfiguration configuration)
-            : this(configuration, new DefaultHTTPClientProvider(), new DefaultTimingProvider(), new DefaultThreadIDProvider())
+        public OpenKit(ILogger logger, AbstractConfiguration configuration)
+            : this(configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
         {
         }
 
