@@ -37,7 +37,7 @@ namespace Dynatrace.OpenKit.Core
 
         public void Info(string message)
         {
-            if (InfoEnabled)
+            if (IsInfoEnabled)
             {
                 Console.WriteLine(GetUTCTime() + " [INFO ] " + message);
             }
@@ -45,18 +45,18 @@ namespace Dynatrace.OpenKit.Core
 
         public void Debug(string message)
         {
-            if (DebugEnabled)
+            if (IsDebugEnabled)
             {
                 Console.WriteLine(GetUTCTime() + " [DEBUG] " + message);
             }
         }
 
-        public bool ErrorEnabled => true;
+        public bool IsErrorEnabled => true;
 
-        public bool WarnEnabled => true;
+        public bool IsWarnEnabled => true;
 
-        public bool InfoEnabled => verbose;
+        public bool IsInfoEnabled => verbose;
 
-        public bool DebugEnabled => verbose;
+        public bool IsDebugEnabled => verbose;
     }
 }

@@ -45,25 +45,25 @@ namespace Dynatrace.OpenKit.API
         /// Returns a flag if error messages are enabled
         /// </summary>
         /// <returns>Flag if errors are enabled</returns>
-        bool ErrorEnabled { get; }
+        bool IsErrorEnabled { get; }
 
         /// <summary>
         /// Returns a flag if warning messages are enabled
         /// </summary>
         /// <returns>Flag if warning messages are enabled</returns>
-        bool WarnEnabled { get; }
+        bool IsWarnEnabled { get; }
 
         /// <summary>
         /// Returns a flag if info messages are enabled
         /// </summary>
         /// <returns>Flag if info messages are enabled</returns>
-        bool InfoEnabled { get; }
+        bool IsInfoEnabled { get; }
 
         /// <summary>
         /// Returns a flag if debug messages are enabled
         /// </summary>
         /// <returns>Flag if debug messages are enabled</returns>
-        bool DebugEnabled { get; }
+        bool IsDebugEnabled { get; }
 
     }
 }
