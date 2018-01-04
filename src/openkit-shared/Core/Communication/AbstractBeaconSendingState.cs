@@ -35,7 +35,7 @@
                 DoExecute(context);
 #if !NETCOREAPP1_0
             }
-            catch (ThreadInterruptedException)
+            catch (System.Threading.ThreadInterruptedException)
             {
                 // call on interruped
                 OnInterrupted(context);
