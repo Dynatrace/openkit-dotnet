@@ -100,7 +100,7 @@ namespace Dynatrace.OpenKit.Protocol
         private string basicBeaconData;
 
         // Configuration reference
-        private AbstractConfiguration configuration;
+        private OpenKitConfiguration configuration;
 
         // lists of events and actions currently on the Beacon
         private LinkedList<string> eventDataList = new LinkedList<string>();
@@ -113,7 +113,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
-        public Beacon(AbstractConfiguration configuration, string clientIPAddress)
+        public Beacon(OpenKitConfiguration configuration, string clientIPAddress)
             : this(configuration, clientIPAddress, new DefaultThreadIDProvider(), new DefaultTimingProvider())
         {
         }
@@ -124,7 +124,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
         /// <param name="threadIdProvider"></param>
-        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, 
+        internal Beacon(OpenKitConfiguration configuration, string clientIPAddress, 
             IThreadIDProvider threadIdProvider, ITimingProvider timingProvider)
         {
             this.threadIdProvider = threadIdProvider;

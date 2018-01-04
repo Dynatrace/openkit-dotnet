@@ -18,7 +18,7 @@ namespace Dynatrace.OpenKit.Core
     {        
 
         // Configuration reference
-        private readonly AbstractConfiguration configuration;
+        private readonly Configuration.OpenKitConfiguration configuration;
         private readonly ITimingProvider timingProvider;
         private readonly BeaconSender beaconSender;
         private readonly IThreadIDProvider threadIDProvider;
@@ -26,12 +26,12 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public OpenKit(ILogger logger, AbstractConfiguration configuration)
+        public OpenKit(ILogger logger, OpenKitConfiguration configuration)
             : this(configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
         {
         }
 
-        protected OpenKit(AbstractConfiguration configuration,
+        protected OpenKit(OpenKitConfiguration configuration,
             IHTTPClientProvider httpClientProvider, 
             ITimingProvider timingProvider, 
             IThreadIDProvider threadIDProvider)
@@ -75,8 +75,6 @@ namespace Dynatrace.OpenKit.Core
                 configuration.ApplicationVersion = value;
             }
         }
-
-        public IDevice Device => configuration.Device;
 
         public ISession CreateSession(string clientIPAddress)
         {

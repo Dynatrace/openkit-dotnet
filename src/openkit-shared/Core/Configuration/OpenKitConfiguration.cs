@@ -12,9 +12,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
 
     /// <summary>
-    ///  The Configuration class holds all configuration settings, both provided by the user and the Dynatrace/AppMon server.
+    ///  The OpenKitConfiguration class holds all configuration settings, both provided by the user and the Dynatrace/AppMon server.
     /// </summary>
-    public abstract class AbstractConfiguration
+    public class OpenKitConfiguration
     {
         private const bool DEFAULT_CAPTURE = false;                     // default: capture off
         private const int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;        // default: wait 2m (in ms) to send beacon
@@ -32,7 +32,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
-        private string monitorName;                                 // monitor name part of URL; is only written/read by beacon sender thread -> non-atomic
         private int maxBeaconSize;                                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
         private bool captureErrors;                                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private bool captureCrashes;		                        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
@@ -46,7 +45,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** constructors ***
 
-        public AbstractConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, ISessionIDProvider sessionIDProvider)
+        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, 
+            ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion)
         {
             this.openKitType = openKitType;
 
@@ -59,13 +59,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // mutable settings
             capture = DEFAULT_CAPTURE;
             sendInterval = DEFAULT_SEND_INTERVAL;
-            monitorName = openKitType.DefaultMonitorName;
             maxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
             captureErrors = DEFAULT_CAPTURE_ERRORS;
             captureCrashes = DEFAULT_CAPTURE_CRASHES;
 
-            device = new Device();
-            applicationVersion = OpenKitConstants.DEFAULT_APPLICATION_VERSION;
+            this.device = device;
+
+            HTTPClientConfig = new HTTPClientConfiguration(
+                endpointURL,
+                openKitType.DefaultServerID,
+                applicationID,
+                trustManager);
+
+            this.applicationVersion = applicationVersion;
 
             this.sessionIDProvider = sessionIDProvider;
 
@@ -116,16 +122,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
 
             // check if http config needs to be updated
-            if (!monitorName.Equals(newMonitorName)
-                || HTTPClientConfig.ServerID != newServerID)
+            if (HTTPClientConfig.ServerID != newServerID)
             {
                 HTTPClientConfig = new HTTPClientConfiguration(
-                    CreateBaseURL(endpointURL, newMonitorName),
+                    endpointURL,
                     newServerID,
                     applicationID,
                     HTTPClientConfig.SSLTrustManager);
-
-                monitorName = newMonitorName;
             }
 
             // use send interval from beacon response or default
@@ -166,10 +169,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             IsCaptureOn = false;
         }
 
-        // *** protected methods ***
-
-        protected abstract string CreateBaseURL(string endpointURL, string monitorName);
-
         // *** properties ***
 
         public bool IsDynatrace
@@ -202,7 +201,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             {
                 return deviceID;
             }
-        }
+        }        
 
         // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool IsCaptureOn
@@ -282,6 +281,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
-        public HTTPClientConfiguration HTTPClientConfig { get; protected set; }
+        public HTTPClientConfiguration HTTPClientConfig { get; private set; }
     }
 }
