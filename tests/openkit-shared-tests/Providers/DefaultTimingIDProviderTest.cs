@@ -58,7 +58,7 @@ namespace Dynatrace.OpenKit.Providers
             // then
             Assert.That(target, Is.EqualTo(clusterOffset + 1000));
         }
-        
+
         [Test]
         public void LastInitTimeIsSetCorrectly()
         {

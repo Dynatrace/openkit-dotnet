@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit.API
         /// 
         /// <returns><code>true</code> if OpenKit is fully initialized, <code>false</code> when a shutdown request was made. </returns>
         bool WaitForInitCompletion(int timeoutMillis);
-        
+
         /// <summary>
         ///  Returns whether OpenKit is initialized or not.
         /// </summary>

@@ -53,10 +53,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsTimeSyncSupported.Returns(true);
 
             // current time getter
-            context.CurrentTimestamp.Returns(x => timingProvider.ProvideTimestampInMilliseconds()); 
+            context.CurrentTimestamp.Returns(x => timingProvider.ProvideTimestampInMilliseconds());
 
             // last time sycn getter + setter
-            context.LastTimeSyncTime = Arg.Do<long>(x => lastTimeSyncTime = x); 
+            context.LastTimeSyncTime = Arg.Do<long>(x => lastTimeSyncTime = x);
             context.LastTimeSyncTime = lastTimeSyncTime;
 
             // sessions
@@ -89,7 +89,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var lastTimeSync = 1;
-                        
+
             context.LastTimeSyncTime.Returns(lastTimeSync); // return fixed value
             context.CurrentTimestamp.Returns(lastTimeSync + BeaconSendingTimeSyncState.TIME_SYNC_INTERVAL_IN_MILLIS + 1); // timesync interval + 1 sec
 
@@ -136,7 +136,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         [Test]
         public void BeaconSendingIsRetriedForFinishedSessions()
-        {            
+        {
             // given 
             var clientIp = "127.0.0.1";
             finishedSessions.Enqueue(CreateValidSession(clientIp));

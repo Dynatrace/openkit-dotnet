@@ -497,7 +497,7 @@ namespace Dynatrace.OpenKit.Protocol
                 if (response != null || (retry >= numRetries))
                 {
                     // success OR max retry count reached
-                    break; 
+                    break;
                 }
 
                 timingProvider.Sleep(retrySleepMillis);

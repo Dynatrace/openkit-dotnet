@@ -11,7 +11,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             IsTerminalState = isTerminalState;
         }
-        
+
         /// <summary>
         /// Get <code>true</code> if this state is a terminal state, <code>false</code> otherwise
         /// </summary>

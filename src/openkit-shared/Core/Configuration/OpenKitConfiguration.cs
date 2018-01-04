@@ -34,7 +34,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
         private int maxBeaconSize;                                  // max beacon size; is only written/read by beacon sender thread -> non-atomic
         private bool captureErrors;                                 // capture errors on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
-        private bool captureCrashes;		                        // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
+        private bool captureCrashes;                                // capture crashes on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         // TODO stefan.eberl@dynatrace.com - 2017-12-06 - capture/captureErrors/captureCrashes must be thread safe (APM-114816)
 
         // application and device settings

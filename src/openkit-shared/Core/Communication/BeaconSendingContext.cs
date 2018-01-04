@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         // boolean indicating whether shutdown was requested or not (accessed by multiple threads)
         private volatile bool isShutdownRequested = false;
-        
+
         // boolean indicating whether init was successful or not (accessed by multiple threads)
         private volatile bool initSucceeded = false;
 
@@ -63,12 +63,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         public long LastStatusCheckTime { get; set; }
         public long LastTimeSyncTime { get; set; }
         public bool IsTimeSyncSupported { get; private set; }
-        public bool IsTimeSynced {
+        public bool IsTimeSynced
+        {
             get { return !IsTimeSyncSupported || LastTimeSyncTime >= 0; }
         }
 
         public bool IsInitialized => initSucceeded;
-        
+
         public bool IsShutdownRequested
         {
             get
@@ -119,13 +120,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             resetEvent.WaitOne(TimeSpan.FromMilliseconds(timeoutMillis));
             return initSucceeded;
         }
-        
+
         public void InitCompleted(bool success)
         {
             initSucceeded = success;
             resetEvent.Set();
         }
-        
+
         public void InitializeTimeSync(long clusterTimeOffset, bool isTimeSyncSupported)
         {
             TimingProvider.Initialze(clusterTimeOffset, isTimeSyncSupported);
@@ -133,14 +134,14 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public IHTTPClient GetHTTPClient()
         {
-            return HTTPClientProvider.CreateClient((HTTPClientConfiguration)Configuration.HTTPClientConfig);
+            return HTTPClientProvider.CreateClient(Configuration.HTTPClientConfig);
         }
-        
+
         public void Sleep()
         {
             Sleep(DEFAULT_SLEEP_TIME_MILLISECONDS);
         }
-        
+
         public void Sleep(int millis)
         {
             TimingProvider.Sleep(millis);
@@ -151,12 +152,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             Configuration.DisableCapture();
             ClearAllSessionData();
         }
-        
+
         public void HandleStatusResponse(StatusResponse statusResponse)
         {
             Configuration.UpdateSettings(statusResponse);
 
-            if (!IsCaptureOn) {
+            if (!IsCaptureOn)
+            {
                 // capture was turned off
                 ClearAllSessionData();
             }
@@ -193,8 +195,8 @@ namespace Dynatrace.OpenKit.Core.Communication
                 session.ClearCapturedData();
                 session = finishedSessions.Get();
             }
-            
-            foreach(var openSession in openSessions.ToList())
+
+            foreach (var openSession in openSessions.ToList())
             {
                 openSession.ClearCapturedData();
             }

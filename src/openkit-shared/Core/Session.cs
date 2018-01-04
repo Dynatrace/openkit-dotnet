@@ -4,7 +4,6 @@
  * @author: Christian Schwarzbauer
  */
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 

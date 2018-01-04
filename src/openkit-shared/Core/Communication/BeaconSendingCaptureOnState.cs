@@ -21,7 +21,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         private StatusResponse statusResponse = null;
 
-        public BeaconSendingCaptureOnState() : base(false) {}
+        public BeaconSendingCaptureOnState() : base(false) { }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
@@ -91,6 +91,6 @@ namespace Dynatrace.OpenKit.Core.Communication
                 // capturing is turned off -> make state transition
                 context.CurrentState = new BeaconSendingCaptureOffState();
             }
-        }        
+        }
     }
 }

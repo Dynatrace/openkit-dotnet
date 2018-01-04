@@ -16,7 +16,7 @@ namespace Dynatrace.OpenKit.Providers
 
         private static readonly object syncLock = new object();
 
-        public DefaultSessionIDProvider() : this(new Random().Next()) {}
+        public DefaultSessionIDProvider() : this(new Random().Next()) { }
 
         internal DefaultSessionIDProvider(int initialOffset)
         {
@@ -25,9 +25,9 @@ namespace Dynatrace.OpenKit.Providers
 
         public int GetNextSessionID()
         {
-            lock(syncLock)
+            lock (syncLock)
             {
-                if(initialIntegerOffset == int.MaxValue)
+                if (initialIntegerOffset == int.MaxValue)
                 {
                     initialIntegerOffset = 0;
                 }

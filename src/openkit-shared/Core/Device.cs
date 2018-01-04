@@ -9,7 +9,8 @@ namespace Dynatrace.OpenKit.Core
     /// <summary>
     ///  Class holding device specific information
     /// </summary>
-    public class Device {
+    public class Device
+    {
 
         public Device(string operatingSystem, string manufacturer, string modelID)
         {
@@ -25,7 +26,7 @@ namespace Dynatrace.OpenKit.Core
         public string Manufacturer { get; private set; }
 
         public string ModelID { get; private set; }
-        
+
     }
 
 }

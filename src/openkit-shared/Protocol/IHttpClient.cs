@@ -7,7 +7,7 @@
         /// </summary>
         /// <returns></returns>
         StatusResponse SendStatusRequest();
-        
+
         /// <summary>
         /// Sends a beacon send request and returns a status response
         /// </summary>

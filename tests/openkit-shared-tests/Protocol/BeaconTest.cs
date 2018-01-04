@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var beacon = new Beacon(new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
             var userTag = "myTestUser";
-    
+
             // when
             beacon.IdentifyUser(userTag);
             var target = beacon.EventDataList;
@@ -47,7 +47,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"}));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}" }));
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}"}));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={testURL}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}" }));
         }
 
         [Test]
