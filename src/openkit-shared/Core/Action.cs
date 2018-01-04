@@ -7,12 +7,14 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Core
+{
 
     /// <summary>
     ///  Actual implementation of the IAction interface.
     /// </summary>
-    public class Action : IAction {
+    public class Action : IAction
+    {
 
         // Action ID, name and parent ID (default: null)
         private int id;
@@ -33,10 +35,12 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** constructors ***
 
-        public Action(Beacon beacon, string name, SynchronizedQueue<IAction> parentActions) : this(beacon, name, null, parentActions) {
+        public Action(Beacon beacon, string name, SynchronizedQueue<IAction> parentActions) : this(beacon, name, null, parentActions)
+        {
         }
 
-        internal Action(Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions) {
+        internal Action(Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions)
+        {
             this.beacon = beacon;
             this.parentAction = parentAction;
 
@@ -51,27 +55,32 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** IAction interface methods ***
 
-        public IAction ReportEvent(string eventName) {
+        public IAction ReportEvent(string eventName)
+        {
             beacon.ReportEvent(this, eventName);
             return this;
         }
 
-        public IAction ReportValue(string valueName, string value) {
+        public IAction ReportValue(string valueName, string value)
+        {
             beacon.ReportValue(this, valueName, value);
             return this;
         }
 
-        public IAction ReportValue(string valueName, double value) {
+        public IAction ReportValue(string valueName, double value)
+        {
             beacon.ReportValue(this, valueName, value);
             return this;
         }
 
-        public IAction ReportValue(string valueName, int value) {
+        public IAction ReportValue(string valueName, int value)
+        {
             beacon.ReportValue(this, valueName, value);
             return this;
         }
 
-        public IAction ReportError(string errorName, int errorCode, string reason) {
+        public IAction ReportError(string errorName, int errorCode, string reason)
+        {
             beacon.ReportError(this, errorName, errorCode, reason);
             return this;
         }
@@ -84,13 +93,15 @@ namespace Dynatrace.OpenKit.Core {
 
 #else
 
-        public IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient) {
+        public IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient)
+        {
             return new WebRequestTracerHttpClient(beacon, this, httpClient);
         }
 
 #endif
 
-        public IWebRequestTracer TraceWebRequest(string url) {
+        public IWebRequestTracer TraceWebRequest(string url)
+        {
             return new WebRequestTracerStringURL(beacon, this, url);
         }
 
@@ -105,7 +116,8 @@ namespace Dynatrace.OpenKit.Core {
             return DoLeaveAction();
         }
 
-        protected virtual IAction DoLeaveAction() {
+        protected virtual IAction DoLeaveAction()
+        {
             // set end time and end sequence number
             endTime = beacon.CurrentTimestamp;
             endSequenceNo = beacon.NextSequenceNumber;
@@ -116,49 +128,63 @@ namespace Dynatrace.OpenKit.Core {
             // remove Action from the Actions on this level
             thisLevelActions.Remove(this);
 
-            return parentAction;			// can be null if there's no parent Action!
+            return parentAction; // can be null if there's no parent Action!
         }
 
         // *** properties ***
 
-        public int ID {
-            get {
+        public int ID
+        {
+            get
+            {
                 return id;
             }
         }
 
-        public string Name {
-            get {
+        public string Name
+        {
+            get
+            {
                 return name;
             }
         }
 
-        public int ParentID {
-            get {
+        public int ParentID
+        {
+            get
+            {
                 return parentAction == null ? 0 : parentAction.ID;
             }
         }
 
-        public long StartTime {
-            get {
+        public long StartTime
+        {
+            get
+            {
                 return startTime;
             }
         }
 
-        public long EndTime {
-            get {
+        public long EndTime
+        {
+            get
+            {
                 return endTime;
             }
         }
 
-        public int StartSequenceNo {
-            get {
+        public int StartSequenceNo
+        {
+            get
+            {
                 return startSequenceNo;
             }
         }
 
-        public int EndSequenceNo {
-            get {
+        public int EndSequenceNo
+        {
+            get
+            {
                 return endSequenceNo;
             }
         }

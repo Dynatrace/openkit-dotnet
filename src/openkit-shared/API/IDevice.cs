@@ -3,12 +3,14 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.API {
+namespace Dynatrace.OpenKit.API
+{
 
     /// <summary>
     ///  This interface provides functionality to set basic device information, like operating system, manufacturer and model information.
     /// </summary>
-    public interface IDevice {
+    public interface IDevice
+    {
 
         /// <summary>
         ///  Sets operating system name.

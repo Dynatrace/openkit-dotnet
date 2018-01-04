@@ -19,7 +19,7 @@ namespace Dynatrace.OpenKit.Providers
         public void DefaultSessionIDProviderReturnsConsecutiveIDs()
         {
             // given
-            var provider = new DefaultSessionIDProvider(int.MaxValue/2);
+            var provider = new DefaultSessionIDProvider(int.MaxValue / 2);
 
             // when
             var sessionIDOne = provider.GetNextSessionID();

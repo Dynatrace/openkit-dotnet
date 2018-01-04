@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Dynatrace.OpenKit.Core.Communication
+﻿namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
     /// Base class for all beacon sending states
@@ -11,7 +9,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             IsTerminalState = isTerminalState;
         }
-        
+
         /// <summary>
         /// Get <code>true</code> if this state is a terminal state, <code>false</code> otherwise
         /// </summary>

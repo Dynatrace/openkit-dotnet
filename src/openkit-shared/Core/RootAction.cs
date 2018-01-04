@@ -15,7 +15,7 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public RootAction(Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions) 
+        public RootAction(Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
             : base(beacon, name, thisLevelActions)
         {
             this.beacon = beacon;

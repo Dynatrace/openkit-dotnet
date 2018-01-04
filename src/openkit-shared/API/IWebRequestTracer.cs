@@ -3,12 +3,14 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.API {
+namespace Dynatrace.OpenKit.API
+{
 
     /// <summary>
     ///  This interface allows tracing and timing of a web request.
     /// </summary>
-    public interface IWebRequestTracer {
+    public interface IWebRequestTracer
+    {
 
         /// <summary>
         ///  Returns the Dynatrace tag which has to be set manually as Dynatrace HTTP header (OpenKitFactory.WEBREQUEST_TAG_HEADER).

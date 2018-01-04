@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             Assert.That(obtained, Is.Null);
-            
+
             context.Received(1).GetHTTPClient();
             context.ReceivedWithAnyArgs(0).Sleep(0);
 
@@ -50,7 +50,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             Assert.That(obtained, Is.Null);
-            
+
             context.Received(4).GetHTTPClient();
             context.ReceivedWithAnyArgs(3).Sleep(0);
 

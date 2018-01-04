@@ -15,7 +15,7 @@ namespace Dynatrace.OpenKit.Core
     ///  Actual implementation of the IOpenKit interface.
     /// </summary>
     public class OpenKit : IOpenKit
-    {        
+    {
 
         // Configuration reference
         private readonly AbstractConfiguration configuration;
@@ -32,8 +32,8 @@ namespace Dynatrace.OpenKit.Core
         }
 
         protected OpenKit(AbstractConfiguration configuration,
-            IHTTPClientProvider httpClientProvider, 
-            ITimingProvider timingProvider, 
+            IHTTPClientProvider httpClientProvider,
+            ITimingProvider timingProvider,
             IThreadIDProvider threadIDProvider)
         {
             this.configuration = configuration;
@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit.Core
             beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
             this.threadIDProvider = threadIDProvider;
         }
-        
+
         /// <summary>
         /// Initialize this OpenKit instance.
         /// </summary>
@@ -56,11 +56,11 @@ namespace Dynatrace.OpenKit.Core
 
         // *** IOpenKit interface methods ***
 
-        public  bool WaitForInitCompletion()
+        public bool WaitForInitCompletion()
         {
             return beaconSender.WaitForInitCompletion();
         }
-        
+
         public bool WaitForInitCompletion(int timeoutMillis)
         {
             return beaconSender.WaitForInitCompletion(timeoutMillis);

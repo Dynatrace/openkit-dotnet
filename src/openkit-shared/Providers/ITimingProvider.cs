@@ -25,7 +25,7 @@
         /// </summary>
         /// <returns></returns>
         long ProvideTimestampInMilliseconds();
-        
+
         /// <summary>
         /// Sleep given amount of milliseconds.
         /// </summary>

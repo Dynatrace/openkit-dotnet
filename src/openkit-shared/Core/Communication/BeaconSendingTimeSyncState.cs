@@ -104,7 +104,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // if this is the initial sync try, we have to initialize the time provider
             // in every other case we keep the previous setting
-            if (IsInitialTimeSync) 
+            if (IsInitialTimeSync)
             {
                 context.InitializeTimeSync(0, context.IsTimeSyncSupported);
             }
@@ -219,7 +219,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 return false;
             }
 
-            return ((context.LastTimeSyncTime < 0) 
+            return ((context.LastTimeSyncTime < 0)
                 || (context.CurrentTimestamp - context.LastTimeSyncTime > TIME_SYNC_INTERVAL_IN_MILLIS));
         }
 
