@@ -3,6 +3,9 @@
  *
  * @author: Stefan Eberl
  */
+using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.API;
+
 namespace Dynatrace.OpenKit.Core
 {
 #if NET40 || NET35
@@ -32,10 +35,10 @@ namespace Dynatrace.OpenKit.Core
         private void SetTagOnConnection(System.Net.WebClient webClient)
         {
             // check if header is already set
-            if (webClient.Headers.Get(OpenKitFactory.WEBREQUEST_TAG_HEADER) == null)
+            if (webClient.Headers.Get(OpenKitConstants.WEBREQUEST_TAG_HEADER) == null)
             {
                 // if not yet set -> set it now
-                webClient.Headers.Add(OpenKitFactory.WEBREQUEST_TAG_HEADER, Tag);
+                webClient.Headers.Add(OpenKitConstants.WEBREQUEST_TAG_HEADER, Tag);
             }
         }
 

@@ -9,7 +9,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingContextTest
     {
-        private AbstractConfiguration config;
+        private OpenKitConfiguration config;
         private IHTTPClientProvider clientProvider;
         private ITimingProvider timingProvider;
         private AbstractBeaconSendingState nonTerminalStateMock;

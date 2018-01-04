@@ -8,82 +8,37 @@ avoid C#'s auto type deduction feature.
 
 ## Obtaining an OpenKit Instance
 
-OpenKit instances are obtained from the `OpenKitFactory` class.  
-Depending on the used backend system (Dynatrace SaaS/Dynatrace Managed/AppMon), the factory provides 
-different methods to create a new  OpenKit instance. Despite from this, the developer does not 
-need to distinguish between different backend systems.
+Depending on the backend a new OpenKit instance can be obtained by using either `DynatraceOpenKitBuilder` 
+or `AppMonOpenKitBuilder`. Despite from this, the developer does not need to distinguish between 
+different backend systems.
 
-### Dynatrace SaaS
+### Dynatrace
  
+For Dynatrace SaaS and Dynatrace Managed the `DynatraceOpenKitBuilder` is used to build new OpenKit instances. 
+
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
 long deviceID = 42L;
-string endpointURL = "https://tenantid.beaconurl.com";
+string endpointURL = "https://tenantid.beaconurl.com/mbeacon";
 
 // by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, deviceID, endpointURL);
+IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID).Build();
 ```
 
-* The `applicationName` parameter is the application's name created before in Dynatrace SaaS.
+* The `endpointURL` denotes the Dynatrace SaaS cluster endpoint OpenKit communicates with and 
+  is shown when creating the application in Dynatrace SaaS. The endpoint URL can be found in the settings 
+  page of the custom application in Dynatrace.
 * The `applicationID` parameter is the unique identifier of the application in Dynatrace Saas. The
 application's id can be found in the settings page of the custom application in Dynatrace.
 * The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
-* The `endpointURL` denotes the Dynatrace SaaS cluster endpoint OpenKit communicates with and 
-  is shown when creating the application in Dynatrace SaaS.
-The endpoint URL can be found in the settings page of the custom application in Dynatrace.
 
-OpenKit provides extended log output by activating the verbose mode. This feature might come in quite handy during development,
-therefore an overloaded method exists, where verbose mode can be enabled or disabled.  
-To enable verbose mode, use the following example.
+:grey_exclamation: For Dynatrace Managed the endpoint URL looks a bit different.
 
-```cs
-string applicationName = "My OpenKit application";
-string applicationID = "application-id";
-long deviceID = 42L;
-string endpointURL = "https://tenantid.beaconurl.com";
-bool verbose = true;
-
-// by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, deviceID, endpointURL, verbose);
-```
-
-### Dynatrace Managed
-
-An OpenKit instance for Dynatrace Managed can be obtained in a similar manner, as shown in the example below.
-```cs
-string applicationName = "My OpenKit application";
-string applicationID = "application-id";
-long deviceID = 42L;
-string endpointURL = "https://tenantid.beaconurl.com";
-string tenantID = "tenant-id";
-
-// by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName, applicationID, deviceID, endpointURL, tenantID);
-```
-
-* The `applicationName` parameter is the application's name created before in Dynatrace Managed.
-* The `applicationID` parameter is the unique identifier of the application in Dynatrace Managed. The
-application's id can be found in the settings page of the custom application in Dynatrace.
-* The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
-* The `endpointURL` denotes the Dynatrace Managed endpoint OpenKit communicates with. The endpoint URL can be found in 
-the settings page of the custom application in Dynatrace.
-* The `tenantID` is the tenant used by Dynatrace Managed.
-
-Again an overloaded method exists to enable verbose logging, as shown below.
-```cs
-string applicationName = "My OpenKit application";
-string applicationID = "application-id";
-long deviceID = 42L;
-string endpointURL = "https://beaconurl.com";
-string tenantID = "tenant-id";
-bool verbose = true;
-
-// by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateDynatraceManagedInstance(applicationName, applicationID, deviceID, endpointURL, tenantID, verbose);
-```
 
 ### AppMon
+
+An OpenKit instance for Dynatrace Managed can be obtained by using `AppMonOpenKitBuilder`.
 
 The example below demonstrates how to connect an OpenKit application to an AppMon endpoint.
 ```cs
@@ -92,30 +47,33 @@ long deviceID = 42L;
 string endpointURL = "https://beaconurl.com";
 
 // by default verbose logging is disabled
-OpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, deviceID, endpointURL);
+IOpenKit openKit = new AppMonOpenKitBuilder(endpointURL, applicationName, deviceID).Build();
 ```
 
+* The `endpointURL` denotes the AppMon endpoint OpenKit communicates with.
 * The `applicationName` parameter is the application's name in AppMon and is also used as the application's id.
 * The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
-* The `endpointURL` denotes the AppMon endpoint OpenKit communicates with.
 
-If verbose OpenKit logging output is wanted, an overloaded method can be used as demonstrated below.
-```cs
-string applicationName = "My OpenKit application";
-long deviceID = 42L;
-string endpointURL = "https://tenantid.beaconurl.com";
-bool verbose = true;
+### Optional Configuration
 
-// by default verbose logging is disabled
-IOpenKit openKit = OpenKitFactory.CreateAppMonInstance(applicationName, deviceID, endpointURL, verbose);
-```
+In addition to the mandatory parameters described above, the builder provides methods to further 
+customize OpenKit. This includes device specific information like operating system, manufacturer, or model id. 
+
+| Method Name | Description | Default Value |
+| ------------- | ------------- | ---------- |
+| `WithApplicationVersion`  | sets the application version  | `"0.4"` |
+| `WithOperatingSystem`  | sets the operating system name | `"OpenKit 0.4"` |
+| `WithManufacturer`  | sets the manufacturer | `"Dynatrace"` |
+| `WithModelID`  | sets the model id  | `"OpenKitDevice"` |
+| `EnableVerbose`  | enables extended log output for OpenKit if the default logger is used | `false` |
+
 
 ## SSL/TLS Security in OpenKit
 
 All OpenKit communication to the backend happens via HTTPS (TLS/SSL based on .NET Framework support).
-By default OpenKit expects valid server certificates.
+By default, OpenKit expects valid server certificates.
 However it is possible, if really needed, to bypass TLS/SSL certificate validation. This can be achieved by
-passing an implementation of `ISSLTrustManager` to the previously mentioned OpenKit factory methods.
+passing an implementation of `ISSLTrustManager` to the previously mentioned OpenKit builder.
 
 :warning: We do **NOT** recommend bypassing TLS/SSL server certificate validation, since this allows
 man-in-the-middle attacks.
@@ -123,9 +81,19 @@ man-in-the-middle attacks.
 Keep in mind on .NET 3.5 and 4.0 server certificate validation can only be overwritten on global level via
 the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request basis.  
 
+## Logging
+
+By default, OpenKit uses a logger implementation that logs to stdout. If the default logger is used, verbose 
+logging can be enabled by calling `EnableVerbose` in the builder. By enabling verbose mode, info and debug
+messages are logged.
+
+A custom logger can be set by calling `WithLogger` in the builder. When a custom logger is used, a call to 
+`EnableVerbose` has no effect. In that case, debug and info logs are logged depending on the values returned 
+in `IsDebugEnabled` and `IsInfoEnabled`.
+
 ## Initializing OpenKit
 
-When obtaining an OpenKit instance from `OpenKitFactory` the instance starts an automatic 
+When obtaining an OpenKit instance from the OpenKit builder the instance starts an automatic 
 initialization phase. Since initialization happens asynchronously the application developers 
 might want to wait until initialization completes, as shown in the example below.
 
@@ -156,34 +124,6 @@ if (isInitialized) {
 } else {
     System.out.println("OpenKit is not yet initialized");
 }
-```
-
-## Providing further Application Information
-
-If multiple version's of the same applications are monitored by OpenKit, it's quite useful
-to set the application's version in OpenKit.  
-This can be achieved by setting the `ApplicationVersion` value.
-```cs
-string applicationVersion = "1.2.3.4";
-openKit.ApplicationVersion = applicationVersion;
-```
-
-## Providing Device specific Information
-
-Sometimes it might also be quite useful to provide information about the device the application
-is running on. The example below shows how to achieve this.
-```cs
-// set operating system
-string operatingSystem = "Custom OS";
-openKit.Device.OperatingSystem = operatingSystem;
-
-// set device manufacturer
-string deviceManufacturer = "ACME Inc.";
-openKit.Device.Manufacturer = deviceManufacturer;
-
-// set device/model identifier
-string deviceID = "12-34-56-78-90";
-openKit.Device.ModelID = deviceID;
 ```
 
 ## Creating a Session
@@ -230,16 +170,21 @@ session = null; // not needed, just used to indicate that the session is no long
 Unexpected application crashes can be reported via an `ISession` by invoking the `ReportCrash` method.  
 The example below shows how an exception might be reported.
 ```cs
-    private static int div(int numerator, int denominator) {
+    private static int div(int numerator, int denominator) 
+    {
         return numerator / denominator;
     }
 
-    public static void divWithCrash() {
+    public static void divWithCrash() 
+    {
         int numerator = 5;
         int denominator = 0;
-        try {
+        try 
+        {
             Console.WriteLine("Got: " + div(numerator, denominator));
-        } catch (Exception e) {
+        } 
+        catch (Exception e) 
+        {
             string errorName = e.GetType().ToString();
             string reason = e.Message;
             string stacktrace = e.StackTrace;
@@ -398,7 +343,7 @@ using (HttpClient httpClient = new HttpClient())
 If a third party lib is used for HTTP requests, the developer has the possibility to use an overloaded
 `TraceWebRequest` method, taking only the URL string as argument. However when using this overloaded
 method the developer is responsible for adding the appropriate header field to the request.  
-The field name can be obtained from `OpenKitFactory.WEBREQUEST_TAG_HEADER` and the field's value is obtained
+The field name can be obtained from `OpenKitConstants.WEBREQUEST_TAG_HEADER` and the field's value is obtained
 from `Tag` property (see class `WebRequestTracer`).
 
 ```cs
@@ -408,7 +353,7 @@ string url = "http://www.my-backend.com/api/v3/users";
 IWebRequestTracer webRequestTracer = action.TraceWebRequest(url);
 
 // this is the HTTP header name & value which needs to be added to the HTTP request.
-string headerName = OpenKitFactory.WEBREQUEST_TAG_HEADER;
+string headerName = OpenKitConstants.WEBREQUEST_TAG_HEADER;
 string headerValue = webRequestTracer.Tag;
 
 webRequestTracer.Start();

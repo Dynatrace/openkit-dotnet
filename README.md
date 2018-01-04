@@ -124,7 +124,14 @@ string applicationID = "application-id";
 long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com";
 
-IOpenKit openKit = OpenKitFactory.CreateDynatraceInstance(applicationName, applicationID, deviceID, endpointURL);
+IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID)
+    .WithApplicationName(applicationName)
+    .WithApplicationVersion("1.0.0.0")
+    .WithOperatingSystem("Windows 10")
+    .WithManufacturer("MyCompany")
+    .WithModelID("MyModelID")
+    .Build();
+
 openKit.WaitForInitCompletion();
 
 string clientIP = "8.8.8.8";

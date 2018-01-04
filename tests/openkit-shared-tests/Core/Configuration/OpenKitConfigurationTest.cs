@@ -1,29 +1,26 @@
 ﻿using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Protocol.SSL;
-using Dynatrace.OpenKit.Providers;
-using NSubstitute;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
-    class AbstractConfigurationTest
+    public class OpenKitConfigurationTest
     {
         [Test]
         public void ADefaultConstructedConfigurationDisablesCapturing()
         {
             // given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
 
             // then
             Assert.That(target.IsCaptureOn, Is.False);
-
         }
 
         [Test]
         public void EnableAndDisableCapturing()
         {
             // given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
 
             // when capturing is enabled
             target.EnableCapture();
@@ -42,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CapturingIsDisabledIfStatusResponseIsNull()
         {
             // given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
             target.EnableCapture();
 
             // when status response to handle is null
@@ -56,7 +53,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CapturingIsDisabledIfResponseCodeIndicatesFailures()
         {
             // given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
             target.EnableCapture();
 
             // when status response indicates erroneous response
@@ -70,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CapturingIsEnabledFromStatusResponse()
         {
             // given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
             target.EnableCapture();
 
             var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "1", 200);
@@ -86,7 +83,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CapturingIsDisabledFromStatusResponse()
         {
             // given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
             target.EnableCapture();
 
             var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "0", 200);
@@ -102,7 +99,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ConsecutiveCallsToNextSessionNumberIncrementTheSessionID()
         {
             //given
-            var target = new TestConfiguration();
+            var target = CreateDefaultConfig();
 
             // when retrieving two sessionIDs
             var sessionIDOne = target.NextSessionNumber;
@@ -112,23 +109,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
         }
 
-        private sealed class TestConfiguration : AbstractConfiguration
+        private static OpenKitConfiguration CreateDefaultConfig()
         {
-            internal TestConfiguration() :
-                this(OpenKitType.DYNATRACE, "", "", 42, "", new TestSessionIDProvider())
-            {
-            }
-
-            internal TestConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, ISessionIDProvider sessionIDProvider) :
-                base(openKitType, applicationName, applicationID, deviceID, endpointURL, sessionIDProvider)
-            {
-                HTTPClientConfig = new HTTPClientConfiguration(endpointURL, 1, applicationID, new SSLStrictTrustManager());
-            }
-
-            protected override string CreateBaseURL(string endpointURL, string monitorName)
-            {
-                return "https://www.dynatrace.com/";
-            }
+            return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider(),
+                  new SSLStrictTrustManager(), new Core.Device("", "", ""), "");
         }
     }
 }
