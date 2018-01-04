@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Dynatrace.OpenKit.Core.Communication
+﻿namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
     /// Base class for all beacon sending states

@@ -3,8 +3,6 @@
  *
  * @author: Stefan Eberl
  */
-using Dynatrace.OpenKit.Protocol;
-
 namespace Dynatrace.OpenKit.Core
 {
 #if NET40 || NET35
