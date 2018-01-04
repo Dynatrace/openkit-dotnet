@@ -26,12 +26,12 @@ string endpointURL = "https://tenantid.beaconurl.com/mbeacon";
 IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID).Build();
 ```
 
+* The `endpointURL` denotes the Dynatrace SaaS cluster endpoint OpenKit communicates with and 
+  is shown when creating the application in Dynatrace SaaS. The endpoint URL can be found in the settings 
+  page of the custom application in Dynatrace.
 * The `applicationID` parameter is the unique identifier of the application in Dynatrace Saas. The
 application's id can be found in the settings page of the custom application in Dynatrace.
 * The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
-* The `endpointURL` denotes the Dynatrace SaaS cluster endpoint OpenKit communicates with and 
-  is shown when creating the application in Dynatrace SaaS.
-The endpoint URL can be found in the settings page of the custom application in Dynatrace.
 
 :grey_exclamation: For Dynatrace Managed the endpoint URL looks a bit different.
 
@@ -50,13 +50,13 @@ string endpointURL = "https://beaconurl.com";
 IOpenKit openKit = new AppMonOpenKitBuilder(endpointURL, applicationName, deviceID).Build();
 ```
 
+* The `endpointURL` denotes the AppMon endpoint OpenKit communicates with.
 * The `applicationName` parameter is the application's name in AppMon and is also used as the application's id.
 * The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
-* The `endpointURL` denotes the AppMon endpoint OpenKit communicates with.
 
 ### Optional Configuration
 
-In addition to the mandatory parameters described above, the builder provides methods additional method to further 
+In addition to the mandatory parameters described above, the builder provides methods to further 
 customize OpenKit. This includes device specific information like operating system, manufacturer, or model id. 
 
 | Method Name | Description | Default Value |
@@ -84,10 +84,12 @@ the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request 
 ## Logging
 
 By default, OpenKit uses a logger implementation that logs to stdout. If the default logger is used, verbose 
-logging can be enabled by calling `EnableVerbose` in the builder. A custom logger can be set by calling 
-`WithLogger` in the builder. When a custom logger is used, a call to `EnableVerbose` has no effect. 
-In that case debug and info logs are logged depending on the values returned in `IsDebugEnabled` 
-and `IsInfoEnabled`.
+logging can be enabled by calling `EnableVerbose` in the builder. By enabling verbose mode, info and debug
+messages are logged.
+
+A custom logger can be set by calling `WithLogger` in the builder. When a custom logger is used, a call to 
+`EnableVerbose` has no effect. In that case, debug and info logs are logged depending on the values returned 
+in `IsDebugEnabled` and `IsInfoEnabled`.
 
 ## Initializing OpenKit
 

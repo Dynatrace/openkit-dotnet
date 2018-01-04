@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit
             Assert.That(configuration.Device.ModelID, Is.EqualTo(OpenKitConstants.DEFAULT_MODEL_ID));
 
             // default trust manager
-            Assert.That(configuration.HTTPClientConfig.SSLTrustManager, Is.InstanceOf(typeof(SSLStrictTrustManager)));
+            Assert.That(configuration.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
         }
 
         [Test]
@@ -209,7 +209,7 @@ namespace Dynatrace.OpenKit
             var target = new TestOpenKitBuilder().GetLogger();
 
             // then
-            Assert.That(target, Is.InstanceOf(typeof(DefaultLogger)));
+            Assert.That(target, Is.InstanceOf<DefaultLogger>());
             Assert.That(target.IsDebugEnabled, Is.False);
             Assert.That(target.IsInfoEnabled, Is.False);
         }
@@ -221,7 +221,7 @@ namespace Dynatrace.OpenKit
             var target = ((TestOpenKitBuilder)new TestOpenKitBuilder().EnableVerbose()).GetLogger();
 
             // then
-            Assert.That(target, Is.InstanceOf(typeof(DefaultLogger)));
+            Assert.That(target, Is.InstanceOf<DefaultLogger>());
             Assert.That(target.IsDebugEnabled, Is.True);
             Assert.That(target.IsInfoEnabled, Is.True);
         }

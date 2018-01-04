@@ -21,11 +21,11 @@ namespace Dynatrace.OpenKit.Core
 
         // *** IDevice interface methods & propreties ***
 
-        public string OperatingSystem { get; private set; }
+        public string OperatingSystem { get; }
 
-        public string Manufacturer { get; private set; }
+        public string Manufacturer { get; }
 
-        public string ModelID { get; private set; }
+        public string ModelID { get; }
 
     }
 

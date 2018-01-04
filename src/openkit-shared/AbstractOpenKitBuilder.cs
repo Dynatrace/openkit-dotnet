@@ -20,7 +20,7 @@ namespace Dynatrace.OpenKit
         private string applicationVersion = OpenKitConstants.DEFAULT_APPLICATION_VERSION;
 
 
-        internal AbstractOpenKitBuilder(string endpointURL, long deviceID)
+        protected AbstractOpenKitBuilder(string endpointURL, long deviceID)
         {
             EndpointURL = endpointURL;
             DeviceID = deviceID;
@@ -60,7 +60,7 @@ namespace Dynatrace.OpenKit
         }
 
         /// <summary>
-        /// Defines the version of the application
+        /// Defines the version of the application. The value is only set if it is neither null nor empty.
         /// </summary>
         /// <param name="applicationVersion">the application version</param>
         /// <returns><code>this</code></returns>
@@ -85,7 +85,7 @@ namespace Dynatrace.OpenKit
         }
 
         /// <summary>
-        /// Sets the operating system information. The value is only set if it is not null and or empty.
+        /// Sets the operating system information. The value is only set if it is neither null nor empty.
         /// </summary>
         /// <param name="operatingSystem">the operating system</param>
         /// <returns><code>this</code></returns>
@@ -99,7 +99,7 @@ namespace Dynatrace.OpenKit
         }
 
         /// <summary>
-        /// Sets the manufacturer information. The value is only set if it is not null and or empty.
+        /// Sets the manufacturer information. The value is only set if it is neither null nor empty.
         /// </summary>
         /// <param name="manufacturer">the manufacturer</param>
         /// <returns><code>this</code></returns>
@@ -113,7 +113,7 @@ namespace Dynatrace.OpenKit
         }
 
         /// <summary>
-        /// Sets the model id. The value is only set if it is not null and or empty.
+        /// Sets the model id. The value is only set if it is neither null nor empty.
         /// </summary>
         /// <param name="modelID">the model id</param>
         /// <returns><code>this</code></returns>
