@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Returns the configuration
         /// </summary>
-        AbstractConfiguration Configuration { get; }
+        OpenKitConfiguration Configuration { get; }
 
         /// <summary>
         /// Returns the HTTP client provider

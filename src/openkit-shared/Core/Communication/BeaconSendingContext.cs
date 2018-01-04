@@ -55,7 +55,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <param name="configuration"></param>
         /// <param name="httpClientProvider"></param>
         /// <param name="timingProvider"></param>
-        public BeaconSendingContext(AbstractConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
+        public BeaconSendingContext(OpenKitConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
         {
             Configuration = configuration;
             HTTPClientProvider = httpClientProvider;
@@ -70,7 +70,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             CurrentState = new BeaconSendingInitState();
         }
 
-        public AbstractConfiguration Configuration { get; }
+        public OpenKitConfiguration Configuration { get; }
         public IHTTPClientProvider HTTPClientProvider { get; }
         public ITimingProvider TimingProvider { get; }
 

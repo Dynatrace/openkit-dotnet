@@ -14,68 +14,28 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-
 namespace Dynatrace.OpenKit.Core
 {
-
     /// <summary>
-    ///  Actual implementation of the IDevice interface.
+    ///  Class holding device specific information
     /// </summary>
-    public class Device : IDevice
+    public class Device
     {
 
-        // platform information
-        private string operatingSystem = OpenKitConstants.DEFAULT_OPERATING_SYSTEM;
-        private string manufacturer = OpenKitConstants.DEFAULT_MANUFACTURER;
-        private string modelID = OpenKitConstants.DEFAULT_DEVICE_ID;
+        public Device(string operatingSystem, string manufacturer, string modelID)
+        {
+            OperatingSystem = operatingSystem;
+            Manufacturer = manufacturer;
+            ModelID = modelID;
+        }
 
         // *** IDevice interface methods & propreties ***
 
-        public string OperatingSystem
-        {
-            get
-            {
-                return operatingSystem;
-            }
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    this.operatingSystem = value;
-                }
-            }
-        }
+        public string OperatingSystem { get; }
 
-        public string Manufacturer
-        {
-            get
-            {
-                return manufacturer;
-            }
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    this.manufacturer = value;
-                }
-            }
-        }
+        public string Manufacturer { get; }
 
-        public string ModelID
-        {
-            get
-            {
-                return modelID;
-            }
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    this.modelID = value;
-                }
-            }
-        }
+        public string ModelID { get; }
 
     }
 

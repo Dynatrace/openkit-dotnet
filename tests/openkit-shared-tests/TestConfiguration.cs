@@ -19,18 +19,13 @@ using Dynatrace.OpenKit.Protocol.SSL;
 
 namespace Dynatrace.OpenKit
 {
-    public class TestConfiguration : AbstractConfiguration
+    public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : base(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider())
+            : base(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider(), 
+                  new SSLStrictTrustManager(), new Core.Device("", "", ""), "")
         {
-            HTTPClientConfig = new HTTPClientConfiguration("", 0, "", new SSLStrictTrustManager());
             EnableCapture();
-        }
-
-        protected override string CreateBaseURL(string endpointURL, string monitorName)
-        {
-            return "";
         }
     }
 }

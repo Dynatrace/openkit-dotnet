@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingCaptureOnStateTest
     {
-        private AbstractConfiguration config = new TestConfiguration();
+        private OpenKitConfiguration config = new TestConfiguration();
         private Queue<Session> finishedSessions;
         private List<Session> openSessions;
         private long currentTime = 0;

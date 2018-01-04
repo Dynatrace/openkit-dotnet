@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core
@@ -44,10 +45,10 @@ namespace Dynatrace.OpenKit.Core
         private void SetTagOnConnection(System.Net.Http.HttpClient httpClient)
         {
             // check if header is already set
-            if (!httpClient.DefaultRequestHeaders.Contains(OpenKitFactory.WEBREQUEST_TAG_HEADER))
+            if (!httpClient.DefaultRequestHeaders.Contains(OpenKitConstants.WEBREQUEST_TAG_HEADER))
             {
                 // if not yet set -> set it now
-                httpClient.DefaultRequestHeaders.Add(OpenKitFactory.WEBREQUEST_TAG_HEADER, Tag);
+                httpClient.DefaultRequestHeaders.Add(OpenKitConstants.WEBREQUEST_TAG_HEADER, Tag);
             }
         }
 

@@ -21,8 +21,7 @@ namespace Dynatrace.OpenKit.API
     ///  This interface provides basic OpenKit functionality, like creating a Session and shutting down OpenKit.
     /// </summary>
     public interface IOpenKit
-    {
-
+    {   
         /// <summary>
         ///  Waits until OpenKit is fully initialized.
         /// </summary>
@@ -65,13 +64,6 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <param name="value">application version</param>
         string ApplicationVersion { set; }
-
-        /// <summary>
-        ///  Returns the Device used by this OpenKit instance. This can be used to provide basic information, like operating system,
-        ///  manufacturer and model information.
-        /// </summary>
-        /// <returns>Device used by this OpenKit instance</returns>
-        IDevice Device { get; }
 
         /// <summary>
         ///  Creates a Session instance which can then be used to create Actions.
