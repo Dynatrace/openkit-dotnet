@@ -9,7 +9,8 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
 using Dynatrace.OpenKit.Providers;
 
-namespace Dynatrace.OpenKit {
+namespace Dynatrace.OpenKit
+{
 
     /// <summary>
     ///  This factory creates instances of the OpenKit to work with.

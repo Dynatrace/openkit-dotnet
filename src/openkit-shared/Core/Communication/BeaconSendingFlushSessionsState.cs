@@ -14,7 +14,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     {
         public const int BEACON_SEND_RETRY_ATTEMPTS = 0; // do not retry beacon sending on error
 
-        public BeaconSendingFlushSessionsState() : base(false) {}
+        public BeaconSendingFlushSessionsState() : base(false) { }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
 

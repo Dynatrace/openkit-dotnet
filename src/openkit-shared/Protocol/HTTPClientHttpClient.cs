@@ -37,7 +37,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        private System.Net.Http.HttpClient CreateHTTPClient (string clientIPAddress)
+        private System.Net.Http.HttpClient CreateHTTPClient(string clientIPAddress)
         {
             System.Net.Http.HttpClient httpClient;
 
@@ -97,4 +97,4 @@ namespace Dynatrace.OpenKit.Protocol
     }
 
 #endif
-            }
+}

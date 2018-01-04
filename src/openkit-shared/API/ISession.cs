@@ -3,12 +3,14 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.API {
+namespace Dynatrace.OpenKit.API
+{
 
     /// <summary>
     ///  This interface provides functionality to create Actions in a Session.
     /// </summary>
-    public interface ISession {
+    public interface ISession
+    {
 
         /// <summary>
         ///  Enters an Action with a specified name in this Session.

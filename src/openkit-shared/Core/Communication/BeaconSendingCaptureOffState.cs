@@ -30,7 +30,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         public const int STATUS_CHECK_INTERVAL = 2 * 60 * 60 * 1000;    // wait 2h (in ms) for next status request
 
-        public BeaconSendingCaptureOffState() : base(false) {}
+        public BeaconSendingCaptureOffState() : base(false) { }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
@@ -40,7 +40,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var currentTime = context.CurrentTimestamp;
 
-            var delta = (int) (STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));
+            var delta = (int)(STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));
             if (delta > 0 && !context.IsShutdownRequested)
             {
                 // still have some time to sleep

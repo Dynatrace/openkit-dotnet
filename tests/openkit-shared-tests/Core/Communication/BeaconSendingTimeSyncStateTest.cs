@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.GetHTTPClient().Returns(httpClient);
 
             // return true by default
-            context.IsTimeSyncSupported.Returns(true); 
+            context.IsTimeSyncSupported.Returns(true);
 
             // current time getter
             context.CurrentTimestamp.Returns(x => { return ++currentTime; });
@@ -112,7 +112,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void InitCompleteIsCalledForInitialRequest_OnFailure()
         {
             // given
-            httpClient.SendTimeSyncRequest().Returns((TimeSyncResponse) null); // alwasys return invalid response
+            httpClient.SendTimeSyncRequest().Returns((TimeSyncResponse)null); // alwasys return invalid response
 
             // when
             var target = new BeaconSendingTimeSyncState(true);

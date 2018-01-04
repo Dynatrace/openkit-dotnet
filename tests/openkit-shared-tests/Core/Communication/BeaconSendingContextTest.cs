@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             timingProvider = Substitute.For<ITimingProvider>();
             nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
         }
-        
+
         [Test]
         public void ContextIsInitializedWithInitState()
         {
@@ -71,7 +71,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void ResetEventIsSetOnInitFailed()
         {
-            
+
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
             target.InitCompleted(false);
@@ -79,7 +79,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             Assert.That(actual, Is.False);
         }
-        
+
         [Test]
         public void IsInitializedOnInitSuccess()
         {
@@ -152,7 +152,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             target.RequestShutdown();
 
-            Assert.True(target.IsShutdownRequested);            
+            Assert.True(target.IsShutdownRequested);
         }
 
         [Test]
@@ -251,7 +251,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
 
             var actual = target.CurrentTimestamp;
-                        
+
             Assert.AreEqual(expected, actual);
             timingProvider.Received(1).ProvideTimestampInMilliseconds();
         }

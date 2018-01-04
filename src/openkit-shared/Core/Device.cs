@@ -5,12 +5,14 @@
  */
 using Dynatrace.OpenKit.API;
 
-namespace Dynatrace.OpenKit.Core {
+namespace Dynatrace.OpenKit.Core
+{
 
     /// <summary>
     ///  Actual implementation of the IDevice interface.
     /// </summary>
-    public class Device : IDevice {
+    public class Device : IDevice
+    {
 
         // platform information
         private string operatingSystem = OpenKitConstants.DEFAULT_OPERATING_SYSTEM;
@@ -19,20 +21,25 @@ namespace Dynatrace.OpenKit.Core {
 
         // *** IDevice interface methods & propreties ***
 
-        public string OperatingSystem {
-            get {
+        public string OperatingSystem
+        {
+            get
+            {
                 return operatingSystem;
             }
-            set {
-                if(!string.IsNullOrEmpty(value))
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
                 {
                     this.operatingSystem = value;
                 }
             }
         }
 
-        public string Manufacturer {
-            get {
+        public string Manufacturer
+        {
+            get
+            {
                 return manufacturer;
             }
             set
@@ -44,18 +51,21 @@ namespace Dynatrace.OpenKit.Core {
             }
         }
 
-        public string ModelID {
-            get {
+        public string ModelID
+        {
+            get
+            {
                 return modelID;
             }
-            set {
+            set
+            {
                 if (!string.IsNullOrEmpty(value))
                 {
                     this.modelID = value;
                 }
             }
         }
-        
+
     }
 
 }

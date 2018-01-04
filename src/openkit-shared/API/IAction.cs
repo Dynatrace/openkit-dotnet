@@ -3,12 +3,14 @@
  *
  * @author: Christian Schwarzbauer
  */
-namespace Dynatrace.OpenKit.API {
+namespace Dynatrace.OpenKit.API
+{
 
     /// <summary>
     ///  This interface provides functionality to report events/values/errors and traces web requests.
     /// </summary>
-    public interface IAction {       
+    public interface IAction
+    {
 
         /// <summary>
         ///  Reports an event with a specified name (but without any value).

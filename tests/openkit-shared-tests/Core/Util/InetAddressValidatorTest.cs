@@ -13,7 +13,7 @@ namespace Dynatrace.OpenKit.Core.Util
             var validIPV4Address = "122.133.55.22";
 
             //then
-            Assert.That(InetAddressValidator.IsValidIP(validIPV4Address), Is.True );
+            Assert.That(InetAddressValidator.IsValidIP(validIPV4Address), Is.True);
         }
 
         [Test]

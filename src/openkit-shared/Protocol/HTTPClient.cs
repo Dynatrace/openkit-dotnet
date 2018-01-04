@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
 
             public static readonly RequestType STATUS = new RequestType("Status");              // status check
-            public static readonly RequestType BEACON = new RequestType("Beacon");				// beacon send
+            public static readonly RequestType BEACON = new RequestType("Beacon");              // beacon send
             public static readonly RequestType TIMESYNC = new RequestType("TimeSync");          // time sync
 
             private string requestName;
@@ -47,7 +47,7 @@ namespace Dynatrace.OpenKit.Protocol
             public string Response { get; set; }
             public int ResponseCode { get; set; }
         }
-        
+
         // request type constants
         private const string REQUEST_TYPE_MOBILE = "type=m";
         private const string REQUEST_TYPE_TIMESYNC = "type=mts";
@@ -139,10 +139,10 @@ namespace Dynatrace.OpenKit.Protocol
 
                         if (logger.IsDebugEnabled)
                         {
-                           logger.Debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
+                            logger.Debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
-                                                         
+
                     HTTPResponse httpResponse = null;
                     if (method == "GET")
                     {

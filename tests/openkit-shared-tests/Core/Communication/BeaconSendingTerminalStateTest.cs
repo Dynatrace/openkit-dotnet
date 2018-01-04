@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingTerminalState();
 
             //then
-            Assert.That(target.ShutdownState,Is.SameAs(target));
+            Assert.That(target.ShutdownState, Is.SameAs(target));
         }
 
         [Test]

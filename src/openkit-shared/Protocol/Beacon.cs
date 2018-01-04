@@ -124,7 +124,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="configuration"></param>
         /// <param name="clientIPAddress"></param>
         /// <param name="threadIdProvider"></param>
-        internal Beacon(AbstractConfiguration configuration, string clientIPAddress, 
+        internal Beacon(AbstractConfiguration configuration, string clientIPAddress,
             IThreadIDProvider threadIdProvider, ITimingProvider timingProvider)
         {
             this.threadIdProvider = threadIdProvider;
@@ -497,7 +497,7 @@ namespace Dynatrace.OpenKit.Protocol
                 if (response != null || (retry >= numRetries))
                 {
                     // success OR max retry count reached
-                    break; 
+                    break;
                 }
 
                 timingProvider.Sleep(retrySleepMillis);
