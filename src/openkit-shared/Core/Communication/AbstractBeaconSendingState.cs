@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Dynatrace.OpenKit.Core.Communication
+﻿namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
     /// Base class for all beacon sending states
@@ -37,7 +35,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 DoExecute(context);
 #if !NETCOREAPP1_0
             }
-            catch (ThreadInterruptedException)
+            catch (System.Threading.ThreadInterruptedException)
             {
                 // call on interruped
                 OnInterrupted(context);
