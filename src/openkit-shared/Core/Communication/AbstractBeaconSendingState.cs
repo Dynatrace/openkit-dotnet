@@ -32,7 +32,7 @@
             try
             {
 #endif
-            DoExecute(context);
+                DoExecute(context);
 #if !NETCOREAPP1_0
             }
             catch (ThreadInterruptedException)
