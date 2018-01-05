@@ -43,6 +43,7 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BEACON_KEY_APPLICATION_NAME = "an";
         private const string BEACON_KEY_APPLICATION_VERSION = "vn";
         private const string BEACON_KEY_PLATFORM_TYPE = "pt";
+        private const string BEACON_KEY_AGENT_TECHNOLOGY_TYPE = "tt";
         private const string BEACON_KEY_VISITOR_ID = "vi";
         private const string BEACON_KEY_SESSION_NUMBER = "sn";
         private const string BEACON_KEY_CLIENT_IP_ADDRESS = "ip";
@@ -81,6 +82,7 @@ namespace Dynatrace.OpenKit.Protocol
         public const string OPENKIT_VERSION = "7.0.0000";
         private const int PROTOCOL_VERSION = 3;
         private const int PLATFORM_TYPE_OPENKIT = 1;
+        private const string AGENT_TECHNOLOGY_TYPE = "okdotnet";
 
         // max name length
         private const int MAX_NAME_LEN = 250;
@@ -607,6 +609,7 @@ namespace Dynatrace.OpenKit.Protocol
                 AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_VERSION, configuration.ApplicationVersion);
             }
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, AGENT_TECHNOLOGY_TYPE);
 
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
