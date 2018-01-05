@@ -10,7 +10,7 @@ namespace Dynatrace.OpenKit
     public class DynatraceOpenKitBuilder : AbstractOpenKitBuilder
     {
         private readonly string applicationID;
-        private string applicationName;
+        private string applicationName = string.Empty;
 
         /// <summary>
         /// Creates a new instance of type DynatraceOpenKitBuilder
@@ -25,13 +25,16 @@ namespace Dynatrace.OpenKit
         }
 
         /// <summary>
-        /// Sets the application name
+        /// Sets the application name. The value is only set if it is not null.
         /// </summary>
         /// <param name="applicationName">name of the application</param>
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithApplicationName(string applicationName)
         {
-            this.applicationName = applicationName;
+            if (applicationName != null)
+            {
+                this.applicationName = applicationName;
+            }
             return this;
         }
 
