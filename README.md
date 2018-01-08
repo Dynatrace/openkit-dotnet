@@ -152,16 +152,9 @@ openKit.ShutDown();
 ``` 
 
 ## Known Current Limitations
-* it's only possible to have one OpenKit instance running as providers are static
 
 ## TODOs
-* add samples/tests
-* add multiple time syncs for Dynatrace, especially for long running applications
-* move providers from static to instance (multiple OpenKits -> multiple providers)
 * prevent re-entrances e.g. of startup/shutdown
-* add HTTPS support and certificate verification
 * HTTP optimizations (reuse connection, pool http client?)
-* provide simple samples to get started as markdown
-* add more verbose logging
 * introduce traffic control
 * currently gzipping is done with code taken from DotNetZip (http://dotnetzip.codeplex.com/), investigate other solution with .NET framework (no luck so far!)
