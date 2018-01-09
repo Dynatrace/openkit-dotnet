@@ -19,7 +19,7 @@ using System;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class DefaultTimingIDProviderTest
+    public class DefaultTimingProviderTest
     {
         private long clusterOffset = 1234L;
         private long now;
@@ -73,45 +73,6 @@ namespace Dynatrace.OpenKit.Providers
 
             // then
             Assert.That(target, Is.EqualTo(clusterOffset + 1000));
-        }
-
-        [Test]
-        public void LastInitTimeIsSetCorrectly()
-        {
-            // given
-            provider.Initialze(clusterOffset, true);
-
-            // when
-            var target = provider.LastInitTimeInClusterTime;
-
-            // then
-            Assert.That(target, Is.EqualTo(clusterOffset + now));
-        }
-
-        [Test]
-        public void CanGetTimeSineLastInit()
-        {
-            // given
-            provider.Initialze(clusterOffset, true);
-
-            // when
-            var target = provider.TimeSinceLastInitTime;
-
-            // then
-            Assert.That(target, Is.EqualTo(0L));
-        }
-
-        [Test]
-        public void CanGetTimeSinceLastInitWithTimestamp()
-        {
-            // given
-            provider.Initialze(clusterOffset, true);
-
-            // when
-            var target = provider.GetTimeSinceLastInitTime(now + 1);
-
-            // then
-            Assert.That(target, Is.EqualTo(1L));
         }
 
         private class TestDefaultTimingProvider : DefaultTimingProvider
