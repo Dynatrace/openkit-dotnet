@@ -16,27 +16,33 @@
 
 using Dynatrace.OpenKit;
 using Dynatrace.OpenKit.API;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 
 namespace Samples
 {
+    /// <summary>
+    /// The SimpleSample includes a basic example that provides an overview of the features supported by OpenKit.
+    /// For more detailed information, please refer to the documentation that is available on GitHub.
+    /// </summary>
     public class SimpleSample
     {
         public static void Main(string[] args)
         {
             string endpointURL = "";    // the endpointURL can be found in the Dynatrace UI
             string applicationID = "";  // the application id can be found in the Dynatrace UI
-            long devicID = 42L;         // an ID that uniquely identifies the device
+            long deviceID = 42L;        // an ID that uniquely identifies the device
 
-            var openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, devicID)
+            var openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID)
                 .WithApplicationName("SimpleSampleApp")
                 .WithApplicationVersion("1.0")
+                .WithOperatingSystem(Environment.OSVersion.VersionString)
                 .Build();
 
             // we wait for OpenKit to be initialized
-            // if you skipt the line, OpenKit will be initialized asynchronously
+            // if you skip the line, OpenKit will be initialized asynchronously
             openKit.WaitForInitCompletion();
 
             // create a new session
@@ -46,28 +52,28 @@ namespace Samples
             session.IdentifyUser("openKitExampleUser");
 
             // create a root action
-            var rootAction = session.EnterAction("rootAction");
+            var rootAction = session.EnterAction("talk to postman");
 
-            // execute and trace GET request
+            // execute a GET request to the postman echo API and trace request time and size
             ExecuteAndTraceWebRequestAsync(rootAction, "https://postman-echo.com/get?query=users").Wait();
 
             // wait a bit
             Thread.Sleep(1000);
 
-            // execute and trace POST request
+            // execute a POST request to the postman echo API and trace request time and size
             ExecuteAndTraceWebRequestAsync(rootAction, "https://postman-echo.com/post", "This is content that we want to be processed by the server").Wait();
 
-            // chreaet a child action
-            var childAction = rootAction.EnterAction("childAction");
+            // report a value representing the desired sleep time
+            rootAction.ReportValue("sleepTime", 2000);
 
-            // report a value on the child action
-            childAction.ReportValue("sleepTime", 2000);
+            // create a child action
+            var childAction = rootAction.EnterAction("sleeping");
 
             // wait again
             Thread.Sleep(2000);
 
-            // report event on the child action
-            childAction.ReportEvent("finished sleeping");
+            // report an event indicating that we finished sleeping
+            rootAction.ReportEvent("finished sleeping");
 
             // leave both actions
             childAction.LeaveAction();
