@@ -280,13 +280,13 @@ One of the most powerful OpenKit features is web request tracing. When the appli
 request (e.g. HTTP GET) a special tag can be attached to the header. This special header allows
 Dynatrace SaaS/Dynatrace Managed/AppMon to correlate actions with a server side PurePath. 
 
-A tracer instance can be obtained from an `Action` by invoking `TraceWebRequest`. In addition to 
-capture the execution time of a request, `WebRequestTracer` defines methods to add additional metadata 
+A tracer instance can be obtained from an `IAction` by invoking `TraceWebRequest`. In addition to 
+capture the execution time of a request, `IWebRequestTracer` defines methods to add additional metadata 
 like bytes sent, bytes received, and the response code of a request.
 
 The web request tag header has to be set to correlate web request executed in the application
 with server side service calls. The field name can be obtained from `OpenKitConstants.WEBREQUEST_TAG_HEADER` 
-and the field's value is obtained from the `Tag` property (see class `WebRequestTracer`).
+and the field's value is obtained from the `Tag` property (see class `IWebRequestTracer`).
 
 ```cs
 string url = "http://www.my-backend.com/api/v3/users";
