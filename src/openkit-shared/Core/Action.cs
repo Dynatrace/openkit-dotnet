@@ -96,21 +96,6 @@ namespace Dynatrace.OpenKit.Core
             return this;
         }
 
-#if NET40 || NET35
-
-        public IWebRequestTracer TraceWebRequest(System.Net.WebClient webClient) {
-            return new WebRequestTracerWebClient(beacon, this, webClient);
-        }
-
-#else
-
-        public IWebRequestTracer TraceWebRequest(System.Net.Http.HttpClient httpClient)
-        {
-            return new WebRequestTracerHttpClient(beacon, this, httpClient);
-        }
-
-#endif
-
         public IWebRequestTracer TraceWebRequest(string url)
         {
             return new WebRequestTracerStringURL(beacon, this, url);
