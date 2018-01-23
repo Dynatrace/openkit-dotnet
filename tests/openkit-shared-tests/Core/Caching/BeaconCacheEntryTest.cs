@@ -277,10 +277,10 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetChunksTakesSizeIntoAccount()
         {
             // given
-            BeaconCacheRecord dataOne = new BeaconCacheRecord(0L, "One");
-            BeaconCacheRecord dataTwo = new BeaconCacheRecord(0L, "Two");
-            BeaconCacheRecord dataThree = new BeaconCacheRecord(1L, "Three");
-            BeaconCacheRecord dataFour = new BeaconCacheRecord(1L, "Four");
+            var dataOne = new BeaconCacheRecord(0L, "One");
+            var dataTwo = new BeaconCacheRecord(0L, "Two");
+            var dataThree = new BeaconCacheRecord(1L, "Three");
+            var dataFour = new BeaconCacheRecord(1L, "Four");
 
             var target = new BeaconCacheEntry();
             target.AddEventData(dataOne);
@@ -441,7 +441,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataFour);
 
             // when removing everything older than 3000
-            int obtained = target.RemoveRecordsOlderThan(dataTwo.Timestamp);
+            var obtained = target.RemoveRecordsOlderThan(dataTwo.Timestamp);
 
             // then
             Assert.That(obtained, Is.EqualTo(2)); // two were removed
@@ -465,7 +465,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddEventData(dataFour);
 
             // when removing everything older than 3000
-            int obtained = target.RemoveRecordsOlderThan(dataTwo.Timestamp);
+            var obtained = target.RemoveRecordsOlderThan(dataTwo.Timestamp);
 
             // then
             Assert.That(obtained, Is.EqualTo(2)); // two were removed
@@ -501,7 +501,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataFour);
 
             // when
-            int obtained = target.RemoveOldestRecords(2);
+            var obtained = target.RemoveOldestRecords(2);
 
             // then
             Assert.That(obtained, Is.EqualTo(2)); // two were removed
