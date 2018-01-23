@@ -196,6 +196,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         internal void RemoveDataMarkedForSending()
         {
+            if (!HasDataToSend)
+            {
+                // do nothing if there is no data in beingSent lists
+                return;
+            }
+
             while (eventDataBeingSent.Count > 0 && eventDataBeingSent.First.Value.IsMarkedForSending)
             {
                 eventDataBeingSent.RemoveFirst();
@@ -215,6 +221,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         internal void ResetDataMarkedForSending()
         {
+            if (!HasDataToSend)
+            {
+                // do nothing if there is no data in beingSent lists
+                return;
+            }
+
             // reset the "sending marks" and in the same traversal count the bytes which are added back
             long numBytes = 0;
             foreach (var record in eventDataBeingSent)

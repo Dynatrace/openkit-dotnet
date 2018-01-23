@@ -46,7 +46,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void AddindEventData()
+        public void AddingEventData()
         {
             // given
             var dataOne = new BeaconCacheRecord(0L, "foo");
@@ -307,6 +307,58 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // then
             Assert.That(obtained, Is.EqualTo("prefix&One&Four"));
+        }
+
+        [Test]
+        public void RemoveDataMarkedForSendingReturnsIfDataHasNotBeenCopied()
+        {
+
+            // given
+            var dataOne = new BeaconCacheRecord(0L, "One");
+            var dataTwo = new BeaconCacheRecord(0L, "Two");
+            var dataThree = new BeaconCacheRecord(1L, "Three");
+            var dataFour = new BeaconCacheRecord(1L, "Four");
+
+            var target = new BeaconCacheEntry();
+            target.AddEventData(dataOne);
+            target.AddEventData(dataFour);
+            target.AddActionData(dataTwo);
+            target.AddActionData(dataThree);
+
+            // when
+            target.RemoveDataMarkedForSending();
+
+            // then
+            Assert.That(target.EventData, Is.EqualTo(new[] { dataOne, dataFour }));
+            Assert.That(target.ActionData, Is.EqualTo(new[] { dataTwo, dataThree }));
+            Assert.That(target.EventDataBeingSent, Is.Null);
+            Assert.That(target.ActionDataBeingSent, Is.Null);
+        }
+
+        [Test]
+        public void resetDataMarkedForSendingReturnsIfDataHasNotBeenCopied()
+        {
+
+            // given
+            var dataOne = new BeaconCacheRecord(0L, "One");
+            var dataTwo = new BeaconCacheRecord(0L, "Two");
+            var dataThree = new BeaconCacheRecord(1L, "Three");
+            var dataFour = new BeaconCacheRecord(1L, "Four");
+
+            var target = new BeaconCacheEntry();
+            target.AddEventData(dataOne);
+            target.AddEventData(dataFour);
+            target.AddActionData(dataTwo);
+            target.AddActionData(dataThree);
+
+            // when
+            target.ResetDataMarkedForSending();
+
+            // then
+            Assert.That(target.EventData, Is.EqualTo(new[] { dataOne, dataFour }));
+            Assert.That(target.ActionData, Is.EqualTo(new[] { dataTwo, dataThree }));
+            Assert.That(target.EventDataBeingSent, Is.Null);
+            Assert.That(target.ActionDataBeingSent, Is.Null);
         }
 
         [Test]
