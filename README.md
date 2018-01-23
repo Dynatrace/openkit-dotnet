@@ -1,5 +1,9 @@
 # Dynatrace OpenKit - .NET Reference Implementation
 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build status](https://ci.appveyor.com/api/projects/status/eynj6e2on09d63wg?svg=true)](https://ci.appveyor.com/project/openkitdt/openkit-dotnet)
+
+
 ## What is the OpenKit?
 
 The OpenKit provides an easy and lightweight way to get insights into applications with Dynatrace/AppMon by instrumenting the source code of those applications.
