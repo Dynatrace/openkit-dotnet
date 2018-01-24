@@ -58,9 +58,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Providers\IThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerHttpClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerStringURL.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Common\CRC32.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Zlib\Deflate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DotNetZip\Zlib\DeflateStream.cs" />

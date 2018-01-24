@@ -38,7 +38,7 @@ application's id can be found in the settings page of the custom application in 
 
 ### AppMon
 
-An OpenKit instance for Dynatrace Managed can be obtained by using `AppMonOpenKitBuilder`.
+An OpenKit instance for AppMon can be obtained by using the `AppMonOpenKitBuilder`.
 
 The example below demonstrates how to connect an OpenKit application to an AppMon endpoint.
 ```cs
@@ -280,71 +280,13 @@ One of the most powerful OpenKit features is web request tracing. When the appli
 request (e.g. HTTP GET) a special tag can be attached to the header. This special header allows
 Dynatrace SaaS/Dynatrace Managed/AppMon to correlate actions with a server side PurePath. 
 
-Since .NET 3.5 and 4.0 do not support `HttpClient`, the `WebClient` class is supported for those two
-versions. `HttpClient` is supported for .NET 4.5 and above.
+A tracer instance can be obtained from an `IAction` by invoking `TraceWebRequest`. In addition to 
+capture the execution time of a request, `IWebRequestTracer` defines methods to add additional metadata 
+like bytes sent, bytes received, and the response code of a request.
 
-The following example demonstrates how to trace web requests using `WebClient`.
-```cs
-
-byte[] downloadedData;
-string url = "http://www.my-backend.com/api/v3/users";
-
-// create the WebClient
-using (WebClient webClient = new WebClient()) 
-{
-    // create WebRequestTracer and start timing
-    IWebRequestTracer webRequestTracer = action.TraceWebRequest(webClient);
-    webRequestTracer.StartTiming();
-
-    // donwload data
-    downloadedData = client.DownloadData(url);
-
-    // stop timing
-    webRequestTracer.StopTiming();
-}
-
-// do something useful with downloadedData
-
-```
-
-This example demonstrates how to trace web requesting using `HttpClient`, used for .NET 4.5 and above.
-```cs
-
-string downloadedData;
-string url = "http://www.my-backend.com/api/v3/users";
-
-// ... Use HttpClient.
-using (HttpClient httpClient = new HttpClient())
-{
-    // create WebRequestTracer and start timing 
-    IWebRequestTracer webRequestTracer = action.TraceWebRequest(httpClient);
-    webRequestTracer.StartTiming();
-
-    using (HttpResponseMessage response = await httpClient.GetAsync(url))
-    {
-        // set response code
-        webRequestTracer.ResponseCode = response.StatusCode;
-
-        using (HttpContent content = response.Content)
-        {
-            // ... Read the string.
-            downloadedData = await content.ReadAsStringAsync();
-        }
-    }
-    
-    // stop timing
-    webRequestTracer.Stop();
-}
-
-// do something useful with downloadedData
-
-```
-
-If a third party lib is used for HTTP requests, the developer has the possibility to use an overloaded
-`TraceWebRequest` method, taking only the URL string as argument. However when using this overloaded
-method the developer is responsible for adding the appropriate header field to the request.  
-The field name can be obtained from `OpenKitConstants.WEBREQUEST_TAG_HEADER` and the field's value is obtained
-from `Tag` property (see class `WebRequestTracer`).
+The web request tag header has to be set to correlate web request executed in the application
+with server side service calls. The field name can be obtained from `OpenKitConstants.WEBREQUEST_TAG_HEADER` 
+and the field's value is obtained from the `Tag` property (see class `IWebRequestTracer`).
 
 ```cs
 string url = "http://www.my-backend.com/api/v3/users";
@@ -356,14 +298,26 @@ IWebRequestTracer webRequestTracer = action.TraceWebRequest(url);
 string headerName = OpenKitConstants.WEBREQUEST_TAG_HEADER;
 string headerValue = webRequestTracer.Tag;
 
-webRequestTracer.Start();
-
 // perform the request here & do not forget to add the HTTP header
+using (HttpClient httpClient = new HttpClient()) {
+    
+    // start timing
+    webRequestTracer.Start();
+    
+    // set the tag
+    httpClient.DefaultRequestHeaders.Add(headerName, headerValue);
+    
+    // ... perform the request and process the response ...
+    
+    // set metadata
+    webRequestTracer.SetBytesSent(12345);     // 12345 bytes sent
+    webRequestTracer.SetBytesReceived(67890); // 67890 bytes received
+    webRequestTracer.SetResponseCode(200);    // 200 was the response code
 
-webRequestTracer.SetBytesSent(12345);     // 12345 bytes sent
-webRequestTracer.SetBytesReceived(67890); // 67890 bytes received
-webRequestTracer.SetResponseCode(200);    // 200 was the response code
-webRequestTracer.Stop();
+    // stop timing
+    webRequestTracer.Stop();
+}
+
 ```
 
 
