@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Action.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BeaconSender.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheEntry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheEvictor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheRecord.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\IBeaconCache.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\IBeaconCacheEvictionStrategy.cs" />
