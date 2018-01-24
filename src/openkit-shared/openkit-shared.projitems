@@ -24,6 +24,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\BeaconSender.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheEntry.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheRecord.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\IBeaconCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\IBeaconCacheEvictionStrategy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\SpaceEvictionStrategy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\TimeEvictionStrategy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconCacheConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DefaultLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\AbstractBeaconSendingState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingInitState.cs" />
