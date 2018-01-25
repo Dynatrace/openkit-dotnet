@@ -28,6 +28,8 @@ deploy:
 - provider: GitHub
   auth_token:
     secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
+  repository: Dynatrace/openkit-dotnet
   prerelease: true
   on:
     branch: master
+    APPVEYOR_REPO_TAG: true
