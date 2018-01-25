@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
@@ -33,23 +34,35 @@ namespace Dynatrace.OpenKit.Core
         private readonly ITimingProvider timingProvider;
         private readonly BeaconSender beaconSender;
         private readonly IThreadIDProvider threadIDProvider;
+        private readonly BeaconCache beaconCache;
+
+        // Cache eviction thread
+        private readonly BeaconCacheEvictor beaconCacheEvictor;
+
+        // logging context
+        private readonly ILogger logger;
 
         // *** constructors ***
 
         public OpenKit(ILogger logger, OpenKitConfiguration configuration)
-            : this(configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
+            : this(logger, configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
         {
         }
 
-        protected OpenKit(OpenKitConfiguration configuration,
+        protected OpenKit(ILogger logger,
+            OpenKitConfiguration configuration,
             IHTTPClientProvider httpClientProvider,
             ITimingProvider timingProvider,
             IThreadIDProvider threadIDProvider)
         {
             this.configuration = configuration;
+            this.logger = logger;
             this.timingProvider = timingProvider;
-            beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
             this.threadIDProvider = threadIDProvider;
+
+            beaconCache = new BeaconCache();
+            beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
+            beaconCacheEvictor = new BeaconCacheEvictor(logger, beaconCache, configuration.BeaconCacheConfig, timingProvider);
         }
 
         /// <summary>
@@ -61,6 +74,7 @@ namespace Dynatrace.OpenKit.Core
         /// </remarks>
         internal void Initialize()
         {
+            beaconCacheEvictor.Start();
             beaconSender.Initialize();
         }
 
@@ -89,13 +103,14 @@ namespace Dynatrace.OpenKit.Core
         public ISession CreateSession(string clientIPAddress)
         {
             // create beacon for session
-            var beacon = new Beacon(configuration, clientIPAddress, threadIDProvider, timingProvider);
+            var beacon = new Beacon(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider);
             // create session
             return new Session(beaconSender, beacon);
         }
 
         public void Shutdown()
         {
+            beaconCacheEvictor.Stop();
             beaconSender.Shutdown();
         }
     }

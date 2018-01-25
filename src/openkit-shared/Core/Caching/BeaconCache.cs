@@ -20,7 +20,7 @@ using System.Threading;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
-    class BeaconCache : IBeaconCache
+    public class BeaconCache : IBeaconCache
     {
         private readonly ReaderWriterLockSlim globalCacheLock = new ReaderWriterLockSlim();
         private readonly IDictionary<int, BeaconCacheEntry> beacons = new Dictionary<int, BeaconCacheEntry>();

@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
@@ -97,7 +99,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(beaconSender, new Beacon(new TestConfiguration(), clientIP));
+            var session = new Session(beaconSender, new Beacon(Substitute.For<ILogger>(), new BeaconCache(),
+                new TestConfiguration(), clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
 
