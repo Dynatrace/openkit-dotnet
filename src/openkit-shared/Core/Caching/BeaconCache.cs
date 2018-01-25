@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 
-Busing System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Dynatrace.OpenKit.Core.Caching
 {
     class BeaconCache : IBeaconCache
