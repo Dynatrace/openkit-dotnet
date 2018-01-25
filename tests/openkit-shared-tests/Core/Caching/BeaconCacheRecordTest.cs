@@ -82,5 +82,134 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             Assert.That(target.IsMarkedForSending, Is.False);
         }
+
+        [Test]
+        public void SameInstancesAreEqual()
+        {
+            // given
+            var target = new BeaconCacheRecord(0L, "abc");
+
+            // then
+            Assert.That(target.Equals(target), Is.True);
+        }
+
+        [Test]
+        public void NullIsNotEqual()
+        {
+            // given
+            var target = new BeaconCacheRecord(0L, "abc");
+
+            // then
+            Assert.That(target.Equals(null), Is.False);
+        }
+
+        [Test]
+        public void ADifferentTypeIsNotConsideredEqual()
+        {
+            // given
+            var target = new BeaconCacheRecord(0L, "abc");
+
+            // then
+            Assert.That(target.Equals("abc"), Is.False);
+        }
+
+        [Test]
+        public void TwoInstancesAreEqualIfFieldsAreEqual()
+        {
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            var other = new BeaconCacheRecord(1234L, "abc");
+
+            // then
+            Assert.That(target.Equals(other), Is.True);
+
+            // and when setting send flag
+            target.MarkForSending();
+            other.MarkForSending();
+
+            // then
+            Assert.That(target.Equals(other), Is.True);
+        }
+
+        [Test]
+        public void TwoInstancesAreNotEqualIfTimestampDiffers()
+        {
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            BeaconCacheRecord other = new BeaconCacheRecord(4321L, "abc");
+
+            // then
+            Assert.That(target.Equals(other), Is.False);
+        }
+
+        [Test]
+        public void TwoInstancesAreNotEqualIfDataDiffers()
+        {
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            var other = new BeaconCacheRecord(1234L, "abcd");
+
+            // then
+            Assert.That(target.Equals(other), Is.False);
+        }
+
+        [Test]
+        public void TwoInstancesAreNotEqualIfMarkedForSendingDiffers()
+        {
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            var other = new BeaconCacheRecord(1234L, "abc");
+            other.MarkForSending();
+
+            // then
+            Assert.That(target.Equals(other), Is.False);
+        }
+
+        [Test]
+        public void SameInstancesHaveSameHashCode()
+        {
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            var other = target;
+
+            // then
+            Assert.That(target.GetHashCode(), Is.EqualTo(other.GetHashCode()));
+        }
+
+        [Test]
+        public void TwoEqualInstancesHaveSameHashCode()
+        {
+
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            var other = new BeaconCacheRecord(1234L, "abc");
+
+            // then
+            Assert.That(target.GetHashCode(), Is.EqualTo(other.GetHashCode()));
+
+            // and when marking both for sending
+            target.MarkForSending();
+            other.MarkForSending();
+
+            // then
+            Assert.That(target.GetHashCode(), Is.EqualTo(other.GetHashCode()));
+        }
+
+        [Test]
+        public void NotEqualInstancesHaveDifferentHashCode()
+        {
+
+            // given
+            var target = new BeaconCacheRecord(1234L, "abc");
+            var otherOne = new BeaconCacheRecord(4321L, "abc");
+            var otherTwo = new BeaconCacheRecord(1234L, "abcd");
+            var otherThree = new BeaconCacheRecord(1234L, "abcd");
+            otherThree.MarkForSending();
+
+            // then
+            Assert.That(target.GetHashCode(), Is.Not.EqualTo(otherOne.GetHashCode()));
+            Assert.That(target.GetHashCode(), Is.Not.EqualTo(otherTwo.GetHashCode()));
+            Assert.That(target.GetHashCode(), Is.Not.EqualTo(otherThree.GetHashCode()));
+        }
     }
 }
