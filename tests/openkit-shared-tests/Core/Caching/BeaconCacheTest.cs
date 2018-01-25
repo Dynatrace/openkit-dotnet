@@ -547,94 +547,81 @@ namespace Dynatrace.OpenKit.Core.Caching
             Assert.That(obtained, Is.EqualTo(2));
         }
 
+        [Test]
         public void EvictRecordsByNumberDoesNothingAndReturnsZeroIfBeaconIDDoesNotExist()
         {
-            /*
             // given
             var target = new BeaconCache();
-            target.addActionData(1, 1000L, "a");
-            target.addActionData(1, 1001L, "iii");
-            target.addEventData(1, 1000L, "b");
-            target.addEventData(1, 1001L, "jjj");
+            target.AddActionData(1, 1000L, "a");
+            target.AddActionData(1, 1001L, "iii");
+            target.AddEventData(1, 1000L, "b");
+            target.AddEventData(1, 1001L, "jjj");
 
             // when
-            int obtained = target.evictRecordsByNumber(666, 100);
+            var obtained = target.EvictRecordsByNumber(666, 100);
 
             // then
-            assertThat(obtained, is (0));
-            */
+            Assert.That(obtained, Is.EqualTo(0));
         }
 
-        /*
-         *
+        [Test]
+        public void EvictRecordsByNumber()
+        {
 
-    @Test
+            // given
+            var target = new BeaconCache();
+            target.AddActionData(1, 1000L, "a");
+            target.AddActionData(1, 1001L, "iii");
+            target.AddEventData(1, 1000L, "b");
+            target.AddEventData(1, 1001L, "jjj");
 
+            // when
+            int obtained = target.EvictRecordsByNumber(1, 2);
 
-    @Test
+            // then
+            Assert.That(obtained, Is.EqualTo(2));
+        }
 
+        [Test]
+        public void IsEmptyGivesTrueIfBeaconDoesNotExistInCache()
+        {
+            // given
+            var target = new BeaconCache();
+            target.AddActionData(1, 1000L, "a");
+            target.AddActionData(1, 1001L, "iii");
+            target.AddEventData(1, 1000L, "b");
+            target.AddEventData(1, 1001L, "jjj");
 
-    @Test
+            // then
+            Assert.That(target.IsEmpty(666), Is.True);
+        }
 
+        [Test]
+        public void IsEmptyGivesFalseIfBeaconDataSizeIsNotEqualToZero()
+        {
 
-    @Test
+            // given
+            var target = new BeaconCache();
+            target.AddActionData(1, 1000L, "a");
+            target.AddEventData(1, 1000L, "b");
 
+            // then
+            Assert.That(target.IsEmpty(1), Is.False);
+        }
 
-    @Test
-    public void evictRecordsByNumber() {
+        [Test]
+        public void IsEmptyGivesTrueIfBeaconDoesNotContainActiveData()
+        {
 
-        // given
-        BeaconCacheImpl target = new BeaconCacheImpl();
-        target.addActionData(1, 1000L, "a");
-        target.addActionData(1, 1001L, "iii");
-        target.addEventData(1, 1000L, "b");
-        target.addEventData(1, 1001L, "jjj");
+            // given
+            var target = new BeaconCache();
+            target.AddActionData(1, 1000L, "a");
+            target.AddEventData(1, 1000L, "b");
 
-        // when
-        int obtained = target.evictRecordsByNumber(1, 2);
+            target.GetNextBeaconChunk(1, "prefix", 0, '&');
 
-        // then
-        assertThat(obtained, is(2));
-    }
-
-    @Test
-    public void isEmptyGivesTrueIfBeaconDoesNotExistInCache() {
-
-        // given
-        BeaconCacheImpl target = new BeaconCacheImpl();
-        target.addActionData(1, 1000L, "a");
-        target.addActionData(1, 1001L, "iii");
-        target.addEventData(1, 1000L, "b");
-        target.addEventData(1, 1001L, "jjj");
-
-        // then
-        assertThat(target.isEmpty(666), is(true));
-    }
-
-    @Test
-    public void isEmptyGivesFalseIfBeaconDataSizeIsNotEqualToZero() {
-
-        // given
-        BeaconCacheImpl target = new BeaconCacheImpl();
-        target.addActionData(1, 1000L, "a");
-        target.addEventData(1, 1000L, "b");
-
-        // then
-        assertThat(target.isEmpty(1), is(false));
-    }
-
-    @Test
-    public void isEmptyGivesTrueIfBeaconDoesNotContainActiveData() {
-
-        // given
-        BeaconCacheImpl target = new BeaconCacheImpl();
-        target.addActionData(1, 1000L, "a");
-        target.addEventData(1, 1000L, "b");
-
-        target.getNextBeaconChunk(1, "prefix", 0, '&');
-
-        // then
-        assertThat(target.isEmpty(1), is(true));
-    }*/
+            // then
+            Assert.That(target.IsEmpty(1), Is.True);
+        }
     }
 }
