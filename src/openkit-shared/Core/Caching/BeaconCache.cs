@@ -371,7 +371,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <returns>Events stored for given <paramref name="beaconID"/></returns>
         internal IList<BeaconCacheRecord> GetEvents(int beaconID)
         {
-            return GetCachedEntry(beaconID)?.EventData.AsReadOnly();
+            return GetCachedEntry(beaconID)?.EventData?.AsReadOnly();
         }
 
         /// <summary>
@@ -384,7 +384,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <returns>Actions stored for given <paramref name="beaconID"/></returns>
         internal IList<BeaconCacheRecord> GetActions(int beaconID)
         {
-            return GetCachedEntry(beaconID)?.ActionData.AsReadOnly();
+            return GetCachedEntry(beaconID)?.ActionData?.AsReadOnly();
         }
 
         /// <summary>
