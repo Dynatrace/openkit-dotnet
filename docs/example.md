@@ -44,7 +44,7 @@ The example below demonstrates how to connect an OpenKit application to an AppMo
 ```cs
 string applicationName = "My OpenKit application";
 long deviceID = 42L;
-string endpointURL = "https://beaconurl.com";
+string endpointURL = "https://beaconurl.com/dynaTraceMonitor";
 
 // by default verbose logging is disabled
 IOpenKit openKit = new AppMonOpenKitBuilder(endpointURL, applicationName, deviceID).Build();

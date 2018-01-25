@@ -126,7 +126,7 @@ Detailed explanation is available in [example.md](docs/example.md).
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
 long deviceID = 42L;
-string endpointURL = "https://tenantid.beaconurl.com";
+string endpointURL = "https://tenantid.beaconurl.com/mbeacon";
 
 IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID)
     .WithApplicationName(applicationName)
