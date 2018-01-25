@@ -82,6 +82,15 @@ namespace Dynatrace.OpenKit.Core.Caching
         public bool IsAlive => evictionThread.IsAlive;
 
         /// <summary>
+        /// Get or set a flag indicating whether a shutdown is requested.
+        /// </summary>
+        private bool IsShutdownRequested
+        {
+            get { return isShutdownRequested; }
+            set { isShutdownRequested = value; }
+        }
+
+        /// <summary>
         /// Starts the eviction thread.
         /// </summary>
         /// <returns>
@@ -189,15 +198,6 @@ namespace Dynatrace.OpenKit.Core.Caching
             }
 
             return success;
-        }
-
-        /// <summary>
-        /// Get or set a flag indicating whether a shutdown is requested.
-        /// </summary>
-        private bool IsShutdownRequested
-        {
-            get { return isShutdownRequested; }
-            set { isShutdownRequested = value; }
         }
 
         /// <summary>
