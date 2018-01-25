@@ -40,6 +40,12 @@ namespace Dynatrace.OpenKit
 
             // default trust manager
             Assert.That(configuration.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
+
+            // default values for beacon cache configuration
+            Assert.That(configuration.BeaconCacheConfig, Is.Not.Null);
+            Assert.That(configuration.BeaconCacheConfig.MaxRecordAge, Is.EqualTo(BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS));
+            Assert.That(configuration.BeaconCacheConfig.CacheSizeUpperBound, Is.EqualTo(BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES));
+            Assert.That(configuration.BeaconCacheConfig.CacheSizeLowerBound, Is.EqualTo(BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES));
         }
 
         [Test]
@@ -224,6 +230,109 @@ namespace Dynatrace.OpenKit
             Assert.That(target, Is.InstanceOf<DefaultLogger>());
             Assert.That(target.IsDebugEnabled, Is.True);
             Assert.That(target.IsInfoEnabled, Is.True);
+        }
+
+        [Test]
+        public void CanSetCustomMaxBeaconRecordAgeForDynatrace()
+        {
+            // given
+            DynatraceOpenKitBuilder target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            const long maxRecordAge = 123456L;
+
+            // when
+            var obtained = target.WithBeaconCacheMaxRecordAge(maxRecordAge);
+            var config = target.BuildConfiguration().BeaconCacheConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
+            Assert.That((DynatraceOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.MaxRecordAge, Is.EqualTo(maxRecordAge));
+        }
+
+        [Test]
+        public void CanSetCustomMaxBeaconRecordAgeForAppMon()
+        {
+            // given
+            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            const long maxRecordAge = 123456L;
+
+            // when
+            var obtained = target.WithBeaconCacheMaxRecordAge(maxRecordAge);
+            var config = target.BuildConfiguration().BeaconCacheConfig;
+
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());
+            Assert.That((AppMonOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.MaxRecordAge, Is.EqualTo(maxRecordAge));
+        }
+
+        [Test]
+        public void CanSetBeaconCacheLowerMemoryBoundaryForDynatrace()
+        {
+            // given
+            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            const long lowerMemoryBoundary = 42L * 1024L;
+
+            // when
+            var obtained = target.WithBeaconCacheLowerMemoryBoundary(lowerMemoryBoundary);
+            var config = target.BuildConfiguration().BeaconCacheConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
+            Assert.That((DynatraceOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.CacheSizeLowerBound, Is.EqualTo(lowerMemoryBoundary));
+        }
+
+        [Test]
+        public void CanSetBeaconCacheLowerMemoryBoundaryForAppMon()
+        {
+            // given
+            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            const long lowerMemoryBoundary = 42L * 1024L;
+
+            // when
+            var obtained = target.WithBeaconCacheLowerMemoryBoundary(lowerMemoryBoundary);
+            var config = target.BuildConfiguration().BeaconCacheConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());
+            Assert.That((AppMonOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.CacheSizeLowerBound, Is.EqualTo(lowerMemoryBoundary));
+        }
+
+        [Test]
+        public void CanSetBeaconCacheUpperMemoryBoundaryForDynatrace()
+        {
+            // given
+            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            const long upperMemoryBoundary = 42L * 1024L;
+
+            // when
+            var obtained = target.WithBeaconCacheUpperMemoryBoundary(upperMemoryBoundary);
+            var config = target.BuildConfiguration().BeaconCacheConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
+            Assert.That((DynatraceOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.CacheSizeUpperBound, Is.EqualTo(upperMemoryBoundary));
+        }
+
+        [Test]
+        public void CanSetBeaconCacheUpperMemoryBoundaryForAppMon()
+        {
+            // given
+            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            const long upperMemoryBoundary = 42L * 1024L;
+
+            // when
+            var obtained = target.WithBeaconCacheUpperMemoryBoundary(upperMemoryBoundary);
+            var config = target.BuildConfiguration().BeaconCacheConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());
+            Assert.That((AppMonOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.CacheSizeUpperBound, Is.EqualTo(upperMemoryBoundary));
         }
         
 

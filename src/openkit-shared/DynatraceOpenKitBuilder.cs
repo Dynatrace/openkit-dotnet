@@ -42,6 +42,9 @@ namespace Dynatrace.OpenKit
         {
             var device = new Device(OperatingSystem, Manufacturer, ModelID);
 
+            var beaconCacheConfig = new BeaconCacheConfiguration(
+                BeaconCacheMaxBeaconAge, BeaconCacheLowerMemoryBoundary, BeaconCacheUpperMemoryBoundary);
+
             return new OpenKitConfiguration(
                OpenKitType.DYNATRACE,
                applicationName,
@@ -51,7 +54,8 @@ namespace Dynatrace.OpenKit
                new DefaultSessionIDProvider(),
                TrustManager,
                device,
-               ApplicationVersion);
+               ApplicationVersion,
+               beaconCacheConfig);
         }
     }
 }

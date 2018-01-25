@@ -21,7 +21,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             MaxRecordAge = maxRecordAge;
             CacheSizeLowerBound = cacheSizeLowerBound;
-            CacheSizeUpperBound = cacheSizeUpperBound;        }
+            CacheSizeUpperBound = cacheSizeUpperBound;
+        }
 
         /// <summary>
         /// Get maximum record age in millisecond.s
