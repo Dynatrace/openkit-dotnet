@@ -49,14 +49,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // application and device settings
         private string applicationVersion;
-        private Device device;
+        private readonly Device device;
 
-        private ISessionIDProvider sessionIDProvider;
+        // caching settings
+        private readonly BeaconCacheConfiguration beaconCacheConfiguration;
+
+        private readonly ISessionIDProvider sessionIDProvider;
 
         // *** constructors ***
 
         public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, 
-            ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion)
+            ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion, BeaconCacheConfiguration beaconCacheConfiguration)
         {
             this.openKitType = openKitType;
 
@@ -82,6 +85,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 trustManager);
 
             this.applicationVersion = applicationVersion;
+
+            this.beaconCacheConfiguration = beaconCacheConfiguration;
 
             this.sessionIDProvider = sessionIDProvider;
 
@@ -288,6 +293,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
             get
             {
                 return device;
+            }
+        }
+
+        public BeaconCacheConfiguration BeaconCacheConfig
+        {
+            get
+            {
+                return beaconCacheConfiguration;
             }
         }
 

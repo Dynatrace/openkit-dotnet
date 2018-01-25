@@ -20,6 +20,7 @@ using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Caching;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -299,7 +300,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var target = new BeaconSendingContext(config, clientProvider, timingProvider);
-            var session = new Session(new BeaconSender(target), new Beacon(config, "127.0.0.1"));
+
+            var session = new Session(new BeaconSender(target), new Beacon(Substitute.For<ILogger>(), new BeaconCache(),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
 
             Assert.That(target.GetAllOpenSessions().Count, Is.EqualTo(1));
 

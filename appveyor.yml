@@ -26,6 +26,7 @@ artifacts:
   name: netcore
 deploy:
 - provider: GitHub
+  release: openkit-dotnet $(APPVEYOR_REPO_TAG_NAME)
   auth_token:
     secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
   repository: Dynatrace/openkit-dotnet

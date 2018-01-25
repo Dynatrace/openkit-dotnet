@@ -46,6 +46,13 @@ namespace Dynatrace.OpenKit.Core
             beaconSender.StartSession(this);
         }
 
+        /// <summary>
+        /// Test if this Session is empty or not.
+        /// 
+        /// A session is considered to be empty, if it does not contain any action or event data.
+        /// </summary>
+        public bool IsEmpty { get { return beacon.IsEmpty; } }
+
         // *** ISession interface methods ***
 
         public IRootAction EnterAction(string actionName)
@@ -112,6 +119,5 @@ namespace Dynatrace.OpenKit.Core
                 return endTime;
             }
         }
-
     }
 }
