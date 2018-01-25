@@ -83,5 +83,27 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             IsMarkedForSending = false;
         }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            var other = (BeaconCacheRecord)obj;
+            return Timestamp == other.Timestamp
+                && Data == other.Data
+                && IsMarkedForSending == other.IsMarkedForSending;
+        }
+
+        // override object.GetHashCode
+        public override int GetHashCode()
+        {
+            return Timestamp.GetHashCode()
+                ^ (Data?.GetHashCode()).GetValueOrDefault(0)
+                ^ IsMarkedForSending.GetHashCode();
+        }
     }
 }
