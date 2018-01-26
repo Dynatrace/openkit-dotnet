@@ -151,48 +151,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.Received(1).CurrentState = Arg.Any<BeaconSendingFlushSessionsState>();
         }
 
-        [Ignore("Needs fixing")]
-        [Test]
-        public void BeaconSendingIsRetriedForFinishedSessions()
-        {
-            // given 
-            var clientIp = "127.0.0.1";
-            finishedSessions.Enqueue(CreateValidSession(clientIp));
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => null);
-
-            // when 
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            httpClient.Received(BeaconSendingCaptureOnState.BEACON_SEND_RETRY_ATTEMPTS + 1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-        }
-
-        [Ignore("Needs fixing")]
-        [Test]
-        public void BeaconSendingIsRetriedForOpenSessions()
-        {
-            // given 
-            var clientIp = "127.0.0.1";
-
-            var lastSendTime = 1;
-            var sendInterval = 1000;
-
-            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
-            context.SendInterval.Returns(sendInterval);
-            context.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => null);
-
-            openSessions.Add(CreateValidSession(clientIp));
-
-            // when 
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            httpClient.Received(BeaconSendingCaptureOnState.BEACON_SEND_RETRY_ATTEMPTS + 1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-        }
-
         [Test]
         public void FinishedSessionsAreSent()
         {
@@ -235,8 +193,46 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(finishedSessions.Count, Is.EqualTo(0)); // assert empty sessions
             context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
         }
+        
+        [Test]
+        public void UnsuccessfulFinishedSessionsAreMovedBackToCache()
+        {
+            //given
+            var target = new BeaconSendingCaptureOnState();
+
+            var finishedSession = CreateValidSession("127.0.0.1");
+            context.GetNextFinishedSession().Returns(finishedSession);
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns((StatusResponse)null);
+
+
+            //when calling execute
+            target.Execute(context);
+
+            context.Received(1).GetNextFinishedSession();
+            context.Received(1).PushBackFinishedSession(finishedSession);
+        }
 
         [Test]
+        public void ABeaconSendingCaptureOnStateContinuesWithNextFinishedSessionIfSendingWasUnsuccessfulButBeaconIsEmtpy()
+        {
+            //given
+            var target = new BeaconSendingCaptureOnState();
+
+            var finishedEmptySession = CreateEmptySession("127.0.0.2");
+            var finishedSession = CreateValidSession("127.0.0.1");
+
+            var statusResponses = new Queue<StatusResponse>();
+            context.GetNextFinishedSession().Returns(finishedEmptySession, finishedSession, null);
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(string.Empty, 200));
+            
+            //when calling execute
+            target.Execute(context);
+
+            context.Received(3).GetNextFinishedSession();
+            context.Received(0).PushBackFinishedSession(finishedSession);
+        }
+
+    [Test]
         public void OpenSessionsAreSentIfSendIntervalIsExceeded()
         {
             // given

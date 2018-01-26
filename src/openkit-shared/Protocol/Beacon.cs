@@ -468,7 +468,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="httpClientProvider"></param>
         /// <param name="numRetries"></param>
         /// <returns></returns>
-        public StatusResponse Send(IHTTPClientProvider httpClientProvider, int numRetries = 3)
+        public StatusResponse Send(IHTTPClientProvider httpClientProvider)
         {
             var httpClient = httpClientProvider.CreateClient(httpConfiguration);
             StatusResponse response = null;

@@ -177,6 +177,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         Session GetNextFinishedSession();
 
         /// <summary>
+        /// Pushes back a finished session to the list of finished sessions.
+        /// </summary>
+        /// <param name="finishedSession">The Session to push back</param>
+        void PushBackFinishedSession(Session finishedSession);
+
+        /// <summary>
         /// Gets a list of all open sessions
         /// </summary>
         /// <returns></returns>

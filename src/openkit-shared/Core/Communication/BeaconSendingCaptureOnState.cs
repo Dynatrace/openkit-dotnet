@@ -30,8 +30,6 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingCaptureOnState : AbstractBeaconSendingState
     {
-        public const int BEACON_SEND_RETRY_ATTEMPTS = 2;
-
         /// <summary>
         /// stores the last status response
         /// </summary>
@@ -71,7 +69,21 @@ namespace Dynatrace.OpenKit.Core.Communication
             var finishedSession = context.GetNextFinishedSession();
             while (finishedSession != null)
             {
-                statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
+                statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
+                if (statusResponse == null)
+                {
+                    // something went wrong,
+                    if (!finishedSession.IsEmpty)
+                    {
+                        // well there is more data to send, and we could not do it (now)
+                        // just push it back
+                        context.PushBackFinishedSession(finishedSession);
+                        break; //  sending did not work, break out for now and retry it later
+                    }
+                }
+
+                // session was sent - so remove it from beacon cache
+                finishedSession.ClearCapturedData();
                 finishedSession = context.GetNextFinishedSession();
             }
         }
@@ -87,7 +99,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var openSessions = context.GetAllOpenSessions();
             foreach (var session in openSessions)
             {
-                statusResponse = session.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
+                statusResponse = session.SendBeacon(context.HTTPClientProvider);
             }
 
             // update open session send timestamp

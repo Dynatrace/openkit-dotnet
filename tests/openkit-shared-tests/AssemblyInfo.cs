@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dynatrace LLC")]
 [assembly: AssemblyProduct("Dynatrace.OpenKit")]
-[assembly: AssemblyCopyright("(c) 2016-2017 Dynatrace LLC")]
+[assembly: AssemblyCopyright("(c) 2016-2018 Dynatrace LLC")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
