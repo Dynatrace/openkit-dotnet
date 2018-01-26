@@ -154,11 +154,3 @@ rootAction.LeaveAction();
 session.End();
 openKit.ShutDown();
 ``` 
-
-## Known Current Limitations
-
-## TODOs
-* prevent re-entrances e.g. of startup/shutdown
-* HTTP optimizations (reuse connection, pool http client?)
-* introduce traffic control
-* currently gzipping is done with code taken from DotNetZip (http://dotnetzip.codeplex.com/), investigate other solution with .NET framework (no luck so far!)
