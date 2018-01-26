@@ -47,7 +47,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             var finishedSession = context.GetNextFinishedSession();
             while (finishedSession != null)
             {
-                finishedSession.SendBeacon(context.HTTPClientProvider, BEACON_SEND_RETRY_ATTEMPTS);
+                finishedSession.SendBeacon(context.HTTPClientProvider);
+                finishedSession.ClearCapturedData();
                 finishedSession = context.GetNextFinishedSession();
             }
 

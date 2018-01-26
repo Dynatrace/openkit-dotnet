@@ -26,7 +26,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dynatrace LLC")]
 [assembly: AssemblyProduct("Dynatrace.OpenKit.Properties")]
-[assembly: AssemblyCopyright("(c) 2016-2017 Dynatrace LLC")]
+[assembly: AssemblyCopyright("(c) 2016-2018 Dynatrace LLC")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -45,8 +45,8 @@ using System.Runtime.CompilerServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.4.0.0")]
-[assembly: AssemblyFileVersion("0.4.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
 
 // Expose internal classes to test assemblies
 [assembly: InternalsVisibleTo("openkit-dotnetcore-2.0.Tests")]
