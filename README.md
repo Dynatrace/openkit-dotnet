@@ -136,8 +136,6 @@ IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, devic
     .WithModelID("MyModelID")
     .Build();
 
-openKit.WaitForInitCompletion();
-
 string clientIP = "8.8.8.8";
 ISession session = openKit.CreateSession(clientIP);
 
