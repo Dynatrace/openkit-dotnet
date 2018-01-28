@@ -22,12 +22,12 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * Create Sessions and User Actions
 * Report values, events, errors and crashes
 * Trace web requests to server-side PurePaths
-* Sessions can be tagged with a user tag
+* Tag Sessions with a user tag
 * Use it together with Dynatrace or AppMon
 
 ## What you cannot do with the OpenKit
-* Create server-side PurePaths (you have to use an ADK for that)
-* Create metrics (you have to use an ADK for that)
+* Create server-side PurePaths (this functionality will be provided by OneAgent SDKs)
+* Create metrics (this functionality will be provided by OneAgent SDKs)
 
 ## Design Principles
 * API should be as simple and easy-to-understand as possible
