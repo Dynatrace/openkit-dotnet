@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class OpenKitConfiguration
     {
-        private const bool DEFAULT_CAPTURE = false;                     // default: capture off
+        private const bool DEFAULT_CAPTURE = true;                      // default: capture on
         private const int DEFAULT_SEND_INTERVAL = 2 * 60 * 1000;        // default: wait 2m (in ms) to send beacon
         private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
         private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
