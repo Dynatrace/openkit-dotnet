@@ -23,13 +23,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
     public class OpenKitConfigurationTest
     {
         [Test]
-        public void ADefaultConstructedConfigurationDisablesCapturing()
+        public void ADefaultConstructedConfigurationEnablesCapturing()
         {
             // given
             var target = CreateDefaultConfig();
 
             // then
-            Assert.That(target.IsCaptureOn, Is.False);
+            Assert.That(target.IsCaptureOn, Is.True);
         }
 
         [Test]
