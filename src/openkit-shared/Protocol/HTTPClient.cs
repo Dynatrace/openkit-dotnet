@@ -17,6 +17,8 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using System;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Threading;
 
@@ -148,7 +150,7 @@ namespace Dynatrace.OpenKit.Protocol
                     byte[] gzippedData = null;
                     if ((data != null) && (data.Length > 0))
                     {
-                        gzippedData = GZip(data);
+                        gzippedData = CompressByteArray(data);
 
                         if (logger.IsDebugEnabled)
                         {
@@ -252,11 +254,17 @@ namespace Dynatrace.OpenKit.Protocol
             urlBuilder.Append(System.Uri.EscapeDataString(value));
         }
 
-        // helper method for gzipping beacon data
-        private static byte[] GZip(byte[] data)
+        public static byte[] CompressByteArray(byte[] raw)
         {
-            // gzip code taken from DotNetZip: http://dotnetzip.codeplex.com/
-            return Ionic.Zlib.GZipStream.CompressBuffer(data);
+            using (MemoryStream memory = new MemoryStream())
+            {
+                using (GZipStream gzip = new GZipStream(memory,
+                    CompressionMode.Compress, true))
+                {
+                    gzip.Write(raw, 0, raw.Length);
+                }
+                return memory.ToArray();
+            }
         }
     }
 }
