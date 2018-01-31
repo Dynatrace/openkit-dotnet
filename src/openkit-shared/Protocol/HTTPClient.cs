@@ -254,7 +254,7 @@ namespace Dynatrace.OpenKit.Protocol
             urlBuilder.Append(System.Uri.EscapeDataString(value));
         }
 
-        public static byte[] CompressByteArray(byte[] raw)
+        private byte[] CompressByteArray(byte[] raw)
         {
             using (MemoryStream memory = new MemoryStream())
             {
