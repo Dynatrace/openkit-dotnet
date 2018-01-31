@@ -101,9 +101,9 @@ namespace Samples
                 // start timing for web request
                 tracer.Start();
 
-                using (var response = 
-                    await (string.IsNullOrEmpty(payload) ? httpClient.GetAsync(endpoint) 
-                    : httpClient.PostAsync(endpoint, new StringContent(payload))))
+                using (var response =
+                    await (string.IsNullOrEmpty(payload) ? httpClient.GetAsync(endpoint).ConfigureAwait(false)
+                    : httpClient.PostAsync(endpoint, new StringContent(payload)).ConfigureAwait(false)))
                 {
                     var bytesReceived = 0;
 
