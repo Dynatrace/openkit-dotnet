@@ -46,6 +46,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 ### Building the Source
 * .NET Framework 3.5+ or .NET Core 1.0+
 * Visual Studio 2017 (to open VS solution)
+* In order to run all unit tests you must install the latest SDKs for both Framework and Core (approved: .Net Core 1.1.7+, .Net Core 2.1.4+, Framework 4.6.2+)
 
 ## Building the Source
 

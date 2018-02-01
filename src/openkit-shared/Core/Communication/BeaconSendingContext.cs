@@ -164,16 +164,16 @@ namespace Dynatrace.OpenKit.Core.Communication
             TimingProvider.Sleep(millis);
 #else
             // in order to avoid long sleeps (netcore1.0 doesn't provide ThreadInterruptException for sleep)
-            while (millis > 1000)
+            const int sleepTimePerCycle = DEFAULT_SLEEP_TIME_MILLISECONDS;
+            while (millis > 0)
             {
-                TimingProvider.Sleep(1000);
-                millis -= 1000;
+                TimingProvider.Sleep(Math.Min(sleepTimePerCycle, millis));
+                millis -= sleepTimePerCycle;
                 if (isShutdownRequested)
                 {
                     break;
                 }
             }
-            TimingProvider.Sleep(millis);
 #endif
         }
 

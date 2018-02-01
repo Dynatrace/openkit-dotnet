@@ -78,13 +78,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 reinitializeDelayIndex = Math.Min(reinitializeDelayIndex + 1, REINIT_DELAY_MILLISECONDS.Length - 1); // ensure no out of bounds
             }
 
-            if (context.IsShutdownRequested)
-            {
-                // shutdown was requested -> abort init with failure
-                // transition to shutdown state is handled by base class
-                context.InitCompleted(false);
-            }
-            else if (statusResponse != null)
+            if (!context.IsShutdownRequested && statusResponse != null)
             {
                 // success -> continue with time sync
                 context.HandleStatusResponse(statusResponse);
