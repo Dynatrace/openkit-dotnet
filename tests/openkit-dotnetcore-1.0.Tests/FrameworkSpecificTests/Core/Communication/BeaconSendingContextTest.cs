@@ -48,8 +48,10 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
 
             // then
 #if !NETCOREAPP1_0
+            // normal sleep as thread interrupt exception exists
             timingProvider.Received(1).Sleep(expected);
 #else
+            // no interrupt exception exists, therefore "sliced" sleep break after first iteration
             timingProvider.Received(1).Sleep(Arg.Any<int>());
             timingProvider.Received(1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
 #endif
@@ -65,9 +67,11 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
 
             // then
 #if !NETCOREAPP1_0
+            // normal sleep as thread interrupt exception exists
             timingProvider.Received(1).Sleep(expected);
             
 #else
+            // no interrupt exception exists, therefore "sliced" sleeps until total sleep amount
             var expectedCount = (int)Math.Ceiling(expected / (double)BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
             timingProvider.Received(expectedCount).Sleep(Arg.Any<int>());
             timingProvider.Received(expectedCount - 1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
