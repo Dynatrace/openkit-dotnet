@@ -292,7 +292,13 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             target.Sleep(expected);
 
+#if !NETCOREAPP1_0
             timingProvider.Received(1).Sleep(expected);
+#else
+            timingProvider.Received(2).Sleep(Arg.Any<int>());
+            timingProvider.Received(1).Sleep(1000);
+            timingProvider.Received(1).Sleep(717);
+#endif
         }
 
         [Test]

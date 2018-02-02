@@ -49,6 +49,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
 #endif
                 DoExecute(context);
+                if (context.IsShutdownRequested)
+                {
+                    // call on interruped
+                    OnInterrupted(context);
+                    // request shutdown
+                    context.RequestShutdown();
+                }
 #if !NETCOREAPP1_0
             }
             catch (System.Threading.ThreadInterruptedException)

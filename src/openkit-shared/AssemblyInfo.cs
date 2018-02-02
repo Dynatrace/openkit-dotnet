@@ -49,6 +49,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 // Expose internal classes to test assemblies
+[assembly: InternalsVisibleTo("openkit-dotnetcore-1.0.Tests")]
 [assembly: InternalsVisibleTo("openkit-dotnetcore-2.0.Tests")]
 [assembly: InternalsVisibleTo("openkit-dotnetfull-3.5.Tests")]
 [assembly: InternalsVisibleTo("openkit-dotnetfull-4.0.Tests")]

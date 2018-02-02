@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "openkit-shared", "src\openkit-shared\openkit-shared.shproj", "{CC87C275-EFBD-4B40-AC4C-E4B1558B6564}"
 EndProject
@@ -44,6 +44,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{69C1C941-3
 		docs\example.md = docs\example.md
 		docs\internals.md = docs\internals.md
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "openkit-dotnetcore-1.0.Tests", "tests\openkit-dotnetcore-1.0.Tests\openkit-dotnetcore-1.0.Tests.csproj", "{8E6A0344-2C74-42DC-B2C4-726BA3D49800}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -245,6 +247,22 @@ Global
 		{8B8FAE28-F255-4391-8370-31DD894011C2}.Release|x64.Build.0 = Release|Any CPU
 		{8B8FAE28-F255-4391-8370-31DD894011C2}.Release|x86.ActiveCfg = Release|Any CPU
 		{8B8FAE28-F255-4391-8370-31DD894011C2}.Release|x86.Build.0 = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|ARM.Build.0 = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|x64.Build.0 = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Debug|x86.Build.0 = Debug|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|ARM.ActiveCfg = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|ARM.Build.0 = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|x64.ActiveCfg = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|x64.Build.0 = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|x86.ActiveCfg = Release|Any CPU
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -264,6 +282,7 @@ Global
 		{8B8FAE28-F255-4391-8370-31DD894011C2} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
 		{48F4FB14-CC59-44B1-83DA-B85D9E2A1CCB} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
 		{69C1C941-3821-480C-A8EC-DC0FD4AD6712} = {F02D384C-D466-45A8-AFD5-1BB3D2EEC4D7}
+		{8E6A0344-2C74-42DC-B2C4-726BA3D49800} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F480439E-DC91-4B89-853A-4BBA4C5539F1}
