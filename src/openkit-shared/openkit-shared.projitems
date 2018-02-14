@@ -46,6 +46,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\HTTPClientConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Device.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\NullAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\NullWebRequestTracer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootAction.cs" />

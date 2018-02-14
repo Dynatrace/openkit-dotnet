@@ -41,7 +41,11 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction EnterAction(string actionName)
         {
-            return new Action(beacon, actionName, this, openChildActions);
+            if (!IsActionLeft)
+            {
+                return new Action(beacon, actionName, this, openChildActions);
+            }
+            return new NullAction(this);
         }
 
         // *** protected methods ***
