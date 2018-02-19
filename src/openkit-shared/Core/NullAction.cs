@@ -15,7 +15,6 @@
 //
 
 using Dynatrace.OpenKit.API;
-using System;
 
 namespace Dynatrace.OpenKit.Core
 {
