@@ -18,6 +18,11 @@ using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Core
 {
+    /// <summary>
+    /// This class is returned as <see cref="RootAction"/> by
+    /// <see cref="Session.EnterAction(string)"/> when the <see cref="Session.End()"/>
+    /// has been called before.
+    /// </summary>
     public class NullRootAction : NullAction, IRootAction
     {
         public IAction EnterAction(string actionName)
