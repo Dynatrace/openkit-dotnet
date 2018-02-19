@@ -28,6 +28,7 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public class OpenKit : IOpenKit
     {
+        private static readonly ISession NullSession = new NullSession();
 
         // Configuration reference
         private readonly OpenKitConfiguration configuration;
@@ -41,6 +42,8 @@ namespace Dynatrace.OpenKit.Core
 
         // logging context
         private readonly ILogger logger;
+
+        private volatile bool isShutdown = false;
 
         // *** constructors ***
 
@@ -102,6 +105,10 @@ namespace Dynatrace.OpenKit.Core
 
         public ISession CreateSession(string clientIPAddress)
         {
+            if (isShutdown)
+            {
+                return NullSession;
+            }
             // create beacon for session
             var beacon = new Beacon(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider);
             // create session
@@ -110,6 +117,7 @@ namespace Dynatrace.OpenKit.Core
 
         public void Shutdown()
         {
+            isShutdown = true;
             beaconCacheEvictor.Stop();
             beaconSender.Shutdown();
         }

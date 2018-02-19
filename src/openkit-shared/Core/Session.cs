@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -26,6 +27,8 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public class Session : ISession
     {
+        private static readonly NullRootAction NullRootAction = new NullRootAction();
+
         // end time of this Session
         private long endTime = -1;
 
@@ -35,8 +38,7 @@ namespace Dynatrace.OpenKit.Core
 
         // used for taking care to really leave all Actions at the end of this Session
         private SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
-
-        // *** constructors ***
+       
 
         public Session(BeaconSender beaconSender, Beacon beacon)
         {
@@ -51,24 +53,44 @@ namespace Dynatrace.OpenKit.Core
         /// 
         /// A session is considered to be empty, if it does not contain any action or event data.
         /// </summary>
-        public bool IsEmpty { get { return beacon.IsEmpty; } }
+        public bool IsEmpty => beacon.IsEmpty;
+
+        public long EndTime => Interlocked.Read(ref endTime);
+
+        internal bool IsSessionEnded => EndTime != -1;
 
         // *** ISession interface methods ***
 
         public IRootAction EnterAction(string actionName)
         {
-            return new RootAction(beacon, actionName, openRootActions);
+            if (!IsSessionEnded)
+            {
+                return new RootAction(beacon, actionName, openRootActions);
+            }
+
+            return NullRootAction;
+        }
+
+        public void IdentifyUser(string userTag)
+        {
+            if (!IsSessionEnded)
+            {
+                beacon.IdentifyUser(userTag);
+            }
         }
 
         public void ReportCrash(string errorName, string reason, string stacktrace)
         {
-            beacon.ReportCrash(errorName, reason, stacktrace);
+            if (!IsSessionEnded)
+            {
+                beacon.ReportCrash(errorName, reason, stacktrace);
+            }
         }
 
         public void End()
         {
             // check if end() was already called before by looking at endTime
-            if (endTime != -1)
+            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
                 return;
             }
@@ -89,35 +111,18 @@ namespace Dynatrace.OpenKit.Core
             beaconSender.FinishSession(this);
         }
 
-        // *** public methods ***
-
         // sends the current Beacon state
         public StatusResponse SendBeacon(IHTTPClientProvider clientProvider)
         {
             return beacon.Send(clientProvider);
         }
-
-        public void IdentifyUser(string userTag)
-        {
-            beacon.IdentifyUser(userTag);
-        }
-
+        
         /// <summary>
         /// Clear captured beacon data.
         /// </summary>
         internal void ClearCapturedData()
         {
             beacon.ClearData();
-        }
-
-        // *** properties ***
-
-        public long EndTime
-        {
-            get
-            {
-                return endTime;
-            }
         }
     }
 }

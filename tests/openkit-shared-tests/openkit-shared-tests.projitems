@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootActionTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\SessionTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBaseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OpenKitBuilderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
