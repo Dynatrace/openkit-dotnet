@@ -21,7 +21,7 @@ using System.Text;
 
 namespace Dynatrace.OpenKit.Core
 {
-    class DefaultLoggerTest
+    public class DefaultLoggerTest
     {
         [Test]
         public void DefaultLoggerWithVerboseOutputWritesErrorLevelMessages()

@@ -46,6 +46,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\HTTPClientConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Device.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\NullAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\NullRootAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\NullSession.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\NullWebRequestTracer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\OpenKit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Session.cs" />

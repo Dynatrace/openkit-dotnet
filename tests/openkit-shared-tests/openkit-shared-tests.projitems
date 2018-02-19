@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\ActionTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\BeaconSenderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheEntryTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\BeaconCacheEvictorTest.cs" />
@@ -28,6 +29,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingRequestUtilTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitConfigurationTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\RootActionTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\SessionTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBaseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OpenKitBuilderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Util\InetAddressValidatorTest.cs" />

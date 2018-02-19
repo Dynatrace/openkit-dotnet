@@ -16,7 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
+using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -26,6 +26,7 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public class Action : IAction
     {
+        private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
         // Action ID, name and parent ID (default: null)
         private int id;
@@ -44,9 +45,7 @@ namespace Dynatrace.OpenKit.Core
         // data structures for managing IAction hierarchies
         private SynchronizedQueue<IAction> thisLevelActions = null;
 
-        // *** constructors ***
-
-        public Action(Beacon beacon, string name, SynchronizedQueue<IAction> parentActions) : this(beacon, name, null, parentActions)
+        public Action(Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions) : this(beacon, name, null, thisLevelActions)
         {
         }
 
@@ -64,47 +63,81 @@ namespace Dynatrace.OpenKit.Core
             this.thisLevelActions.Put(this);
         }
 
-        // *** IAction interface methods ***
+        public int ID => id;
+
+        public string Name => name;
+
+        public int ParentID => parentAction == null ? 0 : parentAction.ID;
+
+        public long StartTime => startTime;
+
+        public long EndTime => Interlocked.Read(ref endTime);
+
+        public int StartSequenceNo => startSequenceNo;
+
+        public int EndSequenceNo => endSequenceNo;
+
+        internal bool IsActionLeft => EndTime != -1L;
 
         public IAction ReportEvent(string eventName)
         {
-            beacon.ReportEvent(this, eventName);
+            if (!IsActionLeft)
+            {
+                beacon.ReportEvent(this, eventName);
+            }
             return this;
         }
 
         public IAction ReportValue(string valueName, string value)
         {
-            beacon.ReportValue(this, valueName, value);
+            if (!IsActionLeft)
+            {
+                beacon.ReportValue(this, valueName, value);
+            }
             return this;
         }
 
         public IAction ReportValue(string valueName, double value)
         {
-            beacon.ReportValue(this, valueName, value);
+            if (!IsActionLeft)
+            {
+                beacon.ReportValue(this, valueName, value);
+            }
             return this;
         }
 
         public IAction ReportValue(string valueName, int value)
         {
-            beacon.ReportValue(this, valueName, value);
+            if (!IsActionLeft)
+            {
+                beacon.ReportValue(this, valueName, value);
+            }
             return this;
         }
 
         public IAction ReportError(string errorName, int errorCode, string reason)
         {
-            beacon.ReportError(this, errorName, errorCode, reason);
+            if (!IsActionLeft)
+            {
+                beacon.ReportError(this, errorName, errorCode, reason);
+            }
             return this;
         }
 
         public IWebRequestTracer TraceWebRequest(string url)
         {
-            return new WebRequestTracerStringURL(beacon, this, url);
+            if (!IsActionLeft)
+            {
+                return new WebRequestTracerStringURL(beacon, this, url);
+            }
+
+            return NullWebRequestTracer;
         }
 
         public IAction LeaveAction()
         {
             // check if leaveAction() was already called before by looking at endTime
-            if (endTime != -1)
+            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
                 return parentAction;
             }
@@ -115,7 +148,7 @@ namespace Dynatrace.OpenKit.Core
         protected virtual IAction DoLeaveAction()
         {
             // set end time and end sequence number
-            endTime = beacon.CurrentTimestamp;
+            Interlocked.Exchange(ref endTime, beacon.CurrentTimestamp);
             endSequenceNo = beacon.NextSequenceNumber;
 
             // add Action to Beacon
@@ -126,65 +159,5 @@ namespace Dynatrace.OpenKit.Core
 
             return parentAction; // can be null if there's no parent Action!
         }
-
-        // *** properties ***
-
-        public int ID
-        {
-            get
-            {
-                return id;
-            }
-        }
-
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
-
-        public int ParentID
-        {
-            get
-            {
-                return parentAction == null ? 0 : parentAction.ID;
-            }
-        }
-
-        public long StartTime
-        {
-            get
-            {
-                return startTime;
-            }
-        }
-
-        public long EndTime
-        {
-            get
-            {
-                return endTime;
-            }
-        }
-
-        public int StartSequenceNo
-        {
-            get
-            {
-                return startSequenceNo;
-            }
-        }
-
-        public int EndSequenceNo
-        {
-            get
-            {
-                return endSequenceNo;
-            }
-        }
-
     }
-
 }

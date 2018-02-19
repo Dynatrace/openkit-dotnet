@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -60,87 +61,42 @@ namespace Dynatrace.OpenKit.Core
 
         // *** IWebRequestTracer interface methods ***
 
-        public string URL
-        {
-            get
-            {
-                return url;
-            }
-        }
+        public string URL => url;
 
-        public long StartTime
-        {
-            get
-            {
-                return startTime;
-            }
-        }
+        public long StartTime => startTime;
 
-        public long EndTime
-        {
-            get
-            {
-                return endTime;
-            }
-        }
+        public long EndTime => Interlocked.Read(ref endTime);
 
-        public int StartSequenceNo
-        {
-            get
-            {
-                return startSequenceNo;
-            }
-        }
+        public int StartSequenceNo => startSequenceNo;
 
-        public int EndSequenceNo
-        {
-            get
-            {
-                return endSequenceNo;
-            }
-        }
+        public int EndSequenceNo => endSequenceNo;
 
-        public string Tag
-        {
-            get
-            {
-                return tag;
-            }
-        }
+        public string Tag =>  tag;
 
-        public int ResponseCode
-        {
-            get
-            {
-                return responseCode;
-            }
-        }
+        public int ResponseCode => responseCode;
 
-        public int BytesSent
-        {
-            get
-            {
-                return bytesSent;
-            }
-        }
+        public int BytesSent => bytesSent;
 
-        public int BytesReceived
-        {
-            get
-            {
-                return bytesReceived;
-            }
-        }
+        public int BytesReceived => bytesReceived;
+
+        internal bool IsStopped => EndTime != -1;
 
         public IWebRequestTracer Start()
         {
-            startTime = beacon.CurrentTimestamp;
+            if (!IsStopped)
+            {
+                startTime = beacon.CurrentTimestamp;
+            }
             return this;
         }
 
         public void Stop()
         {
-            endTime = beacon.CurrentTimestamp;
+            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
+            {
+                return;
+            }
+
             endSequenceNo = beacon.NextSequenceNumber;
 
             // add web request to beacon
@@ -149,21 +105,29 @@ namespace Dynatrace.OpenKit.Core
 
         public IWebRequestTracer SetResponseCode(int responseCode)
         {
-            this.responseCode = responseCode;
+            if (!IsStopped)
+            {
+                this.responseCode = responseCode;
+            }
             return this;
         }
 
         public IWebRequestTracer SetBytesSent(int bytesSent)
         {
-            this.bytesSent = bytesSent;
+            if (!IsStopped)
+            {
+                this.bytesSent = bytesSent;
+            }
             return this;
         }
 
         public IWebRequestTracer SetBytesReceived(int bytesReceived)
         {
-            this.bytesReceived = bytesReceived;
+            if (!IsStopped)
+            {
+                this.bytesReceived = bytesReceived;
+            }
             return this;
         }
     }
-
 }
