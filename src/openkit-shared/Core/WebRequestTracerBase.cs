@@ -92,13 +92,15 @@ namespace Dynatrace.OpenKit.Core
 
         public void Stop()
         {
-            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) == -1L)
+            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
-                endSequenceNo = beacon.NextSequenceNumber;
-
-                // add web request to beacon
-                beacon.AddWebRequest(action, this);
+                return;
             }
+
+            endSequenceNo = beacon.NextSequenceNumber;
+
+            // add web request to beacon
+            beacon.AddWebRequest(action, this);
         }
 
         public IWebRequestTracer SetResponseCode(int responseCode)
