@@ -26,8 +26,8 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * Use it together with Dynatrace or AppMon
 
 ## What you cannot do with the OpenKit
-* Create server-side PurePaths (this functionality will be provided by OneAgent SDKs)
-* Create metrics (this functionality will be provided by OneAgent SDKs)
+* Create server-side PurePaths (this functionality is provided by [OneAgent SDKs](https://github.com/Dynatrace/OneAgent-SDK))
+* Create metrics (this functionality is provided by [OneAgent SDKs](https://github.com/Dynatrace/OneAgent-SDK))
 
 ## Design Principles
 * API should be as simple and easy-to-understand as possible
