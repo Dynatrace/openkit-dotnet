@@ -119,6 +119,17 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void AmpersandIsNotAValidKeyValueSeparator()
+        {
+            // given
+            const string responseString = StatusResponse.RESPONSE_KEY_CAPTURE + "&100";
+
+            // when, then
+            Assert.That(() => new StatusResponse(responseString, 200),
+                Throws.ArgumentException.With.Message.EqualTo("Invalid response; even number of tokens expected."));
+        }
+
+        [Test]
         public void CaptureIsTrueWhenItIsEqualToOne()
         {
             // given

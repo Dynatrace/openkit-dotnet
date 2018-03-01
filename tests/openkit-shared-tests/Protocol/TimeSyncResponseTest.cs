@@ -68,6 +68,17 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void AmpersandIsNotAValidKeyValueSeparator()
+        {
+            // given
+            const string responseString = TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "&100";
+
+            // when, then
+            Assert.That(() => new TimeSyncResponse(responseString, 200),
+                Throws.ArgumentException.With.Message.EqualTo("Invalid response; even number of tokens expected."));
+        }
+
+        [Test]
         public void ResponseSendTimeIsParsed()
         {
             // given
