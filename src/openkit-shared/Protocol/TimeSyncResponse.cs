@@ -24,64 +24,52 @@ namespace Dynatrace.OpenKit.Protocol
     /// </summary>
     public class TimeSyncResponse : Response
     {
+        internal static readonly char[] PARTS_SEPARATOR = new char[] { '&' };
 
         // time sync response constants
         internal const string RESPONSE_KEY_REQUEST_RECEIVE_TIME = "t1";
         internal const string RESPONSE_KEY_RESPONSE_SEND_TIME = "t2";
-
-        // timestamps contained in time sync response
-        private long requestReceiveTime = -1;
-        private long responseSendTime = -1;
-
-        // *** constructors ***
-
-        public TimeSyncResponse(string response, int responseCode) : base(responseCode)
+        
+        internal TimeSyncResponse(string response, int responseCode) : base(responseCode)
         {
             ParseResponse(response);
         }
 
-        // *** private methods ***
+        public long RequestReceiveTime { get; private set; } = -1L;
 
-        // parses time sync response
+        public long ResponseSendTime { get; private set; } = -1L;
+        
+        /// <summary>
+        /// parses time sync response 
+        /// </summary>
+        /// <param name="response">Dynatrace/AppMon response to parse</param>
         private void ParseResponse(string response)
         {
-            string[] tokens = response.Split(new Char[] { '&', '=' });
-
-            int index = 0;
-            while (tokens.Length > index)
+            if (string.IsNullOrEmpty(response))
             {
-                string key = tokens[index++];
-                string value = tokens[index++];
+                return;
+            }
+
+            foreach (var parts in response.Split(PARTS_SEPARATOR, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var tokens = parts.Split('=');
+                if (tokens.Length != 2)
+                {
+                    throw new ArgumentException("Invalid response; even number of tokens expected.");
+                }
+
+                var key = tokens[0];
+                var value = tokens[1];
 
                 if (RESPONSE_KEY_REQUEST_RECEIVE_TIME.Equals(key))
                 {
-                    requestReceiveTime = Int64.Parse(value);
+                    RequestReceiveTime = Int64.Parse(value);
                 }
                 else if (RESPONSE_KEY_RESPONSE_SEND_TIME.Equals(key))
                 {
-                    responseSendTime = Int64.Parse(value);
+                    ResponseSendTime = Int64.Parse(value);
                 }
             }
         }
-
-        // *** properties ***
-
-        public long RequestReceiveTime
-        {
-            get
-            {
-                return requestReceiveTime;
-            }
-        }
-
-        public long ResponseSendTime
-        {
-            get
-            {
-                return responseSendTime;
-            }
-        }
-
     }
-
 }

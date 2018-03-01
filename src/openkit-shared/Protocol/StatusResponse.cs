@@ -24,6 +24,7 @@ namespace Dynatrace.OpenKit.Protocol
     /// </summary>
     public class StatusResponse : Response
     {
+        internal static readonly char[] PARTS_SEPARATOR = new char[] { '&' };
 
         // status response constants
         public const string RESPONSE_KEY_CAPTURE = "cp";
@@ -34,127 +35,73 @@ namespace Dynatrace.OpenKit.Protocol
         public const string RESPONSE_KEY_CAPTURE_ERRORS = "er";
         public const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
 
-        // settings contained in status response
-        private bool capture = true;
-        private int sendInterval = -1;
-        private string monitorName = null;
-        private int serverID = -1;
-        private int maxBeaconSize = -1;
-        private bool captureErrors = true;
-        private bool captureCrashes = true;
-
-        // *** constructors ***
-
         public StatusResponse(string response, int responseCode) : base(responseCode)
         {
             ParseResponse(response);
         }
 
-        // *** private methods ***
+        public bool Capture { get; private set; } = true;
+
+        public int SendInterval { get; private set; } = -1;
+
+        public string MonitorName { get; private set; } = null;
+
+        public int ServerID { get; private set; } = -1;
+
+        public int MaxBeaconSize { get; private set; } = -1;
+
+        public bool CaptureErrors { get; private set; } = true;
+
+        public bool CaptureCrashes { get; private set; } = true;
 
         // parses status check response
         private void ParseResponse(string response)
         {
             if (string.IsNullOrEmpty(response))
-                return;
-
-            string[] tokens = response.Split(new Char[] { '&', '=' });
-
-            int index = 0;
-            while (tokens.Length > index)
             {
-                string key = tokens[index++];
-                string value = tokens[index++];
+                return;
+            }
+
+            foreach (var parts in response.Split(PARTS_SEPARATOR, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var tokens = parts.Split('=');
+                if (tokens.Length != 2)
+                {
+                    throw new ArgumentException("Invalid response; even number of tokens expected.");
+                }
+
+                var key = tokens[0];
+                var value = tokens[1];
 
                 if (RESPONSE_KEY_CAPTURE.Equals(key))
                 {
-                    capture = (Int32.Parse(value) == 1);
+                    Capture = (Int32.Parse(value) == 1);
                 }
                 else if (RESPONSE_KEY_SEND_INTERVAL.Equals(key))
                 {
-                    sendInterval = Int32.Parse(value) * 1000;
+                    SendInterval = Int32.Parse(value) * 1000;
                 }
                 else if (RESPONSE_KEY_MONITOR_NAME.Equals(key))
                 {
-                    monitorName = value;
+                    MonitorName = value;
                 }
                 else if (RESPONSE_KEY_SERVER_ID.Equals(key))
                 {
-                    serverID = Int32.Parse(value);
+                    ServerID = Int32.Parse(value);
                 }
                 else if (RESPONSE_KEY_MAX_BEACON_SIZE.Equals(key))
                 {
-                    maxBeaconSize = Int32.Parse(value) * 1024;
+                    MaxBeaconSize = Int32.Parse(value) * 1024;
                 }
                 else if (RESPONSE_KEY_CAPTURE_ERRORS.Equals(key))
                 {
-                    captureErrors = (Int32.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
+                    CaptureErrors = (Int32.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
                 }
                 else if (RESPONSE_KEY_CAPTURE_CRASHES.Equals(key))
                 {
-                    captureCrashes = (Int32.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
+                    CaptureCrashes = (Int32.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
                 }
             }
         }
-
-        // *** properties ***
-
-        public bool Capture
-        {
-            get
-            {
-                return capture;
-            }
-        }
-
-        public int SendInterval
-        {
-            get
-            {
-                return sendInterval;
-            }
-        }
-
-        public string MonitorName
-        {
-            get
-            {
-                return monitorName;
-            }
-        }
-
-        public int ServerID
-        {
-            get
-            {
-                return serverID;
-            }
-        }
-
-        public int MaxBeaconSize
-        {
-            get
-            {
-                return maxBeaconSize;
-            }
-        }
-
-        public bool CaptureErrors
-        {
-            get
-            {
-                return captureErrors;
-            }
-        }
-
-        public bool CaptureCrashes
-        {
-            get
-            {
-                return captureCrashes;
-            }
-        }
-
     }
-
 }

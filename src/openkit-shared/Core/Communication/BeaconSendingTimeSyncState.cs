@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Providers;
 using System;
 using System.Collections.Generic;
 

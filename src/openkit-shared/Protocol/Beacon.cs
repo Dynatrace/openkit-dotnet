@@ -21,7 +21,6 @@ using Dynatrace.OpenKit.Core;
 using System.Threading;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
-using System.Collections.ObjectModel;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.API;
