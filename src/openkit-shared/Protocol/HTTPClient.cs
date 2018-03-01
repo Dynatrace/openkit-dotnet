@@ -168,7 +168,7 @@ namespace Dynatrace.OpenKit.Protocol
                         logger.Debug("HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
-                    if (httpResponse.ResponseCode >= 400)
+                    if (httpResponse.Response == null || httpResponse.ResponseCode >= 400)
                     {
                         // an error occurred -> return null
                         return null;
