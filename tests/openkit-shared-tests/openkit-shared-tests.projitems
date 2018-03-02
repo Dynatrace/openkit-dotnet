@@ -35,6 +35,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)OpenKitBuilderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Util\InetAddressValidatorTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Protocol\StatusResponseTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Protocol\TimeSyncResponseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultSessionIDProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TestSessionIDProvider.cs" />

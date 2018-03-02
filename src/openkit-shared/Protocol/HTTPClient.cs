@@ -41,18 +41,12 @@ namespace Dynatrace.OpenKit.Protocol
             public static readonly RequestType BEACON = new RequestType("Beacon");              // beacon send
             public static readonly RequestType TIMESYNC = new RequestType("TimeSync");          // time sync
 
-            private string requestName;
+            public string RequestName { get; }
 
             private RequestType(string requestName)
             {
-                this.requestName = requestName;
+                RequestName = requestName;
             }
-
-            public string getRequestName()
-            {
-                return requestName;
-            }
-
         }
 
         public class HTTPResponse
@@ -97,8 +91,6 @@ namespace Dynatrace.OpenKit.Protocol
             timeSyncURL = BuildTimeSyncURL(configuration.BaseURL);
         }
 
-        // *** public methods ***
-
         // sends a status check request and returns a status response
         public StatusResponse SendStatusRequest()
         {
@@ -117,8 +109,6 @@ namespace Dynatrace.OpenKit.Protocol
             return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET");
         }
 
-        // *** private methods ***
-
         // generic request send with some verbose output and exception handling
         protected Response SendRequest(RequestType requestType, string url, string clientIPAddress, byte[] data, string method)
         {
@@ -126,19 +116,19 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug("HTTP " + requestType.getRequestName() + " Request: " + url);
+                    logger.Debug("HTTP " + requestType.RequestName + " Request: " + url);
                 }
-                return SendRequestInternal(url, clientIPAddress, data, method);
+                return SendRequestInternal(requestType, url, clientIPAddress, data, method);
             }
             catch (Exception e)
             {
-                logger.Error(requestType.getRequestName() + " Request failed!", e);
+                logger.Error(requestType.RequestName + " Request failed!", e);
             }
             return null;
         }
 
         // generic internal request send
-        protected Response SendRequestInternal(string url, string clientIPAddress, byte[] data, string method)
+        protected Response SendRequestInternal(RequestType requestType, string url, string clientIPAddress, byte[] data, string method)
         {
             int retry = 1;
             while (true)
@@ -178,23 +168,25 @@ namespace Dynatrace.OpenKit.Protocol
                         logger.Debug("HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
-                    if (httpResponse.ResponseCode >= 400)
+                    if (httpResponse.Response == null || httpResponse.ResponseCode >= 400)
                     {
                         // an error occurred -> return null
                         return null;
                     }
 
-                    // create typed response based on response content
-                    if (httpResponse.Response.StartsWith(REQUEST_TYPE_TIMESYNC))
+                    // create typed response based on request type and response content
+                    if (requestType.RequestName == RequestType.TIMESYNC.RequestName)
                     {
-                        return new TimeSyncResponse(httpResponse.Response, httpResponse.ResponseCode);
+                        return ParseTimeSyncResponse(httpResponse);
                     }
-                    else if (httpResponse.Response.StartsWith(REQUEST_TYPE_MOBILE))
+                    else if ((requestType.RequestName == RequestType.BEACON.RequestName)
+                        || (requestType.RequestName == RequestType.STATUS.RequestName))
                     {
-                        return new StatusResponse(httpResponse.Response, httpResponse.ResponseCode);
+                        return ParseStatusResponse(httpResponse);
                     }
                     else
                     {
+                        logger.Warn("Unknown request type " + requestType + " - ignoring response");
                         return null;
                     }
                 }
@@ -209,6 +201,56 @@ namespace Dynatrace.OpenKit.Protocol
                     Thread.Sleep(RETRY_SLEEP_TIME);
                 }
             }
+        }
+
+        private Response ParseStatusResponse(HTTPResponse httpResponse)
+        {
+            if (IsStatusResponse(httpResponse) && !IsTimeSyncResponse(httpResponse))
+            {
+                try
+                {
+                    return new StatusResponse(httpResponse.Response, httpResponse.ResponseCode);
+                }
+                catch (Exception e)
+                {
+                    logger.Error("Failed to parse StatusResponse", e);
+                    return null;
+                }
+            }
+
+            // invalid/unexpected response
+            logger.Warn("The HTTPResponse \"" + httpResponse.Response + "\" is not a valid status response");
+            return null;
+        }
+
+        private Response ParseTimeSyncResponse(HTTPResponse httpResponse)
+        {
+            if (IsTimeSyncResponse(httpResponse) && !IsStatusResponse(httpResponse))
+            {
+                try
+                {
+                    return new TimeSyncResponse(httpResponse.Response, httpResponse.ResponseCode);
+                }
+                catch(Exception e)
+                {
+                    logger.Error("Failed to parse TimeSyncResponse", e);
+                    return null;
+                }
+            }
+
+            // invalid/unexpected response
+            logger.Warn("The HTTPResponse \"" + httpResponse.Response + "\" is not a valid time sync response");
+            return null;
+        }
+
+        private static bool IsStatusResponse(HTTPResponse httpResponse)
+        {
+            return httpResponse.Response.StartsWith(REQUEST_TYPE_MOBILE);
+        }
+
+        private static bool IsTimeSyncResponse(HTTPResponse httpResponse)
+        {
+            return httpResponse.Response.StartsWith(REQUEST_TYPE_TIMESYNC);
         }
 
         protected abstract HTTPResponse GetRequest(string url, string clientIPAddress);
