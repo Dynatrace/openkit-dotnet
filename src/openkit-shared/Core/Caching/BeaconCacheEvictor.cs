@@ -241,6 +241,11 @@ namespace Dynatrace.OpenKit.Core.Caching
                     strategy.Execute();
                 }
             }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCacheEviction thread is stopped.");
+            }
         }
     }
 }
