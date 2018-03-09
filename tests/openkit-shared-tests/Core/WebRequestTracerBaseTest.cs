@@ -21,6 +21,7 @@ using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
+using System;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -94,6 +95,19 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(target.IsStopped, Is.True);
+        }
+        
+        [Test]
+        public void DisposingAWebRequestTracerStopsIt()
+        {
+            // given
+            IDisposable target = new TestWebRequestTracerBase(beacon, action);
+
+            // when disposing the target
+            target.Dispose();
+
+            // then
+            Assert.That(((WebRequestTracerBase)target).IsStopped, Is.True);
         }
 
         [Test]

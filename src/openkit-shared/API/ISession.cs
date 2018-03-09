@@ -14,13 +14,15 @@
 // limitations under the License.
 //
 
+using System;
+
 namespace Dynatrace.OpenKit.API
 {
 
     /// <summary>
     ///  This interface provides functionality to create Actions in a Session.
     /// </summary>
-    public interface ISession
+    public interface ISession : IDisposable
     {
 
         /// <summary>

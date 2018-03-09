@@ -20,6 +20,7 @@ using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
+using System;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -208,6 +209,26 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             beaconSendingContext.Received(1).FinishSession(target);
+        }
+
+        [Test]
+        public void DisposingASessionEndsTheSession()
+        {
+            // given
+            int timestamp = 100;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(x =>
+            {
+                timestamp++;
+                return timestamp;
+            });
+
+            IDisposable target = new Session(beaconSender, beacon);
+
+            // when
+            target.Dispose();
+
+            // then
+            beaconSendingContext.Received(1).FinishSession((Session)target);
         }
 
         [Test]

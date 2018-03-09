@@ -81,6 +81,11 @@ namespace Dynatrace.OpenKit.Core
 
         internal bool IsStopped => EndTime != -1;
 
+        public void Dispose()
+        {
+            Stop();
+        }
+
         public IWebRequestTracer Start()
         {
             if (!IsStopped)

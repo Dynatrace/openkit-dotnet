@@ -14,13 +14,15 @@
 // limitations under the License.
 //
 
+using System;
+
 namespace Dynatrace.OpenKit.API
 {
 
     /// <summary>
     ///  This interface allows tracing and timing of a web request.
     /// </summary>
-    public interface IWebRequestTracer
+    public interface IWebRequestTracer : IDisposable
     {
 
         /// <summary>
@@ -60,10 +62,6 @@ namespace Dynatrace.OpenKit.API
         /// <param name="bytesReceived">number of bytes received by the web request</param>
         /// <returns></returns>
         IWebRequestTracer SetBytesReceived(int bytesReceived);
-
-
-
-
     }
 
 }

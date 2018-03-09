@@ -22,6 +22,11 @@ namespace Dynatrace.OpenKit.Core
     {
         private static readonly IRootAction NullRootAction = new NullRootAction();
 
+        public void Dispose()
+        {
+            End();
+        }
+
         public void End()
         {
             // intentionally left empty, due to NullObject pattern

@@ -21,6 +21,7 @@ using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core
@@ -462,6 +463,24 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(target.EndTime, Is.EqualTo(323L));
             Assert.That(target.EndSequenceNo, Is.EqualTo(3));
             mockTimingProvider.Received(6).ProvideTimestampInMilliseconds();
+        }
+
+        [Test]
+        public void DisposingAnActionLeavesTheAction()
+        {
+            // given
+            var actions = new SynchronizedQueue<IAction>();
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123L, 321L, 322L, 323L);
+            IDisposable target = new Action(beacon, "test", actions);
+            while (beacon.NextSequenceNumber < 41) ; // increase the sequence number
+
+            // when disposing the target
+            target.Dispose();
+
+            // then
+            Assert.That(actions.IsEmpty, Is.True);
+            Assert.That(((Action)target).EndSequenceNo, Is.EqualTo(42));
+            Assert.That(((Action)target).EndTime, Is.EqualTo(322L));
         }
     }
 }

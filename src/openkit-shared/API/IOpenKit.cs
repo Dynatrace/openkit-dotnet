@@ -14,13 +14,15 @@
 // limitations under the License.
 //
 
+using System;
+
 namespace Dynatrace.OpenKit.API
 {
 
     /// <summary>
     ///  This interface provides basic OpenKit functionality, like creating a Session and shutting down OpenKit.
     /// </summary>
-    public interface IOpenKit
+    public interface IOpenKit : IDisposable
     {   
         /// <summary>
         ///  Waits until OpenKit is fully initialized.

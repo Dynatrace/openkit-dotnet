@@ -37,6 +37,11 @@ namespace Dynatrace.OpenKit.Core
             this.parentAction = parentAction;
         }
 
+        public void Dispose()
+        {
+            LeaveAction();
+        }
+
         public IAction LeaveAction()
         {
             return parentAction;
