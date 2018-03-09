@@ -225,7 +225,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         private Response ParseTimeSyncResponse(HTTPResponse httpResponse)
         {
-            if (IsTimeSyncResponse(httpResponse) && !IsStatusResponse(httpResponse))
+            if (IsTimeSyncResponse(httpResponse))
             {
                 try
                 {
