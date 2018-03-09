@@ -50,5 +50,10 @@ namespace Dynatrace.OpenKit.Core
         {
             // intentionally left empty, due to NullObject pattern
         }
+
+        public void Dispose()
+        {
+            Stop();
+        }
     }
 }

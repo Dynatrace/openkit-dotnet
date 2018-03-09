@@ -83,6 +83,11 @@ namespace Dynatrace.OpenKit.Core
 
         // *** IOpenKit interface methods ***
 
+        public void Dispose()
+        {
+            Shutdown();
+        }
+
         public bool WaitForInitCompletion()
         {
             return beaconSender.WaitForInitCompletion();

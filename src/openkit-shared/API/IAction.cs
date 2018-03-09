@@ -14,13 +14,15 @@
 // limitations under the License.
 //
 
+using System;
+
 namespace Dynatrace.OpenKit.API
 {
 
     /// <summary>
     ///  This interface provides functionality to report events/values/errors and traces web requests.
     /// </summary>
-    public interface IAction
+    public interface IAction : IDisposable
     {
 
         /// <summary>

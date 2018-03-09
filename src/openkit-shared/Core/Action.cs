@@ -159,5 +159,10 @@ namespace Dynatrace.OpenKit.Core
 
             return parentAction; // can be null if there's no parent Action!
         }
+
+        public void Dispose()
+        {
+            LeaveAction();
+        }
     }
 }

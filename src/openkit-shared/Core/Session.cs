@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Core
 
         // used for taking care to really leave all Actions at the end of this Session
         private SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
-       
+
 
         public Session(BeaconSender beaconSender, Beacon beacon)
         {
@@ -60,6 +60,11 @@ namespace Dynatrace.OpenKit.Core
         internal bool IsSessionEnded => EndTime != -1;
 
         // *** ISession interface methods ***
+
+        public void Dispose()
+        {
+            End();
+        }
 
         public IRootAction EnterAction(string actionName)
         {
