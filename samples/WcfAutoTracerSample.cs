@@ -157,10 +157,10 @@ namespace Samples
     }
 
     /// <summary>
-    /// The SimpleSample includes a basic example that provides an overview of the features supported by OpenKit.
+    /// The WcfAutoTracerSample includes a basic example that provides an overview of the features supported by OpenKit.
     /// For more detailed information, please refer to the documentation that is available on GitHub.
     /// </summary>
-    public class SimpleSample
+    public class WcfAutoTracerSample
     {
         private const string WebServiceBaseAddress = "http://my.wcf-service.com:1234/service";
 
@@ -187,6 +187,9 @@ namespace Samples
             var tracingAction = session.EnterAction("WCF Tracing Action");
 
             sendWcfServiceCall(tracingAction);
+			
+			// leave the tracing action
+			tracingAction.Leave();
 
             // end session
             session.End();
