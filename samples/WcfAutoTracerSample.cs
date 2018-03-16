@@ -44,7 +44,7 @@ namespace Samples
 
         public void AddBindingParameters(ServiceEndpoint endpoint, BindingParameterCollection bindingParameters)
         {
-			// intentionally left empty
+            // intentionally left empty
         }
 
         public void ApplyClientBehavior(ServiceEndpoint endpoint, ClientRuntime clientRuntime)
@@ -62,10 +62,10 @@ namespace Samples
             // intentionally left empty
         }
 
-		/// <summary>
-		/// Class used to intercept a message before it gets send. A custom HTTP header is added before sending the message.
-		/// This class is also used to intercept a WCF service reply to read the HTTP response code.
-		/// </summary>
+        /// <summary>
+        /// Class used to intercept a message before it gets send. A custom HTTP header is added before sending the message.
+        /// This class is also used to intercept a WCF service reply to read the HTTP response code.
+        /// </summary>
         private class ClientMessageInspector : IClientMessageInspector
         {
             private readonly IAction action;
@@ -93,7 +93,7 @@ namespace Samples
                         // assume HTTP OK by default
                         webRequestTracer.SetResponseCode((int)HttpStatusCode.OK);
                     }
-                    
+
                     webRequestTracer.Stop();
                     webRequestTracer = null;
                 }
@@ -129,9 +129,9 @@ namespace Samples
                 return null;
             }
 
-			/// <summary>
-			/// Get the full URI of the WCF service call.
-			/// </summary>
+            /// <summary>
+            /// Get the full URI of the WCF service call.
+            /// </summary>
             private string GetRequestUri(Message request)
             {
                 string requestUri = null;
@@ -155,15 +155,15 @@ namespace Samples
             }
         }
     }
-	
+
     /// <summary>
     /// The SimpleSample includes a basic example that provides an overview of the features supported by OpenKit.
     /// For more detailed information, please refer to the documentation that is available on GitHub.
     /// </summary>
     public class SimpleSample
     {
-		private const string WebServiceBaseAddress = "http://my.wcf-service.com:1234/service";
-		
+        private const string WebServiceBaseAddress = "http://my.wcf-service.com:1234/service";
+
         public static void Main(string[] args)
         {
             string endpointURL = "";    // the endpointURL can be found in the Dynatrace UI
@@ -182,11 +182,11 @@ namespace Samples
 
             // create a new session
             var session = openKit.CreateSession("127.0.0.1");
-			
-			// create a new Action which is passed to an IWebRequestTracer instance
-			var tracingAction = session.EnterAction("WCF Tracing Action" );
-			
-			sendWcfServiceCall(tracingAction);
+
+            // create a new Action which is passed to an IWebRequestTracer instance
+            var tracingAction = session.EnterAction("WCF Tracing Action");
+
+            sendWcfServiceCall(tracingAction);
 
             // end session
             session.End();
@@ -194,33 +194,33 @@ namespace Samples
             // shutdown OpenKit
             openKit.Shutdown();
         }
-		
-		/// <summary>
-		/// Method for performing a WCF call.
-		/// </summary>
-		private static void sendWcfServiceCall(IAction tracingAction)
-		{
-			using (var webChannelFactory = new WebChannelFactory<IService>(new Uri(WebServiceBaseAddress)))
-			{
-				// Hint: Add an instance of TraceServiceCallBehavior to the client's endpoint behaviors
-				// If the following line is omitted, no automatic tracing is performed.
-				webChannelFactory.Endpoint.EndpointBehaviors.Add(new TraceServiceCallBehavior(tracingAction));
-				
-				var channel = webChannelFactory.CreateChannel();
 
-				
-				Console.WriteLine("Calling ServiceMethod by HTTP GET: ");
-				var response = channel.ServiceMethod("Hello, world!");
-				Console.WriteLine($"   Output: {response}");
-			}
-		}
+        /// <summary>
+        /// Method for performing a WCF call.
+        /// </summary>
+        private static void sendWcfServiceCall(IAction tracingAction)
+        {
+            using (var webChannelFactory = new WebChannelFactory<IService>(new Uri(WebServiceBaseAddress)))
+            {
+                // Hint: Add an instance of TraceServiceCallBehavior to the client's endpoint behaviors
+                // If the following line is omitted, no automatic tracing is performed.
+                webChannelFactory.Endpoint.EndpointBehaviors.Add(new TraceServiceCallBehavior(tracingAction));
+
+                var channel = webChannelFactory.CreateChannel();
+
+
+                Console.WriteLine("Calling ServiceMethod by HTTP GET: ");
+                var response = channel.ServiceMethod("Hello, world!");
+                Console.WriteLine($"   Output: {response}");
+            }
+        }
     }
-	
-	
-	/// <summary>
-	/// WCF service contract.
-	/// </summary>
-	[ServiceContract]
+
+
+    /// <summary>
+    /// WCF service contract.
+    /// </summary>
+    [ServiceContract]
     public interface IService
     {
         [OperationContract]
