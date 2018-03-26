@@ -27,7 +27,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 
 ## What you cannot do with the OpenKit
 * Create server-side PurePaths (this functionality is provided by [OneAgent SDKs](https://github.com/Dynatrace/OneAgent-SDK))
-* Create metrics (this functionality is provided by [OneAgent SDKs](https://github.com/Dynatrace/OneAgent-SDK))
+* Create metrics (use the [Custom network devices & metrics API](https://www.dynatrace.com/support/help/dynatrace-api/timeseries/what-does-the-custom-network-devices-and-metrics-api-provide/) to report metrics)
 
 ## Design Principles
 * API should be as simple and easy-to-understand as possible
