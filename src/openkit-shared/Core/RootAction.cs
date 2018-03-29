@@ -43,7 +43,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(actionName))
             {
-                    Logger.Warn("RootAction.enterAction: actionName must not be null or empty");
+                    Logger.Warn("RootAction.EnterAction: actionName must not be null or empty");
                     return new NullAction(this);
             }
             if (!IsActionLeft)

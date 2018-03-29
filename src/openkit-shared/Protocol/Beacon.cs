@@ -317,10 +317,7 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder eventBuilder = new StringBuilder();
 
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, parentAction);
-            if (value != null)
-            {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, Truncate(value));
-            }
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BEACON_KEY_VALUE, TruncateNullSafe(value));
 
             AddEventData(eventTimestamp, eventBuilder);
         }
@@ -363,10 +360,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_CODE, errorCode);
-            if (reason != null)
-            {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
-            }
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -393,14 +387,8 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);                                  // no parent action
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
-            if (reason != null)
-            {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
-            }
-            if (stacktrace != null)
-            {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
-            }
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -586,10 +574,7 @@ namespace Dynatrace.OpenKit.Protocol
         private void BuildBasicEventData(StringBuilder builder, EventType eventType, string name)
         {
             AddKeyValuePair(builder, BEACON_KEY_EVENT_TYPE, (int)eventType);
-            if (name != null)
-            {
-                AddKeyValuePair(builder, BEACON_KEY_NAME, Truncate(name));
-            }
+            AddKeyValuePairIfValueIsNotNull(builder, BEACON_KEY_NAME, TruncateNullSafe(name));
             AddKeyValuePair(builder, BEACON_KEY_THREAD_ID, threadIDProvider.ThreadID);
         }
        
@@ -604,10 +589,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_OPENKIT_VERSION, OPENKIT_VERSION);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_ID, configuration.ApplicationID);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_NAME, configuration.ApplicationName);
-            if (configuration.ApplicationVersion != null)
-            {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_VERSION, configuration.ApplicationVersion);
-            }
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_APPLICATION_VERSION, configuration.ApplicationVersion);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, AGENT_TECHNOLOGY_TYPE);
 
@@ -617,18 +599,10 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
 
             // platform information
-            if (configuration.Device.OperatingSystem != null)
-            {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DEVICE_OS, configuration.Device.OperatingSystem);
-            }
-            if (configuration.Device.Manufacturer != null)
-            {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DEVICE_MANUFACTURER, configuration.Device.Manufacturer);
-            }
-            if (configuration.Device.ModelID != null)
-            {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DEVICE_MODEL, configuration.Device.ModelID);
-            }
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_DEVICE_OS, configuration.Device.OperatingSystem);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_DEVICE_MANUFACTURER, configuration.Device.Manufacturer);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_DEVICE_MODEL, configuration.Device.ModelID);
+            
 
             return basicBeaconBuilder.ToString();
         }
@@ -649,35 +623,45 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // helper method for adding key/value pairs with string values
-        private void AddKeyValuePair(StringBuilder builder, string key, string stringValue)
+        private static void AddKeyValuePair(StringBuilder builder, string key, string stringValue)
         {
             AppendKey(builder, key);
             builder.Append(System.Uri.EscapeDataString(stringValue));
         }
 
+        private static void AddKeyValuePairIfValueIsNotNull(StringBuilder builder, string key, string stringValue)
+        {
+            if (stringValue == null)
+            {
+                return;
+            }
+
+            AddKeyValuePair(builder, key, stringValue);
+        }
+
         // helper method for adding key/value pairs with long values
-        private void AddKeyValuePair(StringBuilder builder, string key, long longValue)
+        private static void AddKeyValuePair(StringBuilder builder, string key, long longValue)
         {
             AppendKey(builder, key);
             builder.Append(longValue);
         }
 
         // helper method for adding key/value pairs with int values
-        private void AddKeyValuePair(StringBuilder builder, string key, int intValue)
+        private static void AddKeyValuePair(StringBuilder builder, string key, int intValue)
         {
             AppendKey(builder, key);
             builder.Append(intValue);
         }
 
         // helper method for adding key/value pairs with double values
-        private void AddKeyValuePair(StringBuilder builder, string key, double doubleValue)
+        private static void AddKeyValuePair(StringBuilder builder, string key, double doubleValue)
         {
             AppendKey(builder, key);
             builder.Append(doubleValue);
         }
 
         // helper method for appending a key
-        private void AppendKey(StringBuilder builder, string key)
+        private static void AppendKey(StringBuilder builder, string key)
         {
             if (builder.Length > 0)
             {
@@ -687,8 +671,18 @@ namespace Dynatrace.OpenKit.Protocol
             builder.Append('=');
         }
 
+        private static string TruncateNullSafe(string name)
+        {
+            if (name == null)
+            {
+                return null;
+            }
+
+            return Truncate(name);
+        }
+
         // helper method for truncating name at max name size
-        private string Truncate(string name)
+        private static string Truncate(string name)
         {
             name = name.Trim();
             if (name.Length > MAX_NAME_LEN)
@@ -703,6 +697,6 @@ namespace Dynatrace.OpenKit.Protocol
             return timestamp - sessionStartTime;
         }
 
-        public bool IsEmpty=> beaconCache.IsEmpty(sessionNumber);
+        public bool IsEmpty => beaconCache.IsEmpty(sessionNumber);
     }
 }

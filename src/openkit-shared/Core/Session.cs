@@ -73,7 +73,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(actionName))
             {
-                logger.Warn("Session.enterAction: actionName must not be null or empty");
+                logger.Warn("Session.EnterAction: actionName must not be null or empty");
                 return NullRootAction;
             }
             if (!IsSessionEnded)
@@ -88,7 +88,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(userTag))
             {
-                logger.Warn("Session.identifyUser: userTag must not be null or empty");
+                logger.Warn("Session.IdentifyUser: userTag must not be null or empty");
                 return;
             }
             if (!IsSessionEnded)
@@ -101,7 +101,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                logger.Warn("Session.reportCrash: errorName must not be null or empty");
+                logger.Warn("Session.ReportCrash: errorName must not be null or empty");
                 return;
             }
             if (!IsSessionEnded)

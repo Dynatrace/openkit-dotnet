@@ -98,7 +98,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
             
             // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction.enterAction: actionName must not be null or empty");
+            logger.Received(1).Warn("RootAction.EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -114,7 +114,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction.enterAction: actionName must not be null or empty");
+            logger.Received(1).Warn("RootAction.EnterAction: actionName must not be null or empty");
         }
 
         [Test]

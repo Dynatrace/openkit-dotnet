@@ -66,8 +66,6 @@ namespace Dynatrace.OpenKit.Core
             this.thisLevelActions.Put(this);
         }
 
-        public ILogger Logger => logger;
-
         public int ID => id;
 
         public string Name => name;
@@ -84,11 +82,13 @@ namespace Dynatrace.OpenKit.Core
 
         internal bool IsActionLeft => EndTime != -1L;
 
+        internal ILogger Logger => logger;
+
         public IAction ReportEvent(string eventName)
         {
             if (string.IsNullOrEmpty(eventName))
             {
-                logger.Warn("Action.reportEvent: eventName must not be null or empty");
+                logger.Warn("Action.ReportEvent: eventName must not be null or empty");
                 return this;
             }
             if (!IsActionLeft)
@@ -102,7 +102,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn("Action.reportValue (string): valueName must not be null or empty");
+                logger.Warn("Action.ReportValue (string): valueName must not be null or empty");
                 return this;
             }
             if (!IsActionLeft)
@@ -116,7 +116,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn("Action.reportValue (double): valueName must not be null or empty");
+                logger.Warn("Action.ReportValue (double): valueName must not be null or empty");
                 return this;
             }
             if (!IsActionLeft)
@@ -130,7 +130,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn("Action.reportValue (int): valueName must not be null or empty");
+                logger.Warn("Action.ReportValue (int): valueName must not be null or empty");
                 return this;
             }
             if (!IsActionLeft)
@@ -144,7 +144,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                logger.Warn("Action.reportError: errorName must not be null or empty");
+                logger.Warn("Action.ReportError: errorName must not be null or empty");
                 return this;
             }
             if (!IsActionLeft)
@@ -158,7 +158,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(url))
             {
-                logger.Warn("Action.traceWebRequest (String): url must not be null or empty");
+                logger.Warn("Action.TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
             if (!IsActionLeft)
