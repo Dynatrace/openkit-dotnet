@@ -31,8 +31,8 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public RootAction(Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
-            : base(beacon, name, thisLevelActions)
+        public RootAction(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
+            : base(logger, beacon, name, thisLevelActions)
         {
             this.beacon = beacon;
         }
@@ -41,9 +41,14 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction EnterAction(string actionName)
         {
+            if (string.IsNullOrEmpty(actionName))
+            {
+                    Logger.Warn("RootAction.enterAction: actionName must not be null or empty");
+                    return new NullAction(this);
+            }
             if (!IsActionLeft)
             {
-                return new Action(beacon, actionName, this, openChildActions);
+                return new Action(Logger, beacon, actionName, this, openChildActions);
             }
             return new NullAction(this);
         }

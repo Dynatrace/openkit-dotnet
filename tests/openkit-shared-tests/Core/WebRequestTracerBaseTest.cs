@@ -35,15 +35,16 @@ namespace Dynatrace.OpenKit.Core
         [SetUp]
         public void SetUp()
         {
+            var logger = Substitute.For<ILogger>();
             mockTimingProvider = Substitute.For<ITimingProvider>();
             testConfiguration = new TestConfiguration();
-            beacon = new Beacon(Substitute.For<ILogger>(),
+            beacon = new Beacon(logger,
                                 new BeaconCache(),
                                 testConfiguration,
                                 "127.0.0.1",
                                 Substitute.For<IThreadIDProvider>(),
                                 mockTimingProvider);
-            action = new RootAction(beacon, "ActionName", new SynchronizedQueue<IAction>());
+            action = new RootAction(logger, beacon, "ActionName", new SynchronizedQueue<IAction>());
         }
 
         [Test]

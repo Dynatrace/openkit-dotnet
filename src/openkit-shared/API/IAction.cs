@@ -28,6 +28,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Reports an event with a specified name (but without any value).
         /// </summary>
+        /// <remarks>
+        /// If given <paramref name="eventName"/> is <code>null</code>
+        /// or an empty string, then no event is reported to the system.
+        /// </remarks>
         /// <param name="eventName">name of the event</param>
         /// <returns>this Action (for usage as fluent API)</returns>
         IAction ReportEvent(string eventName);
@@ -35,6 +39,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Reports an int value with a specified name.
         /// </summary>
+        /// <remarks>
+        /// If given <paramref name="valueName"/> is <code>null</code> or an empty string,
+        /// no value is reported.
+        /// </remarks>
         /// <param name="valueName">name of this value</param>
         /// <param name="value">value itself</param>
         /// <returns>this Action (for usage as fluent API)</returns>
@@ -43,6 +51,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Reports a double value with a specified name.
         /// </summary>
+        /// <remarks>
+        /// If given <paramref name="valueName"/> is <code>null</code> or an empty string,
+        /// no value is reported.
+        /// </remarks>
         /// <param name="valueName">name of this value</param>
         /// <param name="value">value itself</param>
         /// <returns>this Action (for usage as fluent API)</returns>
@@ -51,6 +63,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Reports a string value with a specified name.
         /// </summary>
+        /// <remarks>
+        /// If given <paramref name="valueName"/> is <code>null</code> or an empty string,
+        /// no value is reported.
+        /// </remarks>
         /// <param name="valueName">name of this value</param>
         /// <param name="value">value itself</param>
         /// <returns>this Action (for usage as fluent API)</returns>
@@ -59,6 +75,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Reports an error with a specified name, error code and reason.
         /// </summary>
+        /// <remarks>
+        /// If given <paramref name="errorName"/> is <code>null</code> or an empty string,
+        /// no error is reported.
+        /// </remarks>
         /// <param name="errorName">name of this error</param>
         /// <param name="errorCode">numeric error code of this error</param>
         /// <param name="reason">reason for this error</param>
@@ -72,6 +92,10 @@ namespace Dynatrace.OpenKit.API
         ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
         ///  the resulting server-side PurePath.
         /// </summary>
+        /// <remarks>
+        /// If given <paramref name="url"/> is <code>null</code> or an empty string, then
+        /// a <see cref="NullWebRequestTracer"/> is returned and nothing is reported to the server.
+        /// </remarks>
         /// <param name="url">the URL of the web request to be traced and timed</param>
         /// <returns>a WebRequestTracer which allows getting the tag value and adding timing information</returns>
         IWebRequestTracer TraceWebRequest(string url);
@@ -81,7 +105,6 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <returns>the parent Action, or null if there is no parent Action</returns>
         IAction LeaveAction();
-
     }
 
 }

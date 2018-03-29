@@ -28,13 +28,14 @@ namespace Dynatrace.OpenKit.Core
     {
         private ITimingProvider mockTimingProvider;
         private IBeaconSendingContext beaconSendingContext;
+        private ILogger logger;
         private Beacon beacon;
         private BeaconSender beaconSender;
 
         [SetUp]
         public void SetUp()
         {
-            var logger = Substitute.For<ILogger>();
+            logger = Substitute.For<ILogger>();
             logger.IsDebugEnabled.Returns(true);
 
             beaconSendingContext = Substitute.For<IBeaconSendingContext>();
@@ -49,7 +50,7 @@ namespace Dynatrace.OpenKit.Core
         public void ANewlyCreatedSessionIsEmpty()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -59,7 +60,7 @@ namespace Dynatrace.OpenKit.Core
         public void ANewlyCreatedSessionIsNotEnded()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
 
             // then
             Assert.That(target.EndTime, Is.EqualTo(-1L));
@@ -70,7 +71,7 @@ namespace Dynatrace.OpenKit.Core
         public void AfterCallingEndASessionIsEnded()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
 
             // when
             target.End();
@@ -83,36 +84,67 @@ namespace Dynatrace.OpenKit.Core
         public void EnterActionGivesNewRootAction()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
 
             // when
             var obtained = target.EnterAction("action name");
 
             // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained, Is.TypeOf<RootAction>());
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<RootAction>());
         }
 
         [Test]
         public void EnterActionGivesNullActionIfSessionIsAlreadyEnded()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             target.End();
 
             // when
             var obtained = target.EnterAction("action name");
 
             // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained, Is.TypeOf<NullRootAction>());
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
+
+        }
+
+        [Test]
+        public void EnterActionGivesNullActionIfActionNameIsNull()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+
+            // when
+            var obtained = target.EnterAction(null);
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session.enterAction: actionName must not be null or empty");
+        }
+
+        [Test]
+        public void EnterActionGivesNullActionIfActionNameIsEmptyString()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+
+            // when
+            var obtained = target.EnterAction(string.Empty);
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session.enterAction: actionName must not be null or empty");
         }
 
         [Test]
         public void IdentifyUser()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             beacon.ClearData();
 
             // when
@@ -126,7 +158,7 @@ namespace Dynatrace.OpenKit.Core
         public void IdentifyUserDoesNothingIfSessionIsEnded()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             target.End();
             beacon.ClearData();
 
@@ -138,10 +170,44 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void IdentifyUserDoesNothingIfUserTagIsNull()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            target.IdentifyUser(null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session.identifyUser: userTag must not be null or empty");
+        }
+
+        [Test]
+        public void IdentifyUserDoesNothingIfUserTagIsAnEmptyString()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            target.IdentifyUser(string.Empty);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session.identifyUser: userTag must not be null or empty");
+        }
+
+        [Test]
         public void ReportCrash()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             beacon.ClearData();
 
             // when
@@ -155,7 +221,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportCrashDoesNothingIfSessionIsEnded()
         {
             // given
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             target.End();
             beacon.ClearData();
 
@@ -164,6 +230,40 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(beacon.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void ReportCrashDoesNothingIfErrorNameIsNull()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            target.ReportCrash(null, "reason for crash", "the stacktrace");
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session.reportCrash: errorName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportCrashDoesNothingIfErrorNameIsAnEmptyString()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            target.ReportCrash(string.Empty, "reason for crash", "the stacktrace");
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session.reportCrash: errorName must not be null or empty");
         }
 
         [Test]
@@ -177,7 +277,7 @@ namespace Dynatrace.OpenKit.Core
                 return timestamp;
             });
 
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             var rootActionOne = target.EnterAction("Root Action One");
             var rootActionTwo = target.EnterAction("Root Action Two");
 
@@ -202,7 +302,7 @@ namespace Dynatrace.OpenKit.Core
                 return timestamp;
             });
 
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
 
             // when
             target.End();
@@ -222,7 +322,7 @@ namespace Dynatrace.OpenKit.Core
                 return timestamp;
             });
 
-            IDisposable target = new Session(beaconSender, beacon);
+            IDisposable target = new Session(logger, beaconSender, beacon);
 
             // when
             target.Dispose();
@@ -242,7 +342,7 @@ namespace Dynatrace.OpenKit.Core
                 return timestamp;
             });
 
-            var target = new Session(beaconSender, beacon);
+            var target = new Session(logger, beaconSender, beacon);
             target.End();
 
             beacon.ClearData();

@@ -288,7 +288,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateValidSession(string clientIP)
         {
-            var session = new Session(beaconSender, new Beacon(Substitute.For<ILogger>(), new BeaconCache(), 
+            var logger = Substitute.For<ILogger>();
+            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(), 
                 config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
@@ -298,7 +299,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private Session CreateEmptySession(string clientIP)
         {
-            return new Session(beaconSender, new Beacon(Substitute.For<ILogger>(), new BeaconCache(),
+            var logger = Substitute.For<ILogger>();
+            return new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(),
                 config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
         }
     }

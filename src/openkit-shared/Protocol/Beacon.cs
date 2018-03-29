@@ -165,35 +165,17 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// create next ID
         /// </summary>
-        public int NextID
-        {
-            get
-            {
-                return Interlocked.Increment(ref nextID);
-            }
-        }
+        public int NextID => Interlocked.Increment(ref nextID);
 
         /// <summary>
         /// create next sequence number
         /// </summary>
-        public int NextSequenceNumber
-        {
-            get
-            {
-                return Interlocked.Increment(ref nextSequenceNumber);
-            }
-        }
+        public int NextSequenceNumber => Interlocked.Increment(ref nextSequenceNumber);
 
         /// <summary>
         /// Get the current timestamp in milliseconds by delegating to TimingProvider
         /// </summary>
-        public long CurrentTimestamp
-        {
-            get
-            {
-                return timingProvider.ProvideTimestampInMilliseconds();
-            }
-        }
+        public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
 
         /// <summary>
         /// Returns an immutable list of the event data
@@ -335,7 +317,10 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder eventBuilder = new StringBuilder();
 
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, parentAction);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, Truncate(value));
+            if (value != null)
+            {
+                AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, Truncate(value));
+            }
 
             AddEventData(eventTimestamp, eventBuilder);
         }
@@ -378,7 +363,10 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_CODE, errorCode);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+            if (reason != null)
+            {
+                AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+            }
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -405,8 +393,14 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);                                  // no parent action
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
+            if (reason != null)
+            {
+                AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+            }
+            if (stacktrace != null)
+            {
+                AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
+            }
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -709,6 +703,6 @@ namespace Dynatrace.OpenKit.Protocol
             return timestamp - sessionStartTime;
         }
 
-        public bool IsEmpty { get { return beaconCache.IsEmpty(sessionNumber); } }
+        public bool IsEmpty=> beaconCache.IsEmpty(sessionNumber);
     }
 }
