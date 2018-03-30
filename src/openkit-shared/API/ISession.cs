@@ -28,6 +28,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Enters an Action with a specified name in this Session.
         /// </summary>
+        /// <remarks>
+        /// If <paramref name="actionName"/> is <code>null</code> or an empty string,
+        /// a <see cref="NullAction"/> is entered and therefore no action tracing happens.
+        /// </remarks>
         /// <param name="actionName">name of the Action</param>
         /// <returns>Action instance to work with</returns>
         IRootAction EnterAction(string actionName);
@@ -35,6 +39,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Tags a session with the provided <code>userTag</code>
         /// </summary>
+        /// <remarks>
+        /// If <paramref name="userTag"/> is <code>null</code> or an empty string,
+        /// no user identification is sent to the server.
+        /// </remarks>
         /// <param name="userTag"></param>
         void IdentifyUser(string userTag);
 
@@ -50,7 +58,6 @@ namespace Dynatrace.OpenKit.API
         ///  Ends this Session and marks it as ready for immediate sending.
         /// </summary>
         void End();
-
     }
 
 }

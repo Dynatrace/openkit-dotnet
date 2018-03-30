@@ -117,7 +117,7 @@ namespace Dynatrace.OpenKit.Core
             // create beacon for session
             var beacon = new Beacon(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider);
             // create session
-            return new Session(beaconSender, beacon);
+            return new Session(logger, beaconSender, beacon);
         }
 
         public void Shutdown()

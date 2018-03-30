@@ -24,6 +24,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Enters a child Action with a specified name on this Action.
         /// </summary>
+        /// <remarks>
+        /// If <paramref name="actionName"/> is <code>null</code> or an empty string,
+        /// a <see cref="NullAction"/> is entered and therefore no action tracing happens.
+        /// </remarks>
         /// <param name="actionName">name of the Action</param>
         /// <returns>Action instance to work with</returns>
         IAction EnterAction(string actionName);

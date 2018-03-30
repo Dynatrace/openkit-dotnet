@@ -28,6 +28,8 @@ namespace Dynatrace.OpenKit.Core
     {
         private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
+        private readonly ILogger logger;
+
         // Action ID, name and parent ID (default: null)
         private int id;
         private string name;
@@ -45,12 +47,13 @@ namespace Dynatrace.OpenKit.Core
         // data structures for managing IAction hierarchies
         private SynchronizedQueue<IAction> thisLevelActions = null;
 
-        public Action(Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions) : this(beacon, name, null, thisLevelActions)
+        public Action(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions) : this(logger, beacon, name, null, thisLevelActions)
         {
         }
 
-        internal Action(Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions)
+        internal Action(ILogger logger, Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions)
         {
+            this.logger = logger;
             this.beacon = beacon;
             this.parentAction = parentAction;
 
@@ -79,8 +82,15 @@ namespace Dynatrace.OpenKit.Core
 
         internal bool IsActionLeft => EndTime != -1L;
 
+        internal ILogger Logger => logger;
+
         public IAction ReportEvent(string eventName)
         {
+            if (string.IsNullOrEmpty(eventName))
+            {
+                logger.Warn("Action.ReportEvent: eventName must not be null or empty");
+                return this;
+            }
             if (!IsActionLeft)
             {
                 beacon.ReportEvent(this, eventName);
@@ -90,6 +100,11 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction ReportValue(string valueName, string value)
         {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                logger.Warn("Action.ReportValue (string): valueName must not be null or empty");
+                return this;
+            }
             if (!IsActionLeft)
             {
                 beacon.ReportValue(this, valueName, value);
@@ -99,6 +114,11 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction ReportValue(string valueName, double value)
         {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                logger.Warn("Action.ReportValue (double): valueName must not be null or empty");
+                return this;
+            }
             if (!IsActionLeft)
             {
                 beacon.ReportValue(this, valueName, value);
@@ -108,6 +128,11 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction ReportValue(string valueName, int value)
         {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                logger.Warn("Action.ReportValue (int): valueName must not be null or empty");
+                return this;
+            }
             if (!IsActionLeft)
             {
                 beacon.ReportValue(this, valueName, value);
@@ -117,6 +142,11 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction ReportError(string errorName, int errorCode, string reason)
         {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                logger.Warn("Action.ReportError: errorName must not be null or empty");
+                return this;
+            }
             if (!IsActionLeft)
             {
                 beacon.ReportError(this, errorName, errorCode, reason);
@@ -126,6 +156,11 @@ namespace Dynatrace.OpenKit.Core
 
         public IWebRequestTracer TraceWebRequest(string url)
         {
+            if (string.IsNullOrEmpty(url))
+            {
+                logger.Warn("Action.TraceWebRequest (String): url must not be null or empty");
+                return NullWebRequestTracer;
+            }
             if (!IsActionLeft)
             {
                 return new WebRequestTracerStringURL(beacon, this, url);

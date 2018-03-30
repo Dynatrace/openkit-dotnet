@@ -31,13 +31,15 @@ namespace Dynatrace.OpenKit.Core
         private Beacon beacon;
         private OpenKitConfiguration testConfiguration;
         private ITimingProvider mockTimingProvider;
+        private ILogger logger;
         
         [SetUp]
         public void SetUp()
         {
             mockTimingProvider = Substitute.For<ITimingProvider>();
             testConfiguration = new TestConfiguration();
-            beacon = new Beacon(Substitute.For<ILogger>(),
+            logger = Substitute.For<ILogger>();
+            beacon = new Beacon(logger,
                                 new BeaconCache(),
                                 testConfiguration,
                                 "127.0.0.1",
@@ -50,7 +52,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             while (beacon.NextID < 10) ; // increment the id
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.ID, Is.EqualTo(11));
@@ -60,7 +62,7 @@ namespace Dynatrace.OpenKit.Core
         public void NameIsSet()
         {
             // given
-            var target = new Action(beacon, "test name", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test name", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.Name, Is.EqualTo("test name"));
@@ -70,7 +72,7 @@ namespace Dynatrace.OpenKit.Core
         public void ParentIDIsZeroIfActionHasNoParent()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.ParentID, Is.EqualTo(0));
@@ -81,8 +83,8 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             while (beacon.NextID < 10) ; // increment the id
-            var parent = new Action(beacon, "parent", new SynchronizedQueue<IAction>());
-            var target = new Action(beacon, "test", parent, new SynchronizedQueue<IAction>());
+            var parent = new Action(logger, beacon, "parent", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", parent, new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.ParentID, Is.EqualTo(11));
@@ -93,7 +95,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1234L);
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.StartTime, Is.EqualTo(1234L));
@@ -103,7 +105,7 @@ namespace Dynatrace.OpenKit.Core
         public void EndTimeIsSetToMinusOneInConstructor()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.EndTime, Is.EqualTo(-1L));
@@ -114,7 +116,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             while (beacon.NextSequenceNumber < 5) ; // increment sequence number
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.StartSequenceNo, Is.EqualTo(6));
@@ -125,7 +127,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             while (beacon.NextSequenceNumber < 5) ; // increment sequence number
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.EndSequenceNo, Is.EqualTo(-1));
@@ -135,7 +137,7 @@ namespace Dynatrace.OpenKit.Core
         public void ANewlyCreatedActionIsNotLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
             Assert.That(target.IsActionLeft, Is.False);
@@ -148,7 +150,7 @@ namespace Dynatrace.OpenKit.Core
             var actions = new SynchronizedQueue<IAction>();
 
             // when constructing the action
-            var target = new Action(beacon, "test", actions);
+            var target = new Action(logger, beacon, "test", actions);
 
             // then
             Assert.That(actions.IsEmpty, Is.False);
@@ -159,7 +161,7 @@ namespace Dynatrace.OpenKit.Core
         public void AfterLeavingAnActionItIsLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // when
             target.LeaveAction();
@@ -172,7 +174,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportEvent()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when reporting an event
@@ -187,7 +189,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportEventDoesNothingIfActionIsLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             target.LeaveAction();
             beacon.ClearData();
 
@@ -200,10 +202,46 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void ReportEventDoesNothingIfEventNameIsNull()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when reporting an event
+            var obtained = target.ReportEvent(null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportEvent: eventName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportEventDoesNothingIfEventNameIsAnEmptyString()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when reporting an event
+            var obtained = target.ReportEvent(string.Empty);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportEvent: eventName must not be null or empty");
+        }
+
+        [Test]
         public void ReportIntValue()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when reporting an event
@@ -219,7 +257,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportIntValueDoesNothingIfActionIsLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             target.LeaveAction();
             beacon.ClearData();
 
@@ -233,10 +271,48 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void ReportIntValueDoesNothingIfValueNameIsNull()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            const int value = 42;
+            var obtained = target.ReportValue(null, value);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportValue (int): valueName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportIntValueDoesNothingIfValueNameIsAnEmptyString()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            const int value = 42;
+            var obtained = target.ReportValue(string.Empty, value);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportValue (int): valueName must not be null or empty");
+        }
+
+        [Test]
         public void ReportDoubleValue()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when reporting an event
@@ -252,7 +328,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportDoubleValueDoesNothingIfActionIsLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             target.LeaveAction();
             beacon.ClearData();
 
@@ -266,10 +342,48 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void ReportDoubleValueDoesNothingIfValueNameIsNull()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            const double value = 42.125;
+            var obtained = target.ReportValue(null, value);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportValue (double): valueName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportDoubleValueDoesNothingIfValueNameIsAnEmptyString()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            const double value = 42.25;
+            var obtained = target.ReportValue(string.Empty, value);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportValue (double): valueName must not be null or empty");
+        }
+
+        [Test]
         public void ReportStringValue()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when reporting an event
@@ -285,7 +399,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportStringValueDoesNothingIfActionIsLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             target.LeaveAction();
             beacon.ClearData();
 
@@ -299,10 +413,63 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void ReportStringValueDoesNothingIfValueNameIsNull()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            const string value = "42";
+            var obtained = target.ReportValue(null, value);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportValue (string): valueName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportStringValueDoesNothingIfValueNameIsAnEmptyString()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            const string value = "42";
+            var obtained = target.ReportValue(string.Empty, value);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportValue (string): valueName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportStringValueWithValueBeingNullWorks()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.ReportValue("valueName", null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.False);
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
         public void ReportError()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when reporting an event
@@ -317,7 +484,7 @@ namespace Dynatrace.OpenKit.Core
         public void ReportErrorDoesNothingIfActionIsLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             target.LeaveAction();
             beacon.ClearData();
 
@@ -330,10 +497,61 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void ReportErrorDoesNothingIfErrorNameIsNull()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.ReportError(null, 418, "I'm a teapot");
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportError: errorName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportErrorDoesNothingIfErrorNameIsAnEmptyString()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.ReportError(string.Empty, 418, "I'm a teapot");
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.SameAs(target));
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.ReportError: errorName must not be null or empty");
+        }
+
+        [Test]
+        public void ReportErrorAcceptsNullReason()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.ReportError("errorName", 418, null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.False);
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
         public void TraceWebRequestGivesValidWebRequestTracer()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when
@@ -348,7 +566,7 @@ namespace Dynatrace.OpenKit.Core
         public void TraceWebRequestGivesNullWebRequestTracerIfActionIsAlreadyLeft()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             target.LeaveAction();
             beacon.ClearData();
 
@@ -356,16 +574,51 @@ namespace Dynatrace.OpenKit.Core
             var obtained = target.TraceWebRequest("http://example.com/pages/");
 
             // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained, Is.InstanceOf<NullWebRequestTracer>());
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsNull()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest(null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.TraceWebRequest (String): url must not be null or empty");
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsAnEmptyString()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest(null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Action.TraceWebRequest (String): url must not be null or empty");
         }
 
         [Test]
         public void LeavingAnActionReturnsTheParentAction()
         {
             // given
-            var parent = new Action(beacon, "parent", new SynchronizedQueue<IAction>());
-            var child = new Action(beacon, "test", parent, new SynchronizedQueue<IAction>());
+            var parent = new Action(logger, beacon, "parent", new SynchronizedQueue<IAction>());
+            var child = new Action(logger, beacon, "test", parent, new SynchronizedQueue<IAction>());
 
             // when leaving the child action
             var obtained = child.LeaveAction();
@@ -386,7 +639,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123L, 321L, 322L, 323L);
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // when leaving the action
             target.LeaveAction();
@@ -400,7 +653,7 @@ namespace Dynatrace.OpenKit.Core
         public void LeavingAnActionSetsTheEndSequenceNumber()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             while (beacon.NextSequenceNumber < 41) ; // increase the sequence number
 
             // when leaving the action
@@ -414,7 +667,7 @@ namespace Dynatrace.OpenKit.Core
         public void LeavingAnActionAddsItselfInTheBeacon()
         {
             // given
-            var target = new Action(beacon, "test", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
             beacon.ClearData();
 
             // when leaving the action
@@ -429,7 +682,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             var actions = new SynchronizedQueue<IAction>();
-            var target = new Action(beacon, "test", actions);
+            var target = new Action(logger, beacon, "test", actions);
 
             // when leaving the action
             target.LeaveAction();
@@ -443,8 +696,8 @@ namespace Dynatrace.OpenKit.Core
         {
             // given
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123L, 321L, 322L, 323L, 324L, 325L);
-            var parent = new Action(beacon, "parent", new SynchronizedQueue<IAction>());
-            var target = new Action(beacon, "test", parent, new SynchronizedQueue<IAction>());
+            var parent = new Action(logger, beacon, "parent", new SynchronizedQueue<IAction>());
+            var target = new Action(logger, beacon, "test", parent, new SynchronizedQueue<IAction>());
 
             // when leaving the action first time
             var obtained = target.LeaveAction();
@@ -471,7 +724,7 @@ namespace Dynatrace.OpenKit.Core
             // given
             var actions = new SynchronizedQueue<IAction>();
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123L, 321L, 322L, 323L);
-            IDisposable target = new Action(beacon, "test", actions);
+            IDisposable target = new Action(logger, beacon, "test", actions);
             while (beacon.NextSequenceNumber < 41) ; // increase the sequence number
 
             // when disposing the target

@@ -29,6 +29,8 @@ namespace Dynatrace.OpenKit.Core
     {
         private static readonly NullRootAction NullRootAction = new NullRootAction();
 
+        private readonly ILogger logger;
+
         // end time of this Session
         private long endTime = -1;
 
@@ -40,8 +42,9 @@ namespace Dynatrace.OpenKit.Core
         private SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
 
 
-        public Session(BeaconSender beaconSender, Beacon beacon)
+        public Session(ILogger logger, BeaconSender beaconSender, Beacon beacon)
         {
+            this.logger = logger;
             this.beaconSender = beaconSender;
             this.beacon = beacon;
 
@@ -68,9 +71,14 @@ namespace Dynatrace.OpenKit.Core
 
         public IRootAction EnterAction(string actionName)
         {
+            if (string.IsNullOrEmpty(actionName))
+            {
+                logger.Warn("Session.EnterAction: actionName must not be null or empty");
+                return NullRootAction;
+            }
             if (!IsSessionEnded)
             {
-                return new RootAction(beacon, actionName, openRootActions);
+                return new RootAction(logger, beacon, actionName, openRootActions);
             }
 
             return NullRootAction;
@@ -78,6 +86,11 @@ namespace Dynatrace.OpenKit.Core
 
         public void IdentifyUser(string userTag)
         {
+            if (string.IsNullOrEmpty(userTag))
+            {
+                logger.Warn("Session.IdentifyUser: userTag must not be null or empty");
+                return;
+            }
             if (!IsSessionEnded)
             {
                 beacon.IdentifyUser(userTag);
@@ -86,6 +99,11 @@ namespace Dynatrace.OpenKit.Core
 
         public void ReportCrash(string errorName, string reason, string stacktrace)
         {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                logger.Warn("Session.ReportCrash: errorName must not be null or empty");
+                return;
+            }
             if (!IsSessionEnded)
             {
                 beacon.ReportCrash(errorName, reason, stacktrace);

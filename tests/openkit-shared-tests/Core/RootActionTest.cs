@@ -26,13 +26,15 @@ namespace Dynatrace.OpenKit.Core
     public class RootActionTest
     {
         private ITimingProvider mockTimingProvider;
+        private ILogger logger;
         private Beacon beacon;
 
         [SetUp]
         public void SetUp()
         {
             mockTimingProvider = Substitute.For<ITimingProvider>();
-            beacon = new Beacon(Substitute.For<ILogger>(),
+            logger = Substitute.For<ILogger>();
+            beacon = new Beacon(logger,
                                 new BeaconCache(),
                                 new TestConfiguration(),
                                 "127.0.0.1",
@@ -44,22 +46,20 @@ namespace Dynatrace.OpenKit.Core
         public void EnterActionReturnsNewChildAction()
         {
             // given
-            var target = new RootAction(beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
 
             // when entering first child
             var childOne = target.EnterAction("child one");
 
             // then
-            Assert.That(childOne, Is.Not.Null);
-            Assert.That(childOne, Is.TypeOf<Action>());
+            Assert.That(childOne, Is.Not.Null.And.TypeOf<Action>());
             Assert.That(((Action)childOne).ParentID, Is.EqualTo(target.ID));
 
             // when entering second child
             var childTwo = target.EnterAction("child one");
 
             // then
-            Assert.That(childTwo, Is.Not.Null);
-            Assert.That(childTwo, Is.TypeOf<Action>());
+            Assert.That(childTwo, Is.Not.Null.And.TypeOf<Action>());
             Assert.That(((Action)childTwo).ParentID, Is.EqualTo(target.ID));
             Assert.That(childTwo, Is.Not.SameAs(childOne));
         }
@@ -68,23 +68,53 @@ namespace Dynatrace.OpenKit.Core
         public void EnterActionReturnsNullActionIfAlreadyLeft()
         {
             // given
-            var target = new RootAction(beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
             target.LeaveAction();
 
             // when entering first child
             var childOne = target.EnterAction("child one");
 
             // then
-            Assert.That(childOne, Is.Not.Null);
-            Assert.That(childOne, Is.TypeOf<NullAction>());
+            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
 
             // when entering second child
             var childTwo = target.EnterAction("child one");
 
             // then
-            Assert.That(childTwo, Is.Not.Null);
-            Assert.That(childTwo, Is.TypeOf<NullAction>());
+            Assert.That(childTwo, Is.Not.Null.And.TypeOf<NullAction>());
             Assert.That(childTwo, Is.Not.SameAs(childOne));
+        }
+
+        [Test]
+        public void EnterActionReturnsNullActionIfActionNameIsNull()
+        {
+            // given
+            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
+
+            // when
+            var childOne = target.EnterAction(null);
+
+            // then
+            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
+            
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("RootAction.EnterAction: actionName must not be null or empty");
+        }
+
+        [Test]
+        public void EnterActionReturnsNullActionIfActionNameIsAnEmptyString()
+        {
+            // given
+            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
+
+            // when
+            var childOne = target.EnterAction(string.Empty);
+
+            // then
+            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("RootAction.EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -97,7 +127,7 @@ namespace Dynatrace.OpenKit.Core
                 startTimestamp += 1;
                 return startTimestamp;
             });
-            var target = new RootAction(beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
 
             var childActionOne = target.EnterAction("child one");
             var childActionTwo = target.EnterAction("child two");
@@ -118,7 +148,7 @@ namespace Dynatrace.OpenKit.Core
         public void LeavingRootActionReturnsNullValueAsParent()
         {
             // given
-            var target = new RootAction(beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
 
             // when
             var obtained = target.LeaveAction();
