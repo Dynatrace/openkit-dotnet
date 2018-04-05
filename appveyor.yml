@@ -53,7 +53,7 @@ for:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll  | ? {$_.FullName -match "\\bin\\Coverage\\" } | % FullName 
-      packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe" -targetargs:"$testAssemblies" -register:user -filter:"+[*]* -[*.Tests]*" -output:coverage.xml
+      packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]* -[*.Tests]*" -output:coverage.xml
       # Run .NET Core tests
       $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
       foreach ($project in $testProjects)
@@ -61,7 +61,7 @@ for:
         packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test -c Coverage $project --no-build" -register:user  -filter:"+[*]* -[*.Tests]*" -oldstyle  -output:coverage.xml -mergeoutput
       }
   after_test: 
-  - ps: packages\coveralls.io.1.4.2\tools\coveralls.net.exe --opencover .\coverage.xml -r $Env:COVERALLS_REPO_TOKEN
+  - cmd: packages\coveralls.io.1.4.2\tools\coveralls.net.exe --opencover .\coverage.xml -r %COVERALLS_REPO_TOKEN%
 
 # artifacts being published  
 artifacts:
