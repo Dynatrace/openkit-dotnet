@@ -39,6 +39,7 @@ before_build:
 
 # build
 build:
+  project: openkit-dotnet.sln
   verbosity: minimal
   
 # run tests with code coverage only for Coverage configuration
