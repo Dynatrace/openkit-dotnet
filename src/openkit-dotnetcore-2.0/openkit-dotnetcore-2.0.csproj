@@ -5,6 +5,12 @@
     <AssemblyName>openkit-1.0.1-dotnetcore-2.0</AssemblyName>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Configurations>Debug;Release;Coverage</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <Import Project="..\openkit-shared\openkit-shared.projitems" Label="Shared" />
