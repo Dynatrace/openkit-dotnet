@@ -1,9 +1,9 @@
 version: 1.0.1.{build}
 
 # environment variables
-environment:
-  COVERALLS_REPO_TOKEN:
-    secure: Wl67oz14MtyJ8KX1O+c2fdMMtl3pRBmJ3juIratFLyfcoTZnACdDVfDvvNt7/ZpL
+#environment:
+#  COVERALLS_REPO_TOKEN:
+#    secure: Wl67oz14MtyJ8KX1O+c2fdMMtl3pRBmJ3juIratFLyfcoTZnACdDVfDvvNt7/ZpL
 
 # Build with Visual Studio 2017
 image: Visual Studio 2017
