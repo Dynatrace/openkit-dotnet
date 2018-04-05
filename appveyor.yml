@@ -3,7 +3,7 @@ version: 1.0.1.{build}
 # environment variables
 environment:
   COVERALLS_REPO_TOKEN:
-    secure: qUkz/QxB+2uGtbyaoPJ5dORb6Qi2FC9CubHq5BgzbmZG8D//zN/n0l9kMmjJsw3L
+    secure: Wl67oz14MtyJ8KX1O+c2fdMMtl3pRBmJ3juIratFLyfcoTZnACdDVfDvvNt7/ZpL
 
 # Build with Visual Studio 2017
 image: Visual Studio 2017
@@ -61,7 +61,7 @@ for:
         packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test -c Coverage $project --no-build" -register:user  -filter:"+[*]* -[*.Tests]*" -oldstyle  -output:coverage.xml -mergeoutput
       }
   after_test: 
-  - ps: 
+  - ps: packages\coveralls.io.1.4.2\tools\coveralls.net.exe --opencover .\coverage.xml -r $Env:COVERALLS_REPO_TOKEN
 
 # artifacts being published  
 artifacts:
@@ -80,4 +80,5 @@ deploy:
   prerelease: false
   on:
     branch: master
+    configuration: Release
     APPVEYOR_REPO_TAG: true
