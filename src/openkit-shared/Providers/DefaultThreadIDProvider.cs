@@ -18,12 +18,11 @@ using System.Threading;
 
 namespace Dynatrace.OpenKit.Providers
 {
-
     /// <summary>
     ///  Class for providing a thread ID.
     /// </summary>
     public class DefaultThreadIDProvider : IThreadIDProvider
     {
-        public int ThreadID => Thread.CurrentThread.ManagedThreadId;
+        public int ThreadID => Thread.CurrentThread.ManagedThreadId & 0x7fffffff;
     }
 }
