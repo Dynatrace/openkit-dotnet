@@ -75,6 +75,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public ITimingProvider TimingProvider { get; }
 
         public AbstractBeaconSendingState CurrentState { get; set; }
+        public AbstractBeaconSendingState NextState { get; set; }
         public long LastOpenSessionBeaconSendTime { get; set; }
         public long LastStatusCheckTime { get; set; }
         public long LastTimeSyncTime { get; set; }
@@ -117,7 +118,13 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public void ExecuteCurrentState()
         {
+            NextState = null;
             CurrentState.Execute(this);
+            if(NextState!=null)
+            {
+                CurrentState = NextState;
+                NextState = null;
+            }
         }
 
         public void RequestShutdown()
