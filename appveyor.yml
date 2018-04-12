@@ -1,6 +1,23 @@
 version: 1.0.1.{build}
+
+# environment variables
+environment:
+  COVERALLS_REPO_TOKEN:
+    secure: Wl67oz14MtyJ8KX1O+c2fdMMtl3pRBmJ3juIratFLyfcoTZnACdDVfDvvNt7/ZpL
+
+# Build with Visual Studio 2017
 image: Visual Studio 2017
-configuration: Release
+
+# Build Release and Coverage (2 build jobs)
+configuration:
+- Release
+- Coverage
+
+# fail fast (No need to build Failing Release & Coverage builds)
+matrix:
+  fast_finish: true
+
+# Assembly patching for .NET and .NET Core projects
 assembly_info:
   patch: true
   file: '**\AssemblyInfo.*'
@@ -9,21 +26,55 @@ assembly_info:
   assembly_informational_version: $(appveyor_build_version)
 dotnet_csproj:
   patch: true
-  file: '**\*.csproj'
+  file: '**\openkit-dotnetcore-*.csproj'
   version: $(appveyor_build_version)
   package_version: $(appveyor_build_version)
   assembly_version: $(appveyor_build_version)
   file_version: $(appveyor_build_version)
   informational_version: $(appveyor_build_version)
+
+# restore NuGet packages
 before_build:
 - cmd: nuget restore
+
+# build
 build:
+  project: openkit-dotnet.sln
   verbosity: minimal
+  
+# run tests with code coverage only for Coverage configuration
+for:
+-
+  matrix:
+    only:
+      - configuration: Coverage
+
+  test_script:
+  - ps: |
+      # Run .NET test assemblies, excluding .NET Core
+      $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll  | ? {$_.FullName -match "\\bin\\Coverage\\" } | % FullName 
+      packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]* -[*.Tests]*" -output:coverage.xml
+      # Run .NET Core tests
+      $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
+      foreach ($project in $testProjects)
+      {
+        packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test -c Coverage $project --no-build" -register:user  -filter:"+[*]* -[*.Tests]*" -oldstyle  -output:coverage.xml -mergeoutput
+      }
+  after_test: 
+  - ps: |
+      if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "")
+      {
+        packages\coveralls.io.1.4.2\tools\coveralls.net.exe --opencover .\coverage.xml -r %COVERALLS_REPO_TOKEN%
+      }
+
+# artifacts being published  
 artifacts:
 - path: src\**\bin\Release\*.dll
   name: netfull
 - path: src\**\bin\Release\**\*.dll
   name: netcore
+
+# deployment
 deploy:
 - provider: GitHub
   release: $(APPVEYOR_REPO_TAG_NAME)
@@ -33,4 +84,5 @@ deploy:
   prerelease: false
   on:
     branch: master
+    configuration: Release
     APPVEYOR_REPO_TAG: true
