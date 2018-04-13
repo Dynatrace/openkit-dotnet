@@ -57,6 +57,8 @@ namespace Dynatrace.OpenKit.Core
             startSequenceNo = beacon.NextSequenceNumber;
 
             tag = beacon.CreateTag(action, startSequenceNo);
+
+            startTime = beacon.CurrentTimestamp;
         }
 
         // *** IWebRequestTracer interface methods ***
