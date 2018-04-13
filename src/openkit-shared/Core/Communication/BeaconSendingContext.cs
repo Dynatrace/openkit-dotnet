@@ -200,7 +200,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 ClearAllSessionData();
             }
         }
-        
+
         public void PushBackFinishedSession(Session finishedSession)
         {
             finishedSessions.Put(finishedSession);
