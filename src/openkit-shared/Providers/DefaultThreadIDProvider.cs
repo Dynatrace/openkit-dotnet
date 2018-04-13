@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Providers
     /// </summary>
     public class DefaultThreadIDProvider : IThreadIDProvider
     {
-        /// <summary> 
+        /// <summary>
         /// Get ID of calling thread
         /// </summary>
         /// <remarks>
