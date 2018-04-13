@@ -56,7 +56,7 @@ namespace Dynatrace.OpenKit.Core
             // then
             Assert.That(target.URL, Is.EqualTo("<unknown>"));
             Assert.That(target.ResponseCode, Is.EqualTo(-1));
-            Assert.That(target.StartTime, Is.EqualTo(-1L));
+            Assert.That(target.StartTime, Is.EqualTo(0L));
             Assert.That(target.EndTime, Is.EqualTo(-1L));
             Assert.That(target.StartSequenceNo, Is.EqualTo(2));
             Assert.That(target.EndSequenceNo, Is.EqualTo(-1));
@@ -226,7 +226,7 @@ namespace Dynatrace.OpenKit.Core
             var obtained = target.Start();
 
             // then
-            Assert.That(target.StartTime, Is.EqualTo(-1L));
+            Assert.That(target.StartTime, Is.EqualTo(0L));
             Assert.That(obtained, Is.SameAs(target));
         }
 
