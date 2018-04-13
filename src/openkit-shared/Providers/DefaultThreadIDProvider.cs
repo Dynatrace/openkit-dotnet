@@ -23,6 +23,13 @@ namespace Dynatrace.OpenKit.Providers
     /// </summary>
     public class DefaultThreadIDProvider : IThreadIDProvider
     {
+        /*
+        * Thread.CurrentThread.ManagedThreadId returns a int value which may be negative.
+        * The Beacon protocol requires the thread id to be a positive integer value.
+        * The most significant bit is forced to '0' by a bitwise-and operation with an integer
+        * where all bits except for the most significant bit are set to '1'.
+        */
+
         public int ThreadID => Thread.CurrentThread.ManagedThreadId & 0x7fffffff;
     }
 }
