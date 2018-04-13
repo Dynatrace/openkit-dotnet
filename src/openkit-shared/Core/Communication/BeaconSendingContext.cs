@@ -120,7 +120,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             NextState = null;
             CurrentState.Execute(this);
-            if (NextState != null) // CurrentState.Execute can trigger state changes
+            if (NextState != null) // CurrentState.Execute(...) can trigger state changes
             {
                 CurrentState = NextState;
                 NextState = null;
