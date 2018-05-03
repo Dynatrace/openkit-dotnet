@@ -152,5 +152,5 @@ IAction childAction = rootAction.EnterAction(childActionName);
 childAction.LeaveAction();
 rootAction.LeaveAction();
 session.End();
-openKit.ShutDown();
+openKit.Shutdown();
 ``` 
