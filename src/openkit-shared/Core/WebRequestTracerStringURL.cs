@@ -15,7 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Protocol;
-using System;
+using System.Text.RegularExpressions;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -27,17 +27,22 @@ namespace Dynatrace.OpenKit.Core
     public class WebRequestTracerStringURL : WebRequestTracerBase
     {
 
+        private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", 
+                                                                          RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         // *** constructors ***
 
         public WebRequestTracerStringURL(Beacon beacon, Action action, string url) : base(beacon, action)
         {
-            this.url = url;
-
             // separate query string from URL
-            if (url != null)
+            if (IsValidURLScheme(url))
             {
-                this.url = url.Split(new Char[] { '?' })[0];
+                this.url = url.Split(new char[] { '?' }, 2)[0];
             }
+        }
+        internal static bool IsValidURLScheme(string url)
+        {
+            return url != null && SchemaValidationPattern.Match(url).Success;
         }
 
     }
