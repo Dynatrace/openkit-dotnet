@@ -603,7 +603,7 @@ namespace Dynatrace.OpenKit.Core
             beacon.ClearData();
 
             // when
-            var obtained = target.TraceWebRequest(null);
+            var obtained = target.TraceWebRequest(string.Empty);
 
             // then
             Assert.That(beacon.IsEmpty, Is.True);
@@ -611,6 +611,24 @@ namespace Dynatrace.OpenKit.Core
 
             // also verify that warning has been written to log
             logger.Received(1).Warn("Action.TraceWebRequest (String): url must not be null or empty");
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfUrlHasAnInvalidScheme()
+        {
+            // given
+            var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest("foo:bar://test.com");
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn($"Action.TraceWebRequest (String): url \"foo:bar://test.com\" does not have a valid scheme");
         }
 
         [Test]
