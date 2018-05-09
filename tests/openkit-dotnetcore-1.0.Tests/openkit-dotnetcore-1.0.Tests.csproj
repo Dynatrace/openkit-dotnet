@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
     <Configurations>Debug;Release;Coverage</Configurations>
+	<RootNamespace>Dynatrace.OpenKit</RootNamespace>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\openkit-dotnetcore-1.0\openkit-dotnetcore-1.0.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
     <DebugType>full</DebugType>
