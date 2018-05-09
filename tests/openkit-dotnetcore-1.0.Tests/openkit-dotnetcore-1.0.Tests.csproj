@@ -2,28 +2,24 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
     <Configurations>Debug;Release;Coverage</Configurations>
+	<RootNamespace>Dynatrace.OpenKit</RootNamespace>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coveralls.io" Version="1.4.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="NSubstitute" Version="3.1.0" />
-    <PackageReference Include="NUnit" Version="3.9.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
+    <PackageReference Include="NUnit" Version="3.10.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\openkit-dotnetcore-1.0\openkit-dotnetcore-1.0.csproj" />
   </ItemGroup>
-
-  <PropertyGroup>
-   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
     <DebugType>full</DebugType>

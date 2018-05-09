@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
 	<IsPackable>false</IsPackable>
 	<Configurations>Debug;Release;Coverage</Configurations>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
@@ -16,16 +16,16 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
   </ItemGroup>
-
+  
   <ItemGroup>
-    <ProjectReference Include="..\..\src\openkit-dotnetcore-2.0\openkit-dotnetcore-2.0.csproj" />
+    <ProjectReference Include="..\..\src\openkit-dotnetcore-1.1\openkit-dotnetcore-1.1.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup> 
-  
+  </PropertyGroup>
+
   <Import Project="..\openkit-shared-tests\openkit-shared-tests.projitems" Label="Shared" />
 
 </Project>

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+	<AssemblyName>openkit-1.0.1-dotnetcore-1.1</AssemblyName>
+    <RootNamespace>Dynatrace.OpenKit</RootNamespace>
+	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Configurations>Debug;Release;Coverage</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <Import Project="..\openkit-shared\openkit-shared.projitems" Label="Shared" />
+
+</Project>

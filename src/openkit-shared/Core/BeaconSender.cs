@@ -86,8 +86,9 @@ namespace Dynatrace.OpenKit.Core
 
             if (beaconSenderThread != null)
             {
-#if !NETCOREAPP1_0
-                beaconSenderThread.Interrupt();                     // not available in .NET Core 1.0, might cause up to 1s delay at shutdown
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+                beaconSenderThread.Interrupt();                     // not available in .NET Core 1.0 & .NET Core 1.1
+                                                                    // might cause up to 1s delay at shutdown
 #endif
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);
             }

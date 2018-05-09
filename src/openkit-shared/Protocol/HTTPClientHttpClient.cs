@@ -63,7 +63,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
             else
             {
-#if NET45 || NET46
+#if NET45 || NET46 || NET47
                 // special handling for .NET 4.5 & 4.6, since the HttpClientHandler does not have the ServerCertificateValidationCallback
                 System.Net.Http.WebRequestHandler webRequestHandler = new System.Net.Http.WebRequestHandler();
                 webRequestHandler.ServerCertificateValidationCallback += remoteCertificateValidationCallback;
@@ -71,6 +71,7 @@ namespace Dynatrace.OpenKit.Protocol
 #else
                 System.Net.Http.HttpClientHandler httpClientHandler = new System.Net.Http.HttpClientHandler
                 {
+                    
                     ServerCertificateCustomValidationCallback = remoteCertificateValidationCallback.Invoke
                 };
                 httpClient = new System.Net.Http.HttpClient(httpClientHandler, true);
