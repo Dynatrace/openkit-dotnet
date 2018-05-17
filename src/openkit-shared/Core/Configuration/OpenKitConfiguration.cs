@@ -216,7 +216,15 @@ namespace Dynatrace.OpenKit.Core.Configuration
             {
                 return deviceID;
             }
-        }        
+        }
+
+        public string EndpointURL
+        {
+            get
+            {
+                return endpointURL;
+            }
+        }
 
         // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool IsCaptureOn
@@ -293,6 +301,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
             get
             {
                 return device;
+            }
+        }
+
+        public OpenKitType OpenKitType
+        {
+            get
+            {
+                return openKitType;
             }
         }
 

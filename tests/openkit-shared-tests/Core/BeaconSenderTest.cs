@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Core.Communication;
+using Dynatrace.OpenKit.API;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -34,7 +35,8 @@ namespace Dynatrace.OpenKit.Core
         public void IsInitializedGetsValueFromContext()
         {
             // given
-            var target = new BeaconSender(context);
+            var logger = Substitute.For<ILogger>();
+            var target = new BeaconSender(logger, context);
 
             // when context is not initialized
             context.IsInitialized.Returns(false);

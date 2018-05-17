@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
@@ -29,6 +30,8 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingContext : IBeaconSendingContext
     {
+        private ILogger logger;
+
         public const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
 
         // container storing all open sessions 
@@ -52,11 +55,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Current state is initialized to <see cref="Dynatrace.OpenKit.Core.Communication."/>
         /// 
         /// </summary>
+        /// <param name="logger"></param>
         /// <param name="configuration"></param>
         /// <param name="httpClientProvider"></param>
         /// <param name="timingProvider"></param>
-        public BeaconSendingContext(OpenKitConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
+        public BeaconSendingContext(ILogger logger, OpenKitConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
         {
+            this.logger = logger;
             Configuration = configuration;
             HTTPClientProvider = httpClientProvider;
             TimingProvider = timingProvider;

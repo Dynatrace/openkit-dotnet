@@ -18,6 +18,7 @@ using NUnit.Framework;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Communication;
 using System;
 
@@ -25,6 +26,7 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
 {
     public class BeaconSendingContextTest
     {
+        private ILogger logger;
         private OpenKitConfiguration config;
         private IHTTPClientProvider clientProvider;
         private ITimingProvider timingProvider;
@@ -32,6 +34,7 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
         [SetUp]
         public void Setup()
         {
+            logger = Substitute.For<ILogger>();
             config = new TestConfiguration();
             clientProvider = Substitute.For<IHTTPClientProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
@@ -42,7 +45,7 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
         {
             // given
             var expected = 101717;
-            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
             target.RequestShutdown();
             target.Sleep(expected);
 
@@ -62,7 +65,7 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
         {
             // given
             var expected = 101717;
-            var target = new BeaconSendingContext(config, clientProvider, timingProvider);
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
             target.Sleep(expected);
 
             // then

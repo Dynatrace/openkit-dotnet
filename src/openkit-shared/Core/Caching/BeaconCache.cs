@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 {
     public class BeaconCache : IBeaconCache
     {
+        private ILogger logger;
         private readonly ReaderWriterLockSlim globalCacheLock = new ReaderWriterLockSlim();
         private readonly IDictionary<int, BeaconCacheEntry> beacons = new Dictionary<int, BeaconCacheEntry>();
         private long cacheSizeInBytes = 0;
@@ -32,6 +34,11 @@ namespace Dynatrace.OpenKit.Core.Caching
         public HashSet<int> BeaconIDs => CopyBeaconIDs();
 
         public long NumBytesInCache => Interlocked.Read(ref cacheSizeInBytes);
+
+        public BeaconCache(ILogger logger)
+        {
+            this.logger = logger;
+        }
 
         public event EventHandler RecordAdded
         {
@@ -53,6 +60,10 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         public void AddActionData(int beaconID, long timestamp, string data)
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCache AddActionData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
+            }
             // get a reference to the cache entry
             var entry = GetCachedEntryOrInsert(beaconID);
 
@@ -78,6 +89,10 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         public void AddEventData(int beaconID, long timestamp, string data)
         {
+            if(logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCache AddEventData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
+            }
             // get a reference to the cache entry
             var entry = GetCachedEntryOrInsert(beaconID);
 
@@ -103,6 +118,10 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         public void DeleteCacheEntry(int beaconID)
         {
+            if(logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCache DeleteCacheEntry(sn=" + beaconID + ")");
+            }
             BeaconCacheEntry entry = null;
             try
             {
@@ -144,6 +163,12 @@ namespace Dynatrace.OpenKit.Core.Caching
                 entry.Unlock();
             }
 
+            if(logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCache EvictRecordsByAge(sn=" + beaconID + ", minTimestamp=" + minTimestamp + ") has evicted "
+                     + numRecordsRemoved + " records");
+            }
+
             return numRecordsRemoved;
         }
 
@@ -165,6 +190,12 @@ namespace Dynatrace.OpenKit.Core.Caching
             finally
             {
                 entry.Unlock();
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCache EvictRecordsByNumber(sn=" + beaconID + ", numRecords=" + numRecords + ") has evicted "
+                    + numRecordsRemoved + " records");
             }
 
             return numRecordsRemoved;

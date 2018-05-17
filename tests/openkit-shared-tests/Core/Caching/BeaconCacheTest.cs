@@ -1,17 +1,25 @@
-﻿using NUnit.Framework;
-using System;
+﻿using Dynatrace.OpenKit.API;
+using NUnit.Framework;
+using NSubstitute;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
     public class BeaconCacheTest
     {
+        private ILogger logger;
+
+        [SetUp]
+        public void SetUp()
+        {
+            logger = Substitute.For<ILogger>();
+        }
+
         [Test]
         public void ADefaultConstructedCacheDoesNotContainBeacons()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // then
             Assert.That(target.BeaconIDs, Is.Empty);
@@ -22,7 +30,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddEventDataAddsBeaconIdToCache()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // when adding beacon with id 1
             target.AddEventData(1, 1000L, "a");
@@ -44,7 +52,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddEventDataAddsDataToAlreadyExistingBeaconId()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // when adding beacon with id 1
             target.AddEventData(1, 1000L, "a");
@@ -65,7 +73,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddEventDataIncreasesCacheSize()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // when adding some data
             target.AddEventData(1, 1000L, "a");
@@ -81,7 +89,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddEventDataRaisesEvent()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
@@ -104,7 +112,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddActionDataAddsBeaconIdToCache()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // when adding beacon with id 1
             target.AddActionData(1, 1000L, "a");
@@ -126,7 +134,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddActionDataAddsDataToAlreadyExistingBeaconId()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // when adding beacon with id 1
             target.AddActionData(1, 1000L, "a");
@@ -147,7 +155,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddActionDataIncreasesCacheSize()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             // when adding some data
             target.AddActionData(1, 1000L, "a");
@@ -164,7 +172,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void AddActionDataRaisesEvent()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
@@ -187,7 +195,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntryRemovesTheGivenBeacon()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(42, 1000L, "z");
             target.AddEventData(1, 1000L, "iii");
@@ -209,7 +217,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntryDecrementsCacheSize()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(42, 1000L, "z");
             target.AddEventData(1, 1000L, "iii");
@@ -226,7 +234,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntryDoesNotRaiseEvent()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(42, 1000L, "z");
             target.AddEventData(1, 1000L, "iii");
@@ -246,7 +254,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntriesDoesNothingIfGivenBeaconIDIsNotInCache()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(42, 1000L, "z");
             target.AddEventData(1, 1000L, "iii");
@@ -269,7 +277,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetNextBeaconChunkReturnsNullIfGivenBeaconIDDoesNotExist()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(42, 1000L, "z");
             target.AddEventData(1, 1000L, "iii");
@@ -285,7 +293,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetNextBeaconChunkCopiesDataForSending()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddActionData(42, 2000L, "z");
@@ -308,7 +316,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetNextBeaconChunkDecreasesBeaconCacheSize()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddActionData(42, 2000L, "z");
@@ -326,7 +334,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void getNextBeaconChunkRetrievesNextChunk()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddActionData(42, 2000L, "z");
@@ -353,7 +361,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void RemoveChunkedDataClearsAlreadyRetrievedChunks()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddActionData(42, 2000L, "z");
@@ -385,7 +393,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void RemoveChunkedDataDoesNothingIfCalledWithNonExistingBeaconID()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddActionData(42, 2000L, "z");
@@ -410,7 +418,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ResetChunkedRestoresData()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -437,7 +445,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ResetChunkedRestoresCacheSize()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -461,7 +469,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ResetChunkedRaisesEvent()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -488,7 +496,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ResetChunkedDoesNothingIfEntryDoesNotExist()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -517,7 +525,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
 
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -534,7 +542,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void EvictRecordsByAge()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -551,7 +559,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void EvictRecordsByNumberDoesNothingAndReturnsZeroIfBeaconIDDoesNotExist()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -569,7 +577,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
 
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -586,7 +594,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void IsEmptyGivesTrueIfBeaconDoesNotExistInCache()
         {
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddActionData(1, 1001L, "iii");
             target.AddEventData(1, 1000L, "b");
@@ -601,7 +609,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
 
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddEventData(1, 1000L, "b");
 
@@ -614,7 +622,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
 
             // given
-            var target = new BeaconCache();
+            var target = new BeaconCache(logger);
             target.AddActionData(1, 1000L, "a");
             target.AddEventData(1, 1000L, "b");
 

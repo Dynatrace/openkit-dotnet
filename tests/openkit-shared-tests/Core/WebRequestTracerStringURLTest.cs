@@ -27,13 +27,14 @@ namespace Dynatrace.OpenKit.Core
     {
         private Beacon beacon;
         private Action action;
+        private ILogger logger;
 
         [SetUp]
         public void SetUp()
         {
-            var logger = Substitute.For<ILogger>();
+            logger = Substitute.For<ILogger>();
             beacon = new Beacon(logger,
-                                new BeaconCache(),
+                                new BeaconCache(logger),
                                 new TestConfiguration(),
                                 "127.0.0.1",
                                 Substitute.For<IThreadIDProvider>(),
@@ -90,7 +91,7 @@ namespace Dynatrace.OpenKit.Core
         public void AnURLIsOnlySetInConstructorIfItIsValid()
         {
             // given
-            var target = new WebRequestTracerStringURL(beacon, action, "a1337://foo");
+            var target = new WebRequestTracerStringURL(logger, beacon, action, "a1337://foo");
 
             // then
             Assert.That(target.URL, Is.EqualTo("a1337://foo"));
@@ -100,7 +101,7 @@ namespace Dynatrace.OpenKit.Core
         public void IfURLIsInvalidTheDefaultValueIsUsed()
         {
             // given
-            var target = new WebRequestTracerStringURL(beacon, action, "foobar");
+            var target = new WebRequestTracerStringURL(logger, beacon, action, "foobar");
 
             // then
             Assert.That(target.URL, Is.EqualTo("<unknown>"));

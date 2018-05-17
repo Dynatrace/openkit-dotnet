@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.API;
 using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
@@ -31,18 +32,21 @@ namespace Dynatrace.OpenKit.Core
     {
         private const int SHUTDOWN_TIMEOUT = 10 * 1000;                  // wait max 10s (in ms) for beacon sender to complete data sending during shutdown
 
+        private readonly ILogger logger;
+
         // beacon sender thread
         private Thread beaconSenderThread;
         // sending state context
         private readonly IBeaconSendingContext context;
 
-        public BeaconSender(OpenKitConfiguration configuration, IHTTPClientProvider clientProvider, ITimingProvider provider)
-            : this(new BeaconSendingContext(configuration, clientProvider, provider))
+        public BeaconSender(ILogger logger, OpenKitConfiguration configuration, IHTTPClientProvider clientProvider, ITimingProvider provider)
+            : this(logger, new BeaconSendingContext(logger, configuration, clientProvider, provider))
         {
         }
 
-        internal BeaconSender(IBeaconSendingContext context)
+        internal BeaconSender(ILogger logger, IBeaconSendingContext context)
         {
+            this.logger = logger;
             this.context = context;
         }
 
@@ -50,6 +54,11 @@ namespace Dynatrace.OpenKit.Core
 
         public bool Initialize()
         {
+            if(logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconSender thread started");
+            }
+
             // create sending thread
             beaconSenderThread = new Thread(new ThreadStart(() =>
             {
@@ -82,6 +91,10 @@ namespace Dynatrace.OpenKit.Core
 
         public void Shutdown()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconSender thread request shutdown");
+            }
             context.RequestShutdown();
 
             if (beaconSenderThread != null)
@@ -91,18 +104,30 @@ namespace Dynatrace.OpenKit.Core
                                                                     // might cause up to 1s delay at shutdown
 #endif
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug("BeaconSender thread stopped");
+                }
             }
         }
 
         // when starting a new Session, put it into open Sessions
         public void StartSession(Session session)
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconSender StartSession");
+            }
             context.StartSession(session);
         }
 
         // when finishing a Session, remove it from open Sessions and put it into finished Sessions
         public void FinishSession(Session session)
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconSender FinishSession");
+            }
             context.FinishSession(session);
         }
     }

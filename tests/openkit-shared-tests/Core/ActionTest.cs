@@ -40,7 +40,7 @@ namespace Dynatrace.OpenKit.Core
             testConfiguration = new TestConfiguration();
             logger = Substitute.For<ILogger>();
             beacon = new Beacon(logger,
-                                new BeaconCache(),
+                                new BeaconCache(logger),
                                 testConfiguration,
                                 "127.0.0.1",
                                 Substitute.For<IThreadIDProvider>(),
@@ -216,7 +216,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportEvent: eventName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportEvent: eventName must not be null or empty");
         }
 
         [Test]
@@ -234,7 +234,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportEvent: eventName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportEvent: eventName must not be null or empty");
         }
 
         [Test]
@@ -286,7 +286,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportValue (int): valueName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportValue (int): valueName must not be null or empty");
         }
 
         [Test]
@@ -305,7 +305,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportValue (int): valueName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportValue (int): valueName must not be null or empty");
         }
 
         [Test]
@@ -357,7 +357,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportValue (double): valueName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportValue (double): valueName must not be null or empty");
         }
 
         [Test]
@@ -376,7 +376,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportValue (double): valueName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportValue (double): valueName must not be null or empty");
         }
 
         [Test]
@@ -428,7 +428,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportValue (string): valueName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportValue (string): valueName must not be null or empty");
         }
 
         [Test]
@@ -447,7 +447,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportValue (string): valueName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportValue (string): valueName must not be null or empty");
         }
 
         [Test]
@@ -511,7 +511,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportError: errorName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportError: errorName must not be null or empty");
         }
 
         [Test]
@@ -529,7 +529,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.ReportError: errorName must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] ReportError: errorName must not be null or empty");
         }
 
         [Test]
@@ -592,7 +592,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.TraceWebRequest (String): url must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] TraceWebRequest (String): url must not be null or empty");
         }
 
         [Test]
@@ -610,7 +610,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Action.TraceWebRequest (String): url must not be null or empty");
+            logger.Received(1).Warn("Action [sn=1, id=1, name=test, pa=no parent] TraceWebRequest (String): url must not be null or empty");
         }
 
         [Test]
@@ -628,7 +628,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn($"Action.TraceWebRequest (String): url \"foo:bar://test.com\" does not have a valid scheme");
+            logger.Received(1).Warn($"Action [sn=1, id=1, name=test, pa=no parent] TraceWebRequest (String): url \"foo:bar://test.com\" does not have a valid scheme");
         }
 
         [Test]

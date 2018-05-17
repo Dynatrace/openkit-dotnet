@@ -53,7 +53,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.HTTPClientProvider.Returns(httpClientProvider);
 
             // beacon sender
-            beaconSender = new BeaconSender(context);
+            var logger = Substitute.For<ILogger>();
+            beaconSender = new BeaconSender(logger, context);
 
             // sessions
             context.GetAllOpenSessions().Returns(openSessions);
@@ -100,7 +101,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private Session CreateValidSession(string clientIP)
         {
             var logger = Substitute.For<ILogger>();
-            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(),
+            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
                 new TestConfiguration(), clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();

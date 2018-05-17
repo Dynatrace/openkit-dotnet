@@ -26,6 +26,7 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public abstract class WebRequestTracerBase : IWebRequestTracer
     {
+        private ILogger logger = null;
 
         // Dynatrace tag that has to be used for tracing the web request
         private string tag = null;
@@ -48,8 +49,9 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public WebRequestTracerBase(Beacon beacon, Action action)
+        public WebRequestTracerBase(ILogger logger, Beacon beacon, Action action)
         {
+            this.logger = logger;
             this.beacon = beacon;
             this.action = action;
 
@@ -73,7 +75,17 @@ namespace Dynatrace.OpenKit.Core
 
         public int EndSequenceNo => endSequenceNo;
 
-        public string Tag =>  tag;
+        public string Tag
+        {
+            get
+            {
+                if(logger.IsDebugEnabled)
+                {
+                    logger.Debug(this + "Tag returning '" + tag + "'");
+                }
+                return tag;
+            }
+        }
 
         public int ResponseCode => responseCode;
 
@@ -90,6 +102,10 @@ namespace Dynatrace.OpenKit.Core
 
         public IWebRequestTracer Start()
         {
+            if( logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "Start()");
+            }
             if (!IsStopped)
             {
                 startTime = beacon.CurrentTimestamp;
@@ -99,6 +115,10 @@ namespace Dynatrace.OpenKit.Core
 
         public void Stop()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "Stop()");
+            }
             if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
                 return;
@@ -135,6 +155,11 @@ namespace Dynatrace.OpenKit.Core
                 this.bytesReceived = bytesReceived;
             }
             return this;
+        }
+
+        public override string ToString()
+        {
+            return "WebRequestTracer [sn=" + beacon.GetSessionNumber() + ", id=" + action.ID + ", url='" + url + "'] ";
         }
     }
 }

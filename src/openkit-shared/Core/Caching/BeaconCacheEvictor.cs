@@ -117,10 +117,6 @@ namespace Dynatrace.OpenKit.Core.Caching
             if (!IsAlive)
             {
                 evictionThread.Start();
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug("BeaconCacheEviction thread started.");
-                }
                 result = true;
             }
             else
@@ -205,6 +201,11 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         private void RunEvictionThread()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug("BeaconCacheEviction thread started");
+            }
+
             var recordAdded = false;
 
             beaconCache.RecordAdded += (sender, e) =>
@@ -244,7 +245,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCacheEviction thread is stopped.");
+                logger.Debug("BeaconCacheEviction thread is stopped");
             }
         }
     }

@@ -35,7 +35,7 @@ namespace Dynatrace.OpenKit.Core
             mockTimingProvider = Substitute.For<ITimingProvider>();
             logger = Substitute.For<ILogger>();
             beacon = new Beacon(logger,
-                                new BeaconCache(),
+                                new BeaconCache(logger),
                                 new TestConfiguration(),
                                 "127.0.0.1",
                                 Substitute.For<IThreadIDProvider>(),
@@ -98,7 +98,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
             
             // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction.EnterAction: actionName must not be null or empty");
+            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -114,7 +114,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction.EnterAction: actionName must not be null or empty");
+            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
         }
 
         [Test]
