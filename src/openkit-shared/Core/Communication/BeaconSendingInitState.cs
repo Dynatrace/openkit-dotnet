@@ -85,5 +85,10 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.CurrentState = new BeaconSendingTimeSyncState(true);
             }
         }
+
+        public override string ToString()
+        {
+            return "Initial";
+        }
     }
 }

@@ -55,5 +55,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             // make last state transition to terminal state
             context.CurrentState = new BeaconSendingTerminalState();
         }
+        public override string ToString()
+        {
+            return "FlushSessions";
+        }
     }
 }

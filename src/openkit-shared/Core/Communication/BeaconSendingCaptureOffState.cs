@@ -90,5 +90,10 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.CurrentState = new BeaconSendingCaptureOnState();
             }
         }
+
+        public override string ToString()
+        {
+            return "CaptureOff";
+        }
     }
 }

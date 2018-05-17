@@ -250,5 +250,10 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.CurrentState = new BeaconSendingCaptureOffState();
             }
         }
+
+        public override string ToString()
+        {
+            return "TimeSync";
+        }
     }
 }

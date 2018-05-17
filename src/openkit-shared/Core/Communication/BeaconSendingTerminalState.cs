@@ -29,5 +29,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             context.RequestShutdown();
         }
+
+        public override string ToString()
+        {
+            return "Terminal";
+        }
     }
 }

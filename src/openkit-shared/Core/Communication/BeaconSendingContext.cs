@@ -127,6 +127,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             CurrentState.Execute(this);
             if (NextState != null) // CurrentState.Execute(...) can trigger state changes
             {
+                if(logger.IsInfoEnabled)
+                {
+                    logger.Info("BeaconSendingContext State change from '" + CurrentState + "' to '" + NextState + "'");
+                }
                 CurrentState = NextState;
                 NextState = null;
             }
