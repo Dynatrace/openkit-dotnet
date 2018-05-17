@@ -243,11 +243,11 @@ namespace Dynatrace.OpenKit.Core.Communication
             // state transition
             if (context.IsCaptureOn)
             {
-                context.CurrentState = new BeaconSendingCaptureOnState();
+                context.NextState = new BeaconSendingCaptureOnState();
             }
             else
             {
-                context.CurrentState = new BeaconSendingCaptureOffState();
+                context.NextState = new BeaconSendingCaptureOffState();
             }
         }
     }

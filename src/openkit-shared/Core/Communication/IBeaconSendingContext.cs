@@ -47,6 +47,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         AbstractBeaconSendingState CurrentState { get; set; }
 
         /// <summary>
+        /// Returns the next state
+        /// </summary>
+        AbstractBeaconSendingState NextState { get; set; }
+
+
+        /// <summary>
         /// Last time open sessions were sent 
         /// </summary>
         long LastOpenSessionBeaconSendTime { get; set; }

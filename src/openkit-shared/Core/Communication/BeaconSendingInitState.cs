@@ -82,7 +82,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 // success -> continue with time sync
                 context.HandleStatusResponse(statusResponse);
-                context.CurrentState = new BeaconSendingTimeSyncState(true);
+                context.NextState = new BeaconSendingTimeSyncState(true);
             }
         }
     }

@@ -117,7 +117,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (!context.IsCaptureOn)
             {
                 // capturing is turned off -> make state transition
-                context.CurrentState = new BeaconSendingCaptureOffState();
+                context.NextState = new BeaconSendingCaptureOffState();
             }
         }
     }

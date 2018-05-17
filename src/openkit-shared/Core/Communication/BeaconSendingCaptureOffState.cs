@@ -82,12 +82,12 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (context.IsTimeSyncSupported && !context.IsTimeSynced)
             {
                 // then retry initial time sync
-                context.CurrentState = new BeaconSendingTimeSyncState(true);
+                context.NextState = new BeaconSendingTimeSyncState(true);
             }
             else if (statusResponse != null && context.IsCaptureOn)
             {
                 // capturing is re-enabled again, but only if we received a response from the server
-                context.CurrentState = new BeaconSendingCaptureOnState();
+                context.NextState = new BeaconSendingCaptureOnState();
             }
         }
     }

@@ -110,7 +110,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             context.Received(1).InitCompleted(false);
-            context.Received(1).CurrentState = Arg.Any<BeaconSendingTerminalState>();
+            context.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>();
         }
 
         [Test]
@@ -215,7 +215,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(context);
 
             // then
-            context.Received(1).CurrentState = Arg.Any<BeaconSendingTimeSyncState>();
+            context.Received(1).NextState = Arg.Any<BeaconSendingTimeSyncState>();
         }
     }
 }
