@@ -74,7 +74,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public IHTTPClientProvider HTTPClientProvider { get; }
         public ITimingProvider TimingProvider { get; }
 
-        public AbstractBeaconSendingState CurrentState { get; set; }
+        public AbstractBeaconSendingState CurrentState { get; internal set; }
         public AbstractBeaconSendingState NextState { get; set; }
         public long LastOpenSessionBeaconSendTime { get; set; }
         public long LastStatusCheckTime { get; set; }
@@ -120,7 +120,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             NextState = null;
             CurrentState.Execute(this);
-            if (NextState != null) // CurrentState.Execute(...) can trigger state changes
+            if (NextState != null && ! CurrentState.IsTerminalState) // CurrentState.Execute(...) can trigger state changes
             {
                 CurrentState = NextState;
                 NextState = null;

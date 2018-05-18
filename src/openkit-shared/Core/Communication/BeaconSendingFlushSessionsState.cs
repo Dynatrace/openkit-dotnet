@@ -53,7 +53,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             // make last state transition to terminal state
-            context.CurrentState = new BeaconSendingTerminalState();
+            context.NextState = new BeaconSendingTerminalState();
         }
     }
 }

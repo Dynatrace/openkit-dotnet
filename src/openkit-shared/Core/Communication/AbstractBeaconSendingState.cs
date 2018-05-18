@@ -69,7 +69,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             if (context.IsShutdownRequested)
             {
-                context.CurrentState = ShutdownState;
+                context.NextState = ShutdownState;
             }
         }
 
