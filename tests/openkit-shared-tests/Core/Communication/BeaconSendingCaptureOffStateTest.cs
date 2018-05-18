@@ -84,7 +84,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(context);
 
             // then
-            context.Received(1).CurrentState = Arg.Any<BeaconSendingCaptureOnState>();
+            context.Received(1).NextState = Arg.Any<BeaconSendingCaptureOnState>();
         }
 
         [Test]
@@ -101,8 +101,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(context);
 
             // then
-            context.Received(1).CurrentState = Arg.Any<BeaconSendingTimeSyncState>();
-            context.Received(1).CurrentState = Arg.Is<BeaconSendingTimeSyncState>(arg => arg.IsInitialTimeSync == true);
+            context.Received(1).NextState = Arg.Any<BeaconSendingTimeSyncState>();
+            context.Received(1).NextState = Arg.Is<BeaconSendingTimeSyncState>(arg => arg.IsInitialTimeSync == true);
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(context);
 
             // then
-            context.Received(1).CurrentState = Arg.Any<BeaconSendingFlushSessionsState>();
+            context.Received(1).NextState = Arg.Any<BeaconSendingFlushSessionsState>();
         }
 
         [Test]
