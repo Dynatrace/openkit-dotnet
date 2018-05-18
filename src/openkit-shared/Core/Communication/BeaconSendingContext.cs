@@ -74,7 +74,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public IHTTPClientProvider HTTPClientProvider { get; }
         public ITimingProvider TimingProvider { get; }
 
-        public AbstractBeaconSendingState CurrentState { get; set; }
+        public AbstractBeaconSendingState CurrentState { get; internal set; }
         public AbstractBeaconSendingState NextState { get; set; }
         public long LastOpenSessionBeaconSendTime { get; set; }
         public long LastStatusCheckTime { get; set; }

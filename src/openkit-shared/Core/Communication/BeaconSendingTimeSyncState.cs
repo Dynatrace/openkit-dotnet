@@ -127,7 +127,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (context.IsTimeSyncSupported)
             {
                 // in case of time sync failure when it's supported, go to capture off state
-                context.CurrentState = new BeaconSendingCaptureOffState();
+                context.NextState = new BeaconSendingCaptureOffState();
             }
             else
             {

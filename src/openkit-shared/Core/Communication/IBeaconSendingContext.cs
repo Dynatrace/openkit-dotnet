@@ -44,7 +44,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Returns the current state
         /// </summary>
-        AbstractBeaconSendingState CurrentState { get; set; }
+        AbstractBeaconSendingState CurrentState { get; }
 
         /// <summary>
         /// Returns the next state

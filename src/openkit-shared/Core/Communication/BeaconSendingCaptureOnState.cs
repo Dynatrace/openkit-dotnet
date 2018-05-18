@@ -45,7 +45,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
             {
                 // transition to time sync state. if cature on is still true after time sync we will end up in the CaputerOnState again
-                context.CurrentState = new BeaconSendingTimeSyncState();
+                context.NextState = new BeaconSendingTimeSyncState();
                 return;
             }
 
