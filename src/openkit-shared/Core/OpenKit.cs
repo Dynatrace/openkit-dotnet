@@ -124,7 +124,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug("OpenKit createSession(" + clientIPAddress + ")");
+                logger.Debug("OpenKit CreateSession(" + clientIPAddress + ")");
             }
             if (isShutdown)
             {

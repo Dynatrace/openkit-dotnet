@@ -144,7 +144,7 @@ namespace Dynatrace.OpenKit.Protocol
 
                         if (logger.IsDebugEnabled)
                         {
-                            logger.Debug("Beacon Payload: " + Encoding.UTF8.GetString(data));
+                            logger.Debug("HTTPClient Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
 
