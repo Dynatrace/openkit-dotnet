@@ -41,9 +41,13 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction EnterAction(string actionName)
         {
+            if(Logger.IsDebugEnabled)
+            {
+                Logger.Debug(this + "EnterAction(" + actionName + ")");
+            }
             if (string.IsNullOrEmpty(actionName))
             {
-                    Logger.Warn("RootAction.EnterAction: actionName must not be null or empty");
+                    Logger.Warn(this + "EnterAction: actionName must not be null or empty");
                     return new NullAction(this);
             }
             if (!IsActionLeft)
@@ -65,6 +69,11 @@ namespace Dynatrace.OpenKit.Core
             }
 
             return base.DoLeaveAction();
+        }
+
+        public override string ToString()
+        {
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + ID + ", name=" + Name + "] ";
         }
     }
 }

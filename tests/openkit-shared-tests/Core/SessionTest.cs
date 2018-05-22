@@ -39,11 +39,11 @@ namespace Dynatrace.OpenKit.Core
             logger.IsDebugEnabled.Returns(true);
 
             beaconSendingContext = Substitute.For<IBeaconSendingContext>();
-            beaconSender = new BeaconSender(beaconSendingContext);
+            beaconSender = new BeaconSender(logger, beaconSendingContext);
 
             mockTimingProvider = Substitute.For<ITimingProvider>();
             var configuration = new TestConfiguration();
-            beacon = new Beacon(logger, new Caching.BeaconCache(), configuration, "127.0.0.1", Substitute.For<IThreadIDProvider>(), mockTimingProvider);
+            beacon = new Beacon(logger, new Caching.BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIDProvider>(), mockTimingProvider);
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session.EnterAction: actionName must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session.EnterAction: actionName must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -183,7 +183,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(beacon.IsEmpty, Is.True);
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session.IdentifyUser: userTag must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] IdentifyUser: userTag must not be null or empty");
         }
 
         [Test]
@@ -200,7 +200,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(beacon.IsEmpty, Is.True);
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session.IdentifyUser: userTag must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] IdentifyUser: userTag must not be null or empty");
         }
 
         [Test]
@@ -246,7 +246,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(beacon.IsEmpty, Is.True);
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session.ReportCrash: errorName must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] ReportCrash: errorName must not be null or empty");
         }
 
         [Test]
@@ -263,7 +263,7 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(beacon.IsEmpty, Is.True);
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session.ReportCrash: errorName must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] ReportCrash: errorName must not be null or empty");
         }
 
         [Test]

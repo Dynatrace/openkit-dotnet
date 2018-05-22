@@ -31,14 +31,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
         private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
         private const bool DEFAULT_CAPTURE_CRASHES = true;              // default: capture crashes on
-
-        // immutable settings
-        private readonly OpenKitType openKitType;
-        private readonly string applicationName;
-        private readonly string applicationID;
-        private readonly long deviceID;
-        private readonly string endpointURL;
-
+        
         // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
@@ -58,16 +51,16 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** constructors ***
 
-        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL, 
+        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL,
             ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion, BeaconCacheConfiguration beaconCacheConfiguration)
         {
-            this.openKitType = openKitType;
+            OpenKitType = openKitType;
 
             // immutable settings
-            this.applicationName = applicationName;
-            this.applicationID = applicationID;
-            this.deviceID = deviceID;
-            this.endpointURL = endpointURL;
+            ApplicationName = applicationName;
+            ApplicationID = applicationID;
+            DeviceID = deviceID;
+            EndpointURL = endpointURL;
 
             // mutable settings
             capture = DEFAULT_CAPTURE;
@@ -103,120 +96,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
-        // updates settings based on a status response
-        public void UpdateSettings(StatusResponse statusResponse)
-        {
-            // if invalid status response OR response code != 200 -> capture off
-            if ((statusResponse == null) || (statusResponse.ResponseCode != 200))
-            {
-                IsCaptureOn = false;
-            }
-            else
-            {
-                IsCaptureOn = statusResponse.Capture;
-            }
+        public bool IsDynatrace => OpenKitType == OpenKitType.DYNATRACE;
 
-            // if capture is off -> leave other settings on their current values
-            if (!IsCaptureOn)
-            {
-                return;
-            }
+        public OpenKitType OpenKitType { get; }
 
-            // use monitor name from beacon response or default
-            string newMonitorName = statusResponse.MonitorName;
-            if (newMonitorName == null)
-            {
-                newMonitorName = openKitType.DefaultMonitorName;
-            }
+        public string ApplicationName { get; }
 
-            // use server id from beacon response or default
-            int newServerID = statusResponse.ServerID;
-            if (newServerID == -1)
-            {
-                newServerID = openKitType.DefaultServerID;
-            }
+        public string ApplicationID { get; }
 
-            // check if http config needs to be updated
-            if (HTTPClientConfig.ServerID != newServerID)
-            {
-                HTTPClientConfig = new HTTPClientConfiguration(
-                    endpointURL,
-                    newServerID,
-                    applicationID,
-                    HTTPClientConfig.SSLTrustManager);
-            }
+        public long DeviceID { get; }
 
-            // use send interval from beacon response or default
-            int newSendInterval = statusResponse.SendInterval;
-            if (newSendInterval == -1)
-            {
-                newSendInterval = DEFAULT_SEND_INTERVAL;
-            }
-            // check if send interval has to be updated
-            if (sendInterval != newSendInterval)
-            {
-                sendInterval = newSendInterval;
-            }
-
-            // use max beacon size from beacon response or default
-            int newMaxBeaconSize = statusResponse.MaxBeaconSize;
-            if (newMaxBeaconSize == -1)
-            {
-                newMaxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
-            }
-            if (maxBeaconSize != newMaxBeaconSize)
-            {
-                maxBeaconSize = newMaxBeaconSize;
-            }
-
-            // use capture settings for errors and crashes
-            CaptureErrors = statusResponse.CaptureErrors;
-            CaptureCrashes = statusResponse.CaptureCrashes;
-        }
-
-        internal void EnableCapture()
-        {
-            IsCaptureOn = true;
-        }
-
-        internal void DisableCapture()
-        {
-            IsCaptureOn = false;
-        }
-
-        // *** properties ***
-
-        public bool IsDynatrace
-        {
-            get
-            {
-                return openKitType == OpenKitType.DYNATRACE;            // object comparison is possible here
-            }
-        }
-
-        public string ApplicationName
-        {
-            get
-            {
-                return applicationName;
-            }
-        }
-
-        public string ApplicationID
-        {
-            get
-            {
-                return applicationID;
-            }
-        }
-
-        public long DeviceID
-        {
-            get
-            {
-                return deviceID;
-            }
-        }        
+        public string EndpointURL { get; }
 
         // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool IsCaptureOn
@@ -305,5 +195,86 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         public HTTPClientConfiguration HTTPClientConfig { get; private set; }
+
+        // updates settings based on a status response
+        public void UpdateSettings(StatusResponse statusResponse)
+        {
+            // if invalid status response OR response code != 200 -> capture off
+            if ((statusResponse == null) || (statusResponse.ResponseCode != 200))
+            {
+                IsCaptureOn = false;
+            }
+            else
+            {
+                IsCaptureOn = statusResponse.Capture;
+            }
+
+            // if capture is off -> leave other settings on their current values
+            if (!IsCaptureOn)
+            {
+                return;
+            }
+
+            // use monitor name from beacon response or default
+            string newMonitorName = statusResponse.MonitorName;
+            if (newMonitorName == null)
+            {
+                newMonitorName = OpenKitType.DefaultMonitorName;
+            }
+
+            // use server id from beacon response or default
+            int newServerID = statusResponse.ServerID;
+            if (newServerID == -1)
+            {
+                newServerID = OpenKitType.DefaultServerID;
+            }
+
+            // check if http config needs to be updated
+            if (HTTPClientConfig.ServerID != newServerID)
+            {
+                HTTPClientConfig = new HTTPClientConfiguration(
+                    EndpointURL,
+                    newServerID,
+                    ApplicationID,
+                    HTTPClientConfig.SSLTrustManager);
+            }
+
+            // use send interval from beacon response or default
+            int newSendInterval = statusResponse.SendInterval;
+            if (newSendInterval == -1)
+            {
+                newSendInterval = DEFAULT_SEND_INTERVAL;
+            }
+            // check if send interval has to be updated
+            if (sendInterval != newSendInterval)
+            {
+                sendInterval = newSendInterval;
+            }
+
+            // use max beacon size from beacon response or default
+            int newMaxBeaconSize = statusResponse.MaxBeaconSize;
+            if (newMaxBeaconSize == -1)
+            {
+                newMaxBeaconSize = DEFAULT_MAX_BEACON_SIZE;
+            }
+            if (maxBeaconSize != newMaxBeaconSize)
+            {
+                maxBeaconSize = newMaxBeaconSize;
+            }
+
+            // use capture settings for errors and crashes
+            CaptureErrors = statusResponse.CaptureErrors;
+            CaptureCrashes = statusResponse.CaptureCrashes;
+        }
+
+        internal void EnableCapture()
+        {
+            IsCaptureOn = true;
+        }
+
+        internal void DisableCapture()
+        {
+            IsCaptureOn = false;
+        }
     }
 }

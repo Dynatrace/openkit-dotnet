@@ -117,17 +117,13 @@ namespace Dynatrace.OpenKit.Core.Caching
             if (!IsAlive)
             {
                 evictionThread.Start();
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug("BeaconCacheEviction thread started.");
-                }
                 result = true;
             }
             else
             {
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug("Not starting BeaconCacheEviction thread, since it's already running");
+                    logger.Debug(GetType().Name + "Not starting BeaconCacheEviction thread, since it's already running");
                 }
             }
 
@@ -179,7 +175,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug("Stopping BeaconCacheEviction thread.");
+                    logger.Debug(GetType().Name + "Stopping BeaconCacheEviction thread.");
                 }
                 IsShutdownRequested = true;
                 lock(syncObject)
@@ -193,7 +189,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug("Not stopping BeaconCacheEviction thread, since it's not alive");
+                    logger.Debug(GetType().Name + "Not stopping BeaconCacheEviction thread, since it's not alive");
                 }
             }
 
@@ -205,6 +201,11 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         private void RunEvictionThread()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(GetType().Name + " thread started");
+            }
+
             var recordAdded = false;
 
             beaconCache.RecordAdded += (sender, e) =>
@@ -244,7 +245,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCacheEviction thread is stopped.");
+                logger.Debug(GetType().Name + " thread is stopped");
             }
         }
     }

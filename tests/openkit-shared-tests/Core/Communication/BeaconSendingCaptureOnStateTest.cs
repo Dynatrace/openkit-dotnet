@@ -64,7 +64,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
 
             // beacon sender
-            beaconSender = new BeaconSender(config, httpClientProvider, timingProvider);
+            var logger = Substitute.For<ILogger>();
+            beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
 
             // return true by default
             context.IsTimeSyncSupported.Returns(true);
@@ -289,7 +290,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private Session CreateValidSession(string clientIP)
         {
             var logger = Substitute.For<ILogger>();
-            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(), 
+            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger), 
                 config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
@@ -300,7 +301,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private Session CreateEmptySession(string clientIP)
         {
             var logger = Substitute.For<ILogger>();
-            return new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(),
+            return new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
                 config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
         }
     }

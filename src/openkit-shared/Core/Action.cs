@@ -88,8 +88,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(eventName))
             {
-                logger.Warn("Action.ReportEvent: eventName must not be null or empty");
+                logger.Warn(this + "ReportEvent: eventName must not be null or empty");
                 return this;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "ReportEvent(" + eventName + ")");
             }
             if (!IsActionLeft)
             {
@@ -102,8 +106,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn("Action.ReportValue (string): valueName must not be null or empty");
+                logger.Warn(this + "ReportValue (string): valueName must not be null or empty");
                 return this;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "ReportValue(string) (" + valueName + ", " + value + ")");
             }
             if (!IsActionLeft)
             {
@@ -116,8 +124,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn("Action.ReportValue (double): valueName must not be null or empty");
+                logger.Warn(this + "ReportValue (double): valueName must not be null or empty");
                 return this;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "ReportValue(double) (" + valueName + ", " + value + ")");
             }
             if (!IsActionLeft)
             {
@@ -130,8 +142,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn("Action.ReportValue (int): valueName must not be null or empty");
+                logger.Warn(this + "ReportValue (int): valueName must not be null or empty");
                 return this;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "ReportValue(int) (" + valueName + ", " + value + ")");
             }
             if (!IsActionLeft)
             {
@@ -144,8 +160,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                logger.Warn("Action.ReportError: errorName must not be null or empty");
+                logger.Warn(this + "ReportError: errorName must not be null or empty");
                 return this;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "ReportError(" + errorName + ", " + errorCode + ", " + reason + ")");
             }
             if (!IsActionLeft)
             {
@@ -158,17 +178,21 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(url))
             {
-                logger.Warn("Action.TraceWebRequest (String): url must not be null or empty");
+                logger.Warn(this + "TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
             if (!WebRequestTracerStringURL.IsValidURLScheme(url))
             {
-                logger.Warn($"Action.TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
+                logger.Warn(this + $"TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "TraceWebRequest (String) (" + url + ")");
             }
             if (!IsActionLeft)
             {
-                return new WebRequestTracerStringURL(beacon, this, url);
+                return new WebRequestTracerStringURL(logger, beacon, this, url);
             }
 
             return NullWebRequestTracer;
@@ -176,6 +200,10 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction LeaveAction()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "LeaveAction(" + name + ")");
+            }
             // check if leaveAction() was already called before by looking at endTime
             if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
@@ -203,6 +231,12 @@ namespace Dynatrace.OpenKit.Core
         public void Dispose()
         {
             LeaveAction();
+        }
+
+        public override string ToString()
+        {
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + id + ", name=" + name + ", pa="
+                + (parentAction != null ? System.Convert.ToString(parentAction.id) : "no parent") + "] ";
         }
     }
 }

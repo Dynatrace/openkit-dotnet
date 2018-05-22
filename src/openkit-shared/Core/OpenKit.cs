@@ -58,13 +58,25 @@ namespace Dynatrace.OpenKit.Core
             ITimingProvider timingProvider,
             IThreadIDProvider threadIDProvider)
         {
+            if(logger.IsInfoEnabled)
+            {
+                //TODO: Use proper version information (incl. the build number)
+                logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DEFAULT_APPLICATION_VERSION + " instantiated");
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(
+                  "applicationName=" + configuration.ApplicationName + ", applicationID=" + configuration.ApplicationID
+                  + ", deviceID=" + configuration.DeviceID + ", endpointURL=" + configuration.EndpointURL
+                    );
+            }
             this.configuration = configuration;
             this.logger = logger;
             this.timingProvider = timingProvider;
             this.threadIDProvider = threadIDProvider;
 
-            beaconCache = new BeaconCache();
-            beaconSender = new BeaconSender(configuration, httpClientProvider, timingProvider);
+            beaconCache = new BeaconCache(logger);
+            beaconSender = new BeaconSender(logger, configuration, httpClientProvider, timingProvider);
             beaconCacheEvictor = new BeaconCacheEvictor(logger, beaconCache, configuration.BeaconCacheConfig, timingProvider);
         }
 
@@ -110,6 +122,10 @@ namespace Dynatrace.OpenKit.Core
 
         public ISession CreateSession(string clientIPAddress)
         {
+            if(logger.IsDebugEnabled)
+            {
+                logger.Debug(GetType().Name + " CreateSession(" + clientIPAddress + ")");
+            }
             if (isShutdown)
             {
                 return NullSession;
@@ -122,6 +138,10 @@ namespace Dynatrace.OpenKit.Core
 
         public void Shutdown()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(GetType().Name + " shutdown requested");
+            }
             isShutdown = true;
             beaconCacheEvictor.Stop();
             beaconSender.Shutdown();

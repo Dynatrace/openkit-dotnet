@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.API;
 using System.Text.RegularExpressions;
 
 namespace Dynatrace.OpenKit.Core
@@ -32,7 +33,7 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public WebRequestTracerStringURL(Beacon beacon, Action action, string url) : base(beacon, action)
+        public WebRequestTracerStringURL(ILogger logger, Beacon beacon, Action action, string url) : base(logger, beacon, action)
         {
             // separate query string from URL
             if (IsValidURLScheme(url))

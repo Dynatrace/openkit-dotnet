@@ -73,8 +73,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(actionName))
             {
-                logger.Warn("Session.EnterAction: actionName must not be null or empty");
+                logger.Warn(this + "EnterAction: actionName must not be null or empty");
                 return NullRootAction;
+            }
+            if(logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "EnterAction(" + actionName + ")");
             }
             if (!IsSessionEnded)
             {
@@ -88,8 +92,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(userTag))
             {
-                logger.Warn("Session.IdentifyUser: userTag must not be null or empty");
+                logger.Warn(this + "IdentifyUser: userTag must not be null or empty");
                 return;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "IdentifyUser(" + userTag + ")");
             }
             if (!IsSessionEnded)
             {
@@ -101,8 +109,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                logger.Warn("Session.ReportCrash: errorName must not be null or empty");
+                logger.Warn(this + "ReportCrash: errorName must not be null or empty");
                 return;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "ReportCrash(" + errorName + ", " + reason + ", " + stacktrace + ")");
             }
             if (!IsSessionEnded)
             {
@@ -112,6 +124,11 @@ namespace Dynatrace.OpenKit.Core
 
         public void End()
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + "End()");
+            }
+
             // check if end() was already called before by looking at endTime
             if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
@@ -146,6 +163,11 @@ namespace Dynatrace.OpenKit.Core
         internal void ClearCapturedData()
         {
             beacon.ClearData();
+        }
+
+        public override string ToString()
+        {
+            return GetType().Name + " [sn=" + beacon.SessionNumber + "] ";
         }
     }
 }

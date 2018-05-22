@@ -54,7 +54,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 if (!infoShown && logger.IsInfoEnabled)
                 {
-                    logger.Info("TimeEvictionStrategy is disabled");
+                    logger.Info(GetType().Name + " strategy is disabled");
                     // suppress any further log output
                     infoShown = true;
                 }
@@ -96,7 +96,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                 var numRecordsRemoved = beaconCache.EvictRecordsByAge(beaconID, smallestAllowedBeaconTimestamp);
                 if (numRecordsRemoved > 0 && logger.IsDebugEnabled)
                 {
-                    logger.Debug("Removed " + numRecordsRemoved + " records from Beacon with ID " + beaconID);
+                    logger.Debug(GetType().Name + " - Removed " + numRecordsRemoved + " records from Beacon with ID " + beaconID);
                 }
             }
 
