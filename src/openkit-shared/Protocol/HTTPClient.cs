@@ -16,6 +16,8 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
+
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -65,10 +67,6 @@ namespace Dynatrace.OpenKit.Protocol
         private const string QUERY_KEY_VERSION = "va";
         private const string QUERY_KEY_PLATFORM_TYPE = "pt";
         private const string QUERY_KEY_AGENT_TECHNOLOGY_TYPE = "tt";
-
-        // constant query parameter values
-        private const string PLATFORM_TYPE_OPENKIT = "1";
-        private const string AGENT_TECHNOLOGY_TYPE = "okdotnet";
 
         // connection constants
         private const int MAX_SEND_RETRIES = 3;
@@ -268,9 +266,9 @@ namespace Dynatrace.OpenKit.Protocol
 
             AppendQueryParam(monitorURLBuilder, QUERY_KEY_SERVER_ID, serverID.ToString());
             AppendQueryParam(monitorURLBuilder, QUERY_KEY_APPLICATION, applicationID);
-            AppendQueryParam(monitorURLBuilder, QUERY_KEY_VERSION, Beacon.OPENKIT_VERSION);
-            AppendQueryParam(monitorURLBuilder, QUERY_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
-            AppendQueryParam(monitorURLBuilder, QUERY_KEY_AGENT_TECHNOLOGY_TYPE, AGENT_TECHNOLOGY_TYPE);
+            AppendQueryParam(monitorURLBuilder, QUERY_KEY_VERSION, ProtocolConstants.OPENKIT_VERSION);
+            AppendQueryParam(monitorURLBuilder, QUERY_KEY_PLATFORM_TYPE, Convert.ToString(ProtocolConstants.PLATFORM_TYPE_OPENKIT));
+            AppendQueryParam(monitorURLBuilder, QUERY_KEY_AGENT_TECHNOLOGY_TYPE, ProtocolConstants.AGENT_TECHNOLOGY_TYPE);
 
             return monitorURLBuilder.ToString();
         }
