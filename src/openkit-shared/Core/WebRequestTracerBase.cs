@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public abstract class WebRequestTracerBase : IWebRequestTracer
     {
-        private ILogger logger = null;
+        private readonly ILogger logger = null;
 
         // Dynatrace tag that has to be used for tracing the web request
         private string tag = null;
@@ -159,7 +159,7 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return "WebRequestTracer [sn=" + beacon.GetSessionNumber() + ", id=" + action.ID + ", url='" + url + "'] ";
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + action.ID + ", url='" + url + "'] ";
         }
     }
 }

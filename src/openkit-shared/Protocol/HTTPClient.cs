@@ -116,13 +116,13 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug("HTTPClient HTTP " + requestType.RequestName + " Request: " + url);
+                    logger.Debug(GetType().Name + " HTTP " + requestType.RequestName + " Request: " + url);
                 }
                 return SendRequestInternal(requestType, url, clientIPAddress, data, method);
             }
             catch (Exception e)
             {
-                logger.Error("HTTPClient" + requestType.RequestName + " Request failed!", e);
+                logger.Error(GetType().Name + " " + requestType.RequestName + " Request failed!", e);
             }
             return null;
         }
@@ -144,7 +144,7 @@ namespace Dynatrace.OpenKit.Protocol
 
                         if (logger.IsDebugEnabled)
                         {
-                            logger.Debug("HTTPClient Beacon Payload: " + Encoding.UTF8.GetString(data));
+                            logger.Debug(GetType().Name + " Beacon Payload: " + Encoding.UTF8.GetString(data));
                         }
                     }
 
@@ -164,8 +164,8 @@ namespace Dynatrace.OpenKit.Protocol
 
                     if (logger.IsDebugEnabled)
                     {
-                        logger.Debug("HTTPClient HTTP Response: " + httpResponse.Response);
-                        logger.Debug("HTTPClient HTTP Response Code: " + httpResponse.ResponseCode);
+                        logger.Debug(GetType().Name + " HTTP Response: " + httpResponse.Response);
+                        logger.Debug(GetType().Name + " HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
                     if (httpResponse.Response == null || httpResponse.ResponseCode >= 400)
@@ -186,7 +186,7 @@ namespace Dynatrace.OpenKit.Protocol
                     }
                     else
                     {
-                        logger.Warn("HTTPClient Unknown request type " + requestType + " - ignoring response");
+                        logger.Warn(GetType().Name + " Unknown request type " + requestType + " - ignoring response");
                         return null;
                     }
                 }
@@ -213,13 +213,13 @@ namespace Dynatrace.OpenKit.Protocol
                 }
                 catch (Exception e)
                 {
-                    logger.Error("HTTPClient Failed to parse StatusResponse", e);
+                    logger.Error(GetType().Name + " Failed to parse StatusResponse", e);
                     return null;
                 }
             }
 
             // invalid/unexpected response
-            logger.Warn("HTTPClient The HTTPResponse \"" + httpResponse.Response + "\" is not a valid status response");
+            logger.Warn(GetType().Name + " The HTTPResponse \"" + httpResponse.Response + "\" is not a valid status response");
             return null;
         }
 
@@ -233,13 +233,13 @@ namespace Dynatrace.OpenKit.Protocol
                 }
                 catch(Exception e)
                 {
-                    logger.Error("HTTPClient Failed to parse TimeSyncResponse", e);
+                    logger.Error(GetType().Name + " Failed to parse TimeSyncResponse", e);
                     return null;
                 }
             }
 
             // invalid/unexpected response
-            logger.Warn("HTTPClient The HTTPResponse \"" + httpResponse.Response + "\" is not a valid time sync response");
+            logger.Warn(GetType().Name + " The HTTPResponse \"" + httpResponse.Response + "\" is not a valid time sync response");
             return null;
         }
 

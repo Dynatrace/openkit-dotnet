@@ -699,9 +699,6 @@ namespace Dynatrace.OpenKit.Protocol
 
         public bool IsEmpty => beaconCache.IsEmpty(sessionNumber);
 
-        public int GetSessionNumber()
-        {
-            return sessionNumber;
-        }
+        public int SessionNumber => sessionNumber;
     }
 }

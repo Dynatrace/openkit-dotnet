@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 {
     public class BeaconCache : IBeaconCache
     {
-        private ILogger logger;
+        private readonly ILogger logger;
         private readonly ReaderWriterLockSlim globalCacheLock = new ReaderWriterLockSlim();
         private readonly IDictionary<int, BeaconCacheEntry> beacons = new Dictionary<int, BeaconCacheEntry>();
         private long cacheSizeInBytes = 0;
@@ -62,7 +62,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCache AddActionData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
+                logger.Debug(GetType().Name + " AddActionData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
             }
             // get a reference to the cache entry
             var entry = GetCachedEntryOrInsert(beaconID);
@@ -91,7 +91,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCache AddEventData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
+                logger.Debug(GetType().Name + " AddEventData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
             }
             // get a reference to the cache entry
             var entry = GetCachedEntryOrInsert(beaconID);
@@ -120,7 +120,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCache DeleteCacheEntry(sn=" + beaconID + ")");
+                logger.Debug(GetType().Name + " DeleteCacheEntry(sn=" + beaconID + ")");
             }
             BeaconCacheEntry entry = null;
             try
@@ -165,7 +165,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if(logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCache EvictRecordsByAge(sn=" + beaconID + ", minTimestamp=" + minTimestamp + ") has evicted "
+                logger.Debug(GetType().Name + " EvictRecordsByAge(sn=" + beaconID + ", minTimestamp=" + minTimestamp + ") has evicted "
                      + numRecordsRemoved + " records");
             }
 
@@ -194,7 +194,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconCache EvictRecordsByNumber(sn=" + beaconID + ", numRecords=" + numRecords + ") has evicted "
+                logger.Debug(GetType().Name + " EvictRecordsByNumber(sn=" + beaconID + ", numRecords=" + numRecords + ") has evicted "
                     + numRecordsRemoved + " records");
             }
 

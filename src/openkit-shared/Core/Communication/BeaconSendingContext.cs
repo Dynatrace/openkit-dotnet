@@ -30,7 +30,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingContext : IBeaconSendingContext
     {
-        private ILogger logger;
+        private readonly ILogger logger;
 
         public const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
 

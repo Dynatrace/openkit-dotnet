@@ -167,7 +167,7 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return "Session [sn=" + beacon.GetSessionNumber() + "] ";
+            return GetType().Name + " [sn=" + beacon.SessionNumber + "] ";
         }
     }
 }

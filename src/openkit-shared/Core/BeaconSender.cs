@@ -56,7 +56,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconSender thread started");
+                logger.Debug(GetType().Name + " thread started");
             }
 
             // create sending thread
@@ -93,7 +93,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconSender thread request shutdown");
+                logger.Debug(GetType().Name + " thread request shutdown");
             }
             context.RequestShutdown();
 
@@ -106,7 +106,7 @@ namespace Dynatrace.OpenKit.Core
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug("BeaconSender thread stopped");
+                    logger.Debug(GetType().Name + " thread stopped");
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconSender StartSession");
+                logger.Debug(GetType().Name + " StartSession");
             }
             context.StartSession(session);
         }
@@ -126,7 +126,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("BeaconSender FinishSession");
+                logger.Debug(GetType().Name + " FinishSession");
             }
             context.FinishSession(session);
         }

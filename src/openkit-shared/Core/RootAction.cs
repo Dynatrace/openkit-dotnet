@@ -73,7 +73,7 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return "RootAction [sn=" + beacon.GetSessionNumber() + ", id=" + ID + ", name=" + Name + "] ";
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + ID + ", name=" + Name + "] ";
         }
     }
 }

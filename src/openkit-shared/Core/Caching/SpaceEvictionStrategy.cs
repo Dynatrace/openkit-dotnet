@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                 // immediately return if this strategy is disabled
                 if (!infoShown && logger.IsInfoEnabled)
                 {
-                    logger.Info("SpaceEvictionStrategy is disabled");
+                    logger.Info(GetType().Name + " strategy is disabled");
                     // suppress any further log output
                     infoShown = true;
                 }
@@ -129,7 +129,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 foreach (var entry in removedRecordsPerBeacon)
                 {
-                    logger.Debug("Removed " + entry.Value + " records from Beacon with ID " + entry.Key);
+                    logger.Debug(GetType().Name + " - Removed " + entry.Value + " records from Beacon with ID " + entry.Key);
                 }
             }
         }

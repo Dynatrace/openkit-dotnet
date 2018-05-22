@@ -61,7 +61,7 @@ namespace Dynatrace.OpenKit.Core
             if(logger.IsInfoEnabled)
             {
                 //TODO: Use proper version information (incl. the build number)
-                logger.Info(configuration.OpenKitType + " OpenKit " + OpenKitConstants.DEFAULT_APPLICATION_VERSION + " instantiated");
+                logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DEFAULT_APPLICATION_VERSION + " instantiated");
             }
             if (logger.IsDebugEnabled)
             {
@@ -124,7 +124,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug("OpenKit CreateSession(" + clientIPAddress + ")");
+                logger.Debug(GetType().Name + " CreateSession(" + clientIPAddress + ")");
             }
             if (isShutdown)
             {
@@ -140,7 +140,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug("OpenKit shutdown requested");
+                logger.Debug(GetType().Name + " shutdown requested");
             }
             isShutdown = true;
             beaconCacheEvictor.Stop();

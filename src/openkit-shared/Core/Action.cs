@@ -235,7 +235,7 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return "Action [sn=" + beacon.GetSessionNumber() + ", id=" + id + ", name=" + name + ", pa="
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + id + ", name=" + name + ", pa="
                 + (parentAction != null ? System.Convert.ToString(parentAction.id) : "no parent") + "] ";
         }
     }

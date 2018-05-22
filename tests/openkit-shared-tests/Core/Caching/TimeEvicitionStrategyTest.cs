@@ -272,8 +272,8 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // then verify that the logger was invoked
             var tmp = mockLogger.Received(2).IsDebugEnabled;
-            mockLogger.Received(1).Debug("Removed 2 records from Beacon with ID 1");
-            mockLogger.Received(1).Debug("Removed 5 records from Beacon with ID 42");
+            mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 2 records from Beacon with ID 1");
+            mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 5 records from Beacon with ID 42");
         }
 
         [Test]
