@@ -14,17 +14,20 @@
 // limitations under the License.
 //
 
-using System.Collections.Generic;
-using System.Text;
-
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
-using System.Threading;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Protocol;
+
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 using System.Linq;
+
+
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -79,12 +82,6 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BEACON_KEY_WEBREQUEST_RESPONSECODE = "rc";
         private const string BEACON_KEY_WEBREQUEST_BYTES_SEND = "bs";
         private const string BEACON_KEY_WEBREQUEST_BYTES_RECEIVED = "br";
-
-        // version constants
-        public const string OPENKIT_VERSION = "7.0.0000";
-        private const int PROTOCOL_VERSION = 3;
-        private const int PLATFORM_TYPE_OPENKIT = 1;
-        private const string AGENT_TECHNOLOGY_TYPE = "okdotnet";
 
         // max name length
         private const int MAX_NAME_LEN = 250;
@@ -226,7 +223,7 @@ namespace Dynatrace.OpenKit.Protocol
         public string CreateTag(Action parentAction, int sequenceNo)
         {
             return TAG_PREFIX + "_"
-                       + PROTOCOL_VERSION + "_"
+                       + ProtocolConstants.PROTOCOL_VERSION + "_"
                        + httpConfiguration.ServerID + "_"
                        + configuration.DeviceID + "_"
                        + sessionNumber + "_"
@@ -585,13 +582,13 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder basicBeaconBuilder = new StringBuilder();
 
             // version and application information
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PROTOCOL_VERSION, PROTOCOL_VERSION);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_OPENKIT_VERSION, OPENKIT_VERSION);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PROTOCOL_VERSION, ProtocolConstants.PROTOCOL_VERSION);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_OPENKIT_VERSION, ProtocolConstants.OPENKIT_VERSION);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_ID, configuration.ApplicationID);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_NAME, configuration.ApplicationName);
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_APPLICATION_VERSION, configuration.ApplicationVersion);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, AGENT_TECHNOLOGY_TYPE);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, ProtocolConstants.PLATFORM_TYPE_OPENKIT);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, ProtocolConstants.AGENT_TECHNOLOGY_TYPE);
 
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
