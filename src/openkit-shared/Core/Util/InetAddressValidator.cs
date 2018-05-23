@@ -79,12 +79,7 @@ namespace Dynatrace.OpenKit.Core.Util
         ///<returns>true if input is in correct IPv6 (hex-compressed) notation</returns>
         public static bool IsIPv6HexCompressedAddress(string input)
         {
-            // a compressed ipv6 address can only contain up to 6 ':' characters
-            int count = input.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries).Length;
-            if (count < 7)
-                return IpV6HexCompressedRegex.Match(input).Success;
-            else
-                return false;
+            return IpV6HexCompressedRegex.Match(input).Success;
         }
 
         ///<summary>

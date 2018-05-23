@@ -375,19 +375,6 @@ namespace Dynatrace.OpenKit.Core.Util
         }
 
         [Test]
-        public void IpV6AddressValid_RFCInvalidBlockCompress()
-        {
-            // RFC5952 states:
-            // The symbol "::" MUST NOT be used to shorten just one 16-bit 0 field.
-
-            //given
-            var ipv6TestString = "2001:db8::1:1:1:1:1";
-
-            //then 
-            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
-        }
-
-        [Test]
         public void IpV6AddressValid_RFCExample()
         {
             //given
