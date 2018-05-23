@@ -23,135 +23,408 @@ namespace Dynatrace.OpenKit.Core.Util
     public class InetAddressValidatorTest
     {
         [Test]
-        public void IPV4AddressIsValid()
+        public void IpV4AddressIsValid()
         {
             //given
-            var validIPV4Address = "122.133.55.22";
+            var ipv4TestString = "122.133.55.22";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(validIPV4Address), Is.True);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
         [Test]
-        public void IPV4AddressIsInvalidDueToExtraBlock()
+        public void IpV4AddressIsValidAllZero()
         {
             //given
-            var invalidIPV4Address = "122.133.55.22.1";
+            var ipv4TestString = "0.0.0.0";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV4Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
         [Test]
-        public void IPV4AddressIsInvalidDueToHighNumber()
+        public void IpV4AddressIsValidAllEigtht()
         {
             //given
-            var invalidIPV4Address = "122.133.555.22";
+            var ipv4TestString = "8.8.8.8";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV4Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
         [Test]
-        public void IPV4AddressIsInvalidDueToNegativeNumber()
+        public void IpV4AddressIsValidHighestPossible()
         {
             //given
-            var invalidIPV4Address = "122.133.555.-22";
+            var ipv4TestString = "255.255.255.255";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV4Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
         [Test]
-        public void IPV4AddressIsInvalidDueToLetter()
+        public void IpV4AddressIsInvalidBecauseOfOverflow()
         {
             //given
-            var invalidIPV4Address = "122.133.555.e33";
+            var ipv4TestString = "255.255.255.256";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV4Address), Is.False);
-        }
-
-
-        [Test]
-        public void IPV4AddressIsInvalidDueToMissingBlock()
-        {
-            //given
-            var invalidIPV4Address = "122.133.555";
-
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV4Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPV6AddressIsValid()
+        public void IpV4AddressIsInvalidDoubleColonsInsteadOfPoints()
         {
             //given
-            var validIPV6Address = "2045:FEFE:0D22:0123:DAD2:3345:ABB2:0003";
+            var ipv4TestString = "255:255:255:255";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(validIPV6Address), Is.True);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPV6AddressIsInvalidDueToExtraBlock()
+        public void IpV4AddressIsInvalidDueToAdditionalCharacterInFirstBlock()
         {
             //given
-            var invalidIPV6Address = "2045:FEFE:0D22:0123:DAD2:3345:ABB2:0003:1001";
+            var ipv4TestString = "122x.133.55.22";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV6Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPV6AddressIsInvalidDueTo5HexDigitNumber()
+        public void IpV4AddressIsInvalidDueToAdditionalCharacterInSecondBlock()
         {
             //given
-            var invalidIPV6Address = "2045:FEFE3:0D22:0123:DAD2:3345:ABB2:0003";
+            var ipv4TestString = "122.133x.55.22";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV6Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPV6AddressIsInvalidDueToNonHexLetter()
+        public void IpV4AddressIsInvalidDueToAdditionalCharacterInThirdBlock()
         {
             //given
-            var invalidIPV6Address = "2045:GEFE:0D22:0123:DAD2:3345:ABB2:0003";
+            var ipv4TestString = "122.133.55x.22";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPV6Address), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPV6AddressWithLessThanEightBlocksIsValid()
+        public void IpV4AddressIsInvalidDueToAdditionalCharacterInFourthBlock()
         {
             //given
-            var validIPV6Address = "2045:defe:d22:123::1444";
+            var ipv4TestString = "122.133.55.22x";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(validIPV6Address), Is.True);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPAddressEmptyIsInvalid()
+        public void IpV4AddressIsInvalidDueToIllegalValueOverrun()
         {
             //given
-            var invalidIPAddress = "";
+            var ipv4TestString = "122.133.256.22";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPAddress), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
         [Test]
-        public void IPAddressNullIsInvalid()
+        public void ipV4AddressIsInvalidDueToIllegalValueNegative()
         {
             //given
-            string invalidIPAddress = null;
+            var ipv4TestString = "122.133.256.-22";
 
-            //then
-            Assert.That(InetAddressValidator.IsValidIP(invalidIPAddress), Is.False);
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
+        [Test]
+        public void IpV6AddressIsValid()
+        {
+            //given
+            var ipv6TestString = "23fe:33af:1232:5522:abcd:2532:1a2b:1";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressIsInvalidOverflow()
+        {
+            //given
+            var ipv6TestString = "23fec:33af:1232:5522:abcd:2532:1a2b:1";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressIsInvalidIllegalCharacter()
+        {
+            //given
+            var ipv6TestString = "23fl:33af:1232:5522:abcd:2532:1a2b:1";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressIsInvalidTooManyBlocks()
+        {
+            //given
+            var ipv6TestString = "23fl:33af:1232:5522:abcd:2532:1a2b:1:2:3";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsValidBlock4()
+        {
+            //given
+            var ipv6TestString = "2001:db:85:b::1A";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsValidBlock3()
+        {
+            //given
+            var ipv6TestString = "2001:db:85::b:1A";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsValidBlock2()
+        {
+            //given
+            var ipv6TestString = "2001:db::85:b:1A";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsValidBlock1()
+        {
+            //given
+            var ipv6TestString = "2001::db:85:b:1A";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsValidShortestPossible()
+        {
+            //given
+            var ipv6TestString = "2001::b1A";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsInvalidTwoCompressedBlocks()
+        {
+            //given
+            var ipv6TestString = "2001::db:85::b1A";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressHexCompressedIsInvalidFirstBlockMissing()
+        {
+            //given
+            var ipv6TestString = ":4::5:6";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsValid()
+        {
+            //given
+            var ipv6TestString = "0::FF:FF:172.12.55.18";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsInvalidOnly3IPv4Blocks()
+        {
+            //given
+            var ipv6TestString = "0::FF:FF:172.12.55";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsInvalidIPV6PartInvalid()
+        {
+            //given
+            var ipv6TestString = "0::FF:FF:FF:172.12.55";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsInvalidMissingNumberFirstBlock()
+        {
+            //given
+            var ipv6TestString = "::FF:FF:172.12.55";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressLinkLocalIsValid()
+        {
+            //given
+            var ipv6TestStringLinkLocal = "fe80::208:74ff:feda:625c%5";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressLinkLocalIsValidVeryShortLinkLocal()
+        {
+            //given
+            var ipv6TestStringLinkLocal = "fe80::625c%5";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressLinkLocalIsInvalidTooManyBlocks()
+        {
+            //given
+            var ipv6TestStringLinkLocal = "fe80:34:208:74ff:feda:dada:625c:8976:abcd%5";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressLinkLocalIsInvalidIllegalNonHexCharacter()
+        {
+            //given
+            var ipv6TestStringLinkLocal = "fe80::208t:74ff:feda:dada:625c%5";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressLinkLocalIsInvalidDueToTwoDoubleColonsInAddress()
+        {
+            //given
+            var ipv6TestStringLinkLocal = "fe80::208:74ff::dada:625c%5";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressLinkLocalIsInvalidZoneIndexUsedWithInvalidPrefix()
+        {
+            //given
+            var ipv6TestStringLinkLocal = "fedd::208:74ff::dada:625c%5";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
+        }
+
+        // the following two addresses are not valid according to RFC5952 but are accepted by glibc's implementation and also ours
+
+        [Test]
+        public void IpV6AddressValid_RFCLeadingZeros()
+        {
+            //given
+            var ipv6TestString = "2001:0db8::0001";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressValid_RFCEmptyBlockNotShortened()
+        {
+            //given
+            var ipv6TestString = "2001:db8::0:1";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressValid_RFCInvalidBlockCompress()
+        {
+            // RFC5952 states:
+            // The symbol "::" MUST NOT be used to shorten just one 16-bit 0 field.
+
+            //given
+            var ipv6TestString = "2001:db8::1:1:1:1:1";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
+        }
+
+        [Test]
+        public void IpV6AddressValid_RFCExample()
+        {
+            //given
+            var ipv6TestString = "2001:db8::1:0:0:1";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressValid_CharactersOnlyLowerCase()
+        {
+            //given
+            var ipv6TestString = "20ae:db8::1f:4edd:344f:1abc";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressValid_CharactersMixedCase()
+        {
+            //given
+            var ipv6TestString = "20aE:Db8::1f:4EDd:344f:1aBc";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressValid_CharactersUpperCase()
+        {
+            //given
+            var ipv6TestString = "20AE:DB8::1F:4EDD:344F:1ABC";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
     }
 }

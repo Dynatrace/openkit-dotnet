@@ -31,8 +31,8 @@ namespace Dynatrace.OpenKit.Core.Util
 
         private static readonly Regex IpV6HexCompressedRegex = new Regex("^((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)$");
 
-        private static readonly Regex IpV6MixedRegex = new Regex("(?ix)(?<![:.\\w])                                     # Anchor address\n" +
-                            "(?:\n" +
+        private static readonly Regex IpV6MixedRegex = new Regex("(?ix)           # Anchor address\n" +
+                            "^(?:\n" +
                             " (?:[A-F0-9]{1,4}:){6}                                # Non-compressed\n" +
                             "|(?=(?:[A-F0-9]{0,4}:){2,6}                           # Compressed with 2 to 6 colons\n" +
                             "    (?:[0-9]{1,3}\\.){3}[0-9]{1,3}                    #    and 4 bytes\n" +
@@ -42,7 +42,7 @@ namespace Dynatrace.OpenKit.Core.Util
                             ")\n" +
                             "(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}  # 255.255.255.\n" +
                             "(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])       # 255\n" +
-                            "(?![:.\\w])                                           # Anchor address");
+                            "$                                                     # Anchor address");
 
 
 
@@ -79,7 +79,12 @@ namespace Dynatrace.OpenKit.Core.Util
         ///<returns>true if input is in correct IPv6 (hex-compressed) notation</returns>
         public static bool IsIPv6HexCompressedAddress(string input)
         {
-            return IpV6HexCompressedRegex.Match(input).Success;
+            // a compressed ipv6 address can only contain up to 6 ':' characters
+            int count = input.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            if (count < 7)
+                return IpV6HexCompressedRegex.Match(input).Success;
+            else
+                return false;
         }
 
         ///<summary>
