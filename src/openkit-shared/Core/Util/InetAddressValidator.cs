@@ -25,25 +25,55 @@ namespace Dynatrace.OpenKit.Core.Util
     /// </summary>
     public class InetAddressValidator
     {
-        private static readonly Regex IpV4Regex = new Regex("^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
+        // 
+        // 4 blocks of number ranging from 0-255
+        // the first part of the regex checks the first block
+        // the second block checks that there are three further blocks prepended by a '.'
+        // 
+        private static readonly Regex IpV4Regex = new Regex( "^"          // start of string
+                            + "(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)"         // first block - a number from 0-255
+                            + "(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}" // three more blocks - numbers from 0-255 - each prepended by a point character '.'
+                            +"$"                                          // end of string
+                            , RegexOptions.ECMAScript);
 
-        private static readonly Regex IpV6Regex = new Regex("^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
+        private static readonly Regex IpV6Regex = new Regex("^"           // start of string
+                            + "(?:[0-9a-fA-F]{1,4}:){7}"                  // 7 blocks of a 1 to 4 digit hex number followed by double colon ':'
+                            + "[0-9a-fA-F]{1,4}"                          // one more block of a 1 to 4 digit hex number
+                            + "$"                                         // end of string
+                            , RegexOptions.ECMAScript);
 
-        private static readonly Regex IpV6HexCompressedRegex = new Regex("^((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)$");
+        private static readonly Regex IpV6HexCompressedRegex   = new Regex("^" // start of string
+                            + "("                                              // 1st group
+                            + "(?:[0-9A-Fa-f]{1,4}"                            // at least one block of a 1 to 4 digit hex number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optinional further blocks, any number
+                            + ")"
+                            + "::"                                             // in the middle of the expression the two occurences of ':' are neccessary
+                            + "("                                              // 2nd group
+                            + "(?:[0-9A-Fa-f]{1,4}"                            // at least one block of a 1 to 4 digit hex number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optinional further blocks, any number
+                            + ")"
+                            + "$"                                              // end of string
+                            , RegexOptions.ECMAScript);
 
-        private static readonly Regex IpV6MixedRegex = new Regex("(?ix)(?<![:.\\w])                                     # Anchor address\n" +
-                            "(?:\n" +
-                            " (?:[A-F0-9]{1,4}:){6}                                # Non-compressed\n" +
-                            "|(?=(?:[A-F0-9]{0,4}:){2,6}                           # Compressed with 2 to 6 colons\n" +
-                            "    (?:[0-9]{1,3}\\.){3}[0-9]{1,3}                    #    and 4 bytes\n" +
-                            "    (?![:.\\w]))                                      #    and anchored\n" +
-                            " (([0-9A-F]{1,4}:){1,5}|:)((:[0-9A-F]{1,4}){1,5}:|:)  #    and at most 1 double colon\n" +
-                            "|::(?:[A-F0-9]{1,4}:){5}                              # Compressed with 7 colons and 5 numbers\n" +
-                            ")\n" +
-                            "(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\.){3}  # 255.255.255.\n" +
-                            "(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])       # 255\n" +
-                            "(?![:.\\w])                                           # Anchor address");
+        //this regex checks the ipv6 uncompressed part of a ipv6 mixed address
+        private static readonly Regex IpV6MixedCompressedRegex = new Regex("^"  // start of string
+                            + "("                                               // 1st group
+                            + "(?:[0-9A-Fa-f]{1,4}"                             // at least one block of a 1 to 4 digit hex number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                        // optinional further blocks, any number
+                            + ")"
+                            + "::"                                              // in the middle of the expression the two occurences of ':' are neccessary
+                            + "("                                               // 2nd group
+                            + "(?:[0-9A-Fa-f]{1,4}:"                            // at least one block of a 1 to 4 digit hex number followed by a ':' character
+                            + "(?:[0-9A-Fa-f]{1,4}:)*)?"                        // optinional further blocks, any number, all succeeded by ':' character
+                            + ")" 
+                            + "$"                                               // end of string
+                            , RegexOptions.ECMAScript);
 
+        //this regex checks the ipv6 uncompressed part of a ipv6 mixed address
+        private static readonly Regex IpV6MixedUncompressedRegex = new Regex("^" + // start of string
+                            "(?:[0-9a-fA-F]{1,4}:){6}"                             // 6 blocks of a 1 to 4 digit hex number followed by double colon ':'
+                            + "$"                                                  // end of string
+                            , RegexOptions.ECMAScript);
 
 
         ///<summary>
@@ -108,7 +138,24 @@ namespace Dynatrace.OpenKit.Core.Util
         ///
         public static bool IsIPv6MixedAddress(string input)
         {
-            return IpV6MixedRegex.Match(input).Success;
+            var splitIndex = input.LastIndexOf(':');
+
+            if (splitIndex == -1)
+                return false;
+
+            //the last part is a ipv4 adress
+            var ipv4PartValid = IsIPv4Address(input.Substring(splitIndex + 1 ));
+
+            var ipV6Part = input.Substring(0, splitIndex + 1 );
+            if(ipV6Part.CompareTo("::") == 0)
+            {
+                return ipv4PartValid;
+            }
+
+            var ipV6UncompressedDetected = IpV6MixedUncompressedRegex.Match(ipV6Part).Success;
+            var ipV6CompressedDetected = IpV6MixedCompressedRegex.Match(ipV6Part).Success;
+
+            return ipv4PartValid && (ipV6UncompressedDetected || ipV6CompressedDetected);
         }
 
 
