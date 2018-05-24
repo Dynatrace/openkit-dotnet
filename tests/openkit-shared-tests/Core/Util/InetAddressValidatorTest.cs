@@ -253,13 +253,43 @@ namespace Dynatrace.OpenKit.Core.Util
         }
 
         [Test]
-        public void IpV6AddressMixedNotationIsValid()
+        public void IpV6AddressMixedNotationIsValid_ZerosIPv6NonCompressed()
         {
             //given
-            var ipv6TestString = "0::FF:FF:172.12.55.18";
+            var ipv6MixedTestString = "0:0:0:0:0:0:172.12.55.18";
 
             //then 
-            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+            Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsValid_ZerosIPv6Compressed()
+        {
+            //given
+            var ipv6MixedTestString = "::172.12.55.18";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsValid_NonZeroIPv6NonCompressed()
+        {
+            //given
+            var ipv6MixedTestString = "1:2:3:4:5:6:172.12.55.18";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsValid_NonZeroIPv6Compressed()
+        {
+            //given
+            var ipv6MixedTestString = "2018:f::172.12.55.18";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
         }
 
         [Test]
@@ -273,20 +303,40 @@ namespace Dynatrace.OpenKit.Core.Util
         }
 
         [Test]
-        public void IpV6AddressMixedNotationIsInvalidIPV6PartInvalid()
+        public void IpV6AddressMixedNotationIsValidIPV6PartInvalid()
         {
             //given
-            var ipv6TestString = "0::FF:FF:FF:172.12.55";
+            var ipv6TestString = "0::FF::FF:172.12.55.34";
 
             //then 
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
         [Test]
-        public void IpV6AddressMixedNotationIsInvalidMissingNumberFirstBlock()
+        public void IpV6AddressMixedNotationIsValidIPV6()
         {
             //given
-            var ipv6TestString = "::FF:FF:172.12.55";
+            var ipv6TestString = "0::FF:FF:FF:172.12.55.34";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationIsValidStartingWithDoubleColon()
+        {
+            //given
+            var ipv6TestString = "::FF:FF:172.12.55.43";
+
+            //then 
+            Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
+        }
+
+        [Test]
+        public void IpV6AddressMixedNotationInvalid_Compressed3Colon()
+        {
+            //given
+            var ipv6TestString = "-172.12.55.43";
 
             //then 
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
