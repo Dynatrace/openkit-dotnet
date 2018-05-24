@@ -336,7 +336,7 @@ namespace Dynatrace.OpenKit.Core.Util
         public void IpV6AddressMixedNotationInvalid_Compressed3Colon()
         {
             //given
-            var ipv6TestString = "-172.12.55.43";
+            var ipv6TestString = "123:::172.12.55.43";
 
             //then 
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
