@@ -45,12 +45,12 @@ namespace Dynatrace.OpenKit.Core.Util
         private static readonly Regex IpV6HexCompressedRegex   = new Regex("^" // start of string
                             + "("                                              // 1st group
                             + "(?:[0-9A-Fa-f]{1,4}"                            // at least one block of a 1 to 4 digit hex number
-                            + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optinional further blocks, any number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optional further blocks, any number
                             + ")"
                             + "::"                                             // in the middle of the expression the two occurences of ':' are neccessary
                             + "("                                              // 2nd group
                             + "(?:[0-9A-Fa-f]{1,4}"                            // at least one block of a 1 to 4 digit hex number
-                            + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optinional further blocks, any number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optional further blocks, any number
                             + ")"
                             + "$"                                              // end of string
                             , RegexOptions.ECMAScript);
@@ -59,12 +59,12 @@ namespace Dynatrace.OpenKit.Core.Util
         private static readonly Regex IpV6MixedCompressedRegex = new Regex("^"  // start of string
                             + "("                                               // 1st group
                             + "(?:[0-9A-Fa-f]{1,4}"                             // at least one block of a 1 to 4 digit hex number
-                            + "(?::[0-9A-Fa-f]{1,4})*)?"                        // optinional further blocks, any number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                        // optional further blocks, any number
                             + ")"
                             + "::"                                              // in the middle of the expression the two occurences of ':' are neccessary
                             + "("                                               // 2nd group
                             + "(?:[0-9A-Fa-f]{1,4}:"                            // at least one block of a 1 to 4 digit hex number followed by a ':' character
-                            + "(?:[0-9A-Fa-f]{1,4}:)*)?"                        // optinional further blocks, any number, all succeeded by ':' character
+                            + "(?:[0-9A-Fa-f]{1,4}:)*)?"                        // optional further blocks, any number, all succeeded by ':' character
                             + ")" 
                             + "$"                                               // end of string
                             , RegexOptions.ECMAScript);
