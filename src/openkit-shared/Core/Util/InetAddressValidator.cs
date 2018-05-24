@@ -54,25 +54,26 @@ namespace Dynatrace.OpenKit.Core.Util
                             + ")"
                             + "$"                                              // end of string
                             , RegexOptions.ECMAScript);
+
         //this regex checks the ipv6 uncompressed part of a ipv6 mixed address
         private static readonly Regex IpV6MixedCompressedRegex = new Regex("^"  // start of string
-            + "("                                                               // 1st group
-            + "(?:[0-9A-Fa-f]{1,4}"                                             // at least one block of a 1 to 4 digit hex number
-            + "(?::[0-9A-Fa-f]{1,4})*)?"                                        // optinional further blocks, any number
-            + ")"
-            + "::"                                                              // in the middle of the expression the two occurences of ':' are neccessary
-            + "("                                                               // 2nd group
-            + "(?:[0-9A-Fa-f]{1,4}:"                                            // at least one block of a 1 to 4 digit hex number followed by a ':' character
-            + "(?:[0-9A-Fa-f]{1,4}:)*)?"                                       // optinional further blocks, any number, all succeeded by ':' character
-            + ")" 
-            + "$"                                                               // end of string
-            , RegexOptions.ECMAScript);
+                            + "("                                               // 1st group
+                            + "(?:[0-9A-Fa-f]{1,4}"                             // at least one block of a 1 to 4 digit hex number
+                            + "(?::[0-9A-Fa-f]{1,4})*)?"                        // optinional further blocks, any number
+                            + ")"
+                            + "::"                                              // in the middle of the expression the two occurences of ':' are neccessary
+                            + "("                                               // 2nd group
+                            + "(?:[0-9A-Fa-f]{1,4}:"                            // at least one block of a 1 to 4 digit hex number followed by a ':' character
+                            + "(?:[0-9A-Fa-f]{1,4}:)*)?"                        // optinional further blocks, any number, all succeeded by ':' character
+                            + ")" 
+                            + "$"                                               // end of string
+                            , RegexOptions.ECMAScript);
 
         //this regex checks the ipv6 uncompressed part of a ipv6 mixed address
         private static readonly Regex IpV6MixedUncompressedRegex = new Regex("^" + // start of string
-            "(?:[0-9a-fA-F]{1,4}:){6}"                                             // 6 blocks of a 1 to 4 digit hex number followed by double colon ':'
-            + "$"                                                                  // end of string
-            , RegexOptions.ECMAScript);
+                            "(?:[0-9a-fA-F]{1,4}:){6}"                             // 6 blocks of a 1 to 4 digit hex number followed by double colon ':'
+                            + "$"                                                  // end of string
+                            , RegexOptions.ECMAScript);
 
 
         ///<summary>
