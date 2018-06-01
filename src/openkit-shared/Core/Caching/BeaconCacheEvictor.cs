@@ -70,8 +70,11 @@ namespace Dynatrace.OpenKit.Core.Caching
             this.logger = logger;
             this.beaconCache = beaconCache;
             this.strategies = strategies;
-            evictionThread = new Thread(RunEvictionThread);
-            evictionThread.Name = this.GetType().Name;
+            evictionThread = new Thread(RunEvictionThread)
+            {
+                Name = this.GetType().Name,
+                IsBackground = true
+            };
 
         }
 

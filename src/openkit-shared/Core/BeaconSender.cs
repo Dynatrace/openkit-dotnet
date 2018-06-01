@@ -67,6 +67,7 @@ namespace Dynatrace.OpenKit.Core
                     context.ExecuteCurrentState();
                 }
             }));
+            beaconSenderThread.IsBackground = true;
             // start thread
             beaconSenderThread.Start();
 
