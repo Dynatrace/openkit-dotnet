@@ -105,8 +105,15 @@ namespace Dynatrace.OpenKit.Core.Communication
                 return;
             }
 
+            //sanity check to catch case with div/0
+            long calculatedOffset = ComputeClusterTimeOffset(timeSyncOffsets);
+            if (calculatedOffset < 0)
+            {
+                return;
+            }
+
             // initialize time provider with cluster time offset
-            context.InitializeTimeSync(ComputeClusterTimeOffset(timeSyncOffsets), true);
+            context.InitializeTimeSync(calculatedOffset, true);
 
             // update the last sync time
             context.LastTimeSyncTime = context.CurrentTimestamp;
@@ -216,6 +223,11 @@ namespace Dynatrace.OpenKit.Core.Communication
                     sum += timeSyncOffsets[i];
                     count++;
                 }
+            }
+
+            if (count == 0)
+            { // shouldn't come here under normal circumstances
+                return -1; // prevents div/0
             }
 
             return (long)Math.Round(sum / (double)count);
