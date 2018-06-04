@@ -106,7 +106,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             //sanity check to catch case with div/0
-            long calculatedOffset = ComputeClusterTimeOffset(timeSyncOffsets);
+            var calculatedOffset = ComputeClusterTimeOffset(timeSyncOffsets);
             if (calculatedOffset < 0)
             {
                 return;
