@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\SpaceEvictionStrategyTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\TimeEvicitionStrategyTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconCacheConfigurationTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DefaultLoggerTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingCaptureOffStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingCaptureOnStateTest.cs" />

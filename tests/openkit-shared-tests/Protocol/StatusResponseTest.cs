@@ -362,7 +362,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=3", 200).Multiplicity, Is.EqualTo(3));
 
             // when it's one, then
-            Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=1", 200).Multiplicity, Is.EqualTo(0));
+            Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=0", 200).Multiplicity, Is.EqualTo(0));
 
             // and when it's a negative number, then
             Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=-5", 200).Multiplicity, Is.EqualTo(-5));

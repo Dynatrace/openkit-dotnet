@@ -185,7 +185,7 @@ namespace Dynatrace.OpenKit.Protocol
                     }
                     else if ((requestType.RequestName == RequestType.BEACON.RequestName)
                         || (requestType.RequestName == RequestType.STATUS.RequestName)
-                        || (requestType.RequestName == RequestType.NEW_SESSION.RequestName)
+                        || (requestType.RequestName == RequestType.NEW_SESSION.RequestName))
                     {
                         return ParseStatusResponse(httpResponse);
                     }
