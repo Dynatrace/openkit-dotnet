@@ -32,13 +32,13 @@ namespace Dynatrace.OpenKit.Core
 
         // Action ID, name and parent ID (default: null)
         private int id;
-        private string name;
+        private readonly string name;
         private Action parentAction = null;
 
         // start/end time & sequence number
-        private long startTime;
+        private readonly long startTime;
         private long endTime = -1;
-        private int startSequenceNo;
+        private readonly int startSequenceNo;
         private int endSequenceNo = -1;
 
         // Beacon reference

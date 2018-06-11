@@ -34,6 +34,7 @@ namespace Dynatrace.OpenKit.Protocol
         public const string RESPONSE_KEY_MAX_BEACON_SIZE = "bl";
         public const string RESPONSE_KEY_CAPTURE_ERRORS = "er";
         public const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
+        public const string RESPONSE_KEY_MULTIPLICITY = "mp";
 
         public StatusResponse(string response, int responseCode) : base(responseCode)
         {
@@ -54,6 +55,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         public bool CaptureCrashes { get; private set; } = true;
 
+        public int Multiplicity { get; private set; } = 1;
+
         // parses status check response
         private void ParseResponse(string response)
         {
@@ -73,33 +76,34 @@ namespace Dynatrace.OpenKit.Protocol
                 var key = tokens[0];
                 var value = tokens[1];
 
-                if (RESPONSE_KEY_CAPTURE.Equals(key))
+                switch (key)
                 {
-                    Capture = (Int32.Parse(value) == 1);
-                }
-                else if (RESPONSE_KEY_SEND_INTERVAL.Equals(key))
-                {
-                    SendInterval = Int32.Parse(value) * 1000;
-                }
-                else if (RESPONSE_KEY_MONITOR_NAME.Equals(key))
-                {
-                    MonitorName = value;
-                }
-                else if (RESPONSE_KEY_SERVER_ID.Equals(key))
-                {
-                    ServerID = Int32.Parse(value);
-                }
-                else if (RESPONSE_KEY_MAX_BEACON_SIZE.Equals(key))
-                {
-                    MaxBeaconSize = Int32.Parse(value) * 1024;
-                }
-                else if (RESPONSE_KEY_CAPTURE_ERRORS.Equals(key))
-                {
-                    CaptureErrors = (Int32.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
-                }
-                else if (RESPONSE_KEY_CAPTURE_CRASHES.Equals(key))
-                {
-                    CaptureCrashes = (Int32.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
+                    case RESPONSE_KEY_CAPTURE:
+                        Capture = (int.Parse(value) == 1);
+                        break;
+                    case RESPONSE_KEY_SEND_INTERVAL:
+                        SendInterval = int.Parse(value) * 1000;
+                        break;
+                    case RESPONSE_KEY_MONITOR_NAME:
+                        MonitorName = value;
+                        break;
+                    case RESPONSE_KEY_SERVER_ID:
+                        ServerID = int.Parse(value);
+                        break;
+                    case RESPONSE_KEY_MAX_BEACON_SIZE:
+                        MaxBeaconSize = int.Parse(value) * 1024;
+                        break;
+                    case RESPONSE_KEY_CAPTURE_ERRORS:
+                        CaptureErrors = (int.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
+                        break;
+                    case RESPONSE_KEY_CAPTURE_CRASHES:
+                        CaptureCrashes = (int.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
+                        break;
+                    case RESPONSE_KEY_MULTIPLICITY:
+                        Multiplicity = int.Parse(value);
+                        break;
+                    default:
+                        break;
                 }
             }
         }

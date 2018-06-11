@@ -107,6 +107,16 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void DefaultMultiplicityIsOne()
+        {
+            // given
+            var target = new StatusResponse(string.Empty, 200);
+
+            // then
+            Assert.That(target.Multiplicity, Is.EqualTo(1));
+        }
+
+        [Test]
         public void OddNumberOfTokensThrowsException()
         {
             // given
@@ -343,6 +353,33 @@ namespace Dynatrace.OpenKit.Protocol
 
             // and when numeric overflow (2^31 in this case) occurs, then
             Assert.That(() => new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE_CRASHES + "=2147483648", 200), Throws.InstanceOf<OverflowException>());
+        }
+
+        [Test]
+        public void ParsingMultiplictyWorks()
+        {
+            // when it's a positive number greater than 1, then
+            Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=3", 200).Multiplicity, Is.EqualTo(3));
+
+            // when it's one, then
+            Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=0", 200).Multiplicity, Is.EqualTo(0));
+
+            // and when it's a negative number, then
+            Assert.That(new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=-5", 200).Multiplicity, Is.EqualTo(-5));
+        }
+
+
+        [Test]
+        public void ParsingInvalidNumericValueForMultiplicityThrowsException()
+        {
+            // when wrong format is used, then
+            Assert.That(() => new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=", 200), Throws.InstanceOf<FormatException>());
+
+            // when wrong format is used, then
+            Assert.That(() => new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=a", 200), Throws.InstanceOf<FormatException>());
+
+            // and when numeric overflow (2^31 in this case) occurs, then
+            Assert.That(() => new StatusResponse(StatusResponse.RESPONSE_KEY_MULTIPLICITY + "=2147483648", 200), Throws.InstanceOf<OverflowException>());
         }
 
         [Test]

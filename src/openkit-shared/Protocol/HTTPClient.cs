@@ -16,7 +16,6 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
 
 using System;
 using System.IO;
@@ -42,6 +41,7 @@ namespace Dynatrace.OpenKit.Protocol
             public static readonly RequestType STATUS = new RequestType("Status");              // status check
             public static readonly RequestType BEACON = new RequestType("Beacon");              // beacon send
             public static readonly RequestType TIMESYNC = new RequestType("TimeSync");          // time sync
+            public static readonly RequestType NEW_SESSION = new RequestType("NewSession");     // new session
 
             public string RequestName { get; }
 
@@ -105,6 +105,11 @@ namespace Dynatrace.OpenKit.Protocol
         public TimeSyncResponse SendTimeSyncRequest()
         {
             return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET");
+        }
+
+        public StatusResponse SendNewSessionRequest()
+        {
+            return (StatusResponse)SendRequest(RequestType.NEW_SESSION, monitorURL, null, null, "GET");
         }
 
         // generic request send with some verbose output and exception handling
@@ -178,7 +183,8 @@ namespace Dynatrace.OpenKit.Protocol
                         return ParseTimeSyncResponse(httpResponse);
                     }
                     else if ((requestType.RequestName == RequestType.BEACON.RequestName)
-                        || (requestType.RequestName == RequestType.STATUS.RequestName))
+                        || (requestType.RequestName == RequestType.STATUS.RequestName)
+                        || (requestType.RequestName == RequestType.NEW_SESSION.RequestName))
                     {
                         return ParseStatusResponse(httpResponse);
                     }

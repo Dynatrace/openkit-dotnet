@@ -37,5 +37,11 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         /// <returns></returns>
         TimeSyncResponse SendTimeSyncRequest();
+
+        /// <summary>
+        /// Sends a special status request for a new session.
+        /// </summary>
+        /// <returns>Returns the status response.</returns>
+        StatusResponse SendNewSessionRequest();
     }
 }
