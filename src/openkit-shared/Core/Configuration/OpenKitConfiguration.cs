@@ -47,8 +47,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         // caching settings
         private readonly BeaconCacheConfiguration beaconCacheConfiguration;
 
-        private readonly BeaconConfiguration beaconConfiguration;
-
         private readonly ISessionIDProvider sessionIDProvider;
 
         // *** constructors ***
@@ -86,8 +84,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             this.sessionIDProvider = sessionIDProvider;
 
-            this.beaconConfiguration = beaconConfiguration;
-
+            BeaconConfig = beaconConfiguration;
         }
 
         // *** public methods ***
@@ -201,13 +198,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public HTTPClientConfiguration HTTPClientConfig { get; private set; }
 
-        public BeaconConfiguration BeaconConfig
-        {
-            get
-            {
-                return beaconConfiguration;
-            }
-        }
+        public BeaconConfiguration BeaconConfig { get; }
 
         // updates settings based on a status response
         public void UpdateSettings(StatusResponse statusResponse)
