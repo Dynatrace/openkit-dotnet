@@ -21,6 +21,7 @@ using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Communication;
+using Dynatrace.OpenKit.Core.Configuration;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -260,7 +261,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var session = new Session(logger, beaconSender, target); // will 
@@ -278,7 +279,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var action = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -296,7 +297,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var intValue = 42;
@@ -315,7 +316,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var doubleValue = System.Math.E;
@@ -334,7 +335,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var stringValue = "Write once, debug everywhere";
@@ -353,7 +354,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -371,7 +372,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -389,7 +390,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             // when
@@ -405,7 +406,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -424,7 +425,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
             {
-                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0)
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
             };
 
             // when

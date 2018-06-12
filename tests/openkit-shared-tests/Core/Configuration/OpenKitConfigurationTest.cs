@@ -125,6 +125,31 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
         }
 
+        [Test]
+        public void ADefaultConstructedConfigurationDisablesDataCollection()
+        {
+            var target = CreateDefaultConfig();
+
+            //when retrieving data collection level
+            var dataCollectionLevel = target.BeaconConfig.DataCollectionLevel;
+
+            //then
+            Assert.That(dataCollectionLevel, Is.EqualTo(DataCollectionLevel.OFF));
+        }
+
+        [Test]
+        public void ADefaultConstructedConfigurationDisablesCrashReporting()
+        {
+            var target = CreateDefaultConfig();
+
+            //when retrieving data collection level
+            var crashReportingLevel = target.BeaconConfig.CrashReportingLevel;
+
+            //then
+            Assert.That(crashReportingLevel, Is.EqualTo(CrashReportingLevel.OFF));
+        }
+
+
         private static OpenKitConfiguration CreateDefaultConfig()
         {
             var defaultCacheConfig = new BeaconCacheConfiguration(
@@ -132,8 +157,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,
                 BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES);
 
+            var defaultBeaconConfig = new BeaconConfiguration();
+
             return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider(),
-                  new SSLStrictTrustManager(), new Core.Device("", "", ""), "", defaultCacheConfig);
+                  new SSLStrictTrustManager(), new Core.Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
         }
     }
 }
