@@ -157,7 +157,7 @@ namespace Dynatrace.OpenKit.Protocol
             this.httpConfiguration = configuration.HTTPClientConfig;
 
             basicBeaconData = CreateBasicBeaconData();
-            BeaconConfiguration = new BeaconConfiguration(1);
+            BeaconConfiguration = configuration.BeaconConfig;
         }
 
         // *** public properties ***

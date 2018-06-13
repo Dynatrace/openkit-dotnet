@@ -52,7 +52,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         // *** constructors ***
 
         public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL,
-            ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion, BeaconCacheConfiguration beaconCacheConfiguration)
+            ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
+            BeaconCacheConfiguration beaconCacheConfiguration, BeaconConfiguration beaconConfiguration)
         {
             OpenKitType = openKitType;
 
@@ -83,6 +84,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             this.sessionIDProvider = sessionIDProvider;
 
+            BeaconConfig = beaconConfiguration;
         }
 
         // *** public methods ***
@@ -195,6 +197,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         public HTTPClientConfiguration HTTPClientConfig { get; private set; }
+
+        public BeaconConfiguration BeaconConfig { get; }
 
         // updates settings based on a status response
         public void UpdateSettings(StatusResponse statusResponse)

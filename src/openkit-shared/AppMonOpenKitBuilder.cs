@@ -30,6 +30,8 @@ namespace Dynatrace.OpenKit
             var beaconCacheConfig = new BeaconCacheConfiguration(
                 BeaconCacheMaxBeaconAge, BeaconCacheLowerMemoryBoundary, BeaconCacheUpperMemoryBoundary);
 
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel, CrashReportingLevel);
+
             return new OpenKitConfiguration(
                 OpenKitType.APPMON,
                 applicationName,
@@ -40,7 +42,8 @@ namespace Dynatrace.OpenKit
                 TrustManager,
                 device,
                 ApplicationVersion,
-                beaconCacheConfig);
+                beaconCacheConfig,
+                beaconConfig);
         }
     }
 }

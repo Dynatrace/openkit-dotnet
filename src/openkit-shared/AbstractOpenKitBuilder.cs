@@ -21,6 +21,8 @@ namespace Dynatrace.OpenKit
         private long beaconCacheMaxBeaconAge = BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS;
         private long beaconCacheLowerMemoryBoundary = BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES;
         private long beaconCacheUpperMemoryBoundary = BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES;
+        private DataCollectionLevel dataCollectionLevel = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
+        private CrashReportingLevel crashReportingLevel = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
 
 
         protected AbstractOpenKitBuilder(string endpointURL, long deviceID)
@@ -40,6 +42,8 @@ namespace Dynatrace.OpenKit
         protected long BeaconCacheMaxBeaconAge => beaconCacheMaxBeaconAge;
         protected long BeaconCacheLowerMemoryBoundary => beaconCacheLowerMemoryBoundary;
         protected long BeaconCacheUpperMemoryBoundary => beaconCacheUpperMemoryBoundary;
+        protected DataCollectionLevel DataCollectionLevel => dataCollectionLevel;
+        protected CrashReportingLevel CrashReportingLevel => crashReportingLevel;
 
         /// <summary>
         /// Enables verbose mode. Verbose mode is only enabled if the the default logger is used.
@@ -170,6 +174,18 @@ namespace Dynatrace.OpenKit
         public AbstractOpenKitBuilder WithBeaconCacheUpperMemoryBoundary(long upperMemoryBoundary)
         {
             this.beaconCacheUpperMemoryBoundary = upperMemoryBoundary;
+            return this;
+        }
+
+        public AbstractOpenKitBuilder WithDataCollectionLevel(DataCollectionLevel dataCollectionLevel)
+        {
+            this.dataCollectionLevel = dataCollectionLevel;
+            return this;
+        }
+
+        public AbstractOpenKitBuilder WithCrashReportingLevel(CrashReportingLevel crashReportingLevel)
+        {
+            this.crashReportingLevel = crashReportingLevel;
             return this;
         }
 
