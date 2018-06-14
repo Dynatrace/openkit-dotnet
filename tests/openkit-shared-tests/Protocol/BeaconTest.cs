@@ -487,9 +487,7 @@ namespace Dynatrace.OpenKit.Protocol
             var visitorID = target.GetVisitorID();
 
             //then
-            randomGenerator.Received(1).NextLong(0, long.MaxValue);
-            Assert.That(visitorID, Is.GreaterThanOrEqualTo(0));
-            Assert.That(visitorID, Is.LessThanOrEqualTo(long.MaxValue));
+            randomGenerator.Received(2).NextLong(0, long.MaxValue);
         }
 
         [Test]
@@ -505,7 +503,7 @@ namespace Dynatrace.OpenKit.Protocol
             var visitorID = target.GetVisitorID();
 
             //then
-            randomGenerator.Received(1).NextLong(0, long.MaxValue);
+            randomGenerator.Received(2).NextLong(0, long.MaxValue);
         }
 
         [Test]
@@ -523,7 +521,7 @@ namespace Dynatrace.OpenKit.Protocol
             var visitorID = target.GetVisitorID();
 
             //then
-            randomGenerator.Received(0).NextLong(0, long.MaxValue);
+            randomGenerator.Received(1).NextLong(0, long.MaxValue);
             Assert.That(visitorID, Is.EqualTo(DEVICE_ID));
         }
 

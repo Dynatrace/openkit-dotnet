@@ -672,7 +672,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, ProtocolConstants.AGENT_TECHNOLOGY_TYPE);
 
             // device/visitor ID, session number and IP address
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, GetVisitorID());
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, GetSessionID());
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
 
