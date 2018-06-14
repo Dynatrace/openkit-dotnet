@@ -26,8 +26,6 @@ using System.Text;
 using System.Threading;
 using System.Linq;
 
-
-
 namespace Dynatrace.OpenKit.Protocol
 {
 
@@ -134,15 +132,31 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="timingProvider">Provider for time related methods</param>
         public Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
             IThreadIDProvider threadIDProvider, ITimingProvider timingProvider)
+            : this(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider, new System.Random())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of type Beacon
+        /// </summary>
+        /// <param name="logger">Logger for logging messages</param>
+        /// <param name="cache">Cache storing beacon related data</param>
+        /// <param name="configuration">OpenKit related configuration</param>
+        /// <param name="clientIPAddress">The client's IP address</param>
+        /// <param name="threadIdProvider">Provider for retrieving thread id</param>
+        /// <param name="timingProvider">Provider for time related methods</param>
+        /// <param name="random"></param>
+        internal Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
+            IThreadIDProvider threadIDProvider, ITimingProvider timingProvider, System.Random random)
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
-            this.SessionNumber = configuration.NextSessionNumber;
+            SessionNumber = configuration.NextSessionNumber;
             this.timingProvider = timingProvider;
 
             this.configuration = configuration;
             this.threadIDProvider = threadIDProvider;
-            this.sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
+            sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
             if (InetAddressValidator.IsValidIP(clientIPAddress))
             {
@@ -152,15 +166,15 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 this.clientIPAddress = string.Empty;
             }
-
             // store the current http configuration
-            this.httpConfiguration = configuration.HTTPClientConfig;
-
-            basicBeaconData = CreateBasicBeaconData();
+            httpConfiguration = configuration.HTTPClientConfig;
+            Random = random;
             BeaconConfiguration = configuration.BeaconConfig;
+            basicBeaconData = CreateBasicBeaconData();
         }
-
         // *** public properties ***
+
+        public System.Random Random {get; private set;}
 
         public int SessionNumber { get; }
 
@@ -658,7 +672,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, SessionNumber);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, GetSessionID());
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
 
             // platform information
@@ -668,6 +682,29 @@ namespace Dynatrace.OpenKit.Protocol
             
 
             return basicBeaconBuilder.ToString();
+        }
+
+        private long GetVisitorID()
+        {
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
+            {
+                if (configuration != null)
+                {
+                    return configuration.DeviceID;
+                }
+            }
+            byte[] buf = new byte[8];
+            new System.Random().NextBytes(buf);
+            return System.BitConverter.ToInt64(buf, 0) & 0x7fffffffffffffff;
+        }
+
+        private int GetSessionID()
+        {
+            if(beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
+            {
+                return SessionNumber;
+            }
+            return 1;
         }
 
         // helper method for creating basic timestamp data

@@ -31,6 +31,7 @@ namespace Dynatrace.OpenKit.Protocol
         private ITimingProvider timingProvider;
         private ILogger logger;
         private BeaconSender beaconSender;
+        private BeaconConfiguration beaconConfig;
 
         [SetUp]
         public void Setup()
@@ -41,6 +42,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
             beaconSender = new BeaconSender(logger, beaconSendingContext);
+            beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
         }
 
         [Test]
@@ -67,7 +69,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanAddUserIdentifyEvent()
         {
             // given
-            var beacon = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var beacon = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var userTag = "myTestUser";
 
             // when
@@ -82,7 +88,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanAddSentBytesToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -99,7 +109,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanAddSentBytesValueZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -116,7 +130,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CannotAddSentBytesWithInvalidValueSmallerZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -132,7 +150,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanAddReceivedBytesToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -149,7 +171,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanAddReceivedBytesValueZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -166,7 +192,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CannotAddReceivedBytesWithInvalidValueSmallerZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -182,7 +212,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanAddBothSentBytesAndReceivedBytesToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
             var testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
@@ -203,8 +237,11 @@ namespace Dynatrace.OpenKit.Protocol
             var configuration = new TestConfiguration();
             configuration.EnableCapture();
 
-            var target = new Beacon(logger, new BeaconCache(logger),
-                configuration, "127.0.0.1", threadIDProvider, timingProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), configuration, "127.0.0.1", threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
             const string RootActionName = "TestRootAction";
 
 
@@ -401,7 +438,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void noWebRequestIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoWebRequestIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider)
