@@ -29,6 +29,7 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private IThreadIDProvider threadIDProvider;
         private ITimingProvider timingProvider;
+        private IPRNGenerator randomGenerator;
         private ILogger logger;
         private BeaconSender beaconSender;
         private BeaconConfiguration beaconConfig;
@@ -38,6 +39,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             threadIDProvider = Substitute.For<IThreadIDProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
+            randomGenerator = Substitute.For<IPRNGenerator>();
             logger = Substitute.For<ILogger>();
 
             var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
@@ -470,6 +472,140 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void VisitorIDIsRandomizedOnDataCollectionLevel0()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var visitorID = target.GetVisitorID();
+
+            //then
+            randomGenerator.Received(1).NextLong(0, long.MaxValue);
+            Assert.That(visitorID, Is.GreaterThanOrEqualTo(0));
+            Assert.That(visitorID, Is.LessThanOrEqualTo(long.MaxValue));
+        }
+
+        [Test]
+        public void VisitorIDIsRandomizedOnDataCollectionLevel1()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var visitorID = target.GetVisitorID();
+
+            //then
+            randomGenerator.Received(1).NextLong(0, long.MaxValue);
+        }
+
+        [Test]
+        public void GivenVisitorIDIsUsedOnDataCollectionLevel2()
+        {
+            var DEVICE_ID = 12345;
+            // given
+            var config = new TestConfiguration(DEVICE_ID);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var visitorID = target.GetVisitorID();
+
+            //then
+            randomGenerator.Received(0).NextLong(0, long.MaxValue);
+            Assert.That(visitorID, Is.EqualTo(DEVICE_ID));
+        }
+
+        [Test]
+        public void RandomVisitorIDCannotBeNegativeOnDataCollectionLevel0()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var visitorID = target.GetVisitorID();
+
+            //then
+            Assert.That(visitorID, Is.GreaterThanOrEqualTo(0));
+            Assert.That(visitorID, Is.LessThanOrEqualTo(long.MaxValue));
+        }
+
+        [Test]
+        public void RandomVisitorIDCannotBeNegativeOnDataCollectionLevel1()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var visitorID = target.GetVisitorID();
+
+            //then
+            Assert.That(visitorID, Is.GreaterThanOrEqualTo(0));
+            Assert.That(visitorID, Is.LessThanOrEqualTo(long.MaxValue));
+        }
+
+        [Test]
+        public void SessionIDIsAlwaysValue1OnDataCollectionLevel0()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var sessionID = target.GetSessionID();
+
+            //then
+            Assert.That(sessionID, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SessionIDIsAlwaysValue1OnDataCollectionLevel1()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var sessionID = target.GetSessionID();
+
+            //then
+            Assert.That(sessionID, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void SessionIDIsValueFromSessionIDProviderOnDataCollectionLevel2()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator)
+            {
+                BeaconConfiguration = new Core.Configuration.BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF)
+            };
+
+            //when
+            var sessionID = target.GetSessionID();
+
+            Assert.That(sessionID, Is.EqualTo(target.SessionNumber));
         }
     }
 }
