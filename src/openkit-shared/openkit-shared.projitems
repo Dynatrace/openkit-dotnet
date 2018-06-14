@@ -65,6 +65,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\SSL\SSLStrictTrustManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultSessionIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultPRNGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\IPRNGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\IThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBase.cs" />

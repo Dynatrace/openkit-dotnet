@@ -102,6 +102,7 @@ namespace Dynatrace.OpenKit.Protocol
         // providers
         private readonly IThreadIDProvider threadIDProvider;
         private readonly ITimingProvider timingProvider;
+        private readonly IPRNGenerator randomNumberGenerator;
 
         // configuration
         private readonly HTTPClientConfiguration httpConfiguration;
@@ -132,7 +133,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="timingProvider">Provider for time related methods</param>
         public Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
             IThreadIDProvider threadIDProvider, ITimingProvider timingProvider)
-            : this(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider, new System.Random())
+            : this(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider, new DefaultPRNGenerator())
         {
         }
 
@@ -147,7 +148,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="timingProvider">Provider for time related methods</param>
         /// <param name="random"></param>
         internal Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
-            IThreadIDProvider threadIDProvider, ITimingProvider timingProvider, System.Random random)
+            IThreadIDProvider threadIDProvider, ITimingProvider timingProvider, IPRNGenerator randomNumberGenerator)
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
@@ -156,6 +157,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             this.configuration = configuration;
             this.threadIDProvider = threadIDProvider;
+            this.randomNumberGenerator = randomNumberGenerator;
             sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
             if (InetAddressValidator.IsValidIP(clientIPAddress))
@@ -168,7 +170,6 @@ namespace Dynatrace.OpenKit.Protocol
             }
             // store the current http configuration
             httpConfiguration = configuration.HTTPClientConfig;
-            Random = random;
             BeaconConfiguration = configuration.BeaconConfig;
             basicBeaconData = CreateBasicBeaconData();
         }
@@ -684,7 +685,7 @@ namespace Dynatrace.OpenKit.Protocol
             return basicBeaconBuilder.ToString();
         }
 
-        private long GetVisitorID()
+        public long GetVisitorID()
         {
             if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
             {
@@ -693,12 +694,10 @@ namespace Dynatrace.OpenKit.Protocol
                     return configuration.DeviceID;
                 }
             }
-            byte[] buf = new byte[8];
-            new System.Random().NextBytes(buf);
-            return System.BitConverter.ToInt64(buf, 0) & 0x7fffffffffffffff;
+            return randomNumberGenerator.NextLong(0, long.MaxValue) & 0x7fffffffffffffff;
         }
 
-        private int GetSessionID()
+        public int GetSessionID()
         {
             if(beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
             {
