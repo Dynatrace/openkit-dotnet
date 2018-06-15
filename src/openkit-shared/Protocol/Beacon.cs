@@ -26,8 +26,6 @@ using System.Text;
 using System.Threading;
 using System.Linq;
 
-
-
 namespace Dynatrace.OpenKit.Protocol
 {
 
@@ -104,6 +102,7 @@ namespace Dynatrace.OpenKit.Protocol
         // providers
         private readonly IThreadIDProvider threadIDProvider;
         private readonly ITimingProvider timingProvider;
+        private readonly IPRNGenerator randomNumberGenerator;
 
         // configuration
         private readonly HTTPClientConfiguration httpConfiguration;
@@ -134,15 +133,44 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="timingProvider">Provider for time related methods</param>
         public Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
             IThreadIDProvider threadIDProvider, ITimingProvider timingProvider)
+            : this(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider, new DefaultPRNGenerator())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of type Beacon
+        /// </summary>
+        /// <param name="logger">Logger for logging messages</param>
+        /// <param name="cache">Cache storing beacon related data</param>
+        /// <param name="configuration">OpenKit related configuration</param>
+        /// <param name="clientIPAddress">The client's IP address</param>
+        /// <param name="threadIdProvider">Provider for retrieving thread id</param>
+        /// <param name="timingProvider">Provider for time related methods</param>
+        /// <param name="randomNumberGenerator">Random number generator</param>
+        internal Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
+            IThreadIDProvider threadIDProvider, ITimingProvider timingProvider, IPRNGenerator randomNumberGenerator)
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
-            this.SessionNumber = configuration.NextSessionNumber;
+            BeaconConfiguration = configuration.BeaconConfig;
+
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
+            {
+                SessionNumber = configuration.NextSessionNumber;
+                DeviceID = configuration.DeviceID;
+            }
+            else
+            {
+                SessionNumber = 1;
+                DeviceID = randomNumberGenerator.NextLong(long.MaxValue);
+            }
+
             this.timingProvider = timingProvider;
 
             this.configuration = configuration;
             this.threadIDProvider = threadIDProvider;
-            this.sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
+            this.randomNumberGenerator = randomNumberGenerator;
+            sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
             if (InetAddressValidator.IsValidIP(clientIPAddress))
             {
@@ -152,17 +180,14 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 this.clientIPAddress = string.Empty;
             }
-
             // store the current http configuration
-            this.httpConfiguration = configuration.HTTPClientConfig;
-
+            httpConfiguration = configuration.HTTPClientConfig;
             basicBeaconData = CreateBasicBeaconData();
-            BeaconConfiguration = configuration.BeaconConfig;
         }
-
         // *** public properties ***
-
         public int SessionNumber { get; }
+
+        public long DeviceID { get; }
 
         public bool IsEmpty => beaconCache.IsEmpty(SessionNumber);
 
@@ -657,7 +682,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, ProtocolConstants.AGENT_TECHNOLOGY_TYPE);
 
             // device/visitor ID, session number and IP address
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, DeviceID);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, SessionNumber);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
 
