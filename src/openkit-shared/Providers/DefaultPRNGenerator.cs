@@ -19,7 +19,7 @@ using System;
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
-    /// Interface providing random numbers
+    /// Default implementation of PRNGenerator providing random numbers
     /// </summary>
     class DefaultPRNGenerator : IPRNGenerator
     {

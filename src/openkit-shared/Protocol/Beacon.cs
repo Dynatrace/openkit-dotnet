@@ -146,7 +146,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="clientIPAddress">The client's IP address</param>
         /// <param name="threadIdProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
-        /// <param name="random"></param>
+        /// <param name="randomNumberGenerator">Random number generator</param>
         internal Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
             IThreadIDProvider threadIDProvider, ITimingProvider timingProvider, IPRNGenerator randomNumberGenerator)
         {
