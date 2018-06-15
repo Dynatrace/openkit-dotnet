@@ -152,7 +152,19 @@ namespace Dynatrace.OpenKit.Protocol
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
-            SessionNumber = configuration.NextSessionNumber;
+            BeaconConfiguration = configuration.BeaconConfig;
+
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
+            {
+                SessionNumber = configuration.NextSessionNumber;
+                DeviceID = configuration.DeviceID;
+            }
+            else
+            {
+                SessionNumber = 1;
+                DeviceID = randomNumberGenerator.NextLong(long.MaxValue);
+            }
+
             this.timingProvider = timingProvider;
 
             this.configuration = configuration;
@@ -170,7 +182,6 @@ namespace Dynatrace.OpenKit.Protocol
             }
             // store the current http configuration
             httpConfiguration = configuration.HTTPClientConfig;
-            BeaconConfiguration = configuration.BeaconConfig;
             basicBeaconData = CreateBasicBeaconData();
         }
         // *** public properties ***
@@ -178,6 +189,8 @@ namespace Dynatrace.OpenKit.Protocol
         public System.Random Random {get; private set;}
 
         public int SessionNumber { get; }
+
+        public long DeviceID { get; }
 
         public bool IsEmpty => beaconCache.IsEmpty(SessionNumber);
 
@@ -672,8 +685,8 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, ProtocolConstants.AGENT_TECHNOLOGY_TYPE);
 
             // device/visitor ID, session number and IP address
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, GetVisitorID());
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, GetSessionID());
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, DeviceID);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, SessionNumber);
             AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
 
             // platform information
@@ -683,27 +696,6 @@ namespace Dynatrace.OpenKit.Protocol
             
 
             return basicBeaconBuilder.ToString();
-        }
-
-        public long GetVisitorID()
-        {
-            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
-            {
-                if (configuration != null)
-                {
-                    return configuration.DeviceID;
-                }
-            }
-            return randomNumberGenerator.NextLong(0, long.MaxValue) & 0x7fffffffffffffff;
-        }
-
-        public int GetSessionID()
-        {
-            if(beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
-            {
-                return SessionNumber;
-            }
-            return 1;
         }
 
         // helper method for creating basic timestamp data

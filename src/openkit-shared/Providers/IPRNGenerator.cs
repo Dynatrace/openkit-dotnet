@@ -22,19 +22,17 @@ namespace Dynatrace.OpenKit.Providers
     public interface IPRNGenerator
     {
         /// <summary>
-        /// Provide a random int between lowerBoundary (inclusive) and upperBoundary (exclusive)
+        /// Provide a random int between 0 (inclusive) and upperBoundary (exclusive)
         /// </summary>
-        /// <param name="lowerBoundary">value of lower boundary</param>
         /// <param name="upperBoundary">value of upper boundary</param>
-        /// <returns>random int value between lower and upper boundary</returns>
-        int NextInt(int lowerBoundary, int upperBoundary);
+        /// <returns>random int value between 0 and upper boundary</returns>
+        int NextInt(int upperBoundary);
 
         /// <summary>
-        /// Provide a random long between lowerBoundary (inclusive) and upperBoundary (exclusive)
-        /// </summary>
-        /// <param name="lowerBoundary">value of lower boundary</param>
+        /// Provide a random long between 0 (inclusive) and upperBoundary (exclusive)
+        /// </summary
         /// <param name="upperBoundary">value of upper boundary</param>
-        /// <returns>random long value between lower and upper Boundary</returns>
-        long NextLong(long lowerBoundary, long upperBoundary);
+        /// <returns>random long value between 0 and upper Boundary</returns>
+        long NextLong(long upperBoundary);
     }
 }

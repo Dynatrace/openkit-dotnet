@@ -23,19 +23,17 @@ namespace Dynatrace.OpenKit.Providers
     /// </summary>
     class DefaultPRNGenerator : IPRNGenerator
     {
-        private readonly System.Random randomGenerator;
-
-        public int NextInt(int lowerBoundary, int upperBoundary)
+        public int NextInt(int upperBoundary)
         {
-            return randomGenerator.Next(lowerBoundary, upperBoundary);
+            return new System.Random().Next( upperBoundary);
         }
 
-        public long NextLong(long lowerBoundary, long upperBoundary)
+        public long NextLong(long upperBoundary)
         {
             byte[] buf = new byte[8];
             new System.Random().NextBytes(buf);
             var longValue = System.BitConverter.ToInt64(buf, 0);
-            return Math.Abs(longValue % (upperBoundary - lowerBoundary)) + lowerBoundary;
+            return Math.Abs(longValue % upperBoundary ) ;
         }
     }
 }

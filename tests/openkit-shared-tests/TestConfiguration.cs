@@ -22,18 +22,18 @@ namespace Dynatrace.OpenKit
     public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : this( 0)
+            : this( 0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES))
         {
         }
 
-        internal TestConfiguration(int deviceID)
+        internal TestConfiguration(int deviceID, BeaconConfiguration beaconConfig)
             : base(OpenKitType.DYNATRACE, "", "", deviceID, "", new Providers.TestSessionIDProvider(), 
                   new SSLStrictTrustManager(), new Core.Device("", "", ""), "", 
                   new BeaconCacheConfiguration(
                     BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
                     BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,
                     BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES),
-                  new BeaconConfiguration())
+                  beaconConfig)
         {
             EnableCapture();
         }
