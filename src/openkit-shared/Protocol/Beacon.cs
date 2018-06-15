@@ -276,6 +276,11 @@ namespace Dynatrace.OpenKit.Protocol
         /// <returns></returns>
         public string CreateTag(Action parentAction, int sequenceNo)
         {
+            if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            {
+                return "";
+            }
+
             return TAG_PREFIX + "_"
                        + ProtocolConstants.PROTOCOL_VERSION + "_"
                        + httpConfiguration.ServerID + "_"
@@ -482,6 +487,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void AddWebRequest(Action parentAction, WebRequestTracerBase webRequestTracer)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }

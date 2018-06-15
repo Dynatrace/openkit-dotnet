@@ -464,6 +464,120 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(target.IsEmpty, Is.True);
         }
 
+
+        [Test]
+        public void NoWebRequestIsReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction);
+
+            //when
+            target.AddWebRequest(parentAction, webRequestTracer);
+            var temp = webRequestTracer.Received(0).BytesReceived;
+            temp = webRequestTracer.Received(0).BytesSent;
+            temp = webRequestTracer.Received(0).ResponseCode;
+
+            // then ensure nothing has been serialized
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void WebRequestIsReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction); 
+
+            //when
+            target.AddWebRequest(parentAction, webRequestTracer);
+            var temp = webRequestTracer.Received(1).BytesReceived;
+            temp = webRequestTracer.Received(1).BytesSent;
+            temp = webRequestTracer.Received(1).ResponseCode;
+
+            // then ensure nothing has been serialized
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void WebRequestIsReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction);
+
+            //when
+            target.AddWebRequest(parentAction, webRequestTracer);
+            var temp = webRequestTracer.Received(1).BytesReceived;
+            temp = webRequestTracer.Received(1).BytesSent;
+            temp = webRequestTracer.Received(1).ResponseCode;
+
+            // then ensure nothing has been serialized
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void CreateTagReturnsEmptyStringForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+
+            //when
+            var tagReturned = target.CreateTag(parentAction, 1);
+
+            //then
+            Assert.That(tagReturned.Length, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void CreateTagReturnsTagStringForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+
+            //when
+            var tagReturned = target.CreateTag(parentAction, 1);
+
+            //then
+            Assert.That(tagReturned.Length, Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void CreateTagReturnsTagStringForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+
+            //when
+            var tagReturned = target.CreateTag(parentAction, 1);
+
+            //then
+            Assert.That(tagReturned.Length, Is.GreaterThan(0));
+        }
+
         [Test]
         public void VisitorIDIsRandomizedOnDataCollectionLevel0()
         {
@@ -484,7 +598,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(12345, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1234, beaconConfig);
+            var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
