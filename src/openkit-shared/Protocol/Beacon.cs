@@ -185,9 +185,6 @@ namespace Dynatrace.OpenKit.Protocol
             basicBeaconData = CreateBasicBeaconData();
         }
         // *** public properties ***
-
-        public System.Random Random {get; private set;}
-
         public int SessionNumber { get; }
 
         public long DeviceID { get; }
