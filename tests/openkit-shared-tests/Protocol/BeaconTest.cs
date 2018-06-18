@@ -799,5 +799,53 @@ namespace Dynatrace.OpenKit.Protocol
             //then
             Assert.That(target.IsEmpty, Is.False);
         }
+
+        [Test]
+        public void ReportErrorDoesNotReportOnDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportError(action, "error", 42, "reason");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void ReportErrorDoesReportOnDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportError(action, "error", 42, "reason");
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void ReportErrorDoesReportOnDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportError(action, "error", 42, "reason");
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
     }
 }

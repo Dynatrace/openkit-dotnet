@@ -444,6 +444,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.ERROR, errorName);
