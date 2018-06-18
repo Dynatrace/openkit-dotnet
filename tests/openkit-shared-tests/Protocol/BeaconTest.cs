@@ -698,7 +698,106 @@ namespace Dynatrace.OpenKit.Protocol
             //when
             var sessionID = target.SessionNumber;
 
+            //then
             Assert.That(sessionID, Is.EqualTo(target.SessionNumber));
+        }
+
+        [Test]
+        public void ActionNotReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.AddAction(action);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void ActionReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.AddAction(action);
+ 
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void ActionReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.AddAction(action);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void SessionNotReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.EndSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void SessionReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender , target);
+
+            //when
+            target.EndSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void SessionReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.EndSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
         }
     }
 }
