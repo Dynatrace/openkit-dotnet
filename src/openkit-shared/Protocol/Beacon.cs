@@ -273,6 +273,11 @@ namespace Dynatrace.OpenKit.Protocol
         /// <returns></returns>
         public string CreateTag(Action parentAction, int sequenceNo)
         {
+            if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            {
+                return string.Empty;
+            }
+
             return TAG_PREFIX + "_"
                        + ProtocolConstants.PROTOCOL_VERSION + "_"
                        + httpConfiguration.ServerID + "_"
@@ -291,6 +296,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void AddAction(Action action)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }
@@ -316,6 +326,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void EndSession(Session session)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }
@@ -479,6 +494,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void AddWebRequest(Action parentAction, WebRequestTracerBase webRequestTracer)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }
