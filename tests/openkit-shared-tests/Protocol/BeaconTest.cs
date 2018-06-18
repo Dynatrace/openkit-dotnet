@@ -810,7 +810,7 @@ namespace Dynatrace.OpenKit.Protocol
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
             //when
-            target.ReportError(action, "error", 42, "reason");
+            target.ReportError(action, "error", 42, "the answer");
 
             //then
             Assert.That(target.IsEmpty, Is.True);
@@ -826,7 +826,7 @@ namespace Dynatrace.OpenKit.Protocol
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
             //when
-            target.ReportError(action, "error", 42, "reason");
+            target.ReportError(action, "error", 42, "the answer");
 
             //then
             Assert.That(target.IsEmpty, Is.False);
@@ -842,7 +842,7 @@ namespace Dynatrace.OpenKit.Protocol
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
             //when
-            target.ReportError(action, "error", 42, "reason");
+            target.ReportError(action, "error", 42, "the answer");
 
             //then
             Assert.That(target.IsEmpty, Is.False);
