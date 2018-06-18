@@ -472,6 +472,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.CrashReportingLevel == CrashReportingLevel.OFF)
+            {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.CRASH, errorName);
