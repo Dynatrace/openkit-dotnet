@@ -295,6 +295,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            {
+                return;
+            }
+
             StringBuilder actionBuilder = new StringBuilder();
 
             BuildBasicEventData(actionBuilder, EventType.ACTION, action.Name);
@@ -316,6 +321,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void EndSession(Session session)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if(beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }
