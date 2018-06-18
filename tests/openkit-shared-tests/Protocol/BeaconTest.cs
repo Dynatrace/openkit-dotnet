@@ -584,6 +584,7 @@ namespace Dynatrace.OpenKit.Protocol
             //when
             var sessionID = target.SessionNumber;
 
+            //then
             Assert.That(sessionID, Is.EqualTo(target.SessionNumber));
         }
 
@@ -595,9 +596,11 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
             //when
             target.AddAction(action);
 
+            //then
             Assert.That(target.IsEmpty, Is.True);
         }
 
@@ -609,9 +612,11 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
             //when
             target.AddAction(action);
-
+ 
+            //then
             Assert.That(target.IsEmpty, Is.False);
         }
 
@@ -624,9 +629,11 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
             //when
             target.AddAction(action);
 
+            //then
             Assert.That(target.IsEmpty, Is.False);
         }
 
@@ -642,6 +649,7 @@ namespace Dynatrace.OpenKit.Protocol
             //when
             target.EndSession(session);
 
+            //then
             Assert.That(target.IsEmpty, Is.True);
         }
 
@@ -657,6 +665,7 @@ namespace Dynatrace.OpenKit.Protocol
             //when
             target.EndSession(session);
 
+            //then
             Assert.That(target.IsEmpty, Is.False);
         }
 
@@ -673,6 +682,7 @@ namespace Dynatrace.OpenKit.Protocol
             //when
             target.EndSession(session);
 
+            //then
             Assert.That(target.IsEmpty, Is.False);
         }
     }
