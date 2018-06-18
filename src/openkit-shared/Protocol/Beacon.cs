@@ -275,7 +275,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
-                return "";
+                return string.Empty;
             }
 
             return TAG_PREFIX + "_"
