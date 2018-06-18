@@ -325,7 +325,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if(beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }
