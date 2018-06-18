@@ -586,5 +586,50 @@ namespace Dynatrace.OpenKit.Protocol
 
             Assert.That(sessionID, Is.EqualTo(target.SessionNumber));
         }
+
+        [Test]
+        public void IdentifyUserDoesNotReportOnDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            //when
+            target.IdentifyUser("test user");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void IdentifyUserDoesNotReportOnDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            //when
+            target.IdentifyUser("test user");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void IdentifyUserDoesReportOnDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            //when
+            target.IdentifyUser("test user");
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
     }
 }
