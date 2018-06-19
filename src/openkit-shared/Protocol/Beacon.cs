@@ -539,6 +539,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userTag);
