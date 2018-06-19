@@ -867,7 +867,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         [Test]
         public void ReportErrorDoesReportOnDataCollectionLevel1()
-       {
+        {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
@@ -880,7 +880,6 @@ namespace Dynatrace.OpenKit.Protocol
             //then
             Assert.That(target.IsEmpty, Is.False);
         }
-
 
         [Test]
         public void ReportErrorDoesReportOnDataCollectionLevel2()
