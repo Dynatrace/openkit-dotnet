@@ -444,6 +444,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.ERROR, errorName);
@@ -540,6 +545,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void IdentifyUser(string userTag)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
             {
                 return;
             }
