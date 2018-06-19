@@ -360,6 +360,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_INT, valueName, parentAction);
@@ -377,6 +382,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportValue(Action parentAction, string valueName, double value)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
             {
                 return;
             }
@@ -402,6 +412,11 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            {
+                return;
+            }
+
             StringBuilder eventBuilder = new StringBuilder();
 
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, parentAction);
@@ -418,6 +433,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportEvent(Action parentAction, string eventName)
         {
             if (CapturingDisabled)
+            {
+                return;
+            }
+
+            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
             {
                 return;
             }
