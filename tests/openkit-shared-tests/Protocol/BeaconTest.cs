@@ -928,5 +928,203 @@ namespace Dynatrace.OpenKit.Protocol
             //then
             Assert.That(target.IsEmpty, Is.False);
         }
+
+        [Test]
+        public void IntValueNotReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test int value", 13);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void IntValueNotReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test int value", 13);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+
+        [Test]
+        public void IntValueReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test int value", 13);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void DoubleValueNotReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test double value", 2.71);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void DoubleValueNotReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test double value", 2.71);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+
+        [Test]
+        public void DoubleValueReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test double value", 2.71);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void StringValueNotReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test string value", "test data");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void StringValueNotReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test string value", "test data");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+
+        [Test]
+        public void StringValueReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportValue(action, "test string value", "test data");
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void NamedEventNotReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportEvent(action, "test event");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void NamedEventNotReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportEvent(action, "test event");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void NamedEventReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportEvent(action, "test event");
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
     }
 }
