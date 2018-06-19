@@ -115,7 +115,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         // Beacon configuration
         private volatile BeaconConfiguration beaconConfiguration;
-
+        private readonly BeaconConfiguration DEFAULT_BEACON_CONFIG = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
         private readonly ILogger logger;
 
         private readonly BeaconCache beaconCache;
@@ -152,7 +152,14 @@ namespace Dynatrace.OpenKit.Protocol
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
-            BeaconConfiguration = configuration.BeaconConfig;
+            if (configuration.BeaconConfig != null)
+            {
+                BeaconConfiguration = configuration.BeaconConfig;
+            }
+            else
+            {
+                BeaconConfiguration = DEFAULT_BEACON_CONFIG;
+            }
 
             if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
             {
