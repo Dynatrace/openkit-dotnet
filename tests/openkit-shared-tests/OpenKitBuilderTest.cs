@@ -334,7 +334,74 @@ namespace Dynatrace.OpenKit
             Assert.That((AppMonOpenKitBuilder)obtained, Is.SameAs(target));
             Assert.That(config.CacheSizeUpperBound, Is.EqualTo(upperMemoryBoundary));
         }
-        
+
+        [Test]
+        public void CanSetDataCollectionLevelForDynatrace()
+        {
+            // given
+            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+
+            // when
+            var level = DataCollectionLevel.USER_BEHAVIOR;
+            var obtained = target.WithDataCollectionLevel(level);
+            var config = target.BuildConfiguration().BeaconConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
+            Assert.That((DynatraceOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.DataCollectionLevel, Is.EqualTo(level));
+        }
+
+        [Test]
+        public void CanSetDataCollectionLevelForAppMon()
+        {
+            // given
+            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+
+            // when
+            var level = DataCollectionLevel.USER_BEHAVIOR;
+            var obtained = target.WithDataCollectionLevel(level);
+            var config = target.BuildConfiguration().BeaconConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());
+            Assert.That((AppMonOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.DataCollectionLevel, Is.EqualTo(level));
+        }
+
+        [Test]
+        public void CanSetCrashReportingLevelForDynatrace()
+        {
+            // given
+            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+
+            // when
+            var level = CrashReportingLevel.OPT_IN_CRASHES;
+            var obtained = target.WithCrashReportingLevel(level);
+            var config = target.BuildConfiguration().BeaconConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
+            Assert.That((DynatraceOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.CrashReportingLevel, Is.EqualTo(level));
+        }
+
+        [Test]
+        public void CanSetCrashReportingLevelForAppMon()
+        {
+            // given
+            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+
+            // when
+            var level = CrashReportingLevel.OPT_IN_CRASHES;
+            var obtained = target.WithCrashReportingLevel(level);
+            var config = target.BuildConfiguration().BeaconConfig;
+
+            // then
+            Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());
+            Assert.That((AppMonOpenKitBuilder)obtained, Is.SameAs(target));
+            Assert.That(config.CrashReportingLevel, Is.EqualTo(level));
+        }
 
         private class TestOpenKitBuilder : AbstractOpenKitBuilder
         {
