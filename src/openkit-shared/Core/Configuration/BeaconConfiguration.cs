@@ -22,6 +22,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public const CrashReportingLevel DEFAULT_CRASH_REPORTING_LEVEL = CrashReportingLevel.OFF;
 
+        public const int DEFAULT_MULITPLICITY = 1;
+
         public BeaconConfiguration()
             : this(1, DEFAULT_DATA_COLLECTION_LEVEL, DEFAULT_CRASH_REPORTING_LEVEL)
         {

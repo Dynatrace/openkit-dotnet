@@ -49,8 +49,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         private readonly ISessionIDProvider sessionIDProvider;
 
-        private static readonly BeaconConfiguration DefaultBeaconConfiguration = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-
         // *** constructors ***
        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL,
             ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
@@ -85,7 +83,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             this.sessionIDProvider = sessionIDProvider;
 
-            BeaconConfig = beaconConfiguration ?? DefaultBeaconConfiguration;
+            BeaconConfig = beaconConfiguration;
         }
 
         // *** public methods ***
