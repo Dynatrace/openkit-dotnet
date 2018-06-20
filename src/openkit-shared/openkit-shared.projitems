@@ -32,8 +32,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\TimeEvictionStrategy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconCacheConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\CrashReportingLevel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\DataCollectionLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CrashReportingLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DataCollectionLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DefaultLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\AbstractBeaconSendingState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingInitState.cs" />
