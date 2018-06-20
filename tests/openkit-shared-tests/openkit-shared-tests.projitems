@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\TimeSyncResponseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultSessionIDProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultPRNGeneratorTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TestSessionIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConfiguration.cs" />
