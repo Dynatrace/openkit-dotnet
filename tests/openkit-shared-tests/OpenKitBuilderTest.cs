@@ -46,6 +46,8 @@ namespace Dynatrace.OpenKit
             Assert.That(configuration.BeaconCacheConfig.MaxRecordAge, Is.EqualTo(BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS));
             Assert.That(configuration.BeaconCacheConfig.CacheSizeUpperBound, Is.EqualTo(BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES));
             Assert.That(configuration.BeaconCacheConfig.CacheSizeLowerBound, Is.EqualTo(BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES));
+            Assert.That(configuration.BeaconConfig.DataCollectionLevel, Is.EqualTo(BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL));
+            Assert.That(configuration.BeaconConfig.CrashReportingLevel, Is.EqualTo(BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL));
         }
 
         [Test]
