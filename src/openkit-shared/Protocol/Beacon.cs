@@ -50,6 +50,8 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BEACON_KEY_SESSION_NUMBER = "sn";
         private const string BEACON_KEY_CLIENT_IP_ADDRESS = "ip";
         private const string BEACON_KEY_MULTIPLICITY = "mp";
+        private const string BEACON_KEY_DATA_COLLECTION_LEVEL = "dl";
+        private const string BEACON_KEY_CRASH_REPORTING_LEVEL = "cl";
 
         // device data constants
         private const string BEACON_KEY_DEVICE_OS = "os";
@@ -745,7 +747,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_DEVICE_OS, configuration.Device.OperatingSystem);
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_DEVICE_MANUFACTURER, configuration.Device.Manufacturer);
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BEACON_KEY_DEVICE_MODEL, configuration.Device.ModelID);
-            
+
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DATA_COLLECTION_LEVEL, (int)beaconConfiguration.DataCollectionLevel);
+            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CRASH_REPORTING_LEVEL, (int)beaconConfiguration.CrashReportingLevel);
 
             return basicBeaconBuilder.ToString();
         }
