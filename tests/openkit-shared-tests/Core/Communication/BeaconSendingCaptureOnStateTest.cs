@@ -176,26 +176,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void EmptyFinishedSessionsAreNotSent()
-        {
-            // given 
-            var clientIp = "127.0.0.1";
-
-            finishedSessions.Enqueue(CreateEmptySession(clientIp));
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(string.Empty, 200));
-
-            // when 
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            httpClient.DidNotReceive().SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-            Assert.That(finishedSessions.Count, Is.EqualTo(0)); // assert empty sessions
-            context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
-        }
-        
-        [Test]
         public void UnsuccessfulFinishedSessionsAreMovedBackToCache()
         {
             //given

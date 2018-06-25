@@ -322,6 +322,28 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         /// <summary>
+        /// start the session
+        /// </summary>
+        /// <param name="session"></param>
+        public void StartSession(Session session)
+        {
+            if (CapturingDisabled)
+            {
+                return;
+            }
+
+            StringBuilder eventBuilder = new StringBuilder();
+
+            BuildBasicEventData(eventBuilder, EventType.SESSION_START, null);
+
+            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(session.EndTime));
+
+            AddEventData(session.EndTime, eventBuilder);
+        }
+
+        /// <summary>
         /// end Session on this Beacon
         /// </summary>
         /// <param name="session"></param>

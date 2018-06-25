@@ -495,7 +495,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction); 
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction);
 
             //when
             target.AddWebRequest(parentAction, webRequestTracer);
@@ -621,7 +621,7 @@ namespace Dynatrace.OpenKit.Protocol
             var visitorID = target.DeviceID;
 
             //then
-            randomGenerator.Received(0).NextLong( long.MaxValue);
+            randomGenerator.Received(0).NextLong(long.MaxValue);
             Assert.That(visitorID, Is.EqualTo(DEVICE_ID));
         }
 
@@ -732,7 +732,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             //when
             target.AddAction(action);
- 
+
             //then
             Assert.That(target.IsEmpty, Is.False);
         }
@@ -767,7 +767,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.EndSession(session);
 
             //then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(target.IsEmpty, Is.False);
         }
 
         [Test]
@@ -777,7 +777,7 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            var session = new Session(logger, beaconSender , target);
+            var session = new Session(logger, beaconSender, target);
 
             //when
             target.EndSession(session);
@@ -1125,6 +1125,86 @@ namespace Dynatrace.OpenKit.Protocol
 
             //then
             Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void SessionStartIsReported()
+        {
+            // given
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.StartSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void SessionStartIsReportedForDataCollectionLevel0()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.StartSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void SessionStartIsReportedForDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.StartSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+
+        [Test]
+        public void SessionStartIsReportedForDataCollectionLevel2()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.StartSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
+        public void NoSessionStartIsReportedIfBeaconConfigurationDisablesCapturing()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var session = new Session(logger, beaconSender, target);
+
+            //when
+            target.StartSession(session);
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
         }
     }
 }
