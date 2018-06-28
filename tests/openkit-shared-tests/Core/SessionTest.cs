@@ -49,42 +49,6 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
-        public void ANewlyCreatedSessionIsEmptyIfCapturingIsDisabledByBeaconConfiguration()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
-
-            var threadIDProvider = Substitute.For<IThreadIDProvider>();
-            var timingProvider = Substitute.For<ITimingProvider>();
-            var randomGenerator = Substitute.For<IPRNGenerator>();
-
-            var beaconCapturingEnabled = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            var target = new Session(logger, beaconSender, beaconCapturingEnabled);
-
-            // then
-            Assert.That(target.IsEmpty, Is.True);
-        }
-
-        [Test]
-        public void ANewlyCreatedSessionIsNotEmptyIfCapturingIsNotDisabledByBeaconConfiguration()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
-
-            var threadIDProvider = Substitute.For<IThreadIDProvider>();
-            var timingProvider = Substitute.For<ITimingProvider>();
-            var randomGenerator = Substitute.For<IPRNGenerator>();
-
-            var beaconCapturingEnabled = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            var target = new Session(logger, beaconSender, beaconCapturingEnabled);
-
-            // then
-            Assert.That(target.IsEmpty, Is.False);
-        }
-
-        [Test]
         public void ANewlyCreatedSessionIsNotEnded()
         {
             // given

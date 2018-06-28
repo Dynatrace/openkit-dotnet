@@ -613,7 +613,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             var DEVICE_ID = 12345;
             // given
-            var beaconConfig = new BeaconConfiguration(DEVICE_ID, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(DEVICE_ID, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
@@ -692,7 +692,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var sessionIDProvider = Substitute.For<ISessionIDProvider>();
+            var config = new TestConfiguration(1, beaconConfig, sessionIDProvider);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -700,6 +701,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             //then
             Assert.That(sessionID, Is.EqualTo(target.SessionNumber));
+            sessionIDProvider.Received(1).GetNextSessionID();
         }
 
         [Test]

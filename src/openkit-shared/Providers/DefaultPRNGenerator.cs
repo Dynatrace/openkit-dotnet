@@ -25,14 +25,14 @@ namespace Dynatrace.OpenKit.Providers
     {
         public int NextInt(int upperBoundary)
         {
-            return new System.Random().Next( upperBoundary);
+            return new Random().Next( upperBoundary);
         }
 
         public long NextLong(long upperBoundary)
         {
             byte[] buf = new byte[8];
-            new System.Random().NextBytes(buf);
-            var longValue = System.BitConverter.ToInt64(buf, 0);
+            new Random().NextBytes(buf);
+            var longValue = BitConverter.ToInt64(buf, 0);
             return Math.Abs(longValue % upperBoundary ) ;
         }
     }
