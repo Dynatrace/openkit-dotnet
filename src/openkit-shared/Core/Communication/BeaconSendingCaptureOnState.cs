@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -51,6 +52,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             context.Sleep();
 
+            // send new session request for all sessions that are new
+            SendNewSessionRequests(context);
+
             statusResponse = null;
 
             // send all finished sessions
@@ -63,28 +67,61 @@ namespace Dynatrace.OpenKit.Core.Communication
             HandleStatusResponse(context, statusResponse);
         }
 
+        private void SendNewSessionRequests(IBeaconSendingContext context)
+        {
+            var newSessions = context.NewSessions;
+
+            foreach(var newSession in newSessions)
+            {
+                if (!newSession.CanSendNewSessionRequest)
+                {
+                    // already exceeded the maximum number of session requests, disable any further data collecting
+                    var currentConfiguration = newSession.BeaconConfiguration;
+                    var newConfiguration = new BeaconConfiguration(0,
+                        currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel);
+                    newSession.UpdateBeaconConfiguration(newConfiguration);
+                    continue;
+                }
+
+                var response = context.GetHTTPClient().SendNewSessionRequest();
+                if (response != null)
+                {
+                    var currentConfiguration = newSession.BeaconConfiguration;
+                    var newConfiguration = new BeaconConfiguration(response.Multiplicity,
+                        currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel);
+                    newSession.UpdateBeaconConfiguration(newConfiguration);
+                }
+                else
+                {
+                    // did not retrieve any response from server, maybe the cluster is down?
+                    newSession.DecreaseNumNewSessionRequests();
+                }
+            }
+        }
+
         private void SendFinishedSessions(IBeaconSendingContext context)
         {
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
-            var finishedSession = context.GetNextFinishedSession();
-            while (finishedSession != null)
+            var finishedSessions = context.FinishedAndConfiguredSessions;
+
+            foreach (var finishedSession in finishedSessions)
             {
-                statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
-                if (statusResponse == null)
+                if (finishedSession.IsDataSendingAllowed)
                 {
-                    // something went wrong,
-                    if (!finishedSession.IsEmpty)
+                    statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
+                    if (statusResponse == null)
                     {
-                        // well there is more data to send, and we could not do it (now)
-                        // just push it back
-                        context.PushBackFinishedSession(finishedSession);
-                        break; //  sending did not work, break out for now and retry it later
+                        // something went wrong,
+                        if (!finishedSession.IsEmpty)
+                        {
+                            break; //  sending did not work, break out for now and retry it later
+                        }
                     }
                 }
 
                 // session was sent - so remove it from beacon cache
+                context.RemoveSession(finishedSession);
                 finishedSession.ClearCapturedData();
-                finishedSession = context.GetNextFinishedSession();
             }
         }
 
@@ -96,10 +133,17 @@ namespace Dynatrace.OpenKit.Core.Communication
                 return; // some time left until open sessions need to be sent
             }
 
-            var openSessions = context.GetAllOpenSessions();
+            var openSessions = context.OpenAndConfiguredSessions;
             foreach (var session in openSessions)
             {
-                statusResponse = session.SendBeacon(context.HTTPClientProvider);
+                if (session.IsDataSendingAllowed)
+                {
+                    statusResponse = session.SendBeacon(context.HTTPClientProvider);
+                }
+                else
+                {
+                    session.ClearCapturedData();
+                }
             }
 
             // update open session send timestamp

@@ -30,6 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\IBeaconCacheEvictionStrategy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\SpaceEvictionStrategy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Caching\TimeEvictionStrategy.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\SessionWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconCacheConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportingLevel.cs" />

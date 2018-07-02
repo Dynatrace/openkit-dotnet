@@ -108,6 +108,21 @@ namespace Dynatrace.OpenKit.Core.Communication
         bool IsInTerminalState { get; }
 
         /// <summary>
+        /// Get all sessions that are considered new.
+        /// </summary>
+        List<SessionWrapper> NewSessions { get; }
+
+        /// <summary>
+        /// Get a list of all sessions that have been configured and are currently open.
+        /// </summary>
+        List<SessionWrapper> OpenAndConfiguredSessions { get; }
+
+        /// <summary>
+        /// Get a list of all sessions that have been configured and already finished.
+        /// </summary>
+        List<SessionWrapper> FinishedAndConfiguredSessions { get; }
+
+        /// <summary>
         /// Disables the time sync support
         /// </summary>
         void DisableTimeSyncSupport();
@@ -175,25 +190,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="statusResponse"></param>
         void HandleStatusResponse(StatusResponse statusResponse);
-
-        /// <summary>
-        /// Gets the next finished sessions and removes it from the list of finished sessions
-        /// </summary>
-        /// <returns></returns>
-        Session GetNextFinishedSession();
-
-        /// <summary>
-        /// Pushes back a finished session to the list of finished sessions.
-        /// </summary>
-        /// <param name="finishedSession">The Session to push back</param>
-        void PushBackFinishedSession(Session finishedSession);
-
-        /// <summary>
-        /// Gets a list of all open sessions
-        /// </summary>
-        /// <returns></returns>
-        List<Session> GetAllOpenSessions();
-
+        
         /// <summary>
         /// Adds the provided session to the list of open sessions
         /// </summary>
@@ -206,5 +203,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <remarks>If the provided session is not contained in the list of open sessions, it is nod added to the finished sessions</remarks>
         /// <param name="session"></param>
         void FinishSession(Session session);
+
+        /// <summary>
+        /// Remove <paramref name="sessionWrapper"/> from internal list of sessions.
+        /// </summary>
+        /// <param name="sessionWrapper">The session wrapper to remove</param>
+        /// <returns><code>true</code> on success, <code>false</code> otherwise.</returns>
+        bool RemoveSession(SessionWrapper sessionWrapper);
     }
 }

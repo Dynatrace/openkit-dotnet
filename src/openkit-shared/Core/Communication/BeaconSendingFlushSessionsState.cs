@@ -14,7 +14,9 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Core.Configuration;
 using System;
+using System.Linq;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -36,21 +38,30 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(IBeaconSendingContext context)
         {
-            // end open sessions -> will be flushed afterwards
-            var openSessions = context.GetAllOpenSessions();
-            foreach (var openSession in openSessions)
+            // first get all sessions that do not have any multiplicity explicitely set
+            context.NewSessions.ForEach(newSession =>
+            {
+                var currentConfiguration = newSession.BeaconConfiguration;
+                newSession.UpdateBeaconConfiguration(
+                    new BeaconConfiguration(1, currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel));
+            });
+
+            // end all open sessions -> will be flushed afterwards
+            context.OpenAndConfiguredSessions.ForEach(openSession =>
             {
                 openSession.End();
-            }
+            });
 
-            // flush finished (and previously ended) sessions
-            var finishedSession = context.GetNextFinishedSession();
-            while (finishedSession != null)
+            // flush alread finished (and previously ended) sessions
+            context.FinishedAndConfiguredSessions.ForEach(finishedSession =>
             {
-                finishedSession.SendBeacon(context.HTTPClientProvider);
+                if (finishedSession.IsDataSendingAllowed)
+                {
+                    finishedSession.SendBeacon(context.HTTPClientProvider);
+                }
                 finishedSession.ClearCapturedData();
-                finishedSession = context.GetNextFinishedSession();
-            }
+                context.RemoveSession(finishedSession);
+            });
 
             // make last state transition to terminal state
             context.NextState = new BeaconSendingTerminalState();

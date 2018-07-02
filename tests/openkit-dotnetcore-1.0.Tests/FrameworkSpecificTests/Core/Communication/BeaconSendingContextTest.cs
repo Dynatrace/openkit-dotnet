@@ -50,7 +50,7 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
             target.Sleep(expected);
 
             // then
-#if !NETCOREAPP1_0
+#if !NETCOREAPP1_0 || !NETCOREAPP1_1
             // normal sleep as thread interrupt exception exists
             timingProvider.Received(1).Sleep(expected);
 #else
@@ -69,7 +69,7 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
             target.Sleep(expected);
 
             // then
-#if !NETCOREAPP1_0
+#if !NETCOREAPP1_0 || !NETCOREAPP1_1
             // normal sleep as thread interrupt exception exists
             timingProvider.Received(1).Sleep(expected);
             
@@ -81,6 +81,5 @@ namespace Dynatrace.OpenKit.FrameworkSpecificTests.Core.Communication
             timingProvider.Received(1).Sleep(expected % BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
 #endif
         }
-
     }
 }
