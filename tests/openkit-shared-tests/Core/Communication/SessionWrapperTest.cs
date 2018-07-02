@@ -166,6 +166,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var target = new SessionWrapper(wrappedSession);
+            target.ClearCapturedData();
 
             // when, then
             Assert.That(wrappedSession.IsEmpty, Is.True);

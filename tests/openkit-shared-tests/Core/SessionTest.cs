@@ -15,7 +15,9 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Communication;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -44,16 +46,6 @@ namespace Dynatrace.OpenKit.Core
             mockTimingProvider = Substitute.For<ITimingProvider>();
             var configuration = new TestConfiguration();
             beacon = new Beacon(logger, new Caching.BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIDProvider>(), mockTimingProvider);
-        }
-
-        [Test]
-        public void ANewlyCreatedSessionIsEmpty()
-        {
-            // given
-            var target = new Session(logger, beaconSender, beacon);
-
-            // then
-            Assert.That(target.IsEmpty, Is.True);
         }
 
         [Test]

@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-namespace Dynatrace.OpenKit.Core.Configuration
+namespace Dynatrace.OpenKit
 {
     public enum CrashReportingLevel
     {

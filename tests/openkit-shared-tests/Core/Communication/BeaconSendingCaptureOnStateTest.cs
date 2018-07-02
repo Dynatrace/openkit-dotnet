@@ -51,6 +51,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // http client
             httpClient = Substitute.For<IHTTPClient>();
+
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
             timingProvider.ProvideTimestampInMilliseconds().Returns(x => { return ++currentTime; }); // every access is a tick
@@ -254,23 +255,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void EmptyFinishedSessionsAreNotSent()
-        {
-            // given 
-            var clientIp = "127.0.0.1";
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(string.Empty, 200));
-
-            // when 
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            httpClient.DidNotReceive().SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-            Assert.That(finishedSessions.Count, Is.EqualTo(0)); // assert empty sessions
-            context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
-        }
-
-        [Test]
         public void UnsuccessfulFinishedSessionsAreNotRemovedFromCache()
         {
             //given
@@ -366,7 +350,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             httpClient.DidNotReceive().SendBeaconRequest(clientIp, Arg.Any<byte[]>());
             context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
         }
-
 
         private Session CreateValidSession(string clientIP)
         {

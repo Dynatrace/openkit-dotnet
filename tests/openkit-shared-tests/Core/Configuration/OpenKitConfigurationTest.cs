@@ -134,7 +134,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var dataCollectionLevel = target.BeaconConfig.DataCollectionLevel;
 
             //then
-            Assert.That(dataCollectionLevel, Is.EqualTo(DataCollectionLevel.OFF));
+            Assert.That(dataCollectionLevel, Is.EqualTo(DataCollectionLevel.USER_BEHAVIOR));
         }
 
         [Test]
@@ -146,7 +146,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var crashReportingLevel = target.BeaconConfig.CrashReportingLevel;
 
             //then
-            Assert.That(crashReportingLevel, Is.EqualTo(CrashReportingLevel.OFF));
+            Assert.That(crashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_IN_CRASHES));
         }
 
 

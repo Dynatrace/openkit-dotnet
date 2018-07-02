@@ -16,18 +16,25 @@
 
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit
 {
     public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : this( 0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES))
+            : this( 0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new Providers.TestSessionIDProvider())
         {
         }
 
         internal TestConfiguration(int deviceID, BeaconConfiguration beaconConfig)
-            : base(OpenKitType.DYNATRACE, "", "", deviceID, "", new Providers.TestSessionIDProvider(), 
+            : this(deviceID, beaconConfig, new Providers.DefaultSessionIDProvider() )
+        {
+
+        }
+
+        internal TestConfiguration(int deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
+            : base(OpenKitType.DYNATRACE, "", "", deviceID, "", sessionIDProvider, 
                   new SSLStrictTrustManager(), new Core.Device("", "", ""), "", 
                   new BeaconCacheConfiguration(
                     BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
