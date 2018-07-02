@@ -1137,7 +1137,7 @@ namespace Dynatrace.OpenKit.Protocol
             var session = new Session(logger, beaconSender, target);
 
             //when
-            target.StartSession(session);
+            // session contructor is calling StartSession implicitly
 
             //then
             Assert.That(target.IsEmpty, Is.False);
@@ -1153,7 +1153,7 @@ namespace Dynatrace.OpenKit.Protocol
             var session = new Session(logger, beaconSender, target);
 
             //when
-            target.StartSession(session);
+            // session contructor is calling StartSession implicitly
 
             //then
             Assert.That(target.IsEmpty, Is.False);
@@ -1170,7 +1170,7 @@ namespace Dynatrace.OpenKit.Protocol
             var session = new Session(logger, beaconSender, target);
 
             //when
-            target.StartSession(session);
+            // session contructor is calling StartSession implicitly
 
             //then
             Assert.That(target.IsEmpty, Is.False);
@@ -1187,7 +1187,7 @@ namespace Dynatrace.OpenKit.Protocol
             var session = new Session(logger, beaconSender, target);
 
             //when
-            target.StartSession(session);
+            // session contructor is calling StartSession implicitly
 
             //then
             Assert.That(target.IsEmpty, Is.False);
@@ -1203,7 +1203,7 @@ namespace Dynatrace.OpenKit.Protocol
             var session = new Session(logger, beaconSender, target);
 
             //when
-            target.StartSession(session);
+            // session contructor is calling StartSession implicitly
 
             //then
             Assert.That(target.IsEmpty, Is.True);

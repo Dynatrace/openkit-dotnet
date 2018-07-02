@@ -30,10 +30,7 @@ namespace Dynatrace.OpenKit.Providers
 
         public long NextLong(long upperBoundary)
         {
-            byte[] buf = new byte[8];
-            new Random().NextBytes(buf);
-            var longValue = BitConverter.ToInt64(buf, 0);
-            return Math.Abs(longValue % upperBoundary ) ;
+            return (long)(new Random().NextDouble() * upperBoundary);
         }
     }
 }
