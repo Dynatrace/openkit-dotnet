@@ -49,6 +49,7 @@ namespace Dynatrace.OpenKit.Core
             this.beacon = beacon;
 
             beaconSender.StartSession(this);
+            beacon.StartSession(this);
         }
 
         /// <summary>
