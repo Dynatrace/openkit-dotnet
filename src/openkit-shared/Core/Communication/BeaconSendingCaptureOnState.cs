@@ -104,15 +104,15 @@ namespace Dynatrace.OpenKit.Core.Communication
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
             var finishedSessions = context.FinishedAndConfiguredSessions;
 
-            foreach (var finishedSession in finishedSessions)
+            foreach (var session in finishedSessions)
             {
-                if (finishedSession.IsDataSendingAllowed)
+                if (session.IsDataSendingAllowed)
                 {
-                    statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
+                    statusResponse = session.SendBeacon(context.HTTPClientProvider);
                     if (statusResponse == null)
                     {
                         // something went wrong,
-                        if (!finishedSession.IsEmpty)
+                        if (!session.IsEmpty)
                         {
                             break; //  sending did not work, break out for now and retry it later
                         }
@@ -120,8 +120,8 @@ namespace Dynatrace.OpenKit.Core.Communication
                 }
 
                 // session was sent - so remove it from beacon cache
-                context.RemoveSession(finishedSession);
-                finishedSession.ClearCapturedData();
+                context.RemoveSession(session);
+                session.ClearCapturedData();
             }
         }
 

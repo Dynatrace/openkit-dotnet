@@ -116,6 +116,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
             var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
             var sessionThree = new SessionWrapper(CreateValidSession("127.0.0.2"));
+            // end one session to demonstrate that those which are already ended are also configured 
             sessionThree.End();
             newSessions.AddRange(new[] { sessionOne, sessionTwo, sessionThree });
             

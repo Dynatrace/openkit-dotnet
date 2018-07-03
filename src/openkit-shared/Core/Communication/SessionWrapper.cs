@@ -103,7 +103,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             sessionFinished = true;
         }
 
+        /// <summary>
         /// Will be called each time a new session request was made for a session.
+        /// </summary>
         internal void DecreaseNumNewSessionRequests() {
             NumNewSessionRequestsLeft -= 1;
         }

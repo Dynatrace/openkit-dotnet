@@ -189,7 +189,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
             Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(5));
 
-            // vor session two the number of requests was decremented
+            // for session two the number of requests was decremented
             Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.False);
             Assert.That(sessionTwo.NumNewSessionRequestsLeft, Is.EqualTo(3));
         }
