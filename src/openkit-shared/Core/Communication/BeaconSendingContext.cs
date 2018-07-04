@@ -20,7 +20,7 @@ using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -34,11 +34,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
 
-        // container storing all open sessions 
-        private readonly SynchronizedQueue<Session> openSessions = new SynchronizedQueue<Session>();
-
-        // container storing all finished sessions 
-        private readonly SynchronizedQueue<Session> finishedSessions = new SynchronizedQueue<Session>();
+        // container storing all sessions
+        private readonly SynchronizedQueue<SessionWrapper> sessions = new SynchronizedQueue<SessionWrapper>();
 
         // reset event is set when init was done - which can either be success or failure 
         private readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
@@ -85,36 +82,21 @@ namespace Dynatrace.OpenKit.Core.Communication
         public long LastStatusCheckTime { get; set; }
         public long LastTimeSyncTime { get; set; }
         public bool IsTimeSyncSupported { get; private set; }
-        public bool IsTimeSynced
-        {
-            get { return !IsTimeSyncSupported || LastTimeSyncTime >= 0; }
-        }
+        public bool IsTimeSynced => !IsTimeSyncSupported || LastTimeSyncTime >= 0;
 
         public bool IsInitialized => initSucceeded;
 
         public bool IsShutdownRequested
         {
-            get
-            {
-                return isShutdownRequested;
-            }
-            private set
-            {
-                isShutdownRequested = value;
-            }
+            get => isShutdownRequested;
+            private set => isShutdownRequested = value;
         }
+
         public long CurrentTimestamp { get { return TimingProvider.ProvideTimestampInMilliseconds(); } }
         public int SendInterval { get { return Configuration.SendInterval; } }
         public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
         public bool IsInTerminalState { get { return CurrentState.IsTerminalState; } }
-
-        /// <summary>
-        /// Gets a readonly list of all finished sessions.
-        /// </summary>
-        /// <remarks>
-        /// This property is only for testing purposes.
-        /// </remarks>
-        internal ReadOnlyCollection<Session> FinishedSessions => finishedSessions.ToList().AsReadOnly();
+       
 
         public void DisableTimeSyncSupport()
         {
@@ -176,7 +158,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public void Sleep(int millis)
         {
-#if !NETCOREAPP1_0
+#if !NETCOREAPP1_0 || !NETCOREAPP1_1
             TimingProvider.Sleep(millis);
 #else
             // in order to avoid long sleeps (netcore1.0 doesn't provide ThreadInterruptException for sleep)
@@ -210,47 +192,52 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        public void PushBackFinishedSession(Session finishedSession)
-        {
-            finishedSessions.Put(finishedSession);
-        }
-
-        public Session GetNextFinishedSession()
-        {
-            return finishedSessions.Get();
-        }
-
-        public List<Session> GetAllOpenSessions()
-        {
-            return openSessions.ToList();
-        }
-
-        public void StartSession(Session session)
-        {
-            openSessions.Put(session);
-        }
-
-        public void FinishSession(Session session)
-        {
-            if (openSessions.Remove(session))
-            {
-                finishedSessions.Put(session);
-            }
-        }
-
+        /// <summary>
+        /// Clear captured data from all sessions.
+        /// </summary>
         private void ClearAllSessionData()
         {
-            var session = finishedSessions.Get();
-            while (session != null)
+            sessions.ToList().ForEach(wrapper =>
             {
-                session.ClearCapturedData();
-                session = finishedSessions.Get();
-            }
+                wrapper.ClearCapturedData();
+                if (wrapper.IsSessionFinished)
+                {
+                    sessions.Remove(wrapper);
+                }
+            });
+        }
+        
+        /// <summary>
+        /// <seealso cref="IBeaconSendingContext.StartSession(Session)"/>
+        /// </summary>
+        public void StartSession(Session session)
+        {
+            sessions.Put(new SessionWrapper(session));
+        }
 
-            foreach (var openSession in openSessions.ToList())
+        /// <summary>
+        /// <seealso cref="IBeaconSendingContext.FinishSession(Session)"/>
+        /// </summary>
+        public void FinishSession(Session session)
+        {
+            var wrappedSession = sessions.ToList().FirstOrDefault(wrapper => wrapper.Session == session);
+            if (wrappedSession != null)
             {
-                openSession.ClearCapturedData();
+                wrappedSession.FinishSession();
             }
+        }
+        
+        public List<SessionWrapper> NewSessions => sessions.ToList().Where(wrapper => !wrapper.IsBeaconConfigurationSet).ToList();
+
+        public List<SessionWrapper> OpenAndConfiguredSessions => sessions.ToList()
+            .Where(wrapper => wrapper.IsBeaconConfigurationSet && !wrapper.IsSessionFinished).ToList();
+
+        public List<SessionWrapper> FinishedAndConfiguredSessions => sessions.ToList()
+            .Where(wrapper => wrapper.IsBeaconConfigurationSet && wrapper.IsSessionFinished).ToList();
+
+        public bool RemoveSession(SessionWrapper sessionWrapper)
+        {
+            return sessions.Remove(sessionWrapper);
         }
     }
 }

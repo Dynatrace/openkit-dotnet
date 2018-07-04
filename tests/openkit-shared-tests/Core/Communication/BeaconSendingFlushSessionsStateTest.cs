@@ -27,8 +27,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingFlushSessionsStateTest
     {
-        private Queue<Session> finishedSessions;
-        private List<Session> openSessions;
+        private List<SessionWrapper> newSessions;
+        private List<SessionWrapper> openSessions;
+        private List<SessionWrapper> finishedSessions;
         private ITimingProvider timingProvider;
         private IHTTPClient httpClient;
         private IBeaconSendingContext context;
@@ -39,8 +40,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             httpClient = Substitute.For<IHTTPClient>();
-            finishedSessions = new Queue<Session>();
-            openSessions = new List<Session>();
+            newSessions = new List<SessionWrapper>();
+            openSessions = new List<SessionWrapper>();
+            finishedSessions = new List<SessionWrapper>();
 
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
@@ -57,8 +59,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             beaconSender = new BeaconSender(logger, context);
 
             // sessions
-            context.GetAllOpenSessions().Returns(openSessions);
-            context.GetNextFinishedSession().Returns(x => (finishedSessions.Count == 0) ? null : finishedSessions.Dequeue());
+            context.NewSessions.Returns(newSessions);
+            context.OpenAndConfiguredSessions.Returns(openSessions);
+            context.FinishedAndConfiguredSessions.Returns(finishedSessions);
         }
 
         [Test]
@@ -82,20 +85,72 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void FinishedSessionsAreSent()
+        public void ToStringReturnStateName()
         {
-            // given 
-            finishedSessions.Enqueue(CreateValidSession("127.0.0.1"));
-            finishedSessions.Enqueue(CreateValidSession("127.0.0.1"));
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(string.Empty, 200));
-
-            // when
+            // given
             var target = new BeaconSendingFlushSessionsState();
-            target.Execute(context);
 
             // then
-            httpClient.Received(2).SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>());
+            Assert.That(target.ToString(), Is.EqualTo("FlushSessions"));
+        }
+
+        [Test]
+        public void ABeaconSendingFlushSessionsStateTransitionsToTerminalStateWhenDataIsSent()
+        {
+            // given
+            var target = new BeaconSendingFlushSessionsState();
+
+            // when
+            target.Execute(context);
+            
+            // then verify transition to terminal state
+            context.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>();
+        }
+
+        [Test]
+        public void ABeaconSendingFlushSessionsStateConfiguresAllUnconfiguredSessions()
+        {
+            // given
+            var target = new BeaconSendingFlushSessionsState();
+
+            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
+            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
+            var sessionThree = new SessionWrapper(CreateValidSession("127.0.0.2"));
+            // end one session to demonstrate that those which are already ended are also configured 
+            sessionThree.End();
+            newSessions.AddRange(new[] { sessionOne, sessionTwo, sessionThree });
+            
+            // when
+            target.Execute(context);
+
+            // verify that all three sessions are configured
+            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
+            Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
+            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.True);
+            Assert.That(sessionTwo.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
+            Assert.That(sessionThree.IsBeaconConfigurationSet, Is.True);
+            Assert.That(sessionThree.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
+        }
+        
+        [Test]
+        public void ABeaconSendingFlushSessionsStateClosesOpenSessions()
+        {
+            // given
+            var target = new BeaconSendingFlushSessionsState();
+
+            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
+            sessionOne.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
+            sessionTwo.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+
+            openSessions.AddRange(new[] { sessionOne, sessionTwo });
+
+            // when
+            target.Execute(context);
+
+            // verify that open sessions are closed
+            context.Received(1).FinishSession(sessionOne.Session);
+            context.Received(1).FinishSession(sessionTwo.Session);
         }
 
         private Session CreateValidSession(string clientIP)

@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using System.Threading;
@@ -60,6 +61,12 @@ namespace Dynatrace.OpenKit.Core
         public bool IsEmpty => beacon.IsEmpty;
 
         public long EndTime => Interlocked.Read(ref endTime);
+
+        public BeaconConfiguration BeaconConfiguration
+        {
+            get { return beacon.BeaconConfiguration; }
+            set { beacon.BeaconConfiguration = value; }
+        }
 
         internal bool IsSessionEnded => EndTime != -1;
 

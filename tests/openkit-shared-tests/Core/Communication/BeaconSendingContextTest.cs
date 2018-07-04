@@ -21,6 +21,7 @@ using NSubstitute;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
+using System.Linq;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -39,6 +40,19 @@ namespace Dynatrace.OpenKit.Core.Communication
             clientProvider = Substitute.For<IHTTPClientProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
             nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
+        }
+        
+        [Test]
+        public void InitializeTimeSyncDelegatesToTimingProvider()
+        {
+            // given
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+
+            // when
+            target.InitializeTimeSync(1L, true);
+
+            // then
+            timingProvider.Received(1).Initialze(1L, true);
         }
 
         [Test]
@@ -292,7 +306,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             target.Sleep(expected);
 
-#if !NETCOREAPP1_0
+#if !NETCOREAPP1_0 || !NETCOREAPP1_1
             timingProvider.Received(1).Sleep(expected);
 #else
             timingProvider.Received(2).Sleep(Arg.Any<int>());
@@ -302,24 +316,84 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void SessionIsMovedToFinished()
+        public void CanInterruptLongSleep()
         {
             // given
-            var logger = Substitute.For<ILogger>();
+            var expected = 101717;
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
-            var session = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
-
-            Assert.That(target.GetAllOpenSessions().Count, Is.EqualTo(1));
-
-            // when
-            target.FinishSession(session);
+            target.RequestShutdown();
+            target.Sleep(expected);
 
             // then
-            Assert.That(target.GetAllOpenSessions(), Is.Empty);
-            Assert.That(target.GetNextFinishedSession(), Is.SameAs(session));
-            Assert.That(target.GetNextFinishedSession(), Is.Null);
+#if !NETCOREAPP1_0 || !NETCOREAPP1_1
+            // normal sleep as thread interrupt exception exists
+            timingProvider.Received(1).Sleep(expected);
+#else
+            // no interrupt exception exists, therefore "sliced" sleep break after first iteration
+            timingProvider.Received(1).Sleep(Arg.Any<int>());
+            timingProvider.Received(1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+#endif
+        }
+
+        [Test]
+        public void CanSleepLonger()
+        {
+            // given
+            var expected = 101717;
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            target.Sleep(expected);
+
+            // then
+#if !NETCOREAPP1_0 || !NETCOREAPP1_1
+            // normal sleep as thread interrupt exception exists
+            timingProvider.Received(1).Sleep(expected);
+
+#else
+            // no interrupt exception exists, therefore "sliced" sleeps until total sleep amount
+            var expectedCount = (int)Math.Ceiling(expected / (double)BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+            timingProvider.Received(expectedCount).Sleep(Arg.Any<int>());
+            timingProvider.Received(expectedCount - 1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+            timingProvider.Received(1).Sleep(expected % BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+#endif
+        }
+
+        [Test]
+        public void ADefaultConstructedContextDoesNotStoreAnySessions()
+        {
+            // given
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+
+            // then
+            Assert.That(target.NewSessions, Is.Empty);
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+        }
+
+        [Test]
+        public void WhenStartingASessionTheSessionIsConsideredAsNew()
+        {
+            // given
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+
+            // when starting the first session
+            // Caution: Session CTOR implicityly starts itself!!!
+            var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+
+            // then
+            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { sessionOne }));
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+
+            // when starting the second session
+            // Caution: Session CTOR implicityly starts itself!!!
+            var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+
+            // then
+            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { sessionOne, sessionTwo }));
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
         }
 
         [Test]
@@ -334,6 +408,92 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then it's disabled again
             Assert.That(config.IsCaptureOn, Is.False);
+        }
+
+        [Test]
+        public void FinishingANewSessionStillLeavesItNew()
+        {
+            // given
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+
+            var session = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+
+            // then
+            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { session }));
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+
+            // and when finishing the session
+            target.FinishSession(session);
+
+            // then it's in the list of new ones
+            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { session }));
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+
+        }
+        
+        [Test]
+        public void AfterASessionHasBeenConfiguredItsOpenAndConfigured()
+        {
+            // given
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            
+            // when both session are added
+            var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+            var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+
+            // and configuring the first one
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+
+            // then
+            Assert.That(target.NewSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionTwo }));
+            Assert.That(target.OpenAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne }));
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+
+            // and when configuring the second open session
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+
+            // then
+            Assert.That(target.NewSessions, Is.Empty);
+            Assert.That(target.OpenAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne, sessionTwo }));
+            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+        }
+
+        [Test]
+        public void AfterAFinishedSessionHasBeenConfiguredItsFinishedAndConfigured()
+        {
+            // given
+            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+
+            var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+            var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+
+            // when both session are added
+            // Caution: Session CTOR implicityly starts itself!!!
+            target.FinishSession(sessionOne);
+            target.FinishSession(sessionTwo);
+            
+            // and configuring the first one
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+
+            // then
+            Assert.That(target.NewSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionTwo }));
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne }));
+
+            // and when configuring the second open session
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+
+            // then
+            Assert.That(target.NewSessions, Is.Empty);
+            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
+            Assert.That(target.FinishedAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne, sessionTwo }));
         }
     }
 }
