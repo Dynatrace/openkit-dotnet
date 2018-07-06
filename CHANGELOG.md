@@ -11,6 +11,8 @@
   - IWebRequestTracer
 - coveralls.io Coverage integration
 - New projects for .NET 4.7 and .NET Core 1.1
+- Server overload prevention
+- GDPR compliance
 
 ### Changed
 - Replace DotNetZip library with .NET builtin gzip library
