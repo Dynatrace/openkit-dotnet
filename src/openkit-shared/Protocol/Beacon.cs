@@ -521,7 +521,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.CrashReportingLevel == CrashReportingLevel.OFF)
+            if (beaconConfiguration.CrashReportingLevel != CrashReportingLevel.OPT_IN_CRASHES)
             {
                 return;
             }

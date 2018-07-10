@@ -916,7 +916,23 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void ReportCrashDoesReportOnCrashReportingLevel1()
+        public void ReportCrashDoesNotReportOnDataCollectionLevel1()
+        {
+            // given
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OPT_OUT_CRASHES);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
+
+            //when
+            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+
+            //then
+            Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void ReportCrashDoesReportOnCrashReportingLevel2()
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OPT_IN_CRASHES);

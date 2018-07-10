@@ -9,25 +9,25 @@ namespace Dynatrace.OpenKit
 {
     public class OpenKitBuilderTest
     {
-        private const string endpoint = "https://localhost:12345";
-        private const string appID = "asdf123";
-        private const string appName = "myName";
-        private const long deviceID = 1234L;
-        private const string appVersion = "1.2.3.4";
-        private const string os = "custom OS";
-        private const string manufacturer = "custom manufacturer";
-        private const string modelID = "custom model id";
+        private const string Endpoint = "https://localhost:12345";
+        private const string AppID = "asdf123";
+        private const string AppName = "myName";
+        private const long DeviceID = 1234L;
+        private const string AppVersion = "1.2.3.4";
+        private const string OS = "custom OS";
+        private const string Manufacturer = "custom manufacturer";
+        private const string ModelID = "custom model id";
 
         [Test]
         public void DefaultsAreSetForAppMon()
         {
-            VerifyDefaultsAreSet(new AppMonOpenKitBuilder(endpoint, appID, deviceID).BuildConfiguration());
+            VerifyDefaultsAreSet(new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID).BuildConfiguration());
         }
 
         [Test]
         public void DefaultsAreSetForDynatrace()
         {
-            VerifyDefaultsAreSet(new DynatraceOpenKitBuilder(endpoint, appName, deviceID).BuildConfiguration());
+            VerifyDefaultsAreSet(new DynatraceOpenKitBuilder(Endpoint, AppName, DeviceID).BuildConfiguration());
         }
 
         private void VerifyDefaultsAreSet(OpenKitConfiguration configuration)
@@ -53,9 +53,9 @@ namespace Dynatrace.OpenKit
         [Test]
         public void ApplicationNameIsSetCorrectlyForAppMon()
         {
-            var target = new AppMonOpenKitBuilder(endpoint, appName, deviceID).BuildConfiguration();
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID).BuildConfiguration();
 
-            Assert.That(target.ApplicationName, Is.EqualTo(appName));
+            Assert.That(target.ApplicationName, Is.EqualTo(AppName));
             Assert.That(target.ApplicationName, Is.EqualTo(target.ApplicationID));
         }
 
@@ -66,7 +66,7 @@ namespace Dynatrace.OpenKit
             var trustManager = Substitute.For<ISSLTrustManager>();
 
             // when
-            var target = new AppMonOpenKitBuilder(endpoint, appName, deviceID)
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
                 .WithTrustManager(trustManager)
                 .BuildConfiguration();
 
@@ -81,7 +81,7 @@ namespace Dynatrace.OpenKit
             var trustManager = Substitute.For<ISSLTrustManager>();
 
             // when
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID)
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
                     .WithTrustManager(trustManager)
                     .BuildConfiguration();
 
@@ -93,108 +93,108 @@ namespace Dynatrace.OpenKit
         public void CanSetApplicationVersionForAppMon()
         {
             // when
-            var target = new AppMonOpenKitBuilder(endpoint, appName, deviceID)
-                .WithApplicationVersion(appVersion)
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
+                .WithApplicationVersion(AppVersion)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.ApplicationVersion, Is.EqualTo(appVersion));
+            Assert.That(target.ApplicationVersion, Is.EqualTo(AppVersion));
         }
 
         [Test]
         public void CanSetApplicationVersionForDynatrace()
         {
             // when
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID)
-                .WithApplicationVersion(appVersion)
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
+                .WithApplicationVersion(AppVersion)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.ApplicationVersion, Is.EqualTo(appVersion));
+            Assert.That(target.ApplicationVersion, Is.EqualTo(AppVersion));
         }
 
         [Test]
         public void CanSetOperatingSystemForAppMon()
         {
             // when
-            var target = new AppMonOpenKitBuilder(endpoint, appName, deviceID)
-                .WithOperatingSystem(os)
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
+                .WithOperatingSystem(OS)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.OperatingSystem, Is.EqualTo(os));
+            Assert.That(target.Device.OperatingSystem, Is.EqualTo(OS));
         }
 
         [Test]
         public void CanSetOperatingSystemForDynatrace()
         {
             // when
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID)
-                .WithOperatingSystem(os)
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
+                .WithOperatingSystem(OS)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.OperatingSystem, Is.EqualTo(os));
+            Assert.That(target.Device.OperatingSystem, Is.EqualTo(OS));
         }
 
         [Test]
         public void CanSetManufacturerForAppMon()
         {
             // when
-            var target = new AppMonOpenKitBuilder(endpoint, appName, deviceID)
-                .WithManufacturer(manufacturer)
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
+                .WithManufacturer(Manufacturer)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.Manufacturer, Is.EqualTo(manufacturer));
+            Assert.That(target.Device.Manufacturer, Is.EqualTo(Manufacturer));
         }
 
         [Test]
         public void CanSetManufactureForDynatrace()
         {
             // when
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID)
-                .WithManufacturer(manufacturer)
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
+                .WithManufacturer(Manufacturer)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.Manufacturer, Is.EqualTo(manufacturer));
+            Assert.That(target.Device.Manufacturer, Is.EqualTo(Manufacturer));
         }
 
         [Test]
         public void CanSetModelIDForAppMon()
         {
             // when
-            var target = new AppMonOpenKitBuilder(endpoint, appName, deviceID)
-                .WithModelID(modelID)
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
+                .WithModelID(ModelID)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.ModelID, Is.EqualTo(modelID));
+            Assert.That(target.Device.ModelID, Is.EqualTo(ModelID));
         }
 
         [Test]
         public void CanSetModelIDForDynatrace()
         {
             // when
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID)
-                .WithModelID(modelID)
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
+                .WithModelID(ModelID)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.ModelID, Is.EqualTo(modelID));
+            Assert.That(target.Device.ModelID, Is.EqualTo(ModelID));
         }
 
         [Test]
         public void CanSetAppNameForDynatrace()
         {
             // when
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID)
-                .WithApplicationName(appName)
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
+                .WithApplicationName(AppName)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.ApplicationName, Is.EqualTo(appName));
+            Assert.That(target.ApplicationName, Is.EqualTo(AppName));
         }
 
         [Test]
@@ -238,7 +238,7 @@ namespace Dynatrace.OpenKit
         public void CanSetCustomMaxBeaconRecordAgeForDynatrace()
         {
             // given
-            DynatraceOpenKitBuilder target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            DynatraceOpenKitBuilder target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID);
             const long maxRecordAge = 123456L;
 
             // when
@@ -255,7 +255,7 @@ namespace Dynatrace.OpenKit
         public void CanSetCustomMaxBeaconRecordAgeForAppMon()
         {
             // given
-            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID);
             const long maxRecordAge = 123456L;
 
             // when
@@ -273,7 +273,7 @@ namespace Dynatrace.OpenKit
         public void CanSetBeaconCacheLowerMemoryBoundaryForDynatrace()
         {
             // given
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID);
             const long lowerMemoryBoundary = 42L * 1024L;
 
             // when
@@ -290,7 +290,7 @@ namespace Dynatrace.OpenKit
         public void CanSetBeaconCacheLowerMemoryBoundaryForAppMon()
         {
             // given
-            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID);
             const long lowerMemoryBoundary = 42L * 1024L;
 
             // when
@@ -307,7 +307,7 @@ namespace Dynatrace.OpenKit
         public void CanSetBeaconCacheUpperMemoryBoundaryForDynatrace()
         {
             // given
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID);
             const long upperMemoryBoundary = 42L * 1024L;
 
             // when
@@ -324,7 +324,7 @@ namespace Dynatrace.OpenKit
         public void CanSetBeaconCacheUpperMemoryBoundaryForAppMon()
         {
             // given
-            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID);
             const long upperMemoryBoundary = 42L * 1024L;
 
             // when
@@ -341,7 +341,7 @@ namespace Dynatrace.OpenKit
         public void CanSetDataCollectionLevelForDynatrace()
         {
             // given
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID);
 
             // when
             var level = DataCollectionLevel.USER_BEHAVIOR;
@@ -358,7 +358,7 @@ namespace Dynatrace.OpenKit
         public void CanSetDataCollectionLevelForAppMon()
         {
             // given
-            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID);
 
             // when
             var level = DataCollectionLevel.USER_BEHAVIOR;
@@ -375,7 +375,7 @@ namespace Dynatrace.OpenKit
         public void CanSetCrashReportingLevelForDynatrace()
         {
             // given
-            var target = new DynatraceOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID);
 
             // when
             var level = CrashReportingLevel.OPT_IN_CRASHES;
@@ -392,7 +392,7 @@ namespace Dynatrace.OpenKit
         public void CanSetCrashReportingLevelForAppMon()
         {
             // given
-            var target = new AppMonOpenKitBuilder(endpoint, appID, deviceID);
+            var target = new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID);
 
             // when
             var level = CrashReportingLevel.OPT_IN_CRASHES;

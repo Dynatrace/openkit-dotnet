@@ -19,6 +19,7 @@ namespace Dynatrace.OpenKit
     public enum CrashReportingLevel
     {
         OFF = 0,
-        OPT_IN_CRASHES = 1
+        OPT_OUT_CRASHES = 1,
+        OPT_IN_CRASHES = 2
     }
 }
