@@ -48,6 +48,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void GetCrashReportingLevel()
         {
             Assert.That(new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF).CrashReportingLevel, Is.EqualTo(CrashReportingLevel.OFF));
+            Assert.That(new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OPT_OUT_CRASHES).CrashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_OUT_CRASHES));
             Assert.That(new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OPT_IN_CRASHES).CrashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_IN_CRASHES));
         }
     }
