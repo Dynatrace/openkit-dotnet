@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
-    <AssemblyName>openkit-1.0.1-dotnetfull-4.7</AssemblyName>
+    <AssemblyName>openkit-1.2.0-SNAPSHOT-dotnetfull-4.7</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
