@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -77,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
             context.IsTimeSyncSupported.Returns(true);
             context.IsTimeSynced.Returns(true);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
             var target = new BeaconSendingCaptureOffState();
@@ -93,7 +94,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsCaptureOn.Returns(true);
             context.IsTimeSyncSupported.Returns(true);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
 
             var target = new BeaconSendingCaptureOffState();
 
@@ -139,7 +140,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.CurrentTimestamp.Returns(0);
             context.LastStatusCheckTime.Returns(0);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
             var target = new BeaconSendingCaptureOffState();
@@ -156,7 +157,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsShutdownRequested.Returns(true);
             context.CurrentTimestamp.Returns(0);
             context.LastStatusCheckTime.Returns(0);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
             var target = new BeaconSendingCaptureOffState();

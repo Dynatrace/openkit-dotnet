@@ -14,6 +14,9 @@
 // limitations under the License.
 //
 
+
+using System.Collections.Generic;
+
 namespace Dynatrace.OpenKit.Protocol
 {
 
@@ -22,26 +25,15 @@ namespace Dynatrace.OpenKit.Protocol
     /// </summary>
     public abstract class Response
     {
-
-        private int responseCode;
-
-        // *** constructors ***
-
-        public Response(int responseCode)
+        public Response(int responseCode, Dictionary<string, List<string>> headers)
         {
-            this.responseCode = responseCode;
+            ResponseCode = responseCode;
+            Headers = headers;
         }
+        
+        public int ResponseCode { get; }
 
-        // *** properties ***
-
-        public int ResponseCode
-        {
-            get
-            {
-                return responseCode;
-            }
-        }
+        public Dictionary<string, List<string>> Headers { get; }
 
     }
-
 }

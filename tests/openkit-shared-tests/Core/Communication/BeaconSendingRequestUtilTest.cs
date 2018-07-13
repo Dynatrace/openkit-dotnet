@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -32,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             httpClient = Substitute.For<IHTTPClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
-            statusResponse = new StatusResponse(string.Empty, 200);
+            statusResponse = new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>());
         }
 
         [Test]

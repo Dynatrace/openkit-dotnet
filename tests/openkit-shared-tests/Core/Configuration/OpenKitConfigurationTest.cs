@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Protocol.SSL;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -73,7 +74,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             target.EnableCapture();
 
             // when status response indicates erroneous response
-            target.UpdateSettings(new StatusResponse(string.Empty, 400));
+            target.UpdateSettings(new StatusResponse(string.Empty, 400, new Dictionary<string, List<string>>()));
 
             // then
             Assert.That(target.IsCaptureOn, Is.False);
@@ -86,7 +87,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
             target.EnableCapture();
 
-            var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "1", 200);
+            var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "1", 200, new Dictionary<string, List<string>>());
 
             // when capturing is enabled in status response
             target.UpdateSettings(response);
@@ -102,7 +103,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
             target.EnableCapture();
 
-            var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "0", 200);
+            var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "0", 200, new Dictionary<string, List<string>>());
 
             // when capturing is enabled in status response
             target.UpdateSettings(response);
