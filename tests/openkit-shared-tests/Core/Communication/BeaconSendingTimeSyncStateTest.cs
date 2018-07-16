@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -229,7 +230,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var responseFormatString = TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "={0}&" + TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "={1}";
 
-            return new TimeSyncResponse(string.Format(responseFormatString, receiveTime, receiveTime + delta), 200);
+            return new TimeSyncResponse(string.Format(responseFormatString, receiveTime, receiveTime + delta), 200, new Dictionary<string, System.Collections.Generic.List<string>>());
         }
     }
 }

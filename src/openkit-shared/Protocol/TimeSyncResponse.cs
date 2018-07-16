@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -30,7 +31,8 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string RESPONSE_KEY_REQUEST_RECEIVE_TIME = "t1";
         internal const string RESPONSE_KEY_RESPONSE_SEND_TIME = "t2";
         
-        internal TimeSyncResponse(string response, int responseCode) : base(responseCode)
+        internal TimeSyncResponse(string response, int responseCode, Dictionary<string, List<string>> headers) :
+            base(responseCode, headers)
         {
             ParseResponse(response);
         }

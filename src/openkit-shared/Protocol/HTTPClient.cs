@@ -18,6 +18,7 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -55,6 +56,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             public string Response { get; set; }
             public int ResponseCode { get; set; }
+            public Dictionary<string, List<string>> Headers { get; set; }
         }
 
         // request type constants
@@ -213,7 +215,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 try
                 {
-                    return new StatusResponse(httpResponse.Response, httpResponse.ResponseCode);
+                    return new StatusResponse(httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
                 }
                 catch (Exception e)
                 {
@@ -233,7 +235,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 try
                 {
-                    return new TimeSyncResponse(httpResponse.Response, httpResponse.ResponseCode);
+                    return new TimeSyncResponse(httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
                 }
                 catch(Exception e)
                 {

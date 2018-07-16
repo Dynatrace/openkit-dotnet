@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -36,7 +37,8 @@ namespace Dynatrace.OpenKit.Protocol
         public const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
         public const string RESPONSE_KEY_MULTIPLICITY = "mp";
 
-        public StatusResponse(string response, int responseCode) : base(responseCode)
+        public StatusResponse(string response, int responseCode, Dictionary<string, List<string>> headers) :
+            base(responseCode, headers)
         {
             ParseResponse(response);
         }

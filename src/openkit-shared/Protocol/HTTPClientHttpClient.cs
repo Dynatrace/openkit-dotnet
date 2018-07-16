@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using System.Linq;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -104,11 +105,13 @@ namespace Dynatrace.OpenKit.Protocol
             httpResponseContentTask.Wait();
             string response = httpResponseContentTask.Result;
             System.Net.HttpStatusCode responseCode = result.StatusCode;
+            var headers = result.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToList());
 
             return new HTTPResponse
             {
                 Response = response,
-                ResponseCode = (int)responseCode
+                ResponseCode = (int)responseCode,
+                Headers = headers
             };
         }
     }
