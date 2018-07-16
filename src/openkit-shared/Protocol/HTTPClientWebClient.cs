@@ -66,9 +66,8 @@ namespace Dynatrace.OpenKit.Protocol
             }
             System.Net.HttpStatusCode responseCode = ((System.Net.HttpWebResponse)webResponse).StatusCode;
             Dictionary<string, List<string>> headers = new Dictionary<string, List<string>>();
-            for (var i = 0; i < webResponse.Headers.Count; i++)
+            foreach (var header in webResponse.Headers.AllKeys)
             {
-                var header = webResponse.Headers.GetKey(i);
                 headers.Add(header, new List<string>(webResponse.Headers.GetValues(header)));
             }
 
