@@ -19,6 +19,9 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using System;
 using System.Threading;
+#if WINDOWS_UWP
+using System.Threading.Tasks;
+#endif
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -33,7 +36,11 @@ namespace Dynatrace.OpenKit.Core.Caching
         private readonly IBeaconCache beaconCache;
         private readonly IBeaconCacheEvictionStrategy[] strategies;
 
+#if WINDOWS_UWP
+        private readonly Task evictionThread;
+#else
         private readonly Thread evictionThread;
+#endif
 
         private readonly object startStopLock = new object();
         private volatile bool isShutdownRequested = false;
@@ -70,11 +77,15 @@ namespace Dynatrace.OpenKit.Core.Caching
             this.logger = logger;
             this.beaconCache = beaconCache;
             this.strategies = strategies;
+#if WINDOWS_UWP
+            evictionThread = new Task(RunEvictionThread);
+#else
             evictionThread = new Thread(RunEvictionThread)
             {
                 Name = this.GetType().Name,
                 IsBackground = true
             };
+#endif
 
         }
 
@@ -82,7 +93,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// Property giving <code>true</code> if eviction was started by calling <see cref="Start"/>,
         /// otherwise <code>false</code> is returned.
         /// </summary>
-        public bool IsAlive => evictionThread.IsAlive;
+        public bool IsAlive =>
+#if WINDOWS_UWP
+            !evictionThread.IsCompleted;
+#else
+            evictionThread.IsAlive;
+#endif
 
         /// <summary>
         /// Get or set a flag indicating whether a shutdown is requested.
@@ -185,7 +201,11 @@ namespace Dynatrace.OpenKit.Core.Caching
                 {
                     Monitor.PulseAll(syncObject);
                 }
+#if WINDOWS_UWP
+                evictionThread.Wait(joinTimeout);
+#else
                 evictionThread.Join(joinTimeout);
+#endif
                 success = !IsAlive;
             }
             else

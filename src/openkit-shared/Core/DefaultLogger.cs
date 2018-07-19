@@ -37,24 +37,32 @@ namespace Dynatrace.OpenKit.Core
 
         public void Error(string message)
         {
+#if !WINDOWS_UWP
             Console.WriteLine(GetUTCTime() + " [ERROR] " + message);
+#endif
         }
 
         public void Error(string message, Exception exception)
         {
+#if !WINDOWS_UWP
             Console.WriteLine(GetUTCTime() + " [ERROR] " + message + Environment.NewLine + exception.ToString());
+#endif
         }
 
         public void Warn(string message)
         {
+#if !WINDOWS_UWP
             Console.WriteLine(GetUTCTime() + " [WARN ] " + message);
+#endif
         }
 
         public void Info(string message)
         {
             if (IsInfoEnabled)
             {
+#if !WINDOWS_UWP
                 Console.WriteLine(GetUTCTime() + " [INFO ] " + message);
+#endif
             }
         }
 
@@ -62,7 +70,9 @@ namespace Dynatrace.OpenKit.Core
         {
             if (IsDebugEnabled)
             {
+#if !WINDOWS_UWP
                 Console.WriteLine(GetUTCTime() + " [DEBUG] " + message);
+#endif
             }
         }
 

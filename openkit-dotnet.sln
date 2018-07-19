@@ -55,12 +55,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "openkit-dotnetcore-1.1", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "openkit-dotnetcore-1.1.Tests", "tests\openkit-dotnetcore-1.1.Tests\openkit-dotnetcore-1.1.Tests.csproj", "{C4776626-4FCA-4A2B-8314-22EBDAAADEDF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnet-uwp", "src\openkit-dotnet-uwp\openkit-dotnet-uwp.csproj", "{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		tests\openkit-shared-tests\openkit-shared-tests.projitems*{0dee56ca-e460-488f-900e-35bdef9e890c}*SharedItemsImports = 4
 		src\openkit-shared\openkit-shared.projitems*{3e70e67c-82bc-4320-b5f5-6f60314f7fe0}*SharedItemsImports = 4
 		tests\openkit-shared-tests\openkit-shared-tests.projitems*{48f4fb14-cc59-44b1-83da-b85d9e2a1ccb}*SharedItemsImports = 13
-		src\openkit-shared\openkit-shared.projitems*{72d1e225-8465-486d-9e36-a2cf09f26a00}*SharedItemsImports = 4
+		src\openkit-shared\openkit-shared.projitems*{5b7cac46-a9f9-4385-bad5-817c592f5f9e}*SharedItemsImports = 4
 		tests\openkit-shared-tests\openkit-shared-tests.projitems*{7394f6aa-300d-4fb0-bb2c-9cb22dabd514}*SharedItemsImports = 4
 		tests\openkit-shared-tests\openkit-shared-tests.projitems*{8b8fae28-f255-4391-8370-31dd894011c2}*SharedItemsImports = 4
 		tests\openkit-shared-tests\openkit-shared-tests.projitems*{9deddc73-2ffb-406e-9cf3-5481615274f7}*SharedItemsImports = 4
@@ -68,7 +70,6 @@ Global
 		src\openkit-shared\openkit-shared.projitems*{c88a4601-5040-4ea8-8d36-42da6a40d30c}*SharedItemsImports = 4
 		src\openkit-shared\openkit-shared.projitems*{cc87c275-efbd-4b40-ac4c-e4b1558b6564}*SharedItemsImports = 13
 		src\openkit-shared\openkit-shared.projitems*{ea5c895e-bc0b-4262-893d-d4131053a741}*SharedItemsImports = 4
-		tests\openkit-shared-tests\openkit-shared-tests.projitems*{ef67a403-c30b-4382-b866-02288391031d}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Coverage|Any CPU = Coverage|Any CPU
@@ -469,6 +470,30 @@ Global
 		{C4776626-4FCA-4A2B-8314-22EBDAAADEDF}.Release|x64.Build.0 = Release|Any CPU
 		{C4776626-4FCA-4A2B-8314-22EBDAAADEDF}.Release|x86.ActiveCfg = Release|Any CPU
 		{C4776626-4FCA-4A2B-8314-22EBDAAADEDF}.Release|x86.Build.0 = Release|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|Any CPU.ActiveCfg = Release|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|Any CPU.Build.0 = Release|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|ARM.ActiveCfg = Release|ARM
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|ARM.Build.0 = Release|ARM
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|x64.ActiveCfg = Release|x64
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|x64.Build.0 = Release|x64
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|x86.ActiveCfg = Release|x86
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Coverage|x86.Build.0 = Release|x86
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|ARM.ActiveCfg = Debug|ARM
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|ARM.Build.0 = Debug|ARM
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|x64.ActiveCfg = Debug|x64
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|x64.Build.0 = Debug|x64
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|x86.ActiveCfg = Debug|x86
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Debug|x86.Build.0 = Debug|x86
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|ARM.ActiveCfg = Release|ARM
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|ARM.Build.0 = Release|ARM
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|x64.ActiveCfg = Release|x64
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|x64.Build.0 = Release|x64
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|x86.ActiveCfg = Release|x86
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -493,6 +518,7 @@ Global
 		{EF67A403-C30B-4382-B866-02288391031D} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
 		{1F5A0303-9A83-4398-A1EF-9E4A9545CEDF} = {B14F89FD-EBF4-4DEB-9833-F2C4E4407C55}
 		{C4776626-4FCA-4A2B-8314-22EBDAAADEDF} = {81668216-FD7D-4E19-9538-AA168F4AA12B}
+		{5B7CAC46-A9F9-4385-BAD5-817C592F5F9E} = {B14F89FD-EBF4-4DEB-9833-F2C4E4407C55}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F480439E-DC91-4B89-853A-4BBA4C5539F1}

@@ -19,6 +19,9 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.API;
 using System.Threading;
+#if WINDOWS_UWP
+using System.Threading.Tasks;
+#endif
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -35,7 +38,11 @@ namespace Dynatrace.OpenKit.Core
         private readonly ILogger logger;
 
         // beacon sender thread
+#if WINDOWS_UWP
+        private Task beaconSenderThread;
+#else
         private Thread beaconSenderThread;
+#endif
         // sending state context
         private readonly IBeaconSendingContext context;
 
@@ -60,24 +67,32 @@ namespace Dynatrace.OpenKit.Core
             }
 
             // create sending thread
-            beaconSenderThread = new Thread(new ThreadStart(() =>
-            {
-                while (!context.IsInTerminalState)
-                {
-                    context.ExecuteCurrentState();
-                }
-            }));
+#if WINDOWS_UWP
+            beaconSenderThread = Task.Factory.StartNew(Loop);
+#else
+            beaconSenderThread = new Thread(new ThreadStart(Loop));
             beaconSenderThread.IsBackground = true;
             // start thread
             beaconSenderThread.Start();
+#endif
 
             var success = context.WaitForInit();
             if (!success)
             {
+#if WINDOWS_UWP
+                beaconSenderThread.Wait();
+#else
                 beaconSenderThread.Join();
+#endif
             }
 
             return success;
+        }
+
+        private void Loop() {
+            while (!context.IsInTerminalState) {
+                context.ExecuteCurrentState();
+            }
         }
 
         public bool WaitForInitCompletion()
@@ -100,11 +115,15 @@ namespace Dynatrace.OpenKit.Core
 
             if (beaconSenderThread != null)
             {
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP)
                 beaconSenderThread.Interrupt();                     // not available in .NET Core 1.0 & .NET Core 1.1
                                                                     // might cause up to 1s delay at shutdown
 #endif
+#if WINDOWS_UWP
+                beaconSenderThread.Wait(SHUTDOWN_TIMEOUT);
+#else
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);
+#endif
                 if (logger.IsDebugEnabled)
                 {
                     logger.Debug(GetType().Name + " thread stopped");

@@ -32,6 +32,11 @@ namespace Dynatrace.OpenKit.Providers
         /// The most significant bit is forced to '0' by a bitwise-and operation with an integer
         /// where all bits except for the most significant bit are set to '1'.
         /// </remarks>
-        public int ThreadID => Thread.CurrentThread.ManagedThreadId & 0x7fffffff;
+        public int ThreadID =>
+#if WINDOWS_UWP
+            System.Environment.CurrentManagedThreadId & 0x7fffffff;
+#else
+            Thread.CurrentThread.ManagedThreadId & 0x7fffffff;
+#endif
     }
 }

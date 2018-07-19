@@ -24,11 +24,15 @@ namespace Dynatrace.OpenKit.Protocol
 
     public class HTTPClientHttpClient : HTTPClient
     {
+#if !WINDOWS_UWP
         private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
+#endif
 
         public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
+#if !WINDOWS_UWP
             remoteCertificateValidationCallback = configuration.SSLTrustManager?.ServerCertificateValidationCallback;
+#endif
         }
 
         protected override HTTPResponse GetRequest(string url, string clientIPAddress)
@@ -57,7 +61,9 @@ namespace Dynatrace.OpenKit.Protocol
         private System.Net.Http.HttpClient CreateHTTPClient(string clientIPAddress)
         {
             System.Net.Http.HttpClient httpClient;
-
+#if WINDOWS_UWP
+            httpClient = new System.Net.Http.HttpClient();
+#else
             if (remoteCertificateValidationCallback == null)
             {
                 httpClient = new System.Net.Http.HttpClient();
@@ -77,8 +83,9 @@ namespace Dynatrace.OpenKit.Protocol
                 };
                 httpClient = new System.Net.Http.HttpClient(httpClientHandler, true);
 #endif
-            }
 
+            }
+#endif
             if (clientIPAddress != null)
             {
                 httpClient.DefaultRequestHeaders.Add("X-Client-IP", clientIPAddress);
