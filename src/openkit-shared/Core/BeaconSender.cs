@@ -48,7 +48,7 @@ namespace Dynatrace.OpenKit.Core
 
         public bool IsInitialized => context.IsInitialized;
 
-        public bool Initialize()
+        public void Initialize()
         {
             // create sending thread
             beaconSenderThread = new Thread(new ThreadStart(() =>
@@ -57,17 +57,13 @@ namespace Dynatrace.OpenKit.Core
                 {
                     context.ExecuteCurrentState();
                 }
-            }));
+            }))
+            {
+                IsBackground = true,
+                Name = this.GetType().Name
+            };
             // start thread
             beaconSenderThread.Start();
-
-            var success = context.WaitForInit();
-            if (!success)
-            {
-                beaconSenderThread.Join();
-            }
-
-            return success;
         }
 
         public bool WaitForInitCompletion()
