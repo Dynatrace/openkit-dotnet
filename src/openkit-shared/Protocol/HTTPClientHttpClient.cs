@@ -31,6 +31,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
 #if NETSTANDARD2_0
             // for .NET standard the certificate validation callback needs to be set globally
+            // the other methods do not compile or throw NotImplementedException
             if (!RemoteCertificateValidationCallbackInitialized)
             {
                 System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SSLTrustManager?.ServerCertificateValidationCallback;
