@@ -52,7 +52,7 @@ namespace Dynatrace.OpenKit.Core
 
         public bool IsInitialized => context.IsInitialized;
 
-        public bool Initialize()
+        public void Initialize()
         {
             if(logger.IsDebugEnabled)
             {
@@ -66,18 +66,13 @@ namespace Dynatrace.OpenKit.Core
                 {
                     context.ExecuteCurrentState();
                 }
-            }));
-            beaconSenderThread.IsBackground = true;
+            }))
+            {
+                IsBackground = true,
+                Name = this.GetType().Name
+            };
             // start thread
             beaconSenderThread.Start();
-
-            var success = context.WaitForInit();
-            if (!success)
-            {
-                beaconSenderThread.Join();
-            }
-
-            return success;
         }
 
         public bool WaitForInitCompletion()
