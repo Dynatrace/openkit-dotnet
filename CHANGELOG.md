@@ -1,4 +1,4 @@
-# OpenKit Java Changelog
+# OpenKit .NET Changelog
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.0.1...HEAD)
 
@@ -34,6 +34,7 @@
   Where scheme must be as defined in RFC 3986
 - InetAddress validation for IPv6 mixed mode addresses
 - Major logging improvements (more and better messages) 
+- OpenKit initialization is now truly asynchronously
 
 ### Improved
 - Enhanced BeaconCache documentation
