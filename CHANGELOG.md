@@ -1,6 +1,7 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.0.1...HEAD)
+## 1.1.0 [Release date: 2018-07-20]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.0)
 
 ### Added
 - Extend OpenKit objects from IDisposable to be able to wrap them in `using` blocks.
@@ -41,6 +42,12 @@
 - Add WCF Autotracing sample (See samples/WcfAutoTracerSample.cs)
 - Various typos fixed
 - Increase dependent packages versions
+
+## 1.0.2 [Release date: 2018-07-20]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.0.2)
+
+### Changed
+- OpenKit initialization is now truly asynchronously
 
 ## 1.0.1 [Release date: 2018-01-29]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.0.1)
