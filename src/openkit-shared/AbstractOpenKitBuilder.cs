@@ -177,12 +177,36 @@ namespace Dynatrace.OpenKit
             return this;
         }
 
+        /// <summary>
+        /// Sets the data collection level.
+        /// </summary>
+        /// <remarks>
+        /// Depending on the chosen level the amount and granularity of data sent is controlled.
+        /// OFF(0) - no data collected
+        /// PERFORMANCE(1) - only performance related data is collected
+        /// USER_BEHAVIOR(2) - all available RUM data including performance related data is collected
+        /// default value is USER_BEHAVIOR(2)
+        /// </remarks>
+        /// <param name="dataCollectionLevel">data collection level</param>
+        /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithDataCollectionLevel(DataCollectionLevel dataCollectionLevel)
         {
             this.dataCollectionLevel = dataCollectionLevel;
             return this;
         }
 
+        /// <summary>
+        /// Sets the crash reporting level.
+        /// </summary>
+        /// <remarks>
+        /// Depending on the chosen level the amount and granularity of data sent is controlled.
+        /// OFF(0) - no crashes are collected
+        /// OPT_OUT_CRASHES(1) - no crashes are collected, currently the same as OFF
+        /// OPT_IN_CRASHES(2) - all crash relevant data is collected
+        /// default value is OPT_IN_CRASHES(2)
+        /// </remarks>
+        /// <param name="crashReportingLevel">crash reporting level</param>
+        /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithCrashReportingLevel(CrashReportingLevel crashReportingLevel)
         {
             this.crashReportingLevel = crashReportingLevel;
