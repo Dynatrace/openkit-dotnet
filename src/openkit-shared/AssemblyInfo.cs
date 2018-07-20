@@ -57,5 +57,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("openkit-dotnetfull-4.5.Tests")]
 [assembly: InternalsVisibleTo("openkit-dotnetfull-4.6.Tests")]
 [assembly: InternalsVisibleTo("openkit-dotnetfull-4.7.Tests")]
+[assembly: InternalsVisibleTo("openkit-dotnetstandard-2.0.Tests")]
 // Expose internal classes to NSubstitute
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

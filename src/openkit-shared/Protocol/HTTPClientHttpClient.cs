@@ -24,11 +24,24 @@ namespace Dynatrace.OpenKit.Protocol
 
     public class HTTPClientHttpClient : HTTPClient
     {
+        private static bool RemoteCertificateValidationCallbackInitialized = false;
         private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
 
         public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
+#if NETSTANDARD2_0
+            // for .NET standard the certificate validation callback needs to be set globally
+            // the other methods do not compile or throw NotImplementedException
+            if (!RemoteCertificateValidationCallbackInitialized)
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SSLTrustManager?.ServerCertificateValidationCallback;
+                RemoteCertificateValidationCallbackInitialized = true;
+            }
+            remoteCertificateValidationCallback = null;
+#else
+            // for all other .NET variants we can set it per request
             remoteCertificateValidationCallback = configuration.SSLTrustManager?.ServerCertificateValidationCallback;
+#endif
         }
 
         protected override HTTPResponse GetRequest(string url, string clientIPAddress)
@@ -117,4 +130,4 @@ namespace Dynatrace.OpenKit.Protocol
     }
 
 #endif
-}
+        }
