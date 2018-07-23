@@ -25,9 +25,11 @@ namespace Dynatrace.OpenKit.Protocol
     public class HTTPClientHttpClient : HTTPClient
     {
 #if !WINDOWS_UWP
+#if NETSTANDARD2_0
         private static bool RemoteCertificateValidationCallbackInitialized = false;
+#endif // #if NETSTANDARD2_0
         private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
-#endif
+#endif // #if !WINDOWS_UWP
 
         public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
