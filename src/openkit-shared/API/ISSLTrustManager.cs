@@ -23,6 +23,8 @@ namespace Dynatrace.OpenKit.API
     /// </summary>
     public interface ISSLTrustManager
     {
+#if !WINDOWS_UWP
         RemoteCertificateValidationCallback ServerCertificateValidationCallback { get; }
+#endif
     }
 }

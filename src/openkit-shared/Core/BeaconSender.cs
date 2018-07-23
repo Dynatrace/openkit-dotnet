@@ -35,7 +35,11 @@ namespace Dynatrace.OpenKit.Core
         private readonly ILogger logger;
 
         // beacon sender thread
+#if WINDOWS_UWP
+        private System.Threading.Tasks.Task beaconSenderThread;
+#else
         private Thread beaconSenderThread;
+#endif
         // sending state context
         private readonly IBeaconSendingContext context;
 
@@ -60,19 +64,21 @@ namespace Dynatrace.OpenKit.Core
             }
 
             // create sending thread
-            beaconSenderThread = new Thread(new ThreadStart(() =>
-            {
-                while (!context.IsInTerminalState)
-                {
-                    context.ExecuteCurrentState();
-                }
-            }))
-            {
-                IsBackground = true,
-                Name = this.GetType().Name
-            };
+#if WINDOWS_UWP
+            beaconSenderThread = System.Threading.Tasks.Task.Factory.StartNew(SenderThread);
+#else
+            beaconSenderThread = new Thread(new ThreadStart(SenderThread));
+            beaconSenderThread.IsBackground = true;
+            beaconSenderThread.Name = this.GetType().Name;
             // start thread
             beaconSenderThread.Start();
+#endif
+        }
+
+        private void SenderThread() {
+            while (!context.IsInTerminalState) {
+                context.ExecuteCurrentState();
+            }
         }
 
         public bool WaitForInitCompletion()
@@ -95,11 +101,15 @@ namespace Dynatrace.OpenKit.Core
 
             if (beaconSenderThread != null)
             {
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP)
                 beaconSenderThread.Interrupt();                     // not available in .NET Core 1.0 & .NET Core 1.1
                                                                     // might cause up to 1s delay at shutdown
 #endif
+#if WINDOWS_UWP
+                beaconSenderThread.Wait(SHUTDOWN_TIMEOUT);
+#else
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);
+#endif
                 if (logger.IsDebugEnabled)
                 {
                     logger.Debug(GetType().Name + " thread stopped");

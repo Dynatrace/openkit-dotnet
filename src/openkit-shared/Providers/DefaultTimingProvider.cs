@@ -44,7 +44,11 @@ namespace Dynatrace.OpenKit.Providers
 
         public virtual void Sleep(int milliseconds)
         {
+#if WINDOWS_UWP
+            System.Threading.Tasks.Task.Delay(milliseconds).Wait();
+#else
             Thread.Sleep(milliseconds);
+#endif
         }
 
         public void Initialze(long clusterTimeOffset, bool isTimeSyncSupported)
