@@ -324,8 +324,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// start the session
         /// </summary>
-        /// <param name="session"></param>
-        public void StartSession(Session session)
+        public void StartSession()
         {
             if (CapturingDisabled)
             {

@@ -22,8 +22,18 @@ namespace Dynatrace.OpenKit.Protocol
 #if (!NET40 && !NET35)
 
     public class HTTPClientHttpClient : HTTPClient
+<<<<<<< HEAD
     {
         private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
+=======
+    {
+#if !WINDOWS_UWP
+#if NETSTANDARD2_0
+        private static bool RemoteCertificateValidationCallbackInitialized = false;
+#endif // #if NETSTANDARD2_0
+        private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
+#endif // #if !WINDOWS_UWP
+>>>>>>> 36bf4dc... Adjust StartBeacon method
 
         public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
