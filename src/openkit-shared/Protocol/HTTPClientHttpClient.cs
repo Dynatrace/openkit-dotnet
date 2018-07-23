@@ -25,12 +25,23 @@ namespace Dynatrace.OpenKit.Protocol
     public class HTTPClientHttpClient : HTTPClient
     {
 #if !WINDOWS_UWP
+        private static bool RemoteCertificateValidationCallbackInitialized = false;
         private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
 #endif
 
         public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
-#if !WINDOWS_UWP
+#if NETSTANDARD2_0
+            // for .NET standard the certificate validation callback needs to be set globally
+            // the other methods do not compile or throw NotImplementedException
+            if (!RemoteCertificateValidationCallbackInitialized)
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SSLTrustManager?.ServerCertificateValidationCallback;
+                RemoteCertificateValidationCallbackInitialized = true;
+            }
+            remoteCertificateValidationCallback = null;
+#elif !WINDOWS_UWP
+            // for all other .NET variants except UWP we can set it per request
             remoteCertificateValidationCallback = configuration.SSLTrustManager?.ServerCertificateValidationCallback;
 #endif
         }

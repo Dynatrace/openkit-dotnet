@@ -56,7 +56,7 @@ namespace Dynatrace.OpenKit.Core
 
         public bool IsInitialized => context.IsInitialized;
 
-        public bool Initialize()
+        public void Initialize()
         {
             if(logger.IsDebugEnabled)
             {
@@ -65,28 +65,17 @@ namespace Dynatrace.OpenKit.Core
 
             // create sending thread
 #if WINDOWS_UWP
-            beaconSenderThread = System.Threading.Tasks.Task.Factory.StartNew(Loop);
+            beaconSenderThread = System.Threading.Tasks.Task.Factory.StartNew(SenderThread);
 #else
-            beaconSenderThread = new Thread(new ThreadStart(Loop));
+            beaconSenderThread = new Thread(new ThreadStart(SenderThread));
             beaconSenderThread.IsBackground = true;
+            beaconSenderThread.Name = this.GetType().Name;
             // start thread
             beaconSenderThread.Start();
 #endif
-
-            var success = context.WaitForInit();
-            if (!success)
-            {
-#if WINDOWS_UWP
-                beaconSenderThread.Wait();
-#else
-                beaconSenderThread.Join();
-#endif
-            }
-
-            return success;
         }
 
-        private void Loop() {
+        private void SenderThread() {
             while (!context.IsInTerminalState) {
                 context.ExecuteCurrentState();
             }
