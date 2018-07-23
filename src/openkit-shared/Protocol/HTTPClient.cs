@@ -203,8 +203,11 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         throw exception;
                     }
-
+#if WINDOWS_UWP
+                    System.Threading.Tasks.Task.Delay(RETRY_SLEEP_TIME).Wait();
+#else
                     Thread.Sleep(RETRY_SLEEP_TIME);
+#endif
                 }
             }
         }

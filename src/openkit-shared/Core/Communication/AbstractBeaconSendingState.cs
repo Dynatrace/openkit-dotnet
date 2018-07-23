@@ -44,7 +44,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <param name="context"></param>
         public void Execute(IBeaconSendingContext context)
         {
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP)
             try
             {
 #endif
@@ -56,7 +56,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                     // request shutdown
                     context.RequestShutdown();
                 }
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP)
         }
             catch (System.Threading.ThreadInterruptedException)
             {
