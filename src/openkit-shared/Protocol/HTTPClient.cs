@@ -23,9 +23,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading;
-#if WINDOWS_UWP
-using System.Threading.Tasks;
-#endif
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -207,7 +204,7 @@ namespace Dynatrace.OpenKit.Protocol
                         throw exception;
                     }
 #if WINDOWS_UWP
-                    Task.Delay(RETRY_SLEEP_TIME).Wait();
+                    System.Threading.Tasks.Task.Delay(RETRY_SLEEP_TIME).Wait();
 #else
                     Thread.Sleep(RETRY_SLEEP_TIME);
 #endif

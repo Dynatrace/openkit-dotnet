@@ -19,9 +19,6 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using System;
 using System.Threading;
-#if WINDOWS_UWP
-using System.Threading.Tasks;
-#endif
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -37,7 +34,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         private readonly IBeaconCacheEvictionStrategy[] strategies;
 
 #if WINDOWS_UWP
-        private readonly Task evictionThread;
+        private readonly System.Threading.Tasks.Task evictionThread;
 #else
         private readonly Thread evictionThread;
 #endif
@@ -78,7 +75,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             this.beaconCache = beaconCache;
             this.strategies = strategies;
 #if WINDOWS_UWP
-            evictionThread = new Task(RunEvictionThread);
+            evictionThread = new System.Threading.Tasks.Task(RunEvictionThread);
 #else
             evictionThread = new Thread(RunEvictionThread)
             {

@@ -19,9 +19,6 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.API;
 using System.Threading;
-#if WINDOWS_UWP
-using System.Threading.Tasks;
-#endif
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -39,7 +36,7 @@ namespace Dynatrace.OpenKit.Core
 
         // beacon sender thread
 #if WINDOWS_UWP
-        private Task beaconSenderThread;
+        private System.Threading.Tasks.Task beaconSenderThread;
 #else
         private Thread beaconSenderThread;
 #endif
@@ -68,7 +65,7 @@ namespace Dynatrace.OpenKit.Core
 
             // create sending thread
 #if WINDOWS_UWP
-            beaconSenderThread = Task.Factory.StartNew(Loop);
+            beaconSenderThread = System.Threading.Tasks.Task.Factory.StartNew(Loop);
 #else
             beaconSenderThread = new Thread(new ThreadStart(Loop));
             beaconSenderThread.IsBackground = true;

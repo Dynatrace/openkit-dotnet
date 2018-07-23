@@ -16,9 +16,6 @@
 
 using System;
 using System.Threading;
-#if WINDOWS_UWP
-using System.Threading.Tasks;
-#endif
 
 namespace Dynatrace.OpenKit.Providers
 {
@@ -48,7 +45,7 @@ namespace Dynatrace.OpenKit.Providers
         public virtual void Sleep(int milliseconds)
         {
 #if WINDOWS_UWP
-            Task.Delay(milliseconds).Wait();
+            System.Threading.Tasks.Task.Delay(milliseconds).Wait();
 #else
             Thread.Sleep(milliseconds);
 #endif
