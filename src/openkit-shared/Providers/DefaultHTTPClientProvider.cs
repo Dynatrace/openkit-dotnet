@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Providers
         public IHTTPClient CreateClient(HTTPClientConfiguration configuration)
         {
 #if NET40 || NET35
-            return new HTTPClientWebClient(logger, configuration); // HttpClient is not availalbe in .NET 4.0
+            return new HTTPClientWebClient(logger, configuration); // HttpClient is not availalbe in .NET 3.5 and 4.0
 #else
             return new HTTPClientHttpClient(logger, configuration);
 #endif

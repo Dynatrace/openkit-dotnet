@@ -75,6 +75,18 @@ namespace Dynatrace.OpenKit
         }
 
         [Test]
+        public void CannotSetNullTrustManagerForAppMon()
+        {
+            // when
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
+                .WithTrustManager(null)
+                .BuildConfiguration();
+
+            // then
+            Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
+        }
+
+        [Test]
         public void CanOverrideTrustManagerForDynatrace()
         {
             // given 
@@ -87,6 +99,18 @@ namespace Dynatrace.OpenKit
 
             // then
             Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.SameAs(trustManager));
+        }
+
+        [Test]
+        public void CannotSetNullTrustManagerForDynatrace()
+        {
+            // when
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
+                .WithTrustManager(null)
+                .BuildConfiguration();
+
+            // then
+            Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
         }
 
         [Test]
