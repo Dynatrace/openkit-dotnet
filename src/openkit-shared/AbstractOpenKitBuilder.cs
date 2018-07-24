@@ -86,11 +86,17 @@ namespace Dynatrace.OpenKit
         /// <summary>
         /// Sets the trust manager. Overrides the default trust manager which is <code>SSLStrictTrustManager</code>
         /// </summary>
+        /// <remarks>
+        /// The value is only set, if it is not <code>null</code>.
+        /// </remarks>
         /// <param name="trustManager">trust manager implementation</param>
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithTrustManager(ISSLTrustManager trustManager)
         {
-            this.trustManager = trustManager;
+            if (trustManager != null)
+            {
+                this.trustManager = trustManager;
+            }
             return this;
         }
 
