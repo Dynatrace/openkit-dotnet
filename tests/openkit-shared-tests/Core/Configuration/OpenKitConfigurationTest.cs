@@ -150,6 +150,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(crashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_IN_CRASHES));
         }
 
+        [Test]
+        public void ADefaultConstructedConfigurationUsesStrictTrustManager()
+        {
+            var target = CreateDefaultConfig();
+
+            //when retrieving SSL Trust manager
+            var sslTrustManager = target.HTTPClientConfig.SSLTrustManager;
+
+            // then
+            Assert.That(sslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
+        }
+
 
         private static OpenKitConfiguration CreateDefaultConfig()
         {

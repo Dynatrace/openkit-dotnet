@@ -324,8 +324,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// start the session
         /// </summary>
-        /// <param name="session"></param>
-        public void StartSession(Session session)
+        public void StartSession()
         {
             if (CapturingDisabled)
             {
@@ -338,9 +337,9 @@ namespace Dynatrace.OpenKit.Protocol
 
             AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
             AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(session.EndTime));
+            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, 0L);
 
-            AddEventData(session.EndTime, eventBuilder);
+            AddEventData(sessionStartTime, eventBuilder);
         }
 
         /// <summary>
