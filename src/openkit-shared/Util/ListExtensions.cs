@@ -22,6 +22,9 @@ namespace Dynatrace.OpenKit.Util
 {
 #if NETPCL4_5
 
+    /// <summary>
+    /// Utility class providing some extension methods which are not available in certain .NET flavors.
+    /// </summary>
     public static class ListExtensions
     {
         public static ReadOnlyCollection<T> AsReadOnly<T>(this List<T> source)
