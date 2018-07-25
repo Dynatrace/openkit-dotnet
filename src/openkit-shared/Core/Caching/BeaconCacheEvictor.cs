@@ -92,7 +92,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         public bool IsAlive =>
 #if WINDOWS_UWP || NETPCL4_5
-            !evictionThread.IsCompleted;
+            !evictionThread.IsCompleted && evictionThread.Status != System.Threading.Tasks.TaskStatus.Created;
 #else
             evictionThread.IsAlive;
 #endif
