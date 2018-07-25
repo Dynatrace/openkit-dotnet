@@ -20,6 +20,8 @@ using System.Collections.ObjectModel;
 
 namespace Dynatrace.OpenKit.Util
 {
+#if NETPCL4_5
+
     public static class ListExtensions
     {
         public static ReadOnlyCollection<T> AsReadOnly<T>(this List<T> source)
@@ -35,4 +37,6 @@ namespace Dynatrace.OpenKit.Util
             }
         }
     }
+
+#endif
 }
