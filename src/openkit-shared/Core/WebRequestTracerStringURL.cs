@@ -28,8 +28,7 @@ namespace Dynatrace.OpenKit.Core
     public class WebRequestTracerStringURL : WebRequestTracerBase
     {
 
-        private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", 
-                                                                          RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+",  RegexOptions.IgnoreCase);
 
         // *** constructors ***
 

@@ -15,8 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Core.Configuration;
-using System;
-using System.Linq;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {

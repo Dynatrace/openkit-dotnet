@@ -149,7 +149,7 @@ namespace Dynatrace.OpenKit.Protocol
 
                         if (logger.IsDebugEnabled)
                         {
-                            logger.Debug(GetType().Name + " Beacon Payload: " + Encoding.UTF8.GetString(data));
+                            logger.Debug(GetType().Name + " Beacon Payload: " + Encoding.UTF8.GetString(data, 0, data.Length));
                         }
                     }
 
@@ -203,7 +203,7 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         throw exception;
                     }
-#if WINDOWS_UWP
+#if WINDOWS_UWP || NETPCL4_5
                     System.Threading.Tasks.Task.Delay(RETRY_SLEEP_TIME).Wait();
 #else
                     Thread.Sleep(RETRY_SLEEP_TIME);

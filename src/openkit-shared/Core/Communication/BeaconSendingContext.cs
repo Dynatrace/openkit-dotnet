@@ -18,6 +18,7 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Providers
         /// where all bits except for the most significant bit are set to '1'.
         /// </remarks>
         public int ThreadID =>
-#if WINDOWS_UWP
+#if WINDOWS_UWP || NETPCL4_5
             System.Environment.CurrentManagedThreadId & 0x7fffffff;
 #else
             Thread.CurrentThread.ManagedThreadId & 0x7fffffff;

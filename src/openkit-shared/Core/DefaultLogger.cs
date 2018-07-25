@@ -30,52 +30,6 @@ namespace Dynatrace.OpenKit.Core
             this.verbose = verbose;
         }
 
-        private static string GetUTCTime()
-        {
-            return DateTime.UtcNow.ToString(DATEFORMAT);
-        }
-
-        public void Error(string message)
-        {
-#if !WINDOWS_UWP
-            Console.WriteLine(GetUTCTime() + " [ERROR] " + message);
-#endif
-        }
-
-        public void Error(string message, Exception exception)
-        {
-#if !WINDOWS_UWP
-            Console.WriteLine(GetUTCTime() + " [ERROR] " + message + Environment.NewLine + exception.ToString());
-#endif
-        }
-
-        public void Warn(string message)
-        {
-#if !WINDOWS_UWP
-            Console.WriteLine(GetUTCTime() + " [WARN ] " + message);
-#endif
-        }
-
-        public void Info(string message)
-        {
-            if (IsInfoEnabled)
-            {
-#if !WINDOWS_UWP
-                Console.WriteLine(GetUTCTime() + " [INFO ] " + message);
-#endif
-            }
-        }
-
-        public void Debug(string message)
-        {
-            if (IsDebugEnabled)
-            {
-#if !WINDOWS_UWP
-                Console.WriteLine(GetUTCTime() + " [DEBUG] " + message);
-#endif
-            }
-        }
-
         public bool IsErrorEnabled => true;
 
         public bool IsWarnEnabled => true;
@@ -83,5 +37,47 @@ namespace Dynatrace.OpenKit.Core
         public bool IsInfoEnabled => verbose;
 
         public bool IsDebugEnabled => verbose;
+
+        private static string UTCTime => DateTime.UtcNow.ToString(DATEFORMAT);
+
+        public void Error(string message)
+        {
+            WriteLine(UTCTime + " [ERROR] " + message);
+        }
+
+        public void Error(string message, Exception exception)
+        {
+            WriteLine(UTCTime + " [ERROR] " + message + Environment.NewLine + exception.ToString());
+        }
+
+        public void Warn(string message)
+        {
+            WriteLine(UTCTime + " [WARN ] " + message);
+        }
+
+        public void Info(string message)
+        {
+            if (IsInfoEnabled)
+            {
+                WriteLine(UTCTime + " [INFO ] " + message);
+            }
+        }
+
+        public void Debug(string message)
+        {
+            if (IsDebugEnabled)
+            {
+                WriteLine(UTCTime + " [DEBUG] " + message);
+            }
+        }
+
+        private static void WriteLine(string text)
+        {
+#if !(WINDOWS_UWP || NETPCL4_5)
+            Console.WriteLine(text);
+#endif
+        }
+
+
     }
 }

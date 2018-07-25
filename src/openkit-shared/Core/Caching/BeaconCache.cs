@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Threading;
