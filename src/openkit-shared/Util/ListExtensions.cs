@@ -14,15 +14,32 @@
 // limitations under the License.
 //
 
-namespace Dynatrace.OpenKit.API
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
+namespace Dynatrace.OpenKit.Util
 {
+#if NETPCL4_5
+
     /// <summary>
-    /// Interface offering a method to check SSL certificates.
+    /// Utility class providing some extension methods which are not available in certain .NET flavors.
     /// </summary>
-    public interface ISSLTrustManager
+    public static class ListExtensions
     {
-#if !(WINDOWS_UWP || NETPCL4_5)
-        System.Net.Security.RemoteCertificateValidationCallback ServerCertificateValidationCallback { get; }
-#endif
+        public static ReadOnlyCollection<T> AsReadOnly<T>(this List<T> source)
+        {
+            return new ReadOnlyCollection<T>(source);
+        }
+
+        public static void ForEach<T>(this List<T> source, Action<T> action)
+        {
+            foreach (T element in source)
+            {
+                action(element);
+            }
+        }
     }
+
+#endif
 }

@@ -22,36 +22,22 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public static readonly OpenKitType APPMON = new OpenKitType("dynaTraceMonitor", 1, "APPMON");         // AppMon: default monitor URL name contains "dynaTraceMonitor" and default Server ID is 1
         public static readonly OpenKitType DYNATRACE = new OpenKitType("mbeacon", -1, "DYNATRACE");              // Dynatrace: default monitor URL name contains "mbeacon" and default Server ID is -1
 
-        private readonly string defaultMonitorName;
-        private readonly int defaultServerID;
-        private readonly string typeName;
-
         OpenKitType(string defaultMonitorName, int defaultServerID, string typeName)
         {
-            this.defaultMonitorName = defaultMonitorName;
-            this.defaultServerID = defaultServerID;
-            this.typeName = typeName;
+            DefaultMonitorName = defaultMonitorName;
+            DefaultServerID = defaultServerID;
+            TypeName = typeName;
         }
 
-        public string DefaultMonitorName
-        {
-            get
-            {
-                return defaultMonitorName;
-            }
-        }
+        public string DefaultMonitorName { get; }
 
-        public int DefaultServerID
-        {
-            get
-            {
-                return defaultServerID;
-            }
-        }
+        public int DefaultServerID { get; }
+
+        public string TypeName { get; }
 
         public override string ToString()
         {
-            return typeName;
+            return TypeName;
         }
 
     }
