@@ -25,14 +25,35 @@ namespace Dynatrace.OpenKit.Protocol
     /// </summary>
     public abstract class Response
     {
-        public Response(int responseCode, Dictionary<string, List<string>> headers)
+        /// <summary>
+        /// First error code indicating an HTTP error and therefore an erroneous response.
+        /// </summary>
+        private const int HTTP_BAD_REQUEST = 400;
+
+        /// <summary>
+        /// Create the base response.
+        /// </summary>
+        /// <param name="responseCode">HTTP response code</param>
+        /// <param name="headers">HTTP response headers</param>
+        protected Response(int responseCode, Dictionary<string, List<string>> headers)
         {
             ResponseCode = responseCode;
             Headers = headers;
         }
-        
+
+        /// <summary>
+        /// Gives a boolean indicating whether this response is erroneous or not.
+        /// </summary>
+        public bool IsErroneousResponse => ResponseCode >= HTTP_BAD_REQUEST;
+
+        /// <summary>
+        /// Get the HTTP response code.
+        /// </summary>
         public int ResponseCode { get; }
 
+        /// <summary>
+        /// Get the HTTP response headers.
+        /// </summary>
         public Dictionary<string, List<string>> Headers { get; }
 
     }

@@ -384,6 +384,27 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void IsErroneousResponseGivesTrueForErrorCodeEqualTo400()
+        {
+            // when, then
+            Assert.That(new StatusResponse(string.Empty, 400, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesTrueForErrorCodeGreaterThan400()
+        {
+            // when, then
+            Assert.That(new StatusResponse(string.Empty, 401, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesFalseForErrorCodeLessThan400()
+        {
+            // when, then
+            Assert.That(new StatusResponse(string.Empty, 399, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.False);
+        }
+
+        [Test]
         public void ResponseCodeIsSet()
         {
             // given
