@@ -587,7 +587,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void SendBeaconRequestForwardsClientURL()
+        public void SendBeaconRequestForwardsClientIP()
         {
             // given
             HTTPClient target = spyClient;
