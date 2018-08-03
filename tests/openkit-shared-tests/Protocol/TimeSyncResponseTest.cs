@@ -139,6 +139,28 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void IsErroneousResponseGivesTrueForErrorCodeEqualTo400()
+        {
+            // when, then
+            Assert.That(new TimeSyncResponse(string.Empty, 400, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesTrueForErrorCodeGreaterThan400()
+        {
+            // when, then
+            Assert.That(new TimeSyncResponse(string.Empty, 401, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesFalseForErrorCodeLessThan400()
+        {
+            // when, then
+            Assert.That(new TimeSyncResponse(string.Empty, 399, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.False);
+        }
+
+
+        [Test]
         public void ResponseCodeIsSet()
         {
             // given

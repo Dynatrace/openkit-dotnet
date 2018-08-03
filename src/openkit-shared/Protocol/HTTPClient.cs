@@ -59,19 +59,22 @@ namespace Dynatrace.OpenKit.Protocol
             public Dictionary<string, List<string>> Headers { get; set; }
         }
 
+        private static readonly StatusResponse ErrorStatusResponse = new StatusResponse(string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+        private static readonly TimeSyncResponse ErrorTimeSyncResponse = new TimeSyncResponse(string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+
         // request type constants
-        private const string REQUEST_TYPE_MOBILE = "type=m";
-        private const string REQUEST_TYPE_TIMESYNC = "type=mts";
+        internal const string REQUEST_TYPE_MOBILE = "type=m";
+        internal const string REQUEST_TYPE_TIMESYNC = "type=mts";
 
         // query parameter constants
-        private const string QUERY_KEY_SERVER_ID = "srvid";
-        private const string QUERY_KEY_APPLICATION = "app";
-        private const string QUERY_KEY_VERSION = "va";
-        private const string QUERY_KEY_PLATFORM_TYPE = "pt";
-        private const string QUERY_KEY_AGENT_TECHNOLOGY_TYPE = "tt";
+        internal const string QUERY_KEY_SERVER_ID = "srvid";
+        internal const string QUERY_KEY_APPLICATION = "app";
+        internal const string QUERY_KEY_VERSION = "va";
+        internal const string QUERY_KEY_PLATFORM_TYPE = "pt";
+        internal const string QUERY_KEY_AGENT_TECHNOLOGY_TYPE = "tt";
 
         // connection constants
-        private const int MAX_SEND_RETRIES = 3;
+        internal const int MAX_SEND_RETRIES = 3;
         private const int RETRY_SLEEP_TIME = 200;       // retry sleep time in ms
 
         // URLs for requests
@@ -94,24 +97,24 @@ namespace Dynatrace.OpenKit.Protocol
         // sends a status check request and returns a status response
         public StatusResponse SendStatusRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.STATUS, monitorURL, null, null, "GET");
+            return (StatusResponse)SendRequest(RequestType.STATUS, monitorURL, null, null, "GET") ?? ErrorStatusResponse;
         }
 
         // sends a beacon send request and returns a status response
         public StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data)
         {
-            return (StatusResponse)SendRequest(RequestType.BEACON, monitorURL, clientIPAddress, data, "POST");
+            return (StatusResponse)SendRequest(RequestType.BEACON, monitorURL, clientIPAddress, data, "POST") ?? ErrorStatusResponse;
         }
 
         // sends a time sync request and returns a time sync response
         public TimeSyncResponse SendTimeSyncRequest()
         {
-            return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET");
+            return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET") ?? ErrorTimeSyncResponse;
         }
 
         public StatusResponse SendNewSessionRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.NEW_SESSION, monitorURL, null, null, "GET");
+            return (StatusResponse)SendRequest(RequestType.NEW_SESSION, monitorURL, null, null, "GET") ?? ErrorStatusResponse;
         }
 
         // generic request send with some verbose output and exception handling
@@ -129,7 +132,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 logger.Error(GetType().Name + " " + requestType.RequestName + " Request failed!", e);
             }
-            return null;
+            return UnknownErrorResponse(requestType);
         }
 
         // generic internal request send
@@ -164,7 +167,7 @@ namespace Dynatrace.OpenKit.Protocol
                     }
                     else
                     {
-                        return null;
+                        return UnknownErrorResponse(requestType);
                     }
 
                     if (logger.IsDebugEnabled)
@@ -173,27 +176,25 @@ namespace Dynatrace.OpenKit.Protocol
                         logger.Debug(GetType().Name + " HTTP Response Code: " + httpResponse.ResponseCode);
                     }
 
-                    if (httpResponse.Response == null || httpResponse.ResponseCode >= 400)
-                    {
-                        // an error occurred -> return null
-                        return null;
-                    }
-
                     // create typed response based on request type and response content
                     if (requestType.RequestName == RequestType.TIMESYNC.RequestName)
                     {
-                        return ParseTimeSyncResponse(httpResponse);
+                        return httpResponse.Response == null || httpResponse.ResponseCode >= 400
+                            ? new TimeSyncResponse(string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
+                            : ParseTimeSyncResponse(httpResponse);
                     }
                     else if ((requestType.RequestName == RequestType.BEACON.RequestName)
                         || (requestType.RequestName == RequestType.STATUS.RequestName)
                         || (requestType.RequestName == RequestType.NEW_SESSION.RequestName))
                     {
-                        return ParseStatusResponse(httpResponse);
+                        return httpResponse.Response == null || httpResponse.ResponseCode >= 400
+                            ? new StatusResponse(string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
+                            : ParseStatusResponse(httpResponse);
                     }
                     else
                     {
                         logger.Warn(GetType().Name + " Unknown request type " + requestType + " - ignoring response");
-                        return null;
+                        return UnknownErrorResponse(requestType);
                     }
                 }
                 catch (Exception exception)
@@ -223,13 +224,13 @@ namespace Dynatrace.OpenKit.Protocol
                 catch (Exception e)
                 {
                     logger.Error(GetType().Name + " Failed to parse StatusResponse", e);
-                    return null;
+                    return UnknownErrorResponse(RequestType.STATUS);
                 }
             }
 
             // invalid/unexpected response
             logger.Warn(GetType().Name + " The HTTPResponse \"" + httpResponse.Response + "\" is not a valid status response");
-            return null;
+            return UnknownErrorResponse(RequestType.STATUS);
         }
 
         private Response ParseTimeSyncResponse(HTTPResponse httpResponse)
@@ -243,13 +244,13 @@ namespace Dynatrace.OpenKit.Protocol
                 catch(Exception e)
                 {
                     logger.Error(GetType().Name + " Failed to parse TimeSyncResponse", e);
-                    return null;
+                    return UnknownErrorResponse(RequestType.TIMESYNC);
                 }
             }
 
             // invalid/unexpected response
             logger.Warn(GetType().Name + " The HTTPResponse \"" + httpResponse.Response + "\" is not a valid time sync response");
-            return null;
+            return UnknownErrorResponse(RequestType.TIMESYNC);
         }
 
         private static bool IsStatusResponse(HTTPResponse httpResponse)
@@ -302,7 +303,7 @@ namespace Dynatrace.OpenKit.Protocol
             urlBuilder.Append('&');
             urlBuilder.Append(key);
             urlBuilder.Append('=');
-            urlBuilder.Append(System.Uri.EscapeDataString(value));
+            urlBuilder.Append(Uri.EscapeDataString(value));
         }
 
         private byte[] CompressByteArray(byte[] raw)
@@ -315,6 +316,29 @@ namespace Dynatrace.OpenKit.Protocol
                     gzip.Write(raw, 0, raw.Length);
                 }
                 return memory.ToArray();
+            }
+        }
+
+        private static Response UnknownErrorResponse(RequestType requestType)
+        {
+            if (requestType == null)
+            {
+                return null;
+            }
+            else if ((requestType.RequestName == RequestType.STATUS.RequestName)
+                || (requestType.RequestName == RequestType.BEACON.RequestName)
+                || (requestType.RequestName == RequestType.NEW_SESSION.RequestName))
+            {
+                return ErrorStatusResponse;
+            }
+            else if ((requestType.RequestName == RequestType.TIMESYNC.RequestName))
+            {
+                return ErrorTimeSyncResponse;
+            }
+            else
+            {
+                // should not be reached
+                return null;
             }
         }
     }
