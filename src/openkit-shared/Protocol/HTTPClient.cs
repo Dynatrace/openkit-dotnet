@@ -59,9 +59,6 @@ namespace Dynatrace.OpenKit.Protocol
             public Dictionary<string, List<string>> Headers { get; set; }
         }
 
-        private static readonly StatusResponse ErrorStatusResponse = new StatusResponse(string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
-        private static readonly TimeSyncResponse ErrorTimeSyncResponse = new TimeSyncResponse(string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
-
         // request type constants
         internal const string REQUEST_TYPE_MOBILE = "type=m";
         internal const string REQUEST_TYPE_TIMESYNC = "type=mts";
@@ -97,24 +94,24 @@ namespace Dynatrace.OpenKit.Protocol
         // sends a status check request and returns a status response
         public StatusResponse SendStatusRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.STATUS, monitorURL, null, null, "GET") ?? ErrorStatusResponse;
+            return (StatusResponse)SendRequest(RequestType.STATUS, monitorURL, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // sends a beacon send request and returns a status response
         public StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data)
         {
-            return (StatusResponse)SendRequest(RequestType.BEACON, monitorURL, clientIPAddress, data, "POST") ?? ErrorStatusResponse;
+            return (StatusResponse)SendRequest(RequestType.BEACON, monitorURL, clientIPAddress, data, "POST") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // sends a time sync request and returns a time sync response
         public TimeSyncResponse SendTimeSyncRequest()
         {
-            return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET") ?? ErrorTimeSyncResponse;
+            return (TimeSyncResponse)SendRequest(RequestType.TIMESYNC, timeSyncURL, null, null, "GET") ?? new TimeSyncResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         public StatusResponse SendNewSessionRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.NEW_SESSION, monitorURL, null, null, "GET") ?? ErrorStatusResponse;
+            return (StatusResponse)SendRequest(RequestType.NEW_SESSION, monitorURL, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // generic request send with some verbose output and exception handling
@@ -180,7 +177,7 @@ namespace Dynatrace.OpenKit.Protocol
                     if (requestType.RequestName == RequestType.TIMESYNC.RequestName)
                     {
                         return httpResponse.Response == null || httpResponse.ResponseCode >= 400
-                            ? new TimeSyncResponse(string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
+                            ? new TimeSyncResponse(logger, string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
                             : ParseTimeSyncResponse(httpResponse);
                     }
                     else if ((requestType.RequestName == RequestType.BEACON.RequestName)
@@ -188,7 +185,7 @@ namespace Dynatrace.OpenKit.Protocol
                         || (requestType.RequestName == RequestType.NEW_SESSION.RequestName))
                     {
                         return httpResponse.Response == null || httpResponse.ResponseCode >= 400
-                            ? new StatusResponse(string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
+                            ? new StatusResponse(logger, string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
                             : ParseStatusResponse(httpResponse);
                     }
                     else
@@ -219,7 +216,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 try
                 {
-                    return new StatusResponse(httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
+                    return new StatusResponse(logger, httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
                 }
                 catch (Exception e)
                 {
@@ -239,7 +236,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 try
                 {
-                    return new TimeSyncResponse(httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
+                    return new TimeSyncResponse(logger, httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
                 }
                 catch(Exception e)
                 {
@@ -319,7 +316,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        private static Response UnknownErrorResponse(RequestType requestType)
+        private Response UnknownErrorResponse(RequestType requestType)
         {
             if (requestType == null)
             {
@@ -329,11 +326,11 @@ namespace Dynatrace.OpenKit.Protocol
                 || (requestType.RequestName == RequestType.BEACON.RequestName)
                 || (requestType.RequestName == RequestType.NEW_SESSION.RequestName))
             {
-                return ErrorStatusResponse;
+                return new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
             }
             else if ((requestType.RequestName == RequestType.TIMESYNC.RequestName))
             {
-                return ErrorTimeSyncResponse;
+                return new TimeSyncResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
             }
             else
             {

@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -24,12 +25,14 @@ namespace Dynatrace.OpenKit.Core.Communication
     [TestFixture]
     public class BeaconSendingInitStateTest
     {
+        private ILogger logger;
         private IHTTPClient httpClient;
         private IBeaconSendingContext context;
 
         [SetUp]
         public void Setup()
         {
+            logger = Substitute.For<ILogger>();
             httpClient = Substitute.For<IHTTPClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
@@ -72,7 +75,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
             context.CurrentTimestamp.Returns(123456L);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();
@@ -88,7 +91,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
             context.CurrentTimestamp.Returns(654321L);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();
@@ -103,7 +106,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();
@@ -209,7 +212,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void TransitionToTimeSyncIsPerformedOnSuccess()
         {
             // given
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();

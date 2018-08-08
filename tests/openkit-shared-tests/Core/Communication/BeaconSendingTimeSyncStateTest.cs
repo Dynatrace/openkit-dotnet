@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -228,9 +229,10 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private static TimeSyncResponse CreateValidTimeResponse(long receiveTime, long delta)
         {
+            var logger = Substitute.For<ILogger>();
             var responseFormatString = TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "={0}&" + TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "={1}";
 
-            return new TimeSyncResponse(string.Format(responseFormatString, receiveTime, receiveTime + delta), 200, new Dictionary<string, System.Collections.Generic.List<string>>());
+            return new TimeSyncResponse(logger, string.Format(responseFormatString, receiveTime, receiveTime + delta), 200, new Dictionary<string, System.Collections.Generic.List<string>>());
         }
     }
 }

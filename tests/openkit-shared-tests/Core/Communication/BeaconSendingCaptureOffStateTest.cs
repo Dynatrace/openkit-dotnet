@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -26,6 +27,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private long currentTime = 0;
         private long lastStatusCheckTime = -1;
 
+        private ILogger logger;
         private IHTTPClient httpClient;
         private IBeaconSendingContext context;
 
@@ -36,6 +38,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             currentTime = 0;
             lastStatusCheckTime = -1;
 
+            logger = Substitute.For<ILogger>();
             httpClient = Substitute.For<IHTTPClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
@@ -78,7 +81,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
             context.IsTimeSyncSupported.Returns(true);
             context.IsTimeSynced.Returns(true);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
             var target = new BeaconSendingCaptureOffState();
@@ -94,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsCaptureOn.Returns(true);
             context.IsTimeSyncSupported.Returns(true);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             var target = new BeaconSendingCaptureOffState();
 
@@ -140,7 +143,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.CurrentTimestamp.Returns(0);
             context.LastStatusCheckTime.Returns(0);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
             var target = new BeaconSendingCaptureOffState();
@@ -157,7 +160,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsShutdownRequested.Returns(true);
             context.CurrentTimestamp.Returns(0);
             context.LastStatusCheckTime.Returns(0);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
             var target = new BeaconSendingCaptureOffState();

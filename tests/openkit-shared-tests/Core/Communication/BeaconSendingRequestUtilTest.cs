@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -33,7 +34,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             httpClient = Substitute.For<IHTTPClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
-            statusResponse = new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>());
+            statusResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, 200, new Dictionary<string, List<string>>());
         }
 
         [Test]

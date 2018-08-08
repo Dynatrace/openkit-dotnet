@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
+using NSubstitute;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -22,25 +24,33 @@ namespace Dynatrace.OpenKit.Protocol
 {
     public class TimeSyncResponseTest
     {
+        private ILogger logger;
+
+        [SetUp]
+        public void SetUp()
+        {
+            logger = Substitute.For<ILogger>();
+        }
+
         [Test]
         public void PassingNullResponseStringDoesNotThrow()
         {
             // then
-            Assert.That(() => new TimeSyncResponse(null, 200, new Dictionary<string, List<string>>()), Throws.Nothing);
+            Assert.That(() => new TimeSyncResponse(logger, null, 200, new Dictionary<string, List<string>>()), Throws.Nothing);
         }
 
         [Test]
         public void PassingEmptyResponseStringDoesNotThrow()
         {
             // then
-            Assert.That(() => new TimeSyncResponse(string.Empty, 200, new Dictionary<string, List<string>>()), Throws.Nothing);
+            Assert.That(() => new TimeSyncResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()), Throws.Nothing);
         }
 
         [Test]
         public void TheDefaultRequestReceiveTimeIsMinusOne()
         {
             // given
-            var target = new TimeSyncResponse(string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = new TimeSyncResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
             // then
             Assert.That(target.RequestReceiveTime, Is.EqualTo(-1L));
@@ -50,7 +60,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void TheDefaultResponseSendTimeIsMinusOne()
         {
             // given
-            var target = new TimeSyncResponse(string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = new TimeSyncResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
             // then
             Assert.That(target.ResponseSendTime, Is.EqualTo(-1L));
@@ -64,7 +74,7 @@ namespace Dynatrace.OpenKit.Protocol
                 + "&" + TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME;
 
             // when, then
-            Assert.That(() => new TimeSyncResponse(responseString, 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, responseString, 200, new Dictionary<string, List<string>>()),
                 Throws.ArgumentException.With.Message.EqualTo("Invalid response; even number of tokens expected."));
         }
 
@@ -75,7 +85,7 @@ namespace Dynatrace.OpenKit.Protocol
             const string responseString = TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "&100";
 
             // when, then
-            Assert.That(() => new TimeSyncResponse(responseString, 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, responseString, 200, new Dictionary<string, List<string>>()),
                 Throws.ArgumentException.With.Message.EqualTo("Invalid response; even number of tokens expected."));
         }
 
@@ -83,7 +93,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void ResponseSendTimeIsParsed()
         {
             // given
-            var target = new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=100", 200, new Dictionary<string, List<string>>());
+            var target = new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=100", 200, new Dictionary<string, List<string>>());
 
             // then
             Assert.That(target.ResponseSendTime, Is.EqualTo(100L));
@@ -93,15 +103,15 @@ namespace Dynatrace.OpenKit.Protocol
         public void ParsingInvalidResponseSendTimeThrowsException()
         {
             // when wrong format is used, then
-            Assert.That(() => new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=", 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=", 200, new Dictionary<string, List<string>>()),
                 Throws.InstanceOf<FormatException>());
 
             // when wrong format is used, then
-            Assert.That(() => new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=a", 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=a", 200, new Dictionary<string, List<string>>()),
                 Throws.InstanceOf<FormatException>());
 
             // and when numeric overflow (2^63 in this case) occurs, then
-            Assert.That(() => new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=9223372036854775808", 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "=9223372036854775808", 200, new Dictionary<string, List<string>>()),
                 Throws.InstanceOf<OverflowException>());
         }
 
@@ -109,7 +119,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void RequestReceiveTimeIsParsed()
         {
             // given
-            var target = new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=42", 200, new Dictionary<string, List<string>>());
+            var target = new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=42", 200, new Dictionary<string, List<string>>());
 
             // then
             Assert.That(target.RequestReceiveTime, Is.EqualTo(42L));
@@ -119,15 +129,15 @@ namespace Dynatrace.OpenKit.Protocol
         public void ParsingInvalidRequestReceiveTimeThrowsException()
         {
             // when wrong format is used, then
-            Assert.That(() => new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=", 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=", 200, new Dictionary<string, List<string>>()),
                 Throws.InstanceOf<FormatException>());
 
             // when wrong format is used, then
-            Assert.That(() => new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=a", 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=a", 200, new Dictionary<string, List<string>>()),
                 Throws.InstanceOf<FormatException>());
 
             // and when numeric overflow (2^63 in this case) occurs, then
-            Assert.That(() => new TimeSyncResponse(TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=9223372036854775808", 200, new Dictionary<string, List<string>>()),
+            Assert.That(() => new TimeSyncResponse(logger, TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "=9223372036854775808", 200, new Dictionary<string, List<string>>()),
                 Throws.InstanceOf<OverflowException>());
         }
 
@@ -135,50 +145,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void ParsingUnknownKeyValueDoesNothing()
         {
             // then
-            Assert.That(() => new TimeSyncResponse("key=value", 200, new Dictionary<string, List<string>>()), Throws.Nothing);
-        }
-
-        [Test]
-        public void IsErroneousResponseGivesTrueForErrorCodeEqualTo400()
-        {
-            // when, then
-            Assert.That(new TimeSyncResponse(string.Empty, 400, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
-        }
-
-        [Test]
-        public void IsErroneousResponseGivesTrueForErrorCodeGreaterThan400()
-        {
-            // when, then
-            Assert.That(new TimeSyncResponse(string.Empty, 401, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
-        }
-
-        [Test]
-        public void IsErroneousResponseGivesFalseForErrorCodeLessThan400()
-        {
-            // when, then
-            Assert.That(new TimeSyncResponse(string.Empty, 399, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.False);
-        }
-
-
-        [Test]
-        public void ResponseCodeIsSet()
-        {
-            // given
-            Assert.That(new TimeSyncResponse("key=value", 418, new Dictionary<string, List<string>>()).ResponseCode, Is.EqualTo(418));
-        }
-
-        [Test]
-        public void HeadersAreSet()
-        {
-            // given
-            var headers = new Dictionary<string, List<string>>
-            {
-                { "X-Foo", new List<string> { "X-BAR" } },
-                { "X-YZ", new List<string>()},
-            };
-
-            // then
-            Assert.That(new StatusResponse("key=value", 418, headers).Headers, Is.SameAs(headers));
+            Assert.That(() => new TimeSyncResponse(logger, "key=value", 200, new Dictionary<string, List<string>>()), Throws.Nothing);
         }
     }
 }

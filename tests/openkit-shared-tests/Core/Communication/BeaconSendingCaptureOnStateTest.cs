@@ -34,6 +34,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private long currentTime = 0;
         private long lastTimeSyncTime = 1;
 
+        private ILogger logger;
         private IHTTPClient httpClient;
         private ITimingProvider timingProvider;
         private IBeaconSendingContext context;
@@ -66,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsCaptureOn.Returns(true);
 
             // beacon sender
-            var logger = Substitute.For<ILogger>();
+            logger = Substitute.For<ILogger>();
             beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
 
             // return true by default
@@ -138,7 +139,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var clientIp = "127.0.0.1";
             context.IsCaptureOn.Returns(false);
-            var statusResponse = new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>());
+            var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
             session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
@@ -177,9 +178,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionTwo = new SessionWrapper(CreateEmptySession("127.0.0.2"));
             newSessions.AddRange(new[] { sessionOne, sessionTwo });
 
-            httpClient.SendNewSessionRequest().Returns(new StatusResponse("mp=5", 200, new Dictionary<string, List<string>>()),
+            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, "mp=5", 200, new Dictionary<string, List<string>>()),
                                                        null,
-                                                       new StatusResponse("mp=3", 200, new Dictionary<string, List<string>>()));
+                                                       new StatusResponse(logger, "mp=3", 200, new Dictionary<string, List<string>>()));
 
             // when
             target.Execute(context);
@@ -206,7 +207,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionTwo = new SessionWrapper(CreateEmptySession("127.0.0.2"));
             newSessions.AddRange(new[] { sessionOne, sessionTwo });
 
-            httpClient.SendNewSessionRequest().Returns(new StatusResponse("mp=5", 200, new Dictionary<string, List<string>>()), null);
+            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, "mp=5", 200, new Dictionary<string, List<string>>()), null);
 
             // ensure that it's no longer possible to send session requests for both session wrapper
             while (sessionOne.CanSendNewSessionRequest)
@@ -237,7 +238,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given 
             var clientIp = "127.0.0.1";
-            var statusResponse = new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>());
+            var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
             finishedSessions.AddRange(new[] {
                 new SessionWrapper(CreateValidSession(clientIp)),
@@ -285,7 +286,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             finishedSessions.AddRange(new[] { sessionOne, sessionTwo });
 
             var statusResponses = new Queue<StatusResponse>();
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             //when calling execute
             target.Execute(context);
@@ -303,7 +304,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var lastSendTime = 1;
             var sendInterval = 1000;
-            var statusResponse = new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>());
+            var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
             context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
             context.SendInterval.Returns(sendInterval);
@@ -338,7 +339,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.SendInterval.Returns(sendInterval);
             context.CurrentTimestamp.Returns(lastSendTime + 1);
 
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
             session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
