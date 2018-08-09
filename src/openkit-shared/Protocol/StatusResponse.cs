@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using System;
 using System.Collections.Generic;
 
@@ -37,8 +38,8 @@ namespace Dynatrace.OpenKit.Protocol
         public const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
         public const string RESPONSE_KEY_MULTIPLICITY = "mp";
 
-        public StatusResponse(string response, int responseCode, Dictionary<string, List<string>> headers) :
-            base(responseCode, headers)
+        public StatusResponse(ILogger logger, string response, int responseCode, Dictionary<string, List<string>> headers) :
+            base(logger, responseCode, headers)
         {
             ParseResponse(response);
         }

@@ -14,8 +14,10 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Protocol.SSL;
+using NSubstitute;
 using NUnit.Framework;
 using System.Collections.Generic;
 
@@ -23,6 +25,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class OpenKitConfigurationTest
     {
+        private ILogger logger;
+
+        [SetUp]
+        public void SetUp()
+        {
+            logger = Substitute.For<ILogger>();
+        }
+
         [Test]
         public void ADefaultConstructedConfigurationEnablesCapturing()
         {
@@ -74,7 +84,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             target.EnableCapture();
 
             // when status response indicates erroneous response
-            target.UpdateSettings(new StatusResponse(string.Empty, 400, new Dictionary<string, List<string>>()));
+            target.UpdateSettings(new StatusResponse(logger, string.Empty, 400, new Dictionary<string, List<string>>()));
 
             // then
             Assert.That(target.IsCaptureOn, Is.False);
@@ -87,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
             target.EnableCapture();
 
-            var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "1", 200, new Dictionary<string, List<string>>());
+            var response = new StatusResponse(logger, StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "1", 200, new Dictionary<string, List<string>>());
 
             // when capturing is enabled in status response
             target.UpdateSettings(response);
@@ -103,7 +113,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
             target.EnableCapture();
 
-            var response = new StatusResponse(StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "0", 200, new Dictionary<string, List<string>>());
+            var response = new StatusResponse(logger, StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "0", 200, new Dictionary<string, List<string>>());
 
             // when capturing is enabled in status response
             target.UpdateSettings(response);

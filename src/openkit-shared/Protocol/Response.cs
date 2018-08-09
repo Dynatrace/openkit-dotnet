@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-
+using Dynatrace.OpenKit.API;
 using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Protocol
@@ -31,12 +31,28 @@ namespace Dynatrace.OpenKit.Protocol
         private const int HTTP_BAD_REQUEST = 400;
 
         /// <summary>
+        /// Key in the HTTP response headers for Retry-After
+        /// </summary>
+        internal const string ResponseKeyRetryAfter = "retry-after";
+
+        /// <summary>
+        /// Default "Retry-After" is 10 minutes.
+        /// </summary>
+        internal const long DefaultRetryAfterInMilliseconds = 10L * 60L * 1000L;
+
+        /// <summary>
+        /// Logger for logging messages.
+        /// </summary>
+        private readonly ILogger logger;
+
+        /// <summary>
         /// Create the base response.
         /// </summary>
         /// <param name="responseCode">HTTP response code</param>
         /// <param name="headers">HTTP response headers</param>
-        protected Response(int responseCode, Dictionary<string, List<string>> headers)
+        protected Response(ILogger logger, int responseCode, Dictionary<string, List<string>> headers)
         {
+            this.logger = logger;
             ResponseCode = responseCode;
             Headers = headers;
         }
@@ -55,6 +71,44 @@ namespace Dynatrace.OpenKit.Protocol
         /// Get the HTTP response headers.
         /// </summary>
         public Dictionary<string, List<string>> Headers { get; }
+
+        /// <summary>
+        /// Get Retry-After response header value in milliseconds.
+        /// </summary>
+        /// <remarks>
+        /// Retry-After response header can either be an HTTP date or a delay in seconds.
+        /// This function can only correctly parse the delay seconds.
+        /// </remarks>
+        /// <returns>Retry-After value in milliseconds.</returns>
+        public long GetRetryAfterInMilliseconds()
+        {
+            if (!Headers.TryGetValue(ResponseKeyRetryAfter, out List<string> values))
+            {
+                // the Retry-After response header is missing
+                logger.Warn($"{ResponseKeyRetryAfter} is not available - using default value ${DefaultRetryAfterInMilliseconds}");
+                return DefaultRetryAfterInMilliseconds;
+            }
+
+            if (values.Count != 1)
+            {
+                // the Retry-After response header has multiple values, but only one is expected
+                logger.Warn($"{ResponseKeyRetryAfter} has unexpected number of values - using default value {DefaultRetryAfterInMilliseconds}");
+                return DefaultRetryAfterInMilliseconds;
+            }
+
+            // according to RFC 7231 Section 7.1.3 (https://tools.ietf.org/html/rfc7231#section-7.1.3)
+            // Retry-After value can either be a delay seconds value, which is a non-negative decimal integer
+            // or it is an HTTP date.
+            // Our implementation assumes only delay seconds value here
+            if (!int.TryParse(values[0], out int delaySeconds))
+            {
+                logger.Error($"Failed to parse {ResponseKeyRetryAfter} value \"${values[0]}\" - using default value ${DefaultRetryAfterInMilliseconds}");
+                return DefaultRetryAfterInMilliseconds;
+            }
+
+            // convert delay seconds to milliseconds
+            return delaySeconds * 1000L;
+        }
 
     }
 }
