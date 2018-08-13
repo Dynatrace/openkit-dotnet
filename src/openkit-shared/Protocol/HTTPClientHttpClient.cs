@@ -35,7 +35,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             using (System.Net.Http.HttpClient httpClient = CreateHTTPClient(clientIPAddress))
             {
-                System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = httpClient.GetAsync(url);
+                var responseTask = httpClient.GetAsync(url);
                 responseTask.Wait();
 
                 return CreateHTTPResponse(responseTask.Result);
@@ -46,8 +46,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             using (System.Net.Http.HttpClient httpClient = CreateHTTPClient(clientIPAddress))
             {
-                System.Net.Http.ByteArrayContent content = CreatePostContent(gzippedPayload);
-                System.Threading.Tasks.Task<System.Net.Http.HttpResponseMessage> responseTask = responseTask = httpClient.PostAsync(url, content);
+                var content = CreatePostContent(gzippedPayload);
+                var responseTask = httpClient.PostAsync(url, content);
                 responseTask.Wait();
 
                 return CreateHTTPResponse(responseTask.Result);
@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Protocol
             if (gzippedPayload == null || gzippedPayload.Length == 0)
                 return new System.Net.Http.ByteArrayContent(new byte[] { });
 
-            System.Net.Http.ByteArrayContent content = new System.Net.Http.ByteArrayContent(gzippedPayload);
+            var content = new System.Net.Http.ByteArrayContent(gzippedPayload);
             content.Headers.Add("Content-Encoding", "gzip");
             content.Headers.Add("Content-Length", gzippedPayload.Length.ToString());
 
@@ -83,9 +83,9 @@ namespace Dynatrace.OpenKit.Protocol
         {
             System.Threading.Tasks.Task<string> httpResponseContentTask = result.Content.ReadAsStringAsync();
             httpResponseContentTask.Wait();
-            string response = httpResponseContentTask.Result;
-            System.Net.HttpStatusCode responseCode = result.StatusCode;
-            var headers = result.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToList());
+            var response = httpResponseContentTask.Result;
+            var responseCode = result.StatusCode;
+            var headers = result.Headers.ToDictionary(pair => pair.Key.ToLowerInvariant(), pair => pair.Value.ToList());
 
             return new HTTPResponse
             {

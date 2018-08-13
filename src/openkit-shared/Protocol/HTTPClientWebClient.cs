@@ -64,11 +64,11 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 response = reader.ReadToEnd();
             }
-            System.Net.HttpStatusCode responseCode = ((System.Net.HttpWebResponse)webResponse).StatusCode;
-            Dictionary<string, List<string>> headers = new Dictionary<string, List<string>>();
+            var responseCode = ((System.Net.HttpWebResponse)webResponse).StatusCode;
+            var headers = new Dictionary<string, List<string>>();
             foreach (var header in webResponse.Headers.AllKeys)
             {
-                headers.Add(header, new List<string>(webResponse.Headers.GetValues(header)));
+                headers.Add(header.ToLowerInvariant(), new List<string>(webResponse.Headers.GetValues(header)));
             }
 
             return new HTTPResponse
@@ -91,13 +91,13 @@ namespace Dynatrace.OpenKit.Protocol
 
             public System.Net.HttpWebResponse Get(string url)
             {
-                System.Net.HttpWebRequest webRequest = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
+                var webRequest = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
                 return (System.Net.HttpWebResponse)webRequest.GetResponse();
             }
 
             public System.Net.HttpWebResponse Post(string url, byte[] gzippedPayload)
             {
-                System.Net.HttpWebRequest request = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
+                var request = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
                 request.Method = "POST";
                 
                 // if there is compressed data, post it to the server
