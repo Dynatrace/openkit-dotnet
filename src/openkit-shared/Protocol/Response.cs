@@ -26,9 +26,19 @@ namespace Dynatrace.OpenKit.Protocol
     public abstract class Response
     {
         /// <summary>
+        /// Response code sent by HTTP server to indicate success.
+        /// </summary>
+        public const int HttpOk = 200;
+
+        /// <summary>
         /// First error code indicating an HTTP error and therefore an erroneous response.
         /// </summary>
-        private const int HTTP_BAD_REQUEST = 400;
+        public const int HttpBadRequest = 400;
+
+        /// <summary>
+        /// Too many requests sent by client (rate limiting) error code.
+        /// </summary>
+        public const int HttpTooManyRequests = 429;
 
         /// <summary>
         /// Key in the HTTP response headers for Retry-After
@@ -60,7 +70,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Gives a boolean indicating whether this response is erroneous or not.
         /// </summary>
-        public bool IsErroneousResponse => ResponseCode >= HTTP_BAD_REQUEST;
+        public bool IsErroneousResponse => ResponseCode >= HttpBadRequest;
 
         /// <summary>
         /// Get the HTTP response code.
