@@ -18,8 +18,18 @@ using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
+    /// <summary>
+    /// Utility class for sending requests to the server and retry several times
+    /// </summary>
     internal static class BeaconSendingRequestUtil
     {
+        /// <summary>
+        /// Send a status request to the server and try to get the status response.
+        /// </summary>
+        /// <param name="context">Used to retrieve the <see cref="IHTTPClient"/> and for delaying methods.</param>
+        /// <param name="numRetries">The number of retries (total number of tries = numRetries + 1)</param>
+        /// <param name="initialRetryDelayInMillis">The initial delay which is doubled between one unsuccessful attempt and the next retry.</param>
+        /// <returns> A status response or <code>null</code> if shutdown was requested or number of retries was reached.</returns>
         internal static StatusResponse SendStatusRequest(IBeaconSendingContext context, int numRetries, int initialRetryDelayInMillis)
         {
             StatusResponse statusResponse = null;
@@ -29,7 +39,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             while (true)
             {
                 statusResponse = context.GetHTTPClient().SendStatusRequest();
-                if (statusResponse != null || retry >= numRetries || context.IsShutdownRequested)
+                if (IsSuccessfulStatusResponse(statusResponse)
+                      || IsTooManyRequestsResponse(statusResponse) // is handled by the states
+                      || retry >= numRetries
+                      || context.IsShutdownRequested)
                 {
                     break;
                 }
@@ -41,6 +54,29 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             return statusResponse;
+        }
+
+        /// <summary>
+        /// Test if given <paramref name="statusResponse"/> is a successful response.
+        /// </summary>
+        /// <param name="statusResponse">The given status response to check whether it is successful or not.</param>
+        /// <returns><code>true</code> if status response is successful, <code>false</code> otherwise.</returns>
+        internal static bool IsSuccessfulStatusResponse(StatusResponse statusResponse)
+        {
+            return statusResponse != null && !statusResponse.IsErroneousResponse;
+        }
+
+        /// <summary>
+        /// Test if the given <paramref name="statusResponse"/> is a "too many requests" response.
+        /// </summary>
+        /// <remarks>
+        /// A "too many requests" response is an HTTP response with response code 429.
+        /// </remarks>
+        /// <param name="statusResponse">The given status response to check whether it is a "too many requests" response or not.</param>
+        /// <returns><code>true</code> if status response indicates too many requests, <code>false</code> otherwise.</returns>
+        internal static bool IsTooManyRequestsResponse(StatusResponse statusResponse)
+        {
+            return statusResponse != null && statusResponse.ResponseCode == Response.HttpTooManyRequests;
         }
     }
 }
