@@ -48,7 +48,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Default "Retry-After" is 10 minutes.
         /// </summary>
-        internal const long DefaultRetryAfterInMilliseconds = 10L * 60L * 1000L;
+        internal const int DefaultRetryAfterInMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
         /// Logger for logging messages.
@@ -90,7 +90,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// This function can only correctly parse the delay seconds.
         /// </remarks>
         /// <returns>Retry-After value in milliseconds.</returns>
-        public long GetRetryAfterInMilliseconds()
+        public int GetRetryAfterInMilliseconds()
         {
             if (!Headers.TryGetValue(ResponseKeyRetryAfter, out List<string> values))
             {
@@ -117,7 +117,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             // convert delay seconds to milliseconds
-            return delaySeconds * 1000L;
+            return delaySeconds * 1000;
         }
 
     }
