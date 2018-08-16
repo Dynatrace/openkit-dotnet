@@ -43,6 +43,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
 
+            // default return success
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
+
             // return true by default
             context.IsTimeSyncSupported.Returns(true);
 
@@ -72,6 +75,16 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             Assert.That(target.ShutdownState, Is.InstanceOf(typeof(BeaconSendingFlushSessionsState)));
+        }
+
+        [Test]
+        public void ToStringReturnsTheStateName()
+        {
+            // given
+            var target = new BeaconSendingCaptureOffState();
+
+            // then
+            Assert.That(target.ToString(), Is.EqualTo("CaptureOff"));
         }
 
         [Test]
@@ -168,6 +181,47 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             context.DidNotReceive().Sleep(Arg.Any<int>());
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOffStateWaitsForGivenTime()
+        {
+            //given
+            var target = new BeaconSendingCaptureOffState(12345);
+            context.IsTimeSyncSupported.Returns(true);
+            context.IsCaptureOn.Returns(true);
+
+            // when calling execute
+            target.Execute(context);
+
+            // then verify the custom amount of time was waited
+            context.Received(1).Sleep(12345);
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOffStateStaysInOffStateWhenServerRespondsWithTooManyRequests()
+        {
+            //given
+            var target = new BeaconSendingCaptureOffState(12345);
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "1234" } }
+            };
+            var tooManyRequestsResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
+            httpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
+            context.IsTimeSyncSupported.Returns(false);
+            context.IsCaptureOn.Returns(false);
+
+            AbstractBeaconSendingState capturedState = null;
+            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+            
+            // when calling execute
+            target.Execute(context);
+
+            // then verify next state
+            Assert.That(capturedState, Is.Not.Null);
+            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
+            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(1234 * 1000));
         }
     }
 }
