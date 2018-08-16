@@ -101,7 +101,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.HandleStatusResponse(statusResponse);
             }
             // if initial time sync failed before
-            if (BeaconSendingRequestUtil.IsTooManyRequestsResponse(statusResponse))
+            if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
             {
                 // received "too many requests" response
                 // in this case stay in capture off state and use the retry-after delay for sleeping
@@ -112,7 +112,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 // if initial time sync failed before, then retry initial time sync
                 context.NextState = new BeaconSendingTimeSyncState(true);
             }
-            else if (BeaconSendingRequestUtil.IsSuccessfulStatusResponse(statusResponse) && context.IsCaptureOn)
+            else if (BeaconSendingResponseUtil.IsSuccessfulStatusResponse(statusResponse) && context.IsCaptureOn)
             {
                 // capturing is re-enabled again, but only if we received a response from the server
                 context.NextState = new BeaconSendingCaptureOnState();
