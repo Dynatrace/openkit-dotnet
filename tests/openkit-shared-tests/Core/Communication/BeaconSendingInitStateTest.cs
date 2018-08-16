@@ -271,6 +271,6 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // verify sleep was performed accordingly
             context.Received(1).DisableCapture();
-}
+        }
     }
 }
