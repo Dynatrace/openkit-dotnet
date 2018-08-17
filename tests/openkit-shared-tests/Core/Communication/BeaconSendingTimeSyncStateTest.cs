@@ -50,6 +50,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             // last time sycn getter + setter
             context.LastTimeSyncTime = Arg.Do<long>(x => lastTimeSyncTime = x);
             context.LastTimeSyncTime = lastTimeSyncTime; // init with -1
+
+            // by default return erroneous responses
+            httpClient.SendTimeSyncRequest()
+                .Returns(new TimeSyncResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>()));
         }
 
         [Test]
@@ -83,6 +87,16 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void ToStringReturnsTheStateName()
+        {
+            // given
+            var target = new BeaconSendingTimeSyncState();
+
+            // then
+            Assert.That(target.ToString(), Is.EqualTo("TimeSync"));
+        }
+
+        [Test]
         public void TransitionToCaptureOnIsPerformedOnSuccess()
         {
             // given
@@ -113,7 +127,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void InitCompleteIsCalledForInitialRequest_OnSuccess()
+        public void InitCompleteIsCalledForInitialRequestOnSuccess()
         {
             // given
             httpClient.SendTimeSyncRequest().Returns(x => CreateValidTimeResponse(currentTime, 10)); // alwasys return valid response
@@ -127,10 +141,11 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void InitCompleteIsCalledForInitialRequest_OnFailure()
+        public void InitCompleteIsCalledForInitialRequestOnFailure()
         {
             // given
-            httpClient.SendTimeSyncRequest().Returns((TimeSyncResponse)null); // alwasys return invalid response
+            var erroneousResponse = new TimeSyncResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
+            httpClient.SendTimeSyncRequest().Returns(erroneousResponse); // alwasys return invalid response
 
             // when
             var target = new BeaconSendingTimeSyncState(true);
@@ -144,7 +159,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void InitCompleteIsNotCalledForNonInitialRequest()
         {
             // given
-            httpClient.SendTimeSyncRequest().Returns((TimeSyncResponse)null); // alwasys return invalid response
+            var erroneousResponse = new TimeSyncResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
+            httpClient.SendTimeSyncRequest().Returns(erroneousResponse); // alwasys return invalid response
 
             // when
             var target = new BeaconSendingTimeSyncState();
@@ -158,24 +174,25 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void TimeSyncRequetsAreRetried()
         {
             // given
+            var erroneousResponse = new TimeSyncResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             httpClient.SendTimeSyncRequest().Returns(
                     // request 1 fails 2 times
-                    x => null,
-                    x => null,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
                     x => CreateValidTimeResponse(currentTime, 10),
                     // request 2 fails 1 time
-                    x => null,
+                    x => erroneousResponse,
                     x => CreateValidTimeResponse(currentTime, 10),
                     // request 3 fails 4 times
-                    x => null,
-                    x => null,
-                    x => null,
-                    x => null,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
                     x => CreateValidTimeResponse(currentTime, 10),
                     // request 4 fails 0 times
                     x => CreateValidTimeResponse(currentTime, 10),
                     // request 5 fails 1 time
-                    x => null,
+                    x => erroneousResponse,
                     x => CreateValidTimeResponse(currentTime, 10)
                 );
 
@@ -190,16 +207,18 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void SleepTimeIsDoubledAndResetAfterSuccess()
         {
+            // given
+            var erroneousResponse = new TimeSyncResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             httpClient.SendTimeSyncRequest().Returns(
                     // request 1 fails 2 times
-                    x => null,
-                    x => null,
-                    x => null,
-                    x => null,
-                    x => null,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
+                    x => erroneousResponse,
                     x => CreateValidTimeResponse(currentTime, 10),
                     // request 2 fails 1 time
-                    x => null,
+                    x => erroneousResponse,
                     // other requets do not fail
                     x => CreateValidTimeResponse(currentTime, 10),
                     x => CreateValidTimeResponse(currentTime, 10),
@@ -225,6 +244,62 @@ namespace Dynatrace.OpenKit.Core.Communication
                 // sleeps for second request
                 context.Sleep(1000);  // start with 1 sec again
             });
+        }
+
+        [Test]
+        public void TimeSyncRequestsAreInterruptedAfterUnsuccessfulRetries()
+        {
+            // given
+            var target = new BeaconSendingTimeSyncState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            httpClient.Received(BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS + 1).SendTimeSyncRequest();
+        }
+
+        [Test]
+        public void TimeSyncRequestsAreInterruptedAfterUnsuccessfulRetriesWithNullResponse()
+        {
+            // given
+            httpClient.SendTimeSyncRequest().Returns((TimeSyncResponse)null);
+            var target = new BeaconSendingTimeSyncState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            httpClient.Received(BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS + 1).SendTimeSyncRequest();
+        }
+
+        [Test]
+        public void StateTransitionToCaptureOffIsMadeIfTooManyRequestsResponseIsReceived()
+        {
+            // given
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "456" } }
+            };
+            var response = new TimeSyncResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpTooManyRequests, responseHeaders);
+            httpClient.SendTimeSyncRequest().Returns(response);
+
+            context.IsTimeSyncSupported.Returns(true);
+            context.IsCaptureOn.Returns(true);
+
+            AbstractBeaconSendingState capturedState = null;
+            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+
+            var target = new BeaconSendingTimeSyncState(true);
+            
+            // when
+            target.Execute(context);
+
+            // then
+            context.ReceivedWithAnyArgs(1).NextState = null;
+            Assert.That(capturedState, Is.Not.Null);
+            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
+            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(456 * 1000));
         }
 
         private static TimeSyncResponse CreateValidTimeResponse(long receiveTime, long delta)
