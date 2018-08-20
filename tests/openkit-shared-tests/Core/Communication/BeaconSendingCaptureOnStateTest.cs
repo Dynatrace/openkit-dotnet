@@ -272,8 +272,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
             Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
 
-            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
+            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.True);
+            Assert.That(sessionTwo.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
         }
 
         [Test]

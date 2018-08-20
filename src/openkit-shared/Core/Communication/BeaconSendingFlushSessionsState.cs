@@ -60,7 +60,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                     var statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
                     if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
                     {
-                        tooManyRequestsReceived = false;
+                        tooManyRequestsReceived = true;
                     }
                 }
                 finishedSession.ClearCapturedData();
