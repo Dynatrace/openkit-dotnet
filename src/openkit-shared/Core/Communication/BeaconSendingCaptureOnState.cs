@@ -31,10 +31,6 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingCaptureOnState : AbstractBeaconSendingState
     {
-        /// <summary>
-        /// stores the last status response
-        /// </summary>
-        private StatusResponse statusResponse = null;
 
         public BeaconSendingCaptureOnState() : base(false) { }
 
@@ -53,22 +49,55 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.Sleep();
 
             // send new session request for all sessions that are new
-            SendNewSessionRequests(context);
-
-            statusResponse = null;
+            var newSessionsResponse = SendNewSessionRequests(context);
+            if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(newSessionsResponse))
+            {
+                // server is currently overloaded, temporarily switch to capture off
+                context.NextState = new BeaconSendingCaptureOffState(newSessionsResponse.GetRetryAfterInMilliseconds());
+                return;
+            }
 
             // send all finished sessions
-            SendFinishedSessions(context);
+            var finishedSessionsResponse = SendFinishedSessions(context);
+            if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(finishedSessionsResponse))
+            {
+                // server is currently overloaded, temporarily switch to capture off
+                context.NextState = new BeaconSendingCaptureOffState(finishedSessionsResponse.GetRetryAfterInMilliseconds());
+                return;
+            }
 
             // check if we need to send open sessions & do it if necessary
-            SendOpenSessions(context);
+            var openSessionsResponse = SendOpenSessions(context);
+            if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(openSessionsResponse))
+            {
+                // server is currently overloaded, temporarily switch to capture off
+                context.NextState = new BeaconSendingCaptureOffState(openSessionsResponse.GetRetryAfterInMilliseconds());
+                return;
+            }
+
+            // collect the last status response
+            var lastStatusResponse = newSessionsResponse;
+            if (openSessionsResponse != null)
+            {
+                lastStatusResponse = openSessionsResponse;
+            }
+            else if (finishedSessionsResponse != null)
+            {
+                lastStatusResponse = finishedSessionsResponse;
+            }
 
             // check if send interval spent -> send current beacon(s) of open Sessions
-            HandleStatusResponse(context, statusResponse);
+            HandleStatusResponse(context, lastStatusResponse);
         }
 
-        private void SendNewSessionRequests(IBeaconSendingContext context)
+        /// <summary>
+        /// Send new session requests for all sessions where we currently don't have a multiplicity configuration.
+        /// </summary>
+        /// <param name="context">The state context.</param>
+        /// <returns>The last status response received.</returns>
+        private StatusResponse SendNewSessionRequests(IBeaconSendingContext context)
         {
+            StatusResponse statusResponse = null;
             var newSessions = context.NewSessions;
 
             foreach(var newSession in newSessions)
@@ -83,24 +112,37 @@ namespace Dynatrace.OpenKit.Core.Communication
                     continue;
                 }
 
-                var response = context.GetHTTPClient().SendNewSessionRequest();
-                if (response != null)
+                statusResponse = context.GetHTTPClient().SendNewSessionRequest();
+                if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
                     var currentConfiguration = newSession.BeaconConfiguration;
-                    var newConfiguration = new BeaconConfiguration(response.Multiplicity,
+                    var newConfiguration = new BeaconConfiguration(statusResponse.Multiplicity,
                         currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel);
                     newSession.UpdateBeaconConfiguration(newConfiguration);
                 }
+                else if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
+                {
+                    // server is currently overloaded, return immediately
+                    break;
+                }
                 else
                 {
-                    // did not retrieve any response from server, maybe the cluster is down?
+                    // any other unsuccessful response
                     newSession.DecreaseNumNewSessionRequests();
                 }
             }
+
+            return statusResponse;
         }
 
-        private void SendFinishedSessions(IBeaconSendingContext context)
+        /// <summary>
+        /// Send all sessions which have been finished previously.
+        /// </summary>
+        /// <param name="context">The state's context</param>
+        /// <returns>The last status response received.</returns>
+        private StatusResponse SendFinishedSessions(IBeaconSendingContext context)
         {
+            StatusResponse statusResponse = null;
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
             var finishedSessions = context.FinishedAndConfiguredSessions;
 
@@ -109,10 +151,10 @@ namespace Dynatrace.OpenKit.Core.Communication
                 if (session.IsDataSendingAllowed)
                 {
                     statusResponse = session.SendBeacon(context.HTTPClientProvider);
-                    if (statusResponse == null)
+                    if (!BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                     {
                         // something went wrong,
-                        if (!session.IsEmpty)
+                        if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse) || !session.IsEmpty)
                         {
                             break; //  sending did not work, break out for now and retry it later
                         }
@@ -123,14 +165,23 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.RemoveSession(session);
                 session.ClearCapturedData();
             }
+
+            return statusResponse;
         }
 
-        private void SendOpenSessions(IBeaconSendingContext context)
+        /// <summary>
+        /// Check if the send interval (configured by server) has expired and start to send open sessions if it has expired.
+        /// </summary>
+        /// <param name="context">The state's context</param>
+        /// <returns>The last status response received.</returns>
+        private StatusResponse SendOpenSessions(IBeaconSendingContext context)
         {
+            StatusResponse statusResponse = null;
+
             var currentTimestamp = context.CurrentTimestamp;
             if (currentTimestamp <= context.LastOpenSessionBeaconSendTime + context.SendInterval)
             {
-                return; // some time left until open sessions need to be sent
+                return null; // some time left until open sessions need to be sent
             }
 
             var openSessions = context.OpenAndConfiguredSessions;
@@ -139,6 +190,11 @@ namespace Dynatrace.OpenKit.Core.Communication
                 if (session.IsDataSendingAllowed)
                 {
                     statusResponse = session.SendBeacon(context.HTTPClientProvider);
+                    if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
+                    {
+                        // server is currently overloaded, return immediately
+                        break;
+                    }
                 }
                 else
                 {
@@ -148,6 +204,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // update open session send timestamp
             context.LastOpenSessionBeaconSendTime = currentTimestamp;
+
+            return statusResponse;
         }
 
         private static void HandleStatusResponse(IBeaconSendingContext context, StatusResponse statusResponse)

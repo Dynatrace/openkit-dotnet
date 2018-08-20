@@ -638,7 +638,7 @@ namespace Dynatrace.OpenKit.Protocol
 
                 // send the request
                 response = httpClient.SendBeaconRequest(clientIPAddress, encodedBeacon);
-                if (response == null)
+                if (response == null || response.IsErroneousResponse)
                 {
                     // error happened - but don't know what exactly
                     // reset the previously retrieved chunk (restore it in internal cache) & retry another time

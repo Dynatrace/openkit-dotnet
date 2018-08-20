@@ -67,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 // transition to shutdown state is handled by base class
                 context.InitCompleted(false);
             }
-            else if (BeaconSendingResponseUtil.IsSuccessfulStatusResponse(statusResponse))
+            else if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
             {
                 // success -> continue with time sync
                 context.HandleStatusResponse(statusResponse);
@@ -96,7 +96,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.LastStatusCheckTime = currentTimestamp;
 
                 statusResponse = BeaconSendingRequestUtil.SendStatusRequest(context, MAX_INITIAL_STATUS_REQUEST_RETRIES, INITIAL_RETRY_SLEEP_TIME_MILLISECONDS);
-                if (context.IsShutdownRequested || BeaconSendingResponseUtil.IsSuccessfulStatusResponse(statusResponse))
+                if (context.IsShutdownRequested || BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
                     // shutdown was requested or a successful status response was received
                     break;

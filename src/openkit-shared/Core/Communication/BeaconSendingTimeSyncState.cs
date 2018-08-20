@@ -164,7 +164,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 var timeSyncResponse = context.GetHTTPClient().SendTimeSyncRequest();
                 var responseReceiveTime = context.CurrentTimestamp;
 
-                if (BeaconSendingResponseUtil.IsSuccessfulStatusResponse(timeSyncResponse))
+                if (BeaconSendingResponseUtil.IsSuccessfulResponse(timeSyncResponse))
                 {
                     var requestReceiveTime = timeSyncResponse.RequestReceiveTime;
                     var responseSendTime = timeSyncResponse.ResponseSendTime;

@@ -112,7 +112,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 // if initial time sync failed before, then retry initial time sync
                 context.NextState = new BeaconSendingTimeSyncState(true);
             }
-            else if (BeaconSendingResponseUtil.IsSuccessfulStatusResponse(statusResponse) && context.IsCaptureOn)
+            else if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse) && context.IsCaptureOn)
             {
                 // capturing is re-enabled again, but only if we received a response from the server
                 context.NextState = new BeaconSendingCaptureOnState();
