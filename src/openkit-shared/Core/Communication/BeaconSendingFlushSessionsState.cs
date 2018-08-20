@@ -51,12 +51,17 @@ namespace Dynatrace.OpenKit.Core.Communication
                 openSession.End();
             });
 
-            // flush alread finished (and previously ended) sessions
+            // flush already finished (and previously ended) sessions
+            var tooManyRequestsReceived = false;
             context.FinishedAndConfiguredSessions.ForEach(finishedSession =>
             {
-                if (finishedSession.IsDataSendingAllowed)
+                if (!tooManyRequestsReceived && finishedSession.IsDataSendingAllowed)
                 {
-                    finishedSession.SendBeacon(context.HTTPClientProvider);
+                    var statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
+                    if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
+                    {
+                        tooManyRequestsReceived = false;
+                    }
                 }
                 finishedSession.ClearCapturedData();
                 context.RemoveSession(finishedSession);
