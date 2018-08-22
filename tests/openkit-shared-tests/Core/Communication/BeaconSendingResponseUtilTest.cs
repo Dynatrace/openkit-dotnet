@@ -25,14 +25,14 @@ namespace Dynatrace.OpenKit.Core.Communication
     public class BeaconSendingResponseUtilTest
     {
         [Test]
-        public void IsSuccessfulStatusResponseReturnsFalseIfResponseIsNull()
+        public void IsSuccessfulResponseReturnsFalseIfResponseIsNull()
         {
             // when, then
             Assert.That(BeaconSendingResponseUtil.IsSuccessfulResponse(null), Is.False);
         }
 
         [Test]
-        public void IsSuccessfulStatusResponseReturnsFalseIfResponseIsErroneous()
+        public void IsSuccessfulResponseReturnsFalseIfResponseIsErroneous()
         {
             // given
             var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
@@ -42,7 +42,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void IsSuccessfulStatusResponseReturnsTrueIfResponseIsNotErroneous()
+        public void IsSuccessfulResponseReturnsTrueIfResponseIsNotErroneous()
         {
             // given
             var successfulResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
