@@ -1,7 +1,7 @@
 # Dynatrace OpenKit - .NET Reference Implementation
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build status](https://ci.appveyor.com/api/projects/status/eynj6e2on09d63wg?svg=true)](https://ci.appveyor.com/project/openkitdt/openkit-dotnet)
+[![Build status](https://ci.appveyor.com/api/projects/status/ug034eehokcyw1ks/branch/release/1.0?svg=true)](https://ci.appveyor.com/project/openkitdt/openkit-dotnet/branch/release/1.0)
 
 
 ## What is the OpenKit?
