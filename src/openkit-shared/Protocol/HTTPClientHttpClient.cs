@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using System.Linq;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -23,11 +24,11 @@ namespace Dynatrace.OpenKit.Protocol
 
     public class HTTPClientHttpClient : HTTPClient
     {
-        private readonly System.Net.Security.RemoteCertificateValidationCallback remoteCertificateValidationCallback;
+        private readonly HTTPClientConfiguration configuration;
 
         public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
         {
-            remoteCertificateValidationCallback = configuration.SSLTrustManager?.ServerCertificateValidationCallback;
+            this.configuration = configuration;
         }
 
         protected override HTTPResponse GetRequest(string url, string clientIPAddress)
@@ -55,28 +56,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         private System.Net.Http.HttpClient CreateHTTPClient(string clientIPAddress)
         {
-            System.Net.Http.HttpClient httpClient;
-
-            if (remoteCertificateValidationCallback == null)
-            {
-                httpClient = new System.Net.Http.HttpClient();
-            }
-            else
-            {
-#if NET45 || NET46 || NET47
-                // special handling for .NET 4.5 & 4.6, since the HttpClientHandler does not have the ServerCertificateValidationCallback
-                System.Net.Http.WebRequestHandler webRequestHandler = new System.Net.Http.WebRequestHandler();
-                webRequestHandler.ServerCertificateValidationCallback += remoteCertificateValidationCallback;
-                httpClient = new System.Net.Http.HttpClient(webRequestHandler, true);
-#else
-                System.Net.Http.HttpClientHandler httpClientHandler = new System.Net.Http.HttpClientHandler
-                {
-                    
-                    ServerCertificateCustomValidationCallback = remoteCertificateValidationCallback.Invoke
-                };
-                httpClient = new System.Net.Http.HttpClient(httpClientHandler, true);
-#endif
-            }
+            // The implementation of CreateHTTPClient varies based on the .NET technology
+            var httpClient = CreateHTTPClient();
 
             if (clientIPAddress != null)
             {
@@ -104,6 +85,7 @@ namespace Dynatrace.OpenKit.Protocol
             httpResponseContentTask.Wait();
             string response = httpResponseContentTask.Result;
             System.Net.HttpStatusCode responseCode = result.StatusCode;
+            var headers = result.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToList());
 
             return new HTTPResponse
             {
@@ -111,6 +93,41 @@ namespace Dynatrace.OpenKit.Protocol
                 ResponseCode = (int)responseCode
             };
         }
+
+        #region CreateHTTPClient implementations
+
+#if WINDOWS_UWP
+        
+        // handling for all frameworks that do not support certificate validation
+        private System.Net.Http.HttpClient CreateHTTPClient()
+        {
+            return new System.Net.Http.HttpClient();
+        }
+
+#elif NET45 || NET46 || NET47
+
+        private System.Net.Http.HttpClient CreateHTTPClient()
+        {
+            var webRequestHandler = new System.Net.Http.WebRequestHandler();
+            webRequestHandler.ServerCertificateValidationCallback += configuration.SSLTrustManager.ServerCertificateValidationCallback;
+            return new System.Net.Http.HttpClient(webRequestHandler, true);
+        }
+
+#else
+
+        private System.Net.Http.HttpClient CreateHTTPClient()
+        {
+            var httpClientHandler = new System.Net.Http.HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = configuration.SSLTrustManager.ServerCertificateValidationCallback.Invoke
+            };
+            return new System.Net.Http.HttpClient(httpClientHandler, true);
+        }
+
+#endif
+
+        #endregion
+
     }
 
 #endif
