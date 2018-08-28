@@ -36,6 +36,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             httpClient = Substitute.For<IHTTPClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
+            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
         }
 
         [Test]
@@ -59,6 +60,16 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void ToStringReturnsTheStateName()
+        {
+            // given
+            var target = new BeaconSendingInitState();
+
+            // then
+            Assert.That(target.ToString(), Is.EqualTo("Initial"));
+        }
+
+        [Test]
         public void InitCompleteIsCalledOnInterrupt()
         {
             // when 
@@ -75,7 +86,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
             context.CurrentTimestamp.Returns(123456L);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();
@@ -91,7 +101,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
             context.CurrentTimestamp.Returns(654321L);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();
@@ -106,14 +115,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
 
             // when
             var target = new BeaconSendingInitState();
             target.Execute(context);
 
             // then
-            context.Received(1).InitCompleted(false);
+            context.Received(2).InitCompleted(false);
             context.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>();
         }
 
@@ -122,7 +130,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var count = 0;
-            httpClient.SendStatusRequest().Returns((StatusResponse)null); // always return null
+            var erroneousResponse = new StatusResponse(logger, string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
+            httpClient.SendStatusRequest().Returns(erroneousResponse); // always return erroneous response
             context.IsShutdownRequested.Returns(_ => { return count++ > 40; });
 
             var target = new BeaconSendingInitState();
@@ -197,7 +206,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void StatusRequestIsRetried()
         {
             // given
-            httpClient.SendStatusRequest().Returns((StatusResponse)null); // always return null
+            var erroneousResponse = new StatusResponse(logger, string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
+            httpClient.SendStatusRequest().Returns(erroneousResponse); // always return erroneous response
             context.IsShutdownRequested.Returns(false, false, false, false, false, true);
 
             // when
@@ -211,15 +221,56 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void TransitionToTimeSyncIsPerformedOnSuccess()
         {
-            // given
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>())); // return valid status response (!= null)
-
             // when
             var target = new BeaconSendingInitState();
             target.Execute(context);
 
             // then
             context.Received(1).NextState = Arg.Any<BeaconSendingTimeSyncState>();
+        }
+
+        [Test]
+        public void ReceivingTooManyRequestsResponseUsesSleepTimeFromResponse()
+        {
+            // given
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "1234" } }
+            };
+            var tooManyRequestsResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
+
+            httpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
+            context.IsShutdownRequested.Returns(false, true);
+
+            var target = new BeaconSendingInitState();
+        
+            // when
+            target.Execute(context);
+
+            // verify sleep was performed accordingly
+            context.Received(1).Sleep(1234 * 1000);
+        }
+
+        [Test]
+        public void ReceivingTooManyRequestsResponseDisablesCapturing()
+        {
+            // given
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "1234" } }
+            };
+            var tooManyRequestsResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
+
+            httpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
+            context.IsShutdownRequested.Returns(false, true);
+
+            var target = new BeaconSendingInitState();
+
+            // when
+            target.Execute(context);
+
+            // verify sleep was performed accordingly
+            context.Received(1).DisableCapture();
         }
     }
 }

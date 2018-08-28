@@ -35,20 +35,22 @@ namespace Dynatrace.OpenKit.Core.Communication
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
             statusResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, 200, new Dictionary<string, List<string>>());
+            httpClient.SendStatusRequest().Returns(statusResponse);
         }
 
         [Test]
         public void SendStatusRequestIsAbortedWhenShutDownIsRequested()
         {
             // given
+            var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             context.IsShutdownRequested.Returns(true);
-            httpClient.SendStatusRequest().Returns((StatusResponse)null);
+            httpClient.SendStatusRequest().Returns(erroneousResponse);
 
             // when
             var obtained = BeaconSendingRequestUtil.SendStatusRequest(context, 5, 1000);
 
             // then
-            Assert.That(obtained, Is.Null);
+            Assert.That(obtained, Is.SameAs(erroneousResponse));
 
             context.Received(1).GetHTTPClient();
             context.ReceivedWithAnyArgs(0).Sleep(0);
@@ -60,14 +62,15 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void SendStatusRequestIsAbortedIfNumberOfRetriesIsExceeded()
         {
             // given
+            var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             context.IsShutdownRequested.Returns(false);
-            httpClient.SendStatusRequest().Returns((StatusResponse)null);
+            httpClient.SendStatusRequest().Returns(erroneousResponse);
 
             // when
             var obtained = BeaconSendingRequestUtil.SendStatusRequest(context, 3, 1000);
 
             // then
-            Assert.That(obtained, Is.Null);
+            Assert.That(obtained, Is.SameAs(erroneousResponse));
 
             context.Received(4).GetHTTPClient();
             context.ReceivedWithAnyArgs(3).Sleep(0);
@@ -76,7 +79,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void SendStatusRequestWhenHttpClientReturnsANonNullResponse()
+        public void SendStatusRequestIsDoneWhenHttpClientReturnsASuccessfulResponse()
         {
             // given
             context.IsShutdownRequested.Returns(false);
@@ -98,14 +101,15 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void SleepTimeIsDoubledBetweenConsecutiveRetries()
         {
             // given
+            var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             context.IsShutdownRequested.Returns(false);
-            httpClient.SendStatusRequest().Returns((StatusResponse)null);
+            httpClient.SendStatusRequest().Returns(erroneousResponse);
 
             // when
             var obtained = BeaconSendingRequestUtil.SendStatusRequest(context, 5, 1000);
 
             // then
-            Assert.That(obtained, Is.Null);
+            Assert.That(obtained, Is.SameAs(erroneousResponse));
 
             context.Received(6).GetHTTPClient();
             httpClient.Received(6).SendStatusRequest();
@@ -118,7 +122,43 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.Sleep(8 * 1000);
                 context.Sleep(16 * 1000);
             });
+        }
 
+        [Test]
+        public void SendStatusRequestHandlesNullResponsesSameAsErroneousResponses()
+        {
+            // given
+            context.IsShutdownRequested.Returns(false);
+            httpClient.SendStatusRequest().Returns((StatusResponse)null);
+
+            // when
+            var obtained = BeaconSendingRequestUtil.SendStatusRequest(context, 3, 1000);
+
+            // then
+            Assert.That(obtained, Is.Null);
+
+            context.Received(4).GetHTTPClient();
+            context.ReceivedWithAnyArgs(3).Sleep(0);
+            httpClient.Received(4).SendStatusRequest();    
+        }
+
+        [Test]
+        public void SendStatusRequestReturnsTooManyRequestsResponseImmediately()
+        {
+            // given
+            var tooManyRequestsResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpTooManyRequests, new Dictionary<string, List<string>>());
+            context.IsShutdownRequested.Returns(false);
+            httpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
+
+            // when
+            var obtained = BeaconSendingRequestUtil.SendStatusRequest(context, 3, 1000);
+
+            // then
+            Assert.That(obtained, Is.SameAs(tooManyRequestsResponse));
+
+            context.Received(1).GetHTTPClient();
+            context.DidNotReceiveWithAnyArgs().Sleep(0);
+            httpClient.Received(1).SendStatusRequest();
         }
     }
 }

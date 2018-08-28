@@ -45,8 +45,26 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         public const int STATUS_CHECK_INTERVAL = 2 * 60 * 60 * 1000;    // wait 2h (in ms) for next status request
 
-        public BeaconSendingCaptureOffState() : base(false) { }
+        /// <summary>
+        /// Sleep time in milliseconds.
+        /// </summary>
+        internal readonly int sleepTimeInMilliseconds;
 
+        /// <summary>
+        /// Create CaptureOff state with default sleep behavior.
+        /// </summary>
+        public BeaconSendingCaptureOffState() : this(-1) { }
+
+        /// <summary>
+        /// Create CaptureOff state with explicitly set sleep time.
+        /// </summary>
+        /// <param name="sleepTimeInMilliseconds">The number of milliseconds to sleep.</param>
+        public BeaconSendingCaptureOffState(int sleepTimeInMilliseconds)
+            : base(false)
+        {
+            this.sleepTimeInMilliseconds = sleepTimeInMilliseconds;
+        }
+        
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
         protected override void DoExecute(IBeaconSendingContext context)
@@ -55,7 +73,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var currentTime = context.CurrentTimestamp;
 
-            var delta = (int)(STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));
+            var delta = sleepTimeInMilliseconds > 0
+                ? sleepTimeInMilliseconds
+                : (int)(STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));
             if (delta > 0 && !context.IsShutdownRequested)
             {
                 // still have some time to sleep
@@ -76,15 +96,23 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             if (statusResponse != null)
             {
+                // handle status response, even if it's erroneous
+                // if it's an erroneous response capturing is disabled
                 context.HandleStatusResponse(statusResponse);
             }
             // if initial time sync failed before
-            if (context.IsTimeSyncSupported && !context.IsTimeSynced)
+            if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
             {
-                // then retry initial time sync
+                // received "too many requests" response
+                // in this case stay in capture off state and use the retry-after delay for sleeping
+                context.NextState = new BeaconSendingCaptureOffState(statusResponse.GetRetryAfterInMilliseconds());
+            }
+            else if (context.IsTimeSyncSupported && !context.IsTimeSynced)
+            {
+                // if initial time sync failed before, then retry initial time sync
                 context.NextState = new BeaconSendingTimeSyncState(true);
             }
-            else if (statusResponse != null && context.IsCaptureOn)
+            else if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse) && context.IsCaptureOn)
             {
                 // capturing is re-enabled again, but only if we received a response from the server
                 context.NextState = new BeaconSendingCaptureOnState();

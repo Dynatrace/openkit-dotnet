@@ -143,7 +143,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
             session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
-            finishedSessions.Add(session); 
+            finishedSessions.Add(session);
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
             // when
@@ -178,9 +178,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionTwo = new SessionWrapper(CreateEmptySession("127.0.0.2"));
             newSessions.AddRange(new[] { sessionOne, sessionTwo });
 
-            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, "mp=5", 200, new Dictionary<string, List<string>>()),
-                                                       null,
-                                                       new StatusResponse(logger, "mp=3", 200, new Dictionary<string, List<string>>()));
+            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, "mp=5", Response.HttpOk, new Dictionary<string, List<string>>()),
+                                                       new StatusResponse(logger, "mp=5", Response.HttpBadRequest, new Dictionary<string, List<string>>()),
+                                                       new StatusResponse(logger, "mp=3", Response.HttpOk, new Dictionary<string, List<string>>()));
 
             // when
             target.Execute(context);
@@ -195,6 +195,49 @@ namespace Dynatrace.OpenKit.Core.Communication
             // for session two the number of requests was decremented
             Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.False);
             Assert.That(sessionTwo.NumNewSessionRequestsLeft, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void NewSessionRequestsAreAbortedWhenTooManyRequestsResponseIsReceived()
+        {
+            // given
+            var target = new BeaconSendingCaptureOnState();
+
+            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
+            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
+            newSessions.AddRange(new[] { sessionOne, sessionTwo });
+
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "1234  "} }
+            };
+            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders),
+                                           new StatusResponse(logger, "mp=1", Response.HttpOk, new Dictionary<string, List<string>>()),
+                                           new StatusResponse(logger, "mp=1", Response.HttpOk, new Dictionary<string, List<string>>()));
+
+            AbstractBeaconSendingState capturedState = null;
+            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+
+            // when
+            target.Execute(context);
+
+            // verify for first new sessions a new session request has been made
+            httpClient.Received(1).SendNewSessionRequest();
+
+            // verify no changes on first & second sesion
+            Assert.That(sessionOne.CanSendNewSessionRequest, Is.True);
+            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.False);
+
+            Assert.That(sessionTwo.CanSendNewSessionRequest, Is.True);
+            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.False);
+
+            // ensure that state transition has been made
+            context.ReceivedWithAnyArgs(1).NextState = null;
+            Assert.That(capturedState, Is.Not.Null);
+            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
+            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(1234 * 1000));
+
+            context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
         }
 
         [Test]
@@ -228,9 +271,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             // also ensure that both got a configuration set
             Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
             Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
-            
-            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
+
+            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.True);
+            Assert.That(sessionTwo.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
         }
 
         [Test]
@@ -238,7 +281,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given 
             var clientIp = "127.0.0.1";
-            var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
 
             finishedSessions.AddRange(new[] {
                 new SessionWrapper(CreateValidSession(clientIp)),
@@ -258,15 +301,56 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void SendingFinishedSessionsIsAbortedImmediatelyWhenTooManyRequestsResponseIsReceived()
+        {
+            // given 
+            var clientIp = "127.0.0.1";
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "4321"} }
+            };
+            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
+
+            finishedSessions.AddRange(new[] {
+                new SessionWrapper(CreateValidSession(clientIp)),
+                new SessionWrapper(CreateValidSession(clientIp)),
+                new SessionWrapper(CreateValidSession(clientIp)) });
+            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)));
+
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
+
+            AbstractBeaconSendingState capturedState = null;
+            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+
+            var target = new BeaconSendingCaptureOnState();
+
+            // when 
+            target.Execute(context);
+
+            // then
+            // verify only one session request has been made
+            httpClient.Received(1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+
+            // ensure that state transition has been made
+            context.ReceivedWithAnyArgs(1).NextState = null;
+            Assert.That(capturedState, Is.Not.Null);
+            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
+            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(4321 * 1000));
+
+            context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
+        }
+
+        [Test]
         public void UnsuccessfulFinishedSessionsAreNotRemovedFromCache()
         {
             //given
+            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             var target = new BeaconSendingCaptureOnState();
 
             var finishedSession = new SessionWrapper(CreateValidSession("127.0.0.1"));
             finishedSession.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
             finishedSessions.Add(finishedSession);
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns((StatusResponse)null);
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(statusResponse);
 
             //when calling execute
             target.Execute(context);
@@ -286,7 +370,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             finishedSessions.AddRange(new[] { sessionOne, sessionTwo });
 
             var statusResponses = new Queue<StatusResponse>();
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
 
             //when calling execute
             target.Execute(context);
@@ -295,7 +379,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.Received(1).RemoveSession(sessionOne);
             context.Received(1).RemoveSession(sessionTwo);
         }
-        
+
         [Test]
         public void OpenSessionsAreSentIfSendIntervalIsExceeded()
         {
@@ -304,7 +388,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var lastSendTime = 1;
             var sendInterval = 1000;
-            var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
 
             context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
             context.SendInterval.Returns(sendInterval);
@@ -339,7 +423,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.SendInterval.Returns(sendInterval);
             context.CurrentTimestamp.Returns(lastSendTime + 1);
 
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
             session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
@@ -354,10 +438,56 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
         }
 
+        [Test]
+        public void SendingOpenSessionsIsAbortedImmediatelyWhenTooManyRequestsResponseIsReceived()
+        {
+            //given 
+            var clientIp = "127.0.0.1";
+
+            var lastSendTime = 1;
+            var sendInterval = 1000;
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { Response.ResponseKeyRetryAfter, new List<string> { "987654"} }
+            };
+            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
+            openSessions.AddRange(new[] {
+                new SessionWrapper(CreateValidSession(clientIp)),
+                new SessionWrapper(CreateValidSession(clientIp)),
+                new SessionWrapper(CreateValidSession(clientIp)) });
+            openSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)));
+
+            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
+            context.SendInterval.Returns(sendInterval);
+            context.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
+
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
+
+            AbstractBeaconSendingState capturedState = null;
+            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+
+            var target = new BeaconSendingCaptureOnState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            // verify only one session request has been made
+            httpClient.Received(1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+
+            // ensure that state transition has been made
+            context.ReceivedWithAnyArgs(1).NextState = null;
+            Assert.That(capturedState, Is.Not.Null);
+            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
+            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(987654 * 1000));
+
+            context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
+        }
+
         private Session CreateValidSession(string clientIP)
         {
             var logger = Substitute.For<ILogger>();
-            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger), 
+            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
                 config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();

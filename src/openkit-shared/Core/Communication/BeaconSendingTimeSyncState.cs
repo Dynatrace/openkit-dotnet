@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Protocol;
 using System;
 using System.Collections.Generic;
 
@@ -82,9 +83,9 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // execute time sync requests - note during initial sync it might be possible
             // that the time sync capability is disabled.
-            var timeSyncOffsets = ExecuteTimeSyncRequests(context);
+            var response = ExecuteTimeSyncRequests(context);
 
-            HandleTimeSyncResponses(context, timeSyncOffsets);
+            HandleTimeSyncResponses(context, response);
 
             // set init complete if initial time sync
             if (IsInitialTimeSync)
@@ -93,20 +94,20 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private void HandleTimeSyncResponses(IBeaconSendingContext context, List<long> timeSyncOffsets)
+        private void HandleTimeSyncResponses(IBeaconSendingContext context, TimeSyncRequestsResponse response)
         {
             // time sync requests were *not* successful
             // -OR-
             // time sync requests are not supported by the server (e.g. AppMon)
             // -> use 0 as cluster time offset
-            if (timeSyncOffsets.Count < TIME_SYNC_REQUESTS)
+            if (response.timeSyncOffsets.Count < TIME_SYNC_REQUESTS)
             {
-                HandleErroneousTimeSyncRequest(context);
+                HandleErroneousTimeSyncRequest(context, response.response);
                 return;
             }
 
             //sanity check to catch case with div/0
-            var calculatedOffset = ComputeClusterTimeOffset(timeSyncOffsets);
+            var calculatedOffset = ComputeClusterTimeOffset(response.timeSyncOffsets);
             if (calculatedOffset < 0)
             {
                 return;
@@ -122,7 +123,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             SetNextState(context);
         }
 
-        private void HandleErroneousTimeSyncRequest(IBeaconSendingContext context)
+        private void HandleErroneousTimeSyncRequest(IBeaconSendingContext context, TimeSyncResponse response)
         {
             // if this is the initial sync try, we have to initialize the time provider
             // in every other case we keep the previous setting
@@ -131,7 +132,12 @@ namespace Dynatrace.OpenKit.Core.Communication
                 context.InitializeTimeSync(0, context.IsTimeSyncSupported);
             }
 
-            if (context.IsTimeSyncSupported)
+            if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(response))
+            {
+                // server is currently overloaded, change to CaptureOff state temporarily
+                context.NextState = new BeaconSendingCaptureOffState(response.GetRetryAfterInMilliseconds());
+            }
+            else if (context.IsTimeSyncSupported)
             {
                 // in case of time sync failure when it's supported, go to capture off state
                 context.NextState = new BeaconSendingCaptureOffState();
@@ -143,22 +149,22 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        private List<long> ExecuteTimeSyncRequests(IBeaconSendingContext context)
+        private TimeSyncRequestsResponse ExecuteTimeSyncRequests(IBeaconSendingContext context)
         {
-            var timeSyncOffsets = new List<long>(TIME_SYNC_REQUESTS);
+            var response = new TimeSyncRequestsResponse();
 
             var retry = 0;
             var sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
 
             // no check for shutdown here, time sync has to be completed
-            while (timeSyncOffsets.Count < TIME_SYNC_REQUESTS && !context.IsShutdownRequested)
+            while (response.timeSyncOffsets.Count < TIME_SYNC_REQUESTS && !context.IsShutdownRequested)
             {
                 // doExecute time-sync request and take timestamps
                 var requestSendTime = context.CurrentTimestamp;
                 var timeSyncResponse = context.GetHTTPClient().SendTimeSyncRequest();
                 var responseReceiveTime = context.CurrentTimestamp;
 
-                if (timeSyncResponse != null)
+                if (BeaconSendingResponseUtil.IsSuccessfulResponse(timeSyncResponse))
                 {
                     var requestReceiveTime = timeSyncResponse.RequestReceiveTime;
                     var responseSendTime = timeSyncResponse.ResponseSendTime;
@@ -168,7 +174,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                     {
                         // if yes -> continue time-sync
                         var offset = ((requestReceiveTime - requestSendTime) + (responseSendTime - responseReceiveTime)) / 2;
-                        timeSyncOffsets.Add(offset);
+                        response.timeSyncOffsets.Add(offset);
                         retry = 0; // on successful response reset the retry count & initial sleep time
                         sleepTimeInMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
                     }
@@ -184,6 +190,14 @@ namespace Dynatrace.OpenKit.Core.Communication
                     // retry limit reached
                     break;
                 }
+                else if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(timeSyncResponse))
+                {
+                    // special handling for too many requests
+                    // clear all time sync offsets captured so far and store the response, which is handled later
+                    response.timeSyncOffsets.Clear();
+                    response.response = timeSyncResponse;
+                    break;
+                }
                 else
                 {
                     context.Sleep(sleepTimeInMillis);
@@ -192,7 +206,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 }
             }
 
-            return timeSyncOffsets;
+            return response;
         }
 
         private long ComputeClusterTimeOffset(List<long> timeSyncOffsets)
@@ -266,6 +280,27 @@ namespace Dynatrace.OpenKit.Core.Communication
         public override string ToString()
         {
             return "TimeSync";
+        }
+
+
+        /// <summary>
+        /// Container class storing data for processing requests.
+        /// </summary>
+        private sealed class TimeSyncRequestsResponse
+        {
+
+            /// <summary>
+            /// List storing time sync offsets.
+            /// </summary>
+            internal readonly List<long> timeSyncOffsets = new List<long>(TIME_SYNC_REQUESTS);
+
+            /// <summary>
+            /// List storing time sync response.
+            /// </summary>
+            /// <remarks>
+            /// This might be required for e.g.handling 429 response error.
+            /// </remarks>
+            internal TimeSyncResponse response = null;
         }
     }
 }
