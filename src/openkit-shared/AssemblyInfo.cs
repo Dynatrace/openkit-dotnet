@@ -22,7 +22,7 @@ using System.Runtime.CompilerServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("OpenKit .NET")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Dynatrace OpenKit SDK for .NET")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dynatrace LLC")]
 [assembly: AssemblyProduct("Dynatrace.OpenKit.Properties")]

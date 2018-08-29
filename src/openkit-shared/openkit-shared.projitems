@@ -85,6 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Providers\IHTTPClientProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ISessionIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ITimingProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\CustomAttributeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\IEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\ListExtensions.cs" />
   </ItemGroup>
