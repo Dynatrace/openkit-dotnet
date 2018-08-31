@@ -35,6 +35,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "openkit-shared-tests", "tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F02D384C-D466-45A8-AFD5-1BB3D2EEC4D7}"
 	ProjectSection(SolutionItems) = preProject
+		CHANGELOG.md = CHANGELOG.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection

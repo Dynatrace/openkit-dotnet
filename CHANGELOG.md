@@ -6,6 +6,14 @@
 - New project for .NET Standard 2.0
 - New project for UWP and PCL 4.5 target 111   
   For those two projects, self signed SSL certificates are not manageable by OpenKit .NET.
+- Server overload prevention  
+  Additional HTTP 429 response code handling
+
+### Changed
+- Fix wrong Session start time
+
+### Improved
+- OpenKit internal version handling
 
 ## 1.1.0 [Release date: 2018-07-20]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.0)
