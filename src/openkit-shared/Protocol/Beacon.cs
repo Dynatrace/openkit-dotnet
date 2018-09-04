@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Linq;
+using System.Globalization;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -84,7 +85,7 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BEACON_KEY_WEBREQUEST_BYTES_RECEIVED = "br";
 
         // max name length
-        private const int MAX_NAME_LEN = 250;
+        internal const int MAX_NAME_LEN = 250;
 
         // web request tag prefix constant
         private const string TAG_PREFIX = "MT";
@@ -159,12 +160,12 @@ namespace Dynatrace.OpenKit.Protocol
             if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
             {
                 SessionNumber = configuration.NextSessionNumber;
-                DeviceID = configuration.DeviceID;
+                DeviceID = Truncate(configuration.DeviceID);
             }
             else
             {
                 SessionNumber = 1;
-                DeviceID = randomNumberGenerator.NextLong(long.MaxValue);
+                DeviceID = randomNumberGenerator.NextLong(long.MaxValue).ToString(CultureInfo.InvariantCulture);
             }
 
             this.timingProvider = timingProvider;
@@ -189,7 +190,7 @@ namespace Dynatrace.OpenKit.Protocol
         // *** public properties ***
         public int SessionNumber { get; }
 
-        public long DeviceID { get; }
+        public string DeviceID { get; }
 
         public bool IsEmpty => beaconCache.IsEmpty(SessionNumber);
 

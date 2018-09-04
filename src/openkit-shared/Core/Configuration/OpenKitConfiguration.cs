@@ -50,7 +50,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private readonly ISessionIDProvider sessionIDProvider;
 
         // *** constructors ***
-       public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string endpointURL,
+       public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, string deviceID, string endpointURL,
             ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
             BeaconCacheConfiguration beaconCacheConfiguration, BeaconConfiguration beaconConfiguration)
         {
@@ -105,7 +105,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public string ApplicationID { get; }
 
-        public long DeviceID { get; }
+        public string DeviceID { get; }
 
         public string EndpointURL { get; }
 

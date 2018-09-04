@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit
         private CrashReportingLevel crashReportingLevel = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
 
 
-        protected AbstractOpenKitBuilder(string endpointURL, long deviceID)
+        protected AbstractOpenKitBuilder(string endpointURL, string deviceID)
         {
             EndpointURL = endpointURL;
             DeviceID = deviceID;
@@ -54,7 +54,7 @@ namespace Dynatrace.OpenKit
         protected ISSLTrustManager TrustManager => trustManager;
         protected ILogger Logger => logger ?? new DefaultLogger(verbose);
         protected string EndpointURL { get; private set; }
-        protected long DeviceID { get; private set; }
+        protected string DeviceID { get; private set; }
         protected long BeaconCacheMaxBeaconAge => beaconCacheMaxBeaconAge;
         protected long BeaconCacheLowerMemoryBoundary => beaconCacheLowerMemoryBoundary;
         protected long BeaconCacheUpperMemoryBoundary => beaconCacheUpperMemoryBoundary;

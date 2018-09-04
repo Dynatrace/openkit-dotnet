@@ -22,6 +22,8 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
+using System.Linq;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -299,7 +301,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var session = new Session(logger, beaconSender, target); // will 
@@ -316,7 +318,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var action = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -333,7 +335,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var intValue = 42;
@@ -351,7 +353,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var doubleValue = System.Math.E;
@@ -369,7 +371,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var stringValue = "Write once, debug everywhere";
@@ -387,7 +389,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -404,7 +406,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -421,7 +423,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             // when
@@ -436,7 +438,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -454,7 +456,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             // when
@@ -470,7 +472,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -491,7 +493,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -512,7 +514,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -533,7 +535,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -550,7 +552,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
 
@@ -566,7 +568,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
@@ -579,11 +581,11 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void VisitorIDIsRandomizedOnDataCollectionLevel0()
+        public void DeviceIDIsRandomizedOnDataCollectionLevel0()
         {
             // given
             var beaconConfig = new BeaconConfiguration(12345, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(0, beaconConfig);
+            var config = new TestConfiguration("0", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -594,11 +596,11 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void VisitorIDIsRandomizedOnDataCollectionLevel1()
+        public void DeviceIDIsRandomizedOnDataCollectionLevel1()
         {
             // given
             var beaconConfig = new BeaconConfiguration(12345, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -609,52 +611,74 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void GivenVisitorIDIsUsedOnDataCollectionLevel2()
+        public void GivenDeviceIDIsUsedOnDataCollectionLevel2()
         {
-            var DEVICE_ID = 12345;
+            var deviceID = "12345";
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(DEVICE_ID, beaconConfig);
+            var config = new TestConfiguration(deviceID, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var visitorID = target.DeviceID;
+            var obtained = target.DeviceID;
 
             //then
             randomGenerator.Received(0).NextLong(long.MaxValue);
-            Assert.That(visitorID, Is.EqualTo(DEVICE_ID));
+            Assert.That(obtained, Is.EqualTo(deviceID));
         }
 
         [Test]
-        public void RandomVisitorIDCannotBeNegativeOnDataCollectionLevel0()
+        public void RandomDeviceIDCannotBeNegativeOnDataCollectionLevel0()
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var visitorID = target.DeviceID;
+            var deviceID = long.Parse(target.DeviceID);
 
             //then
-            Assert.That(visitorID, Is.GreaterThanOrEqualTo(0));
-            Assert.That(visitorID, Is.LessThanOrEqualTo(long.MaxValue));
+            Assert.That(deviceID, Is.GreaterThanOrEqualTo(0L));
+            Assert.That(deviceID, Is.LessThanOrEqualTo(long.MaxValue));
         }
 
         [Test]
-        public void RandomVisitorIDCannotBeNegativeOnDataCollectionLevel1()
+        public void RandomDeviceIDCannotBeNegativeOnDataCollectionLevel1()
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var visitorID = target.DeviceID;
+            var deviceID = long.Parse(target.DeviceID);
 
             //then
-            Assert.That(visitorID, Is.GreaterThanOrEqualTo(0));
-            Assert.That(visitorID, Is.LessThanOrEqualTo(long.MaxValue));
+            Assert.That(deviceID, Is.GreaterThanOrEqualTo(0L));
+            Assert.That(deviceID, Is.LessThanOrEqualTo(long.MaxValue));
+        }
+
+        [Test]
+        public void DeviceIDIsTruncatedTo250Characters()
+        {
+            // given
+            var deviceIDBuilder = new StringBuilder();
+            for (var i = 0; i < Beacon.MAX_NAME_LEN - 1; i++)
+            {
+                deviceIDBuilder.Append("a");
+            }
+            deviceIDBuilder.Append("bc");
+            var deviceID = deviceIDBuilder.ToString();
+            var config = new TestConfiguration(deviceID, beaconConfig);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            // when
+            var obtained = target.DeviceID;
+            
+            // then
+            Assert.That(obtained.Length, Is.EqualTo(Beacon.MAX_NAME_LEN));
+            Assert.That(obtained, Is.EqualTo(deviceID.Substring(0, Beacon.MAX_NAME_LEN)));
         }
 
         [Test]
@@ -662,7 +686,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -677,7 +701,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -693,7 +717,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var sessionIDProvider = Substitute.For<ISessionIDProvider>();
-            var config = new TestConfiguration(1, beaconConfig, sessionIDProvider);
+            var config = new TestConfiguration("1", beaconConfig, sessionIDProvider);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -710,7 +734,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
@@ -727,7 +751,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
@@ -745,7 +769,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -761,7 +785,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var session = new Session(logger, beaconSender, target);
 
@@ -777,7 +801,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var session = new Session(logger, beaconSender, target);
 
@@ -794,7 +818,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             var session = new Session(logger, beaconSender, target);
@@ -811,7 +835,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -826,7 +850,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -841,7 +865,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
@@ -856,7 +880,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
@@ -872,7 +896,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
@@ -888,7 +912,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
@@ -904,7 +928,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
@@ -920,7 +944,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OPT_OUT_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
@@ -936,7 +960,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
@@ -952,7 +976,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -968,7 +992,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -985,7 +1009,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1002,7 +1026,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1018,7 +1042,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1035,7 +1059,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1052,7 +1076,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1068,7 +1092,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1085,7 +1109,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1102,7 +1126,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1118,7 +1142,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1134,7 +1158,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
@@ -1164,7 +1188,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var session = new Session(logger, beaconSender, target);
 
@@ -1181,7 +1205,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var session = new Session(logger, beaconSender, target);
 
@@ -1198,7 +1222,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var session = new Session(logger, beaconSender, target);
 
@@ -1214,7 +1238,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
             var session = new Session(logger, beaconSender, target);
 

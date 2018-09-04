@@ -21,13 +21,53 @@ namespace Dynatrace.OpenKit
         [Test]
         public void DefaultsAreSetForAppMon()
         {
-            VerifyDefaultsAreSet(new AppMonOpenKitBuilder(Endpoint, AppID, DeviceID).BuildConfiguration());
+            // when
+            var obtained = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID).BuildConfiguration();
+
+            // then
+            Assert.That(obtained.EndpointURL, Is.EqualTo(Endpoint));
+            Assert.That(obtained.DeviceID, Is.EqualTo("1234"));
+            Assert.That(obtained.ApplicationName, Is.EqualTo(AppName));
+            Assert.That(obtained.ApplicationID, Is.EqualTo(AppName));
+            
+            // ensure remaining defaults
+            VerifyDefaultsAreSet(obtained);
+        }
+
+        [Test]
+        public void AppMonOpenKitBuilderTakesStringDeviceID()
+        {
+            // given
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, "stringDeviceID");
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo("stringDeviceID"));
         }
 
         [Test]
         public void DefaultsAreSetForDynatrace()
         {
-            VerifyDefaultsAreSet(new DynatraceOpenKitBuilder(Endpoint, AppName, DeviceID).BuildConfiguration());
+            // when
+            var obtained = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID).BuildConfiguration();
+
+            // then
+            Assert.That(obtained.EndpointURL, Is.EqualTo(Endpoint));
+            Assert.That(obtained.DeviceID, Is.EqualTo("1234"));
+            Assert.That(obtained.ApplicationName, Is.EqualTo(string.Empty));
+            Assert.That(obtained.ApplicationID, Is.EqualTo(AppID));
+
+            // ensure remaining defaults
+            VerifyDefaultsAreSet(obtained);
+        }
+
+        [Test]
+        public void DynatraceOpenKitBuilderTakesStringDeviceID()
+        {
+            // given
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, "stringDeviceID");
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo("stringDeviceID"));
         }
 
         private void VerifyDefaultsAreSet(OpenKitConfiguration configuration)
@@ -431,7 +471,7 @@ namespace Dynatrace.OpenKit
 
         private class TestOpenKitBuilder : AbstractOpenKitBuilder
         {
-            internal TestOpenKitBuilder() : base("", 0)
+            internal TestOpenKitBuilder() : base("", "0")
             {
             }
 
