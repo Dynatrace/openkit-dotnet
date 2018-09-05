@@ -22,7 +22,6 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
-using System.Linq;
 using System.Text;
 
 namespace Dynatrace.OpenKit.Protocol

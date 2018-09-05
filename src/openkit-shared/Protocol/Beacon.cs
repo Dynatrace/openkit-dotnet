@@ -165,7 +165,8 @@ namespace Dynatrace.OpenKit.Protocol
             else
             {
                 SessionNumber = 1;
-                DeviceID = randomNumberGenerator.NextLong(long.MaxValue).ToString(CultureInfo.InvariantCulture);
+                DeviceID = randomNumberGenerator.NextLong(long.MaxValue)
+                    .ToString(CultureInfo.InvariantCulture);
             }
 
             this.timingProvider = timingProvider;
