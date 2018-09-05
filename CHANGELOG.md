@@ -1,5 +1,16 @@
 # OpenKit .NET Changelog
 
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.1.1...HEAD)
+
+### Changed
+- Fix wrong device ID in web requests
+
+## 1.1.1 [Release date: 2018-09-03]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.1)
+
+### Changed
+- Fix wrong Session start time
+
 ## 1.1.0 [Release date: 2018-07-20]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.0)
 
