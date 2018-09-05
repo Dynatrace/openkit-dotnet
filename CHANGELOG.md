@@ -11,6 +11,7 @@
 
 ### Changed
 - Fix wrong Session start time
+- Fix wrong device ID in web requests
 
 ### Improved
 - OpenKit internal version handling

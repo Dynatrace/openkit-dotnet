@@ -283,7 +283,7 @@ namespace Dynatrace.OpenKit.Protocol
             return TAG_PREFIX + "_"
                        + ProtocolConstants.PROTOCOL_VERSION + "_"
                        + httpConfiguration.ServerID + "_"
-                       + configuration.DeviceID + "_"
+                       + DeviceID + "_"
                        + SessionNumber + "_"
                        + configuration.ApplicationID + "_"
                        + parentAction.ID + "_"
