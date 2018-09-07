@@ -17,90 +17,176 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Dynatrace.OpenKit.Core
 {
     public class DefaultLoggerTest
     {
-        [Test]
-        public void DefaultLoggerWithVerboseOutputWritesErrorLevelMessages()
-        {
-            //given
-            DefaultLogger log = new DefaultLogger(true);
+        private const string LoggerDateTimePattern = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{7}Z";
 
-            //then
-            Assert.That(log.IsErrorEnabled, Is.True);
+        private List<string> logOutputLines;
+        private Action<string> writeLineAction;
+
+        [SetUp]
+        public void SetUp()
+        {
+            logOutputLines = new List<string>();
+            writeLineAction = line => logOutputLines.Add(line);
         }
 
         [Test]
-        public void DefaultLoggerWithVerboseOutputWritesWarnLevelMessages()
+        public void ErrorLogsAppropriateMessage()
         {
             //given
-            DefaultLogger log = new DefaultLogger(true);
+            var target = new DefaultLogger(true, writeLineAction);
 
-            //then
-            Assert.That(log.IsWarnEnabled, Is.True);
+            // when
+            target.Error("Error message");
+
+            // then
+            Assert.That(logOutputLines.Count, Is.EqualTo(1));
+            Assert.That(Regex.IsMatch(logOutputLines[0], $"^{LoggerDateTimePattern} ERROR \\[.+?\\] Error message$"), Is.True);
         }
 
         [Test]
-        public void DefaultLoggerWithVerboseOutputWritesInfoLevelMessages()
+        public void ErrorWithStacktraceLogsAppropriateMessage()
         {
             //given
-            DefaultLogger log = new DefaultLogger(true);
+            var exception = new Exception("test exception");
+            var target = new DefaultLogger(true, writeLineAction);
 
-            //then
-            Assert.That(log.IsInfoEnabled, Is.True);
+            // when
+            target.Error("Error message", exception);
+
+            // then
+            Assert.That(logOutputLines.Count, Is.EqualTo(1));
+            Assert.That(Regex.IsMatch(logOutputLines[0], $"^{LoggerDateTimePattern} ERROR \\[.+?\\] Error message(\n|\r|\r\n){Regex.Escape(exception.ToString())}$",
+                RegexOptions.Singleline), Is.True);
         }
 
         [Test]
-        public void DefaultLoggerWithVerboseOutputWritesDebugLevelMessages()
+        public void WarningLogsAppropriateMessage()
         {
             //given
-            DefaultLogger log = new DefaultLogger(true);
+            var target = new DefaultLogger(true, writeLineAction);
 
-            //then
-            Assert.That(log.IsDebugEnabled, Is.True);
+            // when
+            target.Warn("Warning message");
+
+            // then
+            Assert.That(logOutputLines.Count, Is.EqualTo(1));
+            Assert.That(Regex.IsMatch(logOutputLines[0], $"^{LoggerDateTimePattern} WARN  \\[.+?\\] Warning message$"), Is.True);
         }
 
         [Test]
-        public void DefaultLoggerWithoutVerboseOutputWritesErrorLevelMessages()
+        public void InfoLogsAppropriateMessage()
         {
             //given
-            DefaultLogger log = new DefaultLogger(false);
+            var target = new DefaultLogger(true, writeLineAction);
 
-            //then
-            Assert.That(log.IsErrorEnabled, Is.True);
+            // when
+            target.Info("Info message");
+
+            // then
+            Assert.That(logOutputLines.Count, Is.EqualTo(1));
+            Assert.That(Regex.IsMatch(logOutputLines[0], $"^{LoggerDateTimePattern} INFO  \\[.+?\\] Info message$"), Is.True);
         }
 
         [Test]
-        public void DefaultLoggerWithoutVerboseOutputWritesWarnLevelMessages()
+        public void InfoDoesNotLogIfVerboseIsDisabled()
         {
             //given
-            DefaultLogger log = new DefaultLogger(false);
+            var target = new DefaultLogger(false, writeLineAction);
 
-            //then
-            Assert.That(log.IsWarnEnabled, Is.True);
+            // when
+            target.Info("Info message");
+
+            // then
+            Assert.That(logOutputLines, Is.Empty);
         }
 
         [Test]
-        public void DefaultLoggerWithoutVerboseOutputWritesInfoLevelMessages()
+        public void DebugLogsAppropriateMessage()
         {
             //given
-            DefaultLogger log = new DefaultLogger(false);
+            var target = new DefaultLogger(true, writeLineAction);
 
-            //then
-            Assert.That(log.IsInfoEnabled, Is.False);
+            // when
+            target.Debug("Debug message");
+
+            // then
+            Assert.That(logOutputLines.Count, Is.EqualTo(1));
+            Assert.That(Regex.IsMatch(logOutputLines[0], $"^{LoggerDateTimePattern} DEBUG \\[.+?\\] Debug message$"), Is.True);
         }
 
         [Test]
-        public void DefaultLoggerWithoutVerboseOutputWritesDebugLevelMessages()
+        public void DebugDoesNotLogIfVerboseIsDisabled()
         {
             //given
-            DefaultLogger log = new DefaultLogger(false);
+            var target = new DefaultLogger(false, writeLineAction);
 
-            //then
-            Assert.That(log.IsDebugEnabled, Is.False);
+            // when
+            target.Debug("Debug message");
+
+            // then
+            Assert.That(logOutputLines, Is.Empty);
+        }
+
+        [Test]
+        public void IsErrorEnabledIsTrueIfVerboseIsTrue()
+        {
+            // then
+            Assert.That(new DefaultLogger(true).IsErrorEnabled, Is.True);
+        }
+
+        [Test]
+        public void IsErrorEnabledIsTrueIfVerboseIsFalse()
+        {
+            // then
+            Assert.That(new DefaultLogger(false).IsErrorEnabled, Is.True);
+        }
+
+        [Test]
+        public void IsWarnEnabledIsTrueIfVerboseIsTrue()
+        {
+            // then
+            Assert.That(new DefaultLogger(true).IsWarnEnabled, Is.True);
+        }
+
+        [Test]
+        public void IsWarnEnabledIsTrueIfVerboseIsFalse()
+        {
+            // then
+            Assert.That(new DefaultLogger(false).IsWarnEnabled, Is.True);
+        }
+
+        [Test]
+        public void IsInfoEnabledIsTrueIfVerboseIsTrue()
+        {
+            // then
+            Assert.That(new DefaultLogger(true).IsInfoEnabled, Is.True);
+        }
+
+        [Test]
+        public void IsInfoEnabledIsFalseIfVerboseIsFalse()
+        {
+            // then
+            Assert.That(new DefaultLogger(false).IsInfoEnabled, Is.False);
+        }
+
+        [Test]
+        public void IsDebugEnabledIsTrueIfVerboseIsTrue()
+        {
+            // then
+            Assert.That(new DefaultLogger(true).IsDebugEnabled, Is.True);
+        }
+
+        [Test]
+        public void IsDebugEnabledIsFalseIfVerboseIsFalse()
+        {
+            // then
+            Assert.That(new DefaultLogger(false).IsDebugEnabled, Is.False);
         }
     }
 }
