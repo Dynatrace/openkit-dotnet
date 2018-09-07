@@ -16,20 +16,30 @@
 
 using Dynatrace.OpenKit.API;
 using System;
+using System.Globalization;
+using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
 {
     public class DefaultLogger : ILogger
     {
         private readonly bool verbose;
+        private readonly System.Action<string> writeLineAction;
 
-        const string DATEFORMAT = "O";
+        const string DateFormat = "O";
 
         public DefaultLogger(bool verbose)
+        : this(verbose, WriteLine)
+
         {
-            this.verbose = verbose;
         }
 
+        internal DefaultLogger(bool verbose, System.Action<string> writeLineAction)
+        {
+            this.verbose = verbose;
+            this.writeLineAction = writeLineAction;
+        }
+        
         public bool IsErrorEnabled => true;
 
         public bool IsWarnEnabled => true;
@@ -38,28 +48,47 @@ namespace Dynatrace.OpenKit.Core
 
         public bool IsDebugEnabled => verbose;
 
-        private static string UTCTime => DateTime.UtcNow.ToString(DATEFORMAT);
+        private static string UTCTime => DateTime.UtcNow.ToString(DateFormat, CultureInfo.InvariantCulture);
+        
+        private string CurrentThreadName
+        {
+            get
+            {
+#if !(WINDOWS_UWP || NETPCL4_5)
+
+                var threadName = Thread.CurrentThread.Name;
+                if (!string.IsNullOrEmpty(threadName))
+                {
+                    return threadName;
+                }
+                return Thread.CurrentThread.ManagedThreadId.ToString(CultureInfo.InvariantCulture);
+#else
+                return System.Threading.Tasks.Task.CurrentId?.ToString(CultureInfo.InvariantCulture) ?? "N/A";
+#endif
+            }
+        }
 
         public void Error(string message)
         {
-            WriteLine(UTCTime + " [ERROR] " + message);
+            writeLineAction(UTCTime + " ERROR [" + CurrentThreadName + "] " + message);
         }
 
         public void Error(string message, Exception exception)
         {
-            WriteLine(UTCTime + " [ERROR] " + message + Environment.NewLine + exception.ToString());
+            writeLineAction(UTCTime + " ERROR [" + CurrentThreadName + "] " + message 
+                + Environment.NewLine + exception.ToString());
         }
 
         public void Warn(string message)
         {
-            WriteLine(UTCTime + " [WARN ] " + message);
+            writeLineAction(UTCTime + " WARN  [" + CurrentThreadName + "] " + message);
         }
 
         public void Info(string message)
         {
             if (IsInfoEnabled)
             {
-                WriteLine(UTCTime + " [INFO ] " + message);
+                writeLineAction(UTCTime + " INFO  [" + CurrentThreadName + "] " + message);
             }
         }
 
@@ -67,7 +96,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (IsDebugEnabled)
             {
-                WriteLine(UTCTime + " [DEBUG] " + message);
+                writeLineAction(UTCTime + " DEBUG [" + CurrentThreadName + "] " + message);
             }
         }
 
@@ -77,7 +106,5 @@ namespace Dynatrace.OpenKit.Core
             Console.WriteLine(text);
 #endif
         }
-
-
     }
 }

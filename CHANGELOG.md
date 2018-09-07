@@ -12,6 +12,8 @@
 ### Changed
 - Fix wrong Session start time
 - Fix wrong device ID in web requests
+- Add Thread identifier to log output  
+  This makes the log output similar to the Java/Native implementation
 
 ### Improved
 - OpenKit internal version handling
