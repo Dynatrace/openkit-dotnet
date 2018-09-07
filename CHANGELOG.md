@@ -4,6 +4,8 @@
 
 ### Changed
 - Fix wrong device ID in web requests
+- Add Thread identifier to log output  
+  This makes the log output similar to the Java/Native implementation
 
 ## 1.1.1 [Release date: 2018-09-03]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.1)
