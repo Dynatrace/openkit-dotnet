@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core
             logger = Substitute.For<ILogger>();
             mockTimingProvider = Substitute.For<ITimingProvider>();
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
-            testConfiguration = new TestConfiguration(1, beaconConfig);
+            testConfiguration = new TestConfiguration("1", beaconConfig);
             beacon = new Beacon(logger,
                                 new BeaconCache(logger),
                                 testConfiguration,

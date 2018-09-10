@@ -18,6 +18,7 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
+using System.Globalization;
 
 namespace Dynatrace.OpenKit
 {
@@ -40,8 +41,12 @@ namespace Dynatrace.OpenKit
         private DataCollectionLevel dataCollectionLevel = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
         private CrashReportingLevel crashReportingLevel = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
 
+        protected AbstractOpenKitBuilder(string endpointURL, long deviceID) :
+            this(endpointURL, deviceID.ToString(CultureInfo.InvariantCulture))
+        {
+        }
 
-        protected AbstractOpenKitBuilder(string endpointURL, long deviceID)
+        protected AbstractOpenKitBuilder(string endpointURL, string deviceID)
         {
             EndpointURL = endpointURL;
             DeviceID = deviceID;
@@ -54,7 +59,7 @@ namespace Dynatrace.OpenKit
         protected ISSLTrustManager TrustManager => trustManager;
         protected ILogger Logger => logger ?? new DefaultLogger(verbose);
         protected string EndpointURL { get; private set; }
-        protected long DeviceID { get; private set; }
+        protected string DeviceID { get; private set; }
         protected long BeaconCacheMaxBeaconAge => beaconCacheMaxBeaconAge;
         protected long BeaconCacheLowerMemoryBoundary => beaconCacheLowerMemoryBoundary;
         protected long BeaconCacheUpperMemoryBoundary => beaconCacheUpperMemoryBoundary;

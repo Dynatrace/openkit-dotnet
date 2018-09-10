@@ -182,7 +182,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             var defaultBeaconConfig = new BeaconConfiguration();
 
-            return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider(),
+            return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "", "0", "", new Providers.TestSessionIDProvider(),
                   new SSLStrictTrustManager(), new Core.Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
         }
     }

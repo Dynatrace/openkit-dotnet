@@ -23,17 +23,17 @@ namespace Dynatrace.OpenKit
     public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : this( 0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new Providers.TestSessionIDProvider())
+            : this("0", new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new Providers.TestSessionIDProvider())
         {
         }
 
-        internal TestConfiguration(int deviceID, BeaconConfiguration beaconConfig)
+        internal TestConfiguration(string deviceID, BeaconConfiguration beaconConfig)
             : this(deviceID, beaconConfig, new Providers.DefaultSessionIDProvider() )
         {
 
         }
 
-        internal TestConfiguration(int deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
+        internal TestConfiguration(string deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
             : base(OpenKitType.DYNATRACE, "", "", deviceID, "", sessionIDProvider, 
                   new SSLStrictTrustManager(), new Core.Device("", "", ""), "", 
                   new BeaconCacheConfiguration(
