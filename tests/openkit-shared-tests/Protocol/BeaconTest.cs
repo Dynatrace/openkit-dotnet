@@ -663,7 +663,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var deviceIDBuilder = new StringBuilder();
-            for (var i = 0; i < Beacon.MaxNameLength - 1; i++)
+            for (var i = 0; i < Beacon.MaximumNameLength - 1; i++)
             {
                 deviceIDBuilder.Append("a");
             }
@@ -676,8 +676,8 @@ namespace Dynatrace.OpenKit.Protocol
             var obtained = target.DeviceID;
             
             // then
-            Assert.That(obtained.Length, Is.EqualTo(Beacon.MaxNameLength));
-            Assert.That(obtained, Is.EqualTo(deviceID.Substring(0, Beacon.MaxNameLength)));
+            Assert.That(obtained.Length, Is.EqualTo(Beacon.MaximumNameLength));
+            Assert.That(obtained, Is.EqualTo(deviceID.Substring(0, Beacon.MaximumNameLength)));
         }
 
         [Test]
