@@ -29,51 +29,45 @@ namespace Dynatrace.OpenKit.Core
         private readonly ILogger logger = null;
 
         // Dynatrace tag that has to be used for tracing the web request
-        private string tag = null;
+        private readonly string tag = null;
 
         // HTTP information: URL & response code, bytesSent, bytesReceived
         protected string url = "<unknown>";
-        private int responseCode = -1;
-        private int bytesSent = -1;
-        private int bytesReceived = -1;
 
         // start/end time & sequence number
-        private long startTime = -1;
         private long endTime = -1;
-        private int startSequenceNo = -1;
-        private int endSequenceNo = -1;
 
         // Beacon and Action references
-        private Beacon beacon;
-        private Action action;
+        private readonly Beacon beacon;
+        private readonly int parentActionID;
 
         // *** constructors ***
 
-        public WebRequestTracerBase(ILogger logger, Beacon beacon, Action action)
+        public WebRequestTracerBase(ILogger logger, Beacon beacon, int parentActionID)
         {
             this.logger = logger;
             this.beacon = beacon;
-            this.action = action;
+            this.parentActionID = parentActionID;
 
             // creating start sequence number has to be done here, because it's needed for the creation of the tag
-            startSequenceNo = beacon.NextSequenceNumber;
+            StartSequenceNo = beacon.NextSequenceNumber;
 
-            tag = beacon.CreateTag(action, startSequenceNo);
+            tag = beacon.CreateTag(parentActionID, StartSequenceNo);
 
-            startTime = beacon.CurrentTimestamp;
+            StartTime = beacon.CurrentTimestamp;
         }
 
         // *** IWebRequestTracer interface methods ***
 
         public string URL => url;
 
-        public long StartTime => startTime;
+        public long StartTime { get; private set; }
 
         public long EndTime => Interlocked.Read(ref endTime);
 
-        public int StartSequenceNo => startSequenceNo;
+        public int StartSequenceNo { get; }
 
-        public int EndSequenceNo => endSequenceNo;
+        public int EndSequenceNo { get; private set; } = -1;
 
         public string Tag
         {
@@ -81,17 +75,17 @@ namespace Dynatrace.OpenKit.Core
             {
                 if(logger.IsDebugEnabled)
                 {
-                    logger.Debug(this + "Tag returning '" + tag + "'");
+                    logger.Debug($"{this} Tag returning '{tag}'");
                 }
                 return tag;
             }
         }
 
-        public int ResponseCode => responseCode;
+        public int ResponseCode { get; private set; } = -1;
 
-        public int BytesSent => bytesSent;
+        public int BytesSent { get; private set; } = -1;
 
-        public int BytesReceived => bytesReceived;
+        public int BytesReceived { get; private set; } = -1;
 
         internal bool IsStopped => EndTime != -1;
 
@@ -108,7 +102,7 @@ namespace Dynatrace.OpenKit.Core
             }
             if (!IsStopped)
             {
-                startTime = beacon.CurrentTimestamp;
+                StartTime = beacon.CurrentTimestamp;
             }
             return this;
         }
@@ -124,17 +118,17 @@ namespace Dynatrace.OpenKit.Core
                 return;
             }
 
-            endSequenceNo = beacon.NextSequenceNumber;
+            EndSequenceNo = beacon.NextSequenceNumber;
 
             // add web request to beacon
-            beacon.AddWebRequest(action, this);
+            beacon.AddWebRequest(parentActionID, this);
         }
 
         public IWebRequestTracer SetResponseCode(int responseCode)
         {
             if (!IsStopped)
             {
-                this.responseCode = responseCode;
+                ResponseCode = responseCode;
             }
             return this;
         }
@@ -143,7 +137,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (!IsStopped)
             {
-                this.bytesSent = bytesSent;
+                BytesSent = bytesSent;
             }
             return this;
         }
@@ -152,14 +146,14 @@ namespace Dynatrace.OpenKit.Core
         {
             if (!IsStopped)
             {
-                this.bytesReceived = bytesReceived;
+                BytesReceived = bytesReceived;
             }
             return this;
         }
 
         public override string ToString()
         {
-            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + action.ID + ", url='" + url + "'] ";
+            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={parentActionID}, url='{url}'] ";
         }
     }
 }

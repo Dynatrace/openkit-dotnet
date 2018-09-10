@@ -55,6 +55,21 @@ namespace Dynatrace.OpenKit.API
         void ReportCrash(string errorName, string reason, string stacktrace);
 
         /// <summary>
+        ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
+        ///  In this case the Dynatrace HTTP header (<see cref="OpenKitConstants.WEBREQUEST_TAG_HEADER"/>) has to be set manually to the
+        ///  traces value of this WebRequestTracer.
+        ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
+        ///  the resulting server-side PurePath.
+        /// </summary>
+        /// <remarks>
+        /// If given <paramref name="url"/> is <code>null</code> or an empty string, then
+        /// a <see cref="NullWebRequestTracer"/> is returned and nothing is reported to the server.
+        /// </remarks>
+        /// <param name="url">the URL of the web request to be traced and timed</param>
+        /// <returns>a WebRequestTracer which allows getting the tag value and adding timing information</returns>
+        IWebRequestTracer TraceWebRequest(string url);
+
+        /// <summary>
         ///  Ends this Session and marks it as ready for immediate sending.
         /// </summary>
         void End();

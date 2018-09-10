@@ -28,7 +28,6 @@ namespace Dynatrace.OpenKit.Core
     public class WebRequestTracerBaseTest
     {
         private Beacon beacon;
-        private Action action;
         private ILogger logger;
         private OpenKitConfiguration testConfiguration;
         private ITimingProvider mockTimingProvider;
@@ -46,21 +45,20 @@ namespace Dynatrace.OpenKit.Core
                                 "127.0.0.1",
                                 Substitute.For<IThreadIDProvider>(),
                                 mockTimingProvider);
-            action = new RootAction(logger, beacon, "ActionName", new SynchronizedQueue<IAction>());
         }
 
         [Test]
         public void DefaultValues()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // then
             Assert.That(target.URL, Is.EqualTo("<unknown>"));
             Assert.That(target.ResponseCode, Is.EqualTo(-1));
             Assert.That(target.StartTime, Is.EqualTo(0L));
             Assert.That(target.EndTime, Is.EqualTo(-1L));
-            Assert.That(target.StartSequenceNo, Is.EqualTo(2));
+            Assert.That(target.StartSequenceNo, Is.EqualTo(1));
             Assert.That(target.EndSequenceNo, Is.EqualTo(-1));
             Assert.That(target.BytesSent, Is.EqualTo(-1));
             Assert.That(target.BytesReceived, Is.EqualTo(-1));
@@ -70,10 +68,10 @@ namespace Dynatrace.OpenKit.Core
         public void GetTag()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // then
-            var expectedTag = beacon.CreateTag(action, 2);
+            var expectedTag = beacon.CreateTag(17, 1);
             Assert.That(target.Tag, Is.EqualTo(expectedTag));
         }
 
@@ -81,7 +79,7 @@ namespace Dynatrace.OpenKit.Core
         public void ANewlyCreatedWebRequestTracerIsNotStopped()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // then
             Assert.That(target.IsStopped, Is.False);
@@ -91,7 +89,7 @@ namespace Dynatrace.OpenKit.Core
         public void AWebRequestTracerIsStoppedAfterStopHasBeenCalled()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // when calling the stop method
             target.Stop();
@@ -104,7 +102,7 @@ namespace Dynatrace.OpenKit.Core
         public void DisposingAWebRequestTracerStopsIt()
         {
             // given
-            IDisposable target = new TestWebRequestTracerBase(logger, beacon, action);
+            IDisposable target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // when disposing the target
             target.Dispose();
@@ -117,7 +115,7 @@ namespace Dynatrace.OpenKit.Core
         public void SetResponseCodeSetsTheResponseCode()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // when setting response code
             var obtained = target.SetResponseCode(418);
@@ -131,7 +129,7 @@ namespace Dynatrace.OpenKit.Core
         public void SetResponseCodeDoesNotSetTheResponseCodeIfStopped()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
             target.Stop();
 
             // when setting response code
@@ -147,7 +145,7 @@ namespace Dynatrace.OpenKit.Core
         public void SetBytesSentSetsTheNumberOfSentBytes()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // when setting the sent bytes
             var obtained = target.SetBytesSent(1234);
@@ -161,7 +159,7 @@ namespace Dynatrace.OpenKit.Core
         public void SetBytesSentDoesNotSetAnythingIfStopped()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
             target.Stop();
 
             // when setting the sent bytes
@@ -176,7 +174,7 @@ namespace Dynatrace.OpenKit.Core
         public void SetBytesReceivedSetsTheNumberOfReceivedBytes()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
 
             // when setting the received bytes
             var obtained = target.SetBytesReceived(4321);
@@ -190,7 +188,7 @@ namespace Dynatrace.OpenKit.Core
         public void SetBytesReceivedDoesNotSetAnythingIfStopped()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
             target.Stop();
 
             // when setting the received bytes
@@ -205,7 +203,7 @@ namespace Dynatrace.OpenKit.Core
         public void StartSetsTheStartTime()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123456789L);
 
             // when starting web request tracing
@@ -220,7 +218,7 @@ namespace Dynatrace.OpenKit.Core
         public void StartDoesNothingIfAlreadyStopped()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123456789L);
             target.Stop();
 
@@ -236,7 +234,7 @@ namespace Dynatrace.OpenKit.Core
         public void StopCanOnlyBeExecutedOnce()
         {
             // given
-            var target = new TestWebRequestTracerBase(logger, beacon, action);
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123L, 321L);
 
             // when executed the first time
@@ -244,7 +242,7 @@ namespace Dynatrace.OpenKit.Core
             target.Stop();
 
             // then
-            Assert.That(target.EndSequenceNo, Is.EqualTo(3));
+            Assert.That(target.EndSequenceNo, Is.EqualTo(2));
             Assert.That(target.EndTime, Is.EqualTo(123L));
             Assert.That(beacon.IsEmpty, Is.False);
 
@@ -253,14 +251,14 @@ namespace Dynatrace.OpenKit.Core
             target.Stop();
 
             // then
-            Assert.That(target.EndSequenceNo, Is.EqualTo(3));
+            Assert.That(target.EndSequenceNo, Is.EqualTo(2));
             Assert.That(target.EndTime, Is.EqualTo(123L));
             Assert.That(beacon.IsEmpty, Is.True);
         }
 
         private sealed class TestWebRequestTracerBase : WebRequestTracerBase
         {
-            public TestWebRequestTracerBase(ILogger logger, Beacon beacon, Action action) : base(logger, beacon, action)
+            public TestWebRequestTracerBase(ILogger logger, Beacon beacon, int parentActionID) : base(logger, beacon, parentActionID)
             {
             }
         }

@@ -274,25 +274,25 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// create web request tag
         /// </summary>
-        /// <param name="parentAction"></param>
+        /// <param name="parentActionID"></param>
         /// <param name="sequenceNo"></param>
         /// <returns></returns>
-        public string CreateTag(Action parentAction, int sequenceNo)
+        public string CreateTag(int parentActionID, int sequenceNo)
         {
             if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return string.Empty;
             }
 
-            return WebRequestTagPrefix + "_"
-                       + ProtocolConstants.PROTOCOL_VERSION + "_"
-                       + httpConfiguration.ServerID + "_"
-                       + DeviceID + "_"
-                       + SessionNumber + "_"
-                       + configuration.ApplicationID + "_"
-                       + parentAction.ID + "_"
-                       + threadIDProvider.ThreadID + "_"
-                       + sequenceNo;
+            return $"{WebRequestTagPrefix}_"
+                + $"{ProtocolConstants.PROTOCOL_VERSION}_"
+                + $"{httpConfiguration.ServerID}_"
+                + $"{DeviceID}_"
+                + $"{SessionNumber}_"
+                + $"{configuration.ApplicationID}_"
+                + $"{parentActionID}_"
+                + $"{threadIDProvider.ThreadID}_"
+                + $"{sequenceNo}";
         }
 
         /// <summary>
@@ -546,9 +546,9 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// add web request to the provided Action
         /// </summary>
-        /// <param name="parentAction"></param>
+        /// <param name="parentActionID"></param>
         /// <param name="webRequestTracer"></param>
-        public void AddWebRequest(Action parentAction, WebRequestTracerBase webRequestTracer)
+        public void AddWebRequest(int parentActionID, WebRequestTracerBase webRequestTracer)
         {
             if (CapturingDisabled)
             {
@@ -564,7 +564,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             BuildBasicEventData(eventBuilder, EventType.WEBREQUEST, webRequestTracer.URL);
 
-            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, parentAction.ID);
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, parentActionID);
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, webRequestTracer.StartSequenceNo);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(webRequestTracer.StartTime));
             AddKeyValuePair(eventBuilder, BeaconKeyEndSequenceNumber, webRequestTracer.EndSequenceNo);
