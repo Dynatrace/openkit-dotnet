@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Core
 
         // *** constructors ***
 
-        public WebRequestTracerStringURL(ILogger logger, Beacon beacon, Action action, string url) : base(logger, beacon, action)
+        public WebRequestTracerStringURL(ILogger logger, Beacon beacon, int parentActionID, string url) : base(logger, beacon, parentActionID)
         {
             // separate query string from URL
             if (IsValidURLScheme(url))

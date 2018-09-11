@@ -95,17 +95,16 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesSent = 123;
 
             //when
             webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
         }
 
         [Test]
@@ -116,17 +115,16 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesSent = 0;
 
             //when
             webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs={bytesSent}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
         }
 
         [Test]
@@ -137,16 +135,15 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
 
             //when
             webRequest.Start().SetBytesSent(-1).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
         }
 
         [Test]
@@ -157,17 +154,16 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesReceived = 12321;
 
             //when
             webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
         }
 
         [Test]
@@ -178,17 +174,16 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesReceived = 0;
 
             //when
             webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&br={bytesReceived}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
         }
 
         [Test]
@@ -199,16 +194,15 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
 
             //when
             webRequest.Start().SetBytesReceived(-1).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
         }
 
         [Test]
@@ -220,9 +214,8 @@ namespace Dynatrace.OpenKit.Protocol
                 BeaconConfiguration = beaconConfig
             };
 
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
-            var testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, action, testURL);
+            const string testURL = "https://127.0.0.1";
+            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesReceived = 12321;
             var bytesSent = 123;
 
@@ -230,7 +223,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=2&t0=0&s1=3&t1=0&bs=123&br=12321" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs=123&br=12321" }));
         }
 
         [Test]
@@ -439,12 +432,11 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-            var webRequestTracer = new WebRequestTracerStringURL(logger, target, parentAction, "https://foo.bar");
+            
+            var webRequestTracer = new WebRequestTracerStringURL(logger, target, 17, "https://foo.bar");
 
             // when
-            target.AddWebRequest(parentAction, webRequestTracer);
+            target.AddWebRequest(17, webRequestTracer);
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
@@ -473,12 +465,11 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction);
+            
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
 
             //when
-            target.AddWebRequest(parentAction, webRequestTracer);
+            target.AddWebRequest(17, webRequestTracer);
             var temp = webRequestTracer.Received(0).BytesReceived;
             temp = webRequestTracer.Received(0).BytesSent;
             temp = webRequestTracer.Received(0).ResponseCode;
@@ -494,12 +485,12 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction);
+            
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
 
             //when
-            target.AddWebRequest(parentAction, webRequestTracer);
+            target.AddWebRequest(17, webRequestTracer);
+
             var temp = webRequestTracer.Received(1).BytesReceived;
             temp = webRequestTracer.Received(1).BytesSent;
             temp = webRequestTracer.Received(1).ResponseCode;
@@ -515,12 +506,12 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, parentAction);
+            
+            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
 
             //when
-            target.AddWebRequest(parentAction, webRequestTracer);
+            target.AddWebRequest(17, webRequestTracer);
+
             var temp = webRequestTracer.Received(1).BytesReceived;
             temp = webRequestTracer.Received(1).BytesSent;
             temp = webRequestTracer.Received(1).ResponseCode;
@@ -537,13 +528,11 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-
             //when
-            var tagReturned = target.CreateTag(parentAction, 1);
+            var tagReturned = target.CreateTag(42, 1);
 
             //then
-            Assert.That(tagReturned.Length, Is.EqualTo(0));
+            Assert.That(tagReturned, Is.Empty);
         }
 
         [Test]
@@ -553,13 +542,12 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
 
             //when
-            var tagReturned = target.CreateTag(parentAction, 1);
+            var obtained = target.CreateTag(42, 1);
 
             //then
-            Assert.That(tagReturned.Length, Is.GreaterThan(0));
+            Assert.That(obtained, Is.Not.Empty);
         }
 
         [Test]
@@ -570,13 +558,11 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-
             //when
-            var tagReturned = target.CreateTag(parentAction, 1);
+            var obtained = target.CreateTag(42, 1);
 
             //then
-            Assert.That(tagReturned.Length, Is.GreaterThan(0));
+            Assert.That(obtained, Is.Not.Empty);
         }
 
         [Test]

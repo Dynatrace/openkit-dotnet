@@ -29,6 +29,7 @@ namespace Dynatrace.OpenKit.Core
     public class Session : ISession
     {
         private static readonly NullRootAction NullRootAction = new NullRootAction();
+        private static readonly NullWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
         private readonly ILogger logger;
 
@@ -128,6 +129,30 @@ namespace Dynatrace.OpenKit.Core
             {
                 beacon.ReportCrash(errorName, reason, stacktrace);
             }
+        }
+
+        public IWebRequestTracer TraceWebRequest(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                logger.Warn($"{this}TraceWebRequest (String): url must not be null or empty");
+                return NullWebRequestTracer;
+            }
+            if (!WebRequestTracerStringURL.IsValidURLScheme(url))
+            {
+                logger.Warn($"{this}TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
+                return NullWebRequestTracer;
+            }
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this}TraceWebRequest (String) ({url})");
+            }
+            if (!IsSessionEnded)
+            {
+                return new WebRequestTracerStringURL(logger, beacon, 0, url);
+            }
+
+            return NullWebRequestTracer;
         }
 
         public void End()

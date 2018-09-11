@@ -91,7 +91,7 @@ namespace Dynatrace.OpenKit.Core
         public void AnURLIsOnlySetInConstructorIfItIsValid()
         {
             // given
-            var target = new WebRequestTracerStringURL(logger, beacon, action, "a1337://foo");
+            var target = new WebRequestTracerStringURL(logger, beacon, 21, "a1337://foo");
 
             // then
             Assert.That(target.URL, Is.EqualTo("a1337://foo"));
@@ -101,7 +101,7 @@ namespace Dynatrace.OpenKit.Core
         public void IfURLIsInvalidTheDefaultValueIsUsed()
         {
             // given
-            var target = new WebRequestTracerStringURL(logger, beacon, action, "foobar");
+            var target = new WebRequestTracerStringURL(logger, beacon, 42, "foobar");
 
             // then
             Assert.That(target.URL, Is.EqualTo("<unknown>"));

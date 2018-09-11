@@ -192,7 +192,7 @@ namespace Dynatrace.OpenKit.Core
             }
             if (!IsActionLeft)
             {
-                return new WebRequestTracerStringURL(logger, beacon, this, url);
+                return new WebRequestTracerStringURL(logger, beacon, ID, url);
             }
 
             return NullWebRequestTracer;

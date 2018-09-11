@@ -347,5 +347,89 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(beacon.IsEmpty, Is.True);
             beaconSendingContext.Received(1).FinishSession(target);
         }
+
+        [Test]
+        public void TraceWebRequestGivesValidWebRequestTracer()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest("http://example.com/pages/");
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained, Is.InstanceOf<WebRequestTracerStringURL>());
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfSessionIsAlreadyEnded()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            target.End();
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest("http://example.com/pages/");
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsNull()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest(null);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session [sn=1] TraceWebRequest (String): url must not be null or empty");
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsAnEmptyString()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest(string.Empty);
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("Session [sn=1] TraceWebRequest (String): url must not be null or empty");
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfUrlHasAnInvalidScheme()
+        {
+            // given
+            var target = new Session(logger, beaconSender, beacon);
+            beacon.ClearData();
+
+            // when
+            var obtained = target.TraceWebRequest("foo:bar://test.com");
+
+            // then
+            Assert.That(beacon.IsEmpty, Is.True);
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn($"Session [sn=1] TraceWebRequest (String): url \"foo:bar://test.com\" does not have a valid scheme");
+        }
     }
 }

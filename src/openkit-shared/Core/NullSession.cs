@@ -21,6 +21,7 @@ namespace Dynatrace.OpenKit.Core
     public class NullSession : ISession
     {
         private static readonly IRootAction NullRootAction = new NullRootAction();
+        private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
         public void Dispose()
         {
@@ -45,6 +46,11 @@ namespace Dynatrace.OpenKit.Core
         public void ReportCrash(string errorName, string reason, string stacktrace)
         {
             // intentionally left empty, due to NullObject pattern
+        }
+
+        public IWebRequestTracer TraceWebRequest(string url)
+        {
+            return NullWebRequestTracer;
         }
     }
 }

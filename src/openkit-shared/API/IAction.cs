@@ -87,7 +87,7 @@ namespace Dynatrace.OpenKit.API
 
         /// <summary>
         ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
-        ///  In this case the Dynatrace HTTP header (OpenKitFactory.WEBREQUEST_TAG_HEADER) has to be set manually to the
+        ///  In this case the Dynatrace HTTP header (<see cref="OpenKitConstants.WEBREQUEST_TAG_HEADER"/>) has to be set manually to the
         ///  traces value of this WebRequestTracer.
         ///  If the web request is continued on a server-side Agent (e.g. Java, .NET, ...) this Session will be correlated to
         ///  the resulting server-side PurePath.
