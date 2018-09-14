@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.1.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.0...HEAD)
+
+## 1.2.0 [Release date: 2018-09-14]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.2.0)
 
 ### Added
 - New project for .NET Standard 2.0
