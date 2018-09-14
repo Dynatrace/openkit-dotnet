@@ -22,7 +22,7 @@ namespace Dynatrace.OpenKit.API
     public class OpenKitConstants
     {
         // default values used in configuration
-        public const string DEFAULT_APPLICATION_VERSION = "1.1.1";
+        public const string DEFAULT_APPLICATION_VERSION = "1.1.2";
         public const string DEFAULT_OPERATING_SYSTEM = "OpenKit " + DEFAULT_APPLICATION_VERSION;
         public const string DEFAULT_MANUFACTURER = "Dynatrace";
         public const string DEFAULT_MODEL_ID = "OpenKitDevice";
