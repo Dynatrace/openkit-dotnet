@@ -26,7 +26,7 @@ builds['Windows'] = {
                 $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
                 foreach ($project in $testProjects)
                 {
-                    dotnet.exe test -c Release $project --no-build
+                    dotnet.exe test -c Release $project --logger trx --no-build
                 } 
             ''')
             if(rv != 0) {
@@ -34,6 +34,7 @@ builds['Windows'] = {
             }
         } finally {
             step([$class: 'NUnitPublisher', testResultsPattern: 'myresults.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
+            step([$class: 'MSTestPublisher', testResultsFile:"**/*.trx", failOnError: true, keepLongStdio: true])
         }
     }
 }
