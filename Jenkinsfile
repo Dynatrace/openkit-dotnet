@@ -17,7 +17,7 @@ builds['Windows'] = {
         try {
             // create reports dir
             def outputDir="reports"
-            if(!fileExists("${outputDir}")) {
+            if(fileExists("${outputDir}")) {
                 dir("${outputDir}") {
                     deleteDir()
                 }
