@@ -17,7 +17,13 @@ builds['Windows'] = {
         try {
             // create reports dir
             def outputDir="reports"
+            if(!fileExists("${outputDir}")) {
+                dir("${outputDir}") {
+                    deleteDir()
+                }
+            }
             bat "mkdir ${outputDir}"
+            
 
             def rv = powershell(returnStatus: true, script: '''
                 $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll,openkit-dotnetstandard-*Tests.dll,openkit-dotnetpcl-*Tests.dll  | ? {$_.FullName -match "\\\\bin\\\\Release\\\\" } | % FullName
