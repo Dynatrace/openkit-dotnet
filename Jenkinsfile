@@ -32,7 +32,7 @@ builds['Windows'] = {
             println stdout
 
         } finally {
-            junit("myresults.xml")
+            nunit("myresults.xml")
         }
     }
 }
