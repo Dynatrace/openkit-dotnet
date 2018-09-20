@@ -14,9 +14,9 @@ builds['Windows'] = {
 
         bat("\"${msbuildCmd}\" /p:Configuration=Release")
 
+         def outputDir="reports"
         try {
             // create reports dir
-            def outputDir="reports"
             if(fileExists("${outputDir}")) {
                 dir("${outputDir}") {
                     deleteDir()
