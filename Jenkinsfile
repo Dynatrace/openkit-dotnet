@@ -2,11 +2,15 @@
 properties([disableConcurrentBuilds(), [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '15']]]);
 
 def msbuildCmd="C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe"
+def nuget="C:\\nuget\\nuget.exe"
 def builds = [:]
 
 builds['Windows'] = {
     node("VS2017") {
         checkout scm
+
+        // restore with nuget because only using msbuild.exe /t:restore doesn't do the stuff
+        bat("\"${nuget}\" restore")
 
         bat("\"${msbuildCmd}\" /p:Configuration=Release")
 
