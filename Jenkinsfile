@@ -17,7 +17,7 @@ builds['Windows'] = {
         try {
             //
 
-            def stdout = powershell(returnStdout: true, script: '''
+            def rv = powershell(returnStatus: true, script: '''
                 $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll,openkit-dotnetstandard-*Tests.dll,openkit-dotnetpcl-*Tests.dll  | ? {$_.FullName -match "\\\\bin\\\\Release\\\\" } | % FullName
                 packages\\\\NUnit.ConsoleRunner.3.8.0\\\\tools\\\\nunit3-console.exe --result=\"myresults.xml;format=nunit3\" $testAssemblies
 
@@ -29,8 +29,9 @@ builds['Windows'] = {
                     dotnet.exe test -c Release $project --no-build
                 } 
             ''')
-            println stdout
-
+            if(rv != 0) {
+                error("nunit test failed.")
+            }
         } finally {
             nunit("myresults.xml")
         }
