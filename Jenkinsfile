@@ -33,7 +33,7 @@ builds['Windows'] = {
                 error("nunit test failed.")
             }
         } finally {
-            nunit("myresults.xml")
+            step([$class: 'NUnitPublisher', testResultsPattern: 'myresults.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
         }
     }
 }
