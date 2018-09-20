@@ -41,9 +41,9 @@ builds['Windows'] = {
                 error("nunit test failed.")
             }
         } finally {
-            step([$class: 'XUnitBuilder',
-                thresholds: [[$class: 'FailedThreshold', unstableThreshold: '1']],
-                tools: [[$class: 'JUnitType', pattern: "${outputDir}/**"]]])
+            xunit testTimeMargin: '3000', thresholdMode: 1, thresholds: [], 
+                tools: [NUnit3(deleteOutputFiles: true, failIfNotNew: true, pattern: "${outputDir}/*.xml", skipNoTestFiles: false, stopProcessingIfError: true),
+                        MSTest(deleteOutputFiles: true, failIfNotNew: true, pattern: "${outputDir}/*.trx", skipNoTestFiles: false, stopProcessingIfError: true)]
         }
     }
 }
