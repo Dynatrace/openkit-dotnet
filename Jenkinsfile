@@ -23,6 +23,7 @@ builds['Windows'] = {
                 }
             }
             bat "mkdir ${outputDir}"
+            echo("---------DOPS--------------")
             
 
             def rv = powershell(returnStatus: true, script: '''
