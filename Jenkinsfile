@@ -33,7 +33,7 @@ builds['Windows'] = {
                 $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
                 foreach ($project in $testProjects)
                 {
-                    dotnet.exe test -c Release $project --output ''' + outputDir + ''' --logger trx --no-build
+                    dotnet.exe test -c Release $project --results-directory ''' + outputDir + ''' --logger trx --no-build
                 } 
             ''')
             if(rv != 0) {
