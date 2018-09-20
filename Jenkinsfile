@@ -15,26 +15,29 @@ builds['Windows'] = {
         bat("\"${msbuildCmd}\" /p:Configuration=Release")
 
         try {
-            //
+            // create reports dir
+            def outputDir="reports"
+            dir(outputDir)
 
             def rv = powershell(returnStatus: true, script: '''
                 $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll,openkit-dotnetstandard-*Tests.dll,openkit-dotnetpcl-*Tests.dll  | ? {$_.FullName -match "\\\\bin\\\\Release\\\\" } | % FullName
-                packages\\\\NUnit.ConsoleRunner.3.8.0\\\\tools\\\\nunit3-console.exe --result=\"myresults.xml;format=nunit3\" $testAssemblies
+                packages\\\\NUnit.ConsoleRunner.3.8.0\\\\tools\\\\nunit3-console.exe --result=\"${outputDir}\\\\myresults.xml;format=nunit3\" $testAssemblies
 
 
                 # Run .NET Core tests
                 $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
                 foreach ($project in $testProjects)
                 {
-                    dotnet.exe test -c Release $project --logger trx --no-build
+                    dotnet.exe test -c Release $project --output ${outputDir} --logger trx --no-build
                 } 
             ''')
             if(rv != 0) {
                 error("nunit test failed.")
             }
         } finally {
-            step([$class: 'NUnitPublisher', testResultsPattern: 'myresults.xml', debug: false, keepJUnitReports: true, skipJUnitArchiver:false, failIfNoResults: true])
-            step([$class: 'MSTestPublisher', testResultsFile:"**/*.trx", failOnError: true, keepLongStdio: true])
+            step([$class: 'XUnitBuilder',
+                thresholds: [[$class: 'FailedThreshold', unstableThreshold: '1']],
+                tools: [[$class: 'JUnitType', pattern: '${outputDir}/**']]])
         }
     }
 }
