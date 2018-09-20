@@ -8,7 +8,7 @@ builds['Windows'] = {
     node("VS2017") {
         checkout scm
 
-        bat("${msbuildCmd} /p:Configuration=Release")
+        bat("\"${msbuildCmd}\" /p:Configuration=Release")
 
         try {
             //
