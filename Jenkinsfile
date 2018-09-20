@@ -19,7 +19,7 @@ builds['Windows'] = {
 
             def stdout = powershell(returnStdout: true, script: '''
                 $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll,openkit-dotnetstandard-*Tests.dll,openkit-dotnetpcl-*Tests.dll  | ? {$_.FullName -match "\\\\bin\\\\Release\\\\" } | % FullName
-                packages\\\\NUnit.ConsoleRunner.3.8.0\\\\tools\\\\nunit3-console.exe --result=myresults.xml;format=nunit3 $testAssemblies
+                packages\\\\NUnit.ConsoleRunner.3.8.0\\\\tools\\\\nunit3-console.exe --result=\"myresults.xml;format=nunit3\" $testAssemblies
 
 
                 # Run .NET Core tests
