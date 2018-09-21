@@ -6,9 +6,8 @@ def nuget="C:\\nuget\\nuget.exe"
 def builds = [:]
 
 builds['Windows'] = {
-    timeout(activity: true, time: 15) {
-        node("VS2017") {
-
+    node("VS2017") {
+        timeout(activity: true, time: 15) {
             // cleanup all
             deleteDir()
 
