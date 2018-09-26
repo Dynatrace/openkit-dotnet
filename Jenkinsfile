@@ -2,7 +2,7 @@
 properties([disableConcurrentBuilds(), [$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '15']]]);
 
 def msbuildCmd="C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-def nuget="C:\\nuget\\nuget.exe"
+def nuget="c:\\program files (x86)\\nuget"
 def builds = [:]
 
 builds['Windows'] = {
