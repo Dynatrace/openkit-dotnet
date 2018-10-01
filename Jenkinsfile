@@ -16,6 +16,8 @@ builds['Windows'] = {
             // restore with nuget because only using msbuild.exe /t:restore doesn't do the stuff
             bat("\"${nuget}\" restore")
 
+            bat("\"${msbuildCmd}\" /t:restore")
+
             bat("\"${msbuildCmd}\" /p:Configuration=Release")
 
             def outputDir="reports"
