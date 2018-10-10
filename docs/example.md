@@ -61,8 +61,8 @@ customize OpenKit. This includes device specific information like operating syst
 
 | Method Name | Description | Default Value |
 | ------------- | ------------- | ---------- |
-| `WithApplicationVersion`  | sets the application version  | `"1.3.0"` |
-| `WithOperatingSystem`  | sets the operating system name | `"OpenKit 1.3.0"` |
+| `WithApplicationVersion`  | sets the application version  | `"1.4.0"` |
+| `WithOperatingSystem`  | sets the operating system name | `"OpenKit 1.4.0"` |
 | `WithManufacturer`  | sets the manufacturer | `"Dynatrace"` |
 | `WithModelID`  | sets the model id  | `"OpenKitDevice"` |
 | `WithBeaconCacheMaxRecordAge`  | sets the maximum age of an entry in the beacon cache in milliseconds | 1 h 45 min |
