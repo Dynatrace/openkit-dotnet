@@ -75,7 +75,7 @@ namespace Dynatrace.OpenKit.Core.Util
                 var c = input[index];
                 if (IsUnreservedCharacter(c, unreservedCharacters))
                 {
-                    // unreserved character, which does need to be percent encoded
+                    // unreserved character, which does not need to be percent encoded
                     resultBuilder.Append(c);
                     index++;
                 }
@@ -93,7 +93,7 @@ namespace Dynatrace.OpenKit.Core.Util
                     try
                     {
                         var encoded = encoding.GetBytes(sb.ToString());
-                        encoded.ForEach(b => resultBuilder.AppendFormat("%{0:X2}", b));
+                        encoded.ForEach(encodedByte => resultBuilder.AppendFormat("%{0:X2}", encodedByte));
                     }
                     catch (EncoderFallbackException)
                     {
