@@ -37,25 +37,25 @@ namespace Dynatrace.OpenKit.Protocol
         private const string ApplicationID = "ApplicationID";
 
         private static readonly string MonitorURL = BaseURL
-            + "?" + HTTPClient.REQUEST_TYPE_MOBILE
-            + "&" + HTTPClient.QUERY_KEY_SERVER_ID + "=" + ServerID
-            + "&" + HTTPClient.QUERY_KEY_APPLICATION + "=" + ApplicationID
-            + "&" + HTTPClient.QUERY_KEY_VERSION + "=" + ProtocolConstants.OPENKIT_VERSION
-            + "&" + HTTPClient.QUERY_KEY_PLATFORM_TYPE + "=" + ProtocolConstants.PLATFORM_TYPE_OPENKIT
-            + "&" + HTTPClient.QUERY_KEY_AGENT_TECHNOLOGY_TYPE + "=" + ProtocolConstants.AGENT_TECHNOLOGY_TYPE;
-        private const string TimeSyncURL = BaseURL + "?" + HTTPClient.REQUEST_TYPE_TIMESYNC;
+            + "?" + HTTPClient.RequestTypeMobile
+            + "&" + HTTPClient.QueryKeyServerId + "=" + ServerID
+            + "&" + HTTPClient.QueryKeyApplication + "=" + ApplicationID
+            + "&" + HTTPClient.QueryKeyVersion + "=" + ProtocolConstants.OpenKitVersion
+            + "&" + HTTPClient.QueryKeyPlatformType + "=" + ProtocolConstants.PlatformTypeOpenKit
+            + "&" + HTTPClient.QueryKeyAgentTechnologyType + "=" + ProtocolConstants.AgentTechnologyType;
+        private const string TimeSyncURL = BaseURL + "?" + HTTPClient.RequestTypeTimeSync;
 
         private static readonly HTTPClient.HTTPResponse StatusResponse = new HTTPClient.HTTPResponse
         {
             ResponseCode = 200,
-            Response = HTTPClient.REQUEST_TYPE_MOBILE,
+            Response = HTTPClient.RequestTypeMobile,
             Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
         };
 
         private static readonly HTTPClient.HTTPResponse TimeSyncResponse = new HTTPClient.HTTPResponse
         {
             ResponseCode = 200,
-            Response = HTTPClient.REQUEST_TYPE_TIMESYNC,
+            Response = HTTPClient.RequestTypeTimeSync,
             Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
         };
 
