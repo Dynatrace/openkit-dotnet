@@ -20,9 +20,7 @@ using System.Text;
 
 namespace Dynatrace.OpenKit.Util
 {
-
-#if NETPCL4_5
-
+    
     /// <summary>
     /// Utility class providing some extension methods which are not available in certain .NET flavors.
     /// </summary>
@@ -36,6 +34,4 @@ namespace Dynatrace.OpenKit.Util
             }
         }
     }
-
-#endif
 }
