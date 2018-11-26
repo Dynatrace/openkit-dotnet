@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootActionTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SessionTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Util\PercentEncoderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerBaseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\WebRequestTracerStringURLTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OpenKitBuilderTest.cs" />
