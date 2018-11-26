@@ -566,6 +566,24 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void CreateWebRequestTagEncodesDeviceIDPropperly()
+        {
+            // given
+            var sessionIDProvider = Substitute.For<ISessionIDProvider>();
+            sessionIDProvider.GetNextSessionID().Returns(666);
+            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
+            var config = new TestConfiguration("app_ID", "device_id/", beaconConfig, sessionIDProvider);
+            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            //when
+            var obtained = target.CreateTag(42, 1);
+
+            // then
+            var expectedDeviceID = "MT_3_-1_device%5Fid%2F_666_app%5FID_42_0_1";
+            Assert.That(obtained, Is.EqualTo(expectedDeviceID));
+        }
+
+        [Test]
         public void DeviceIDIsRandomizedOnDataCollectionLevel0()
         {
             // given

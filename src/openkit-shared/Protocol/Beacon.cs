@@ -90,6 +90,9 @@ namespace Dynatrace.OpenKit.Protocol
         // web request tag prefix constant
         private const string WebRequestTagPrefix = "MT";
 
+        // web request tag reserved characters
+        private static readonly char[] ReservedCharacters = { '_' };
+
         private const char BeaconDataDelimiter = '&';
 
         // next ID and sequence number
@@ -285,11 +288,11 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             return $"{WebRequestTagPrefix}_"
-                + $"{ProtocolConstants.PROTOCOL_VERSION}_"
+                + $"{ProtocolConstants.ProtocolVersion}_"
                 + $"{httpConfiguration.ServerID}_"
-                + $"{DeviceID}_"
+                + $"{PercentEncoder.Encode(DeviceID, Encoding.UTF8, ReservedCharacters)}_"
                 + $"{SessionNumber}_"
-                + $"{configuration.ApplicationID}_"
+                + $"{configuration.ApplicationIDPercentEncoded}_"
                 + $"{parentActionID}_"
                 + $"{threadIDProvider.ThreadID}_"
                 + $"{sequenceNo}";
@@ -755,13 +758,13 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder basicBeaconBuilder = new StringBuilder();
 
             // version and application information
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyProtocolVersion, ProtocolConstants.PROTOCOL_VERSION);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyOpenKitVersion, ProtocolConstants.OPENKIT_VERSION);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyProtocolVersion, ProtocolConstants.ProtocolVersion);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyOpenKitVersion, ProtocolConstants.OpenKitVersion);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationID, configuration.ApplicationID);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationName, configuration.ApplicationName);
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyApplicationVersion, configuration.ApplicationVersion);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyPlatformType, ProtocolConstants.PLATFORM_TYPE_OPENKIT);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyAgentTechnologyType, ProtocolConstants.AGENT_TECHNOLOGY_TYPE);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyPlatformType, ProtocolConstants.PlatformTypeOpenKit);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
 
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyVisitorID, DeviceID);
@@ -798,7 +801,7 @@ namespace Dynatrace.OpenKit.Protocol
         private static void AddKeyValuePair(StringBuilder builder, string key, string stringValue)
         {
             AppendKey(builder, key);
-            builder.Append(System.Uri.EscapeDataString(stringValue));
+            builder.Append(PercentEncoder.Encode(stringValue, Encoding.UTF8, ReservedCharacters));
         }
 
         private static void AddKeyValuePairIfValueIsNotNull(StringBuilder builder, string key, string stringValue)
