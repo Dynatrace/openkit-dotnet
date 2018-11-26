@@ -186,7 +186,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void GetApplicationIDPercentEncodedDoesPropperEncoding()
+        public void GetApplicationIDPercentEncodedDoesProperEncoding()
         {
             // given
             var target = CreateDefaultConfig();
