@@ -40,60 +40,66 @@ namespace Dynatrace.OpenKit.Protocol
 
 
         // basic data constants
-        private const string BEACON_KEY_PROTOCOL_VERSION = "vv";
-        private const string BEACON_KEY_OPENKIT_VERSION = "va";
-        private const string BEACON_KEY_APPLICATION_ID = "ap";
-        private const string BEACON_KEY_APPLICATION_NAME = "an";
-        private const string BEACON_KEY_APPLICATION_VERSION = "vn";
-        private const string BEACON_KEY_PLATFORM_TYPE = "pt";
-        private const string BEACON_KEY_AGENT_TECHNOLOGY_TYPE = "tt";
-        private const string BEACON_KEY_VISITOR_ID = "vi";
-        private const string BEACON_KEY_SESSION_NUMBER = "sn";
-        private const string BEACON_KEY_CLIENT_IP_ADDRESS = "ip";
+        private const string BeaconKeyProtocolVersion = "vv";
+        private const string BeaconKeyOpenKitVersion = "va";
+        private const string BeaconKeyApplicationID = "ap";
+        private const string BeaconKeyApplicationName = "an";
+        private const string BeaconKeyApplicationVersion = "vn";
+        private const string BeaconKeyPlatformType = "pt";
+        private const string BeaconKeyAgentTechnologyType = "tt";
+        private const string BeaconKeyVisitorID = "vi";
+        private const string BeaconKeySessionNumber = "sn";
+        private const string BeaconKeyClientIPAddress = "ip";
+        private const string BeaconKeyMultiplicity = "mp";
+        private const string BeaconKeyDataCollectionLevel = "dl";
+        private const string BeaconKeyCrashReportingLevel = "cl";
 
         // device data constants
-        private const string BEACON_KEY_DEVICE_OS = "os";
-        private const string BEACON_KEY_DEVICE_MANUFACTURER = "mf";
-        private const string BEACON_KEY_DEVICE_MODEL = "md";
+        private const string BeaconKeyDeviceOS = "os";
+        private const string BeaconKeyDeviceManufacturer = "mf";
+        private const string BeaconKeyDeviceModel = "md";
 
         // timestamp constants
-        private const string BEACON_KEY_SESSION_START_TIME = "tv";
-        private const string BEACON_KEY_TIMESYNC_TIME = "ts";
-        private const string BEACON_KEY_TRANSMISSION_TIME = "tx";
+        private const string BeaconKeySessionStartTime = "tv";
+        private const string BeaconKeyTimeSyncTime = "ts";
+        private const string BeaconKeyTransmissionTime = "tx";
 
         // Action related constants
-        private const string BEACON_KEY_EVENT_TYPE = "et";
-        private const string BEACON_KEY_NAME = "na";
-        private const string BEACON_KEY_THREAD_ID = "it";
-        private const string BEACON_KEY_ACTION_ID = "ca";
-        private const string BEACON_KEY_PARENT_ACTION_ID = "pa";
-        private const string BEACON_KEY_START_SEQUENCE_NUMBER = "s0";
-        private const string BEACON_KEY_TIME_0 = "t0";
-        private const string BEACON_KEY_END_SEQUENCE_NUMBER = "s1";
-        private const string BEACON_KEY_TIME_1 = "t1";
+        private const string BeaconKeyEventType = "et";
+        private const string BeaconKeyName = "na";
+        private const string BeaconKeyThreadID = "it";
+        private const string BeaconKeyActionID = "ca";
+        private const string BeaconKeyParentActionID = "pa";
+        private const string BeaconKeyStartSequenceNumber = "s0";
+        private const string BeaconKeyTime0 = "t0";
+        private const string BeaconKeyEndSequenceNumber = "s1";
+        private const string BeaconKeyTime1 = "t1";
 
         // data and error capture constants
-        private const string BEACON_KEY_VALUE = "vl";
-        private const string BEACON_KEY_ERROR_CODE = "ev";
-        private const string BEACON_KEY_ERROR_REASON = "rs";
-        private const string BEACON_KEY_ERROR_STACKTRACE = "st";
-        private const string BEACON_KEY_WEBREQUEST_RESPONSECODE = "rc";
-        private const string BEACON_KEY_WEBREQUEST_BYTES_SEND = "bs";
-        private const string BEACON_KEY_WEBREQUEST_BYTES_RECEIVED = "br";
+        private const string BeaconKeyValue = "vl";
+        private const string BeaconKeyErrorCode = "ev";
+        private const string BeaconKeyErrorReason = "rs";
+        private const string BeaconKeyErrorStacktrace = "st";
+        private const string BeaconKeyWebrequestResponseCode = "rc";
+        private const string BeaconKeyWebrequestBytesSent = "bs";
+        private const string BeaconKeyWebrequestBytesReceived = "br";
 
         // version constants
-        public const string OPENKIT_VERSION = "7.0.0000";
-        private const int PROTOCOL_VERSION = 3;
-        private const int PLATFORM_TYPE_OPENKIT = 1;
-        private const string AGENT_TECHNOLOGY_TYPE = "okdotnet";
+        public const string OpenKitVersion = "7.0.0000";
+        private const int ProtocolVersion = 3;
+        private const int PlatformTypeOpenKit = 1;
+        private const string AgentTechnologyType = "okdotnet";
 
         // max name length
-        private const int MAX_NAME_LEN = 250;
+        private const int MaxNameLen = 250;
 
         // web request tag prefix constant
-        private const string TAG_PREFIX = "MT";
+        private const string WebRequestTagPrefix = "MT";
 
-        private const char BEACON_DATA_DELIMITER = '&';
+        // web request tag reserved characters
+        private static readonly char[] ReservedCharacters = { '_' };
+
+        private const char BeaconDataDelimiter = '&';
 
         // next ID and sequence number
         private int nextID = 0;
@@ -244,15 +250,16 @@ namespace Dynatrace.OpenKit.Protocol
         /// <returns></returns>
         public string CreateTag(Action parentAction, int sequenceNo)
         {
-            return TAG_PREFIX + "_"
-                       + PROTOCOL_VERSION + "_"
-                       + httpConfiguration.ServerID + "_"
-                       + configuration.DeviceID + "_"
-                       + sessionNumber + "_"
-                       + configuration.ApplicationID + "_"
-                       + parentAction.ID + "_"
-                       + threadIDProvider.ThreadID + "_"
-                       + sequenceNo;
+            
+            return $"{WebRequestTagPrefix}_"
+                + $"{ProtocolVersion}_"
+                + $"{httpConfiguration.ServerID}_"
+                + $"{configuration.DeviceID}_"
+                + $"{sessionNumber}_"
+                + $"{configuration.ApplicationIDPercentEncoded}_"
+                + $"{parentAction.ID}_"
+                + $"{threadIDProvider.ThreadID}_"
+                + $"{sequenceNo}";
         }
 
         /// <summary>
@@ -265,12 +272,12 @@ namespace Dynatrace.OpenKit.Protocol
 
             BuildBasicEventData(actionBuilder, EventType.ACTION, action.Name);
 
-            AddKeyValuePair(actionBuilder, BEACON_KEY_ACTION_ID, action.ID);
-            AddKeyValuePair(actionBuilder, BEACON_KEY_PARENT_ACTION_ID, action.ParentID);
-            AddKeyValuePair(actionBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, action.StartSequenceNo);
-            AddKeyValuePair(actionBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(action.StartTime));
-            AddKeyValuePair(actionBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, action.EndSequenceNo);
-            AddKeyValuePair(actionBuilder, BEACON_KEY_TIME_1, action.EndTime - action.StartTime);
+            AddKeyValuePair(actionBuilder, BeaconKeyActionID, action.ID);
+            AddKeyValuePair(actionBuilder, BeaconKeyParentActionID, action.ParentID);
+            AddKeyValuePair(actionBuilder, BeaconKeyStartSequenceNumber, action.StartSequenceNo);
+            AddKeyValuePair(actionBuilder, BeaconKeyTime0, GetTimeSinceBeaconCreation(action.StartTime));
+            AddKeyValuePair(actionBuilder, BeaconKeyEndSequenceNumber, action.EndSequenceNo);
+            AddKeyValuePair(actionBuilder, BeaconKeyTime1, action.EndTime - action.StartTime);
 
             AddActionData(action.StartTime, actionBuilder);
         }
@@ -285,9 +292,9 @@ namespace Dynatrace.OpenKit.Protocol
 
             BuildBasicEventData(eventBuilder, EventType.SESSION_END, null);
 
-            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(session.EndTime));
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, 0);
+            AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BeaconKeyTime0, GetTimeSinceBeaconCreation(session.EndTime));
 
             AddEventData(session.EndTime, eventBuilder);
         }
@@ -304,7 +311,7 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder eventBuilder = new StringBuilder();
 
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_INT, valueName, parentAction);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, value);
+            AddKeyValuePair(eventBuilder, BeaconKeyValue, value);
 
             AddEventData(eventTimestamp, eventBuilder);
         }
@@ -320,7 +327,7 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder eventBuilder = new StringBuilder();
 
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_DOUBLE, valueName, parentAction);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, value);
+            AddKeyValuePair(eventBuilder, BeaconKeyValue, value);
 
             AddEventData(eventTimestamp, eventBuilder);
         }
@@ -334,9 +341,9 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportValue(Action parentAction, string valueName, string value)
         {
             StringBuilder eventBuilder = new StringBuilder();
-
+            
             var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, parentAction);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_VALUE, Truncate(value));
+            AddKeyValuePair(eventBuilder, BeaconKeyValue, Truncate(value));
 
             AddEventData(eventTimestamp, eventBuilder);
         }
@@ -375,11 +382,11 @@ namespace Dynatrace.OpenKit.Protocol
             BuildBasicEventData(eventBuilder, EventType.ERROR, errorName);
 
             var timestamp = timingProvider.ProvideTimestampInMilliseconds();
-            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_CODE, errorCode);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, parentAction.ID);
+            AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BeaconKeyTime0, GetTimeSinceBeaconCreation(timestamp));
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorCode, errorCode);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorReason, reason);
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -403,11 +410,11 @@ namespace Dynatrace.OpenKit.Protocol
             BuildBasicEventData(eventBuilder, EventType.CRASH, errorName);
 
             var timestamp = timingProvider.ProvideTimestampInMilliseconds();
-            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);                                  // no parent action
-            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_REASON, reason);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_ERROR_STACKTRACE, stacktrace);
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, 0);                                  // no parent action
+            AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BeaconKeyTime0, GetTimeSinceBeaconCreation(timestamp));
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorReason, reason);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorStacktrace, stacktrace);
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -423,22 +430,22 @@ namespace Dynatrace.OpenKit.Protocol
 
             BuildBasicEventData(eventBuilder, EventType.WEBREQUEST, webRequestTracer.URL);
 
-            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, webRequestTracer.StartSequenceNo);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(webRequestTracer.StartTime));
-            AddKeyValuePair(eventBuilder, BEACON_KEY_END_SEQUENCE_NUMBER, webRequestTracer.EndSequenceNo);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_1, webRequestTracer.EndTime - webRequestTracer.StartTime);
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, parentAction.ID);
+            AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, webRequestTracer.StartSequenceNo);
+            AddKeyValuePair(eventBuilder, BeaconKeyTime0, GetTimeSinceBeaconCreation(webRequestTracer.StartTime));
+            AddKeyValuePair(eventBuilder, BeaconKeyEndSequenceNumber, webRequestTracer.EndSequenceNo);
+            AddKeyValuePair(eventBuilder, BeaconKeyTime1, webRequestTracer.EndTime - webRequestTracer.StartTime);
             if (webRequestTracer.ResponseCode != -1)
             {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_RESPONSECODE, webRequestTracer.ResponseCode);
+                AddKeyValuePair(eventBuilder, BeaconKeyWebrequestResponseCode, webRequestTracer.ResponseCode);
             }
             if (webRequestTracer.BytesSent > -1)
             {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_BYTES_SEND, webRequestTracer.BytesSent);
+                AddKeyValuePair(eventBuilder, BeaconKeyWebrequestBytesSent, webRequestTracer.BytesSent);
             }
             if (webRequestTracer.BytesReceived > -1)
             {
-                AddKeyValuePair(eventBuilder, BEACON_KEY_WEBREQUEST_BYTES_RECEIVED, webRequestTracer.BytesReceived);
+                AddKeyValuePair(eventBuilder, BeaconKeyWebrequestBytesReceived, webRequestTracer.BytesReceived);
             }
 
             AddEventData(webRequestTracer.StartTime, eventBuilder);
@@ -455,9 +462,9 @@ namespace Dynatrace.OpenKit.Protocol
             BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userTag);
 
             var timestamp = timingProvider.ProvideTimestampInMilliseconds();
-            AddKeyValuePair(eventBuilder, BEACON_KEY_PARENT_ACTION_ID, 0);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(timestamp));
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionID, 0);
+            AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BeaconKeyTime0, GetTimeSinceBeaconCreation(timestamp));
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -476,11 +483,11 @@ namespace Dynatrace.OpenKit.Protocol
             while (true)
             {
                 // prefix for this chunk - must be built up newly, due to changing timestamps
-                var prefix = basicBeaconData + BEACON_DATA_DELIMITER + CreateTimestampData();
+                var prefix = basicBeaconData + BeaconDataDelimiter + CreateTimestampData();
                 // subtract 1024 to ensure that the chunk does not exceed the send size configured on server side?
                 // i guess that was the original intention, but i'm not sure about this
                 // TODO stefan.eberl - This is a quite uncool algorithm and should be improved, avoid subtracting some "magic" number
-                var chunk = beaconCache.GetNextBeaconChunk(sessionNumber, prefix, configuration.MaxBeaconSize - 1024, BEACON_DATA_DELIMITER);
+                var chunk = beaconCache.GetNextBeaconChunk(sessionNumber, prefix, configuration.MaxBeaconSize - 1024, BeaconDataDelimiter);
                 if (string.IsNullOrEmpty(chunk))
                 {
                     // no data added so far or no data to send
@@ -582,9 +589,9 @@ namespace Dynatrace.OpenKit.Protocol
 
             var eventTimestamp = timingProvider.ProvideTimestampInMilliseconds();
 
-            AddKeyValuePair(builder, BEACON_KEY_PARENT_ACTION_ID, parentAction.ID);
-            AddKeyValuePair(builder, BEACON_KEY_START_SEQUENCE_NUMBER, NextSequenceNumber);
-            AddKeyValuePair(builder, BEACON_KEY_TIME_0, GetTimeSinceBeaconCreation(eventTimestamp));
+            AddKeyValuePair(builder, BeaconKeyParentActionID, parentAction.ID);
+            AddKeyValuePair(builder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
+            AddKeyValuePair(builder, BeaconKeyTime0, GetTimeSinceBeaconCreation(eventTimestamp));
 
             return eventTimestamp;
         }
@@ -592,12 +599,12 @@ namespace Dynatrace.OpenKit.Protocol
         // helper method for building basic event data
         private void BuildBasicEventData(StringBuilder builder, EventType eventType, string name)
         {
-            AddKeyValuePair(builder, BEACON_KEY_EVENT_TYPE, (int)eventType);
+            AddKeyValuePair(builder, BeaconKeyEventType, (int)eventType);
             if (name != null)
             {
-                AddKeyValuePair(builder, BEACON_KEY_NAME, Truncate(name));
+                AddKeyValuePair(builder, BeaconKeyName, Truncate(name));
             }
-            AddKeyValuePair(builder, BEACON_KEY_THREAD_ID, threadIDProvider.ThreadID);
+            AddKeyValuePair(builder, BeaconKeyThreadID, threadIDProvider.ThreadID);
         }
        
 
@@ -607,34 +614,34 @@ namespace Dynatrace.OpenKit.Protocol
             StringBuilder basicBeaconBuilder = new StringBuilder();
 
             // version and application information
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PROTOCOL_VERSION, PROTOCOL_VERSION);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_OPENKIT_VERSION, OPENKIT_VERSION);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_ID, configuration.ApplicationID);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_NAME, configuration.ApplicationName);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyProtocolVersion, ProtocolVersion);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyOpenKitVersion, OpenKitVersion);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationID, configuration.ApplicationID);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationName, configuration.ApplicationName);
             if (configuration.ApplicationVersion != null)
             {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_APPLICATION_VERSION, configuration.ApplicationVersion);
+                AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationVersion, configuration.ApplicationVersion);
             }
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_PLATFORM_TYPE, PLATFORM_TYPE_OPENKIT);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_AGENT_TECHNOLOGY_TYPE, AGENT_TECHNOLOGY_TYPE);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyPlatformType, PlatformTypeOpenKit);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyAgentTechnologyType, AgentTechnologyType);
 
             // device/visitor ID, session number and IP address
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_VISITOR_ID, configuration.DeviceID);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_SESSION_NUMBER, sessionNumber);
-            AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_CLIENT_IP_ADDRESS, clientIPAddress);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyVisitorID, configuration.DeviceID);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeySessionNumber, sessionNumber);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyClientIPAddress, clientIPAddress);
 
             // platform information
             if (configuration.Device.OperatingSystem != null)
             {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DEVICE_OS, configuration.Device.OperatingSystem);
+                AddKeyValuePair(basicBeaconBuilder, BeaconKeyDeviceOS, configuration.Device.OperatingSystem);
             }
             if (configuration.Device.Manufacturer != null)
             {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DEVICE_MANUFACTURER, configuration.Device.Manufacturer);
+                AddKeyValuePair(basicBeaconBuilder, BeaconKeyDeviceManufacturer, configuration.Device.Manufacturer);
             }
             if (configuration.Device.ModelID != null)
             {
-                AddKeyValuePair(basicBeaconBuilder, BEACON_KEY_DEVICE_MODEL, configuration.Device.ModelID);
+                AddKeyValuePair(basicBeaconBuilder, BeaconKeyDeviceModel, configuration.Device.ModelID);
             }
 
             return basicBeaconBuilder.ToString();
@@ -645,11 +652,11 @@ namespace Dynatrace.OpenKit.Protocol
         {
             StringBuilder timestampBuilder = new StringBuilder();
 
-            AddKeyValuePair(timestampBuilder, BEACON_KEY_SESSION_START_TIME, timingProvider.ConvertToClusterTime(sessionStartTime));
-            AddKeyValuePair(timestampBuilder, BEACON_KEY_TIMESYNC_TIME, timingProvider.ConvertToClusterTime(sessionStartTime));
+            AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, timingProvider.ConvertToClusterTime(sessionStartTime));
+            AddKeyValuePair(timestampBuilder, BeaconKeyTimeSyncTime, timingProvider.ConvertToClusterTime(sessionStartTime));
             if (!timingProvider.IsTimeSyncSupported)
             {
-                AddKeyValuePair(timestampBuilder, BEACON_KEY_TRANSMISSION_TIME, timingProvider.ProvideTimestampInMilliseconds());
+                AddKeyValuePair(timestampBuilder, BeaconKeyTransmissionTime, timingProvider.ProvideTimestampInMilliseconds());
             }
 
             return timestampBuilder.ToString();
@@ -659,7 +666,7 @@ namespace Dynatrace.OpenKit.Protocol
         private void AddKeyValuePair(StringBuilder builder, string key, string stringValue)
         {
             AppendKey(builder, key);
-            builder.Append(System.Uri.EscapeDataString(stringValue));
+            builder.Append(PercentEncoder.Encode(stringValue, Encoding.UTF8, ReservedCharacters));
         }
 
         // helper method for adding key/value pairs with long values
@@ -698,9 +705,9 @@ namespace Dynatrace.OpenKit.Protocol
         private string Truncate(string name)
         {
             name = name.Trim();
-            if (name.Length > MAX_NAME_LEN)
+            if (name.Length > MaxNameLen)
             {
-                name = name.Substring(0, MAX_NAME_LEN);
+                name = name.Substring(0, MaxNameLen);
             }
             return name;
         }

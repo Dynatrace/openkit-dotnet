@@ -28,6 +28,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingRequestUtilTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitConfigurationTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Util\PercentEncoderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OpenKitBuilderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\BeaconTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Util\InetAddressValidatorTest.cs" />
