@@ -15,8 +15,10 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -59,6 +61,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // immutable settings
             ApplicationName = applicationName;
             ApplicationID = applicationID;
+            ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new []{ '_' });
             DeviceID = deviceID;
             EndpointURL = endpointURL;
 
@@ -105,6 +108,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public string ApplicationID { get; }
 
+        public string ApplicationIDPercentEncoded { get; }
+        
         public long DeviceID { get; }
 
         public string EndpointURL { get; }
