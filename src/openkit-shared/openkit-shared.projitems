@@ -33,6 +33,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\SessionWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconCacheConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\BeaconConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Util\IEnumerableExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Util\PercentEncoder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CrashReportingLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DataCollectionLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\DefaultLogger.cs" />

@@ -32,15 +32,20 @@ namespace Dynatrace.OpenKit
         {
 
         }
+        
+        internal TestConfiguration(long deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
+            : this("", deviceID, beaconConfig, sessionIDProvider)
+        {
+        }
 
-        internal TestConfiguration(int deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
-            : base(OpenKitType.DYNATRACE, "", "", deviceID, "", sessionIDProvider, 
-                  new SSLStrictTrustManager(), new Core.Device("", "", ""), "", 
-                  new BeaconCacheConfiguration(
-                    BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
-                    BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,
-                    BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES),
-                  beaconConfig)
+        internal TestConfiguration(string appID, long deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
+            : base(OpenKitType.DYNATRACE, "", appID, deviceID, "", sessionIDProvider,
+          new SSLStrictTrustManager(), new Core.Device("", "", ""), "",
+          new BeaconCacheConfiguration(
+            BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
+            BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,
+            BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES),
+          beaconConfig)
         {
             EnableCapture();
         }
