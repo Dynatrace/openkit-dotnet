@@ -15,8 +15,10 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -34,10 +36,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // immutable settings
         private readonly OpenKitType openKitType;
-        private readonly string applicationName;
-        private readonly string applicationID;
-        private readonly long deviceID;
-        private readonly string endpointURL;
 
         // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
@@ -64,10 +62,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
             this.openKitType = openKitType;
 
             // immutable settings
-            this.applicationName = applicationName;
-            this.applicationID = applicationID;
-            this.deviceID = deviceID;
-            this.endpointURL = endpointURL;
+            ApplicationName = applicationName;
+            ApplicationID = applicationID;
+            ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new []{ '_' });
+            DeviceID = deviceID;
+            EndpointURL = endpointURL;
 
             // mutable settings
             capture = DEFAULT_CAPTURE;
@@ -140,9 +139,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
             if (HTTPClientConfig.ServerID != newServerID)
             {
                 HTTPClientConfig = new HTTPClientConfiguration(
-                    endpointURL,
+                    EndpointURL,
                     newServerID,
-                    applicationID,
+                    ApplicationID,
                     HTTPClientConfig.SSLTrustManager);
             }
 
@@ -186,37 +185,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         // *** properties ***
 
-        public bool IsDynatrace
-        {
-            get
-            {
-                return openKitType == OpenKitType.DYNATRACE;            // object comparison is possible here
-            }
-        }
+        public bool IsDynatrace =>  openKitType == OpenKitType.DYNATRACE;
 
-        public string ApplicationName
-        {
-            get
-            {
-                return applicationName;
-            }
-        }
+        public string ApplicationName { get; }
 
-        public string ApplicationID
-        {
-            get
-            {
-                return applicationID;
-            }
-        }
+        public string ApplicationID { get; }
 
-        public long DeviceID
-        {
-            get
-            {
-                return deviceID;
-            }
-        }        
+        public string ApplicationIDPercentEncoded { get; }
+
+        public long DeviceID { get; }
+
+        public string EndpointURL { get; }
 
         // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
         public bool IsCaptureOn
