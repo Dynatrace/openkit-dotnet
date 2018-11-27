@@ -128,6 +128,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void ADefaultConstructedConfigurationDisablesDataCollection()
         {
+            // given
             var target = CreateDefaultConfig();
 
             //when retrieving data collection level
@@ -140,6 +141,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void ADefaultConstructedConfigurationDisablesCrashReporting()
         {
+            // given
             var target = CreateDefaultConfig();
 
             //when retrieving data collection level
@@ -152,6 +154,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void ADefaultConstructedConfigurationUsesStrictTrustManager()
         {
+            // given
             var target = CreateDefaultConfig();
 
             //when retrieving SSL Trust manager
@@ -161,6 +164,25 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(sslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
         }
 
+        [Test]
+        public void GetApplicationID()
+        {
+            // given
+            var target = CreateDefaultConfig();
+
+            // then
+            Assert.That(target.ApplicationID, Is.EqualTo("/App_ID%"));
+        }
+
+        [Test]
+        public void GetApplicationIDPercentEncodedDoesProperEncoding()
+        {
+            // given
+            var target = CreateDefaultConfig();
+
+            // then
+            Assert.That(target.ApplicationIDPercentEncoded, Is.EqualTo("%2FApp%5FID%25"));
+        }
 
         private static OpenKitConfiguration CreateDefaultConfig()
         {
@@ -170,8 +192,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES);
 
             var defaultBeaconConfig = new BeaconConfiguration();
-
-            return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider(),
+            
+            return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "/App_ID%", 0, "", new Providers.TestSessionIDProvider(),
                   new SSLStrictTrustManager(), new Core.Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
         }
     }

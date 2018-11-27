@@ -14,14 +14,24 @@
 // limitations under the License.
 //
 
-namespace Dynatrace.OpenKit.Protocol
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Dynatrace.OpenKit.Util
 {
-    public class ProtocolConstants
-    {     
-        // version constants
-        public const string OpenKitVersion = "7.0.0000";
-        public const int ProtocolVersion = 3;
-        public const int PlatformTypeOpenKit = 1;
-        public const string AgentTechnologyType = "okdotnet";
+    
+    /// <summary>
+    /// Utility class providing some extension methods which are not available in certain .NET flavors.
+    /// </summary>
+    public static class IEnumerableExtensions
+    {
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            foreach (T element in source)
+            {
+                action(element);
+            }
+        }
     }
 }
