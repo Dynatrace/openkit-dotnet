@@ -6,7 +6,7 @@
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.3)
 
 ### Changed
-- Application ID and Device ID are correctly encoded for special characters
+- Application ID is correctly encoded for special characters
   The encoding is a percent-encoding based on RFC 3986 with additional encoding of underscore characters.
 
 ## 1.1.2 [Release date: 2018-09-14]
