@@ -1,6 +1,13 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.0...release/1.2)
+
+## 1.2.1 [Release date: 2018-12-19]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.2.1)
+
+### Changed
+- Application ID is correctly encoded for special characters
+  The encoding is a percent-encoding based on RFC 3986 with additional encoding of underscore characters.
 
 ## 1.2.0 [Release date: 2018-09-14]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.2.0)
