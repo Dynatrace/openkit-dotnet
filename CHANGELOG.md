@@ -1,6 +1,6 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.0...release/1.2)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.1...release/1.2)
 
 ## 1.2.1 [Release date: 2018-12-19]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.2.1)
