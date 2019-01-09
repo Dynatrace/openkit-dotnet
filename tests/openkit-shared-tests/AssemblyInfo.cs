@@ -1,5 +1,5 @@
 ﻿//
-// Copyright 2018 Dynatrace LLC
+// Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dynatrace LLC")]
 [assembly: AssemblyProduct("Dynatrace.OpenKit")]
-[assembly: AssemblyCopyright("(c) 2016-2018 Dynatrace LLC")]
+[assembly: AssemblyCopyright("(c) 2016-2019 Dynatrace LLC")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
