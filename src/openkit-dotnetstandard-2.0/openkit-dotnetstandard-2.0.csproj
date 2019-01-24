@@ -6,6 +6,9 @@
     <AssemblyName>openkit-1.2.2-SNAPSHOT-dotnetstandard-2.0</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>Debug;Release;Coverage</Configurations>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">

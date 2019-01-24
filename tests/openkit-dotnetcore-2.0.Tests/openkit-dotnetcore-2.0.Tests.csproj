@@ -6,6 +6,9 @@
 	<Configurations>Debug;Release;Coverage</Configurations>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <ItemGroup>
