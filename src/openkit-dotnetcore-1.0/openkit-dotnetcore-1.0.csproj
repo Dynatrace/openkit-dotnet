@@ -5,6 +5,9 @@
     <AssemblyName>openkit-1.0.4-SNAPSHOT-dotnetcore-1.0</AssemblyName>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <Import Project="..\openkit-shared\openkit-shared.projitems" Label="Shared" />
