@@ -49,15 +49,32 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyFileVersion("1.2.2.0")]
 
 // Expose internal classes to test assemblies
-[assembly: InternalsVisibleTo("openkit-dotnetcore-1.0.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetcore-1.1.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetcore-2.0.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetfull-3.5.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetfull-4.0.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetfull-4.5.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetfull-4.6.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetfull-4.7.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetpcl-4.5.Tests")]
-[assembly: InternalsVisibleTo("openkit-dotnetstandard-2.0.Tests")]
+[assembly: InternalsVisibleTo("openkit-dotnetcore-1.0.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetcore-1.1.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetcore-2.0.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-3.5.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.0.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.5.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.6.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetfull-4.7.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetpcl-4.5.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
+[assembly: InternalsVisibleTo("openkit-dotnetstandard-2.0.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
 // Expose internal classes to NSubstitute
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2, PublicKey=" + AssemblyInfoConstants.PublicKeyToDynamicProxyGenAssembly2)]
+
+class AssemblyInfoConstants
+{
+    public const string PublicKey = 
+        "002400000480000094000000060200000024000052534131000400000100010005df99dd5dd29e" +
+        "6ff6d75a55caadeb2969f3c9b68535f2a68755af814a61bd93e81c0f524898e7d41d06ffebd8b6" +
+        "8538916aac769da3876656df30306585e3fca8a5ce3744d534767287344418d29687a67bdc949e" +
+        "4424f086983f7c66b936f8b40fb32eb52732a7d7c9b11175c3d9b56f57b75000abec9e381724be" +
+        "eeb4a298";
+
+    public const string PublicKeyToDynamicProxyGenAssembly2 =
+        "0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99" + 
+        "c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654" + 
+        "753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46" + 
+        "ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484c" +
+        "f7045cc7";
+}
