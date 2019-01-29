@@ -32,3 +32,9 @@ build/
 
 #axocover
 .axoCover/*
+
+# internal packaging
+packaging/*
+!packaging/OpenKit.NET.nuspec
+!packaging/OpenKit.NET.package.ps1
+
