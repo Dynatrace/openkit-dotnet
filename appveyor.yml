@@ -62,10 +62,35 @@ for:
       }
   after_test: 
   - ps: |
-      if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "")
+      if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
         packages\coveralls.io.1.4.2\tools\coveralls.net.exe --opencover .\coverage.xml -r $Env:COVERALLS_REPO_TOKEN
       }
+      else
+      {
+          Write-Host("Skipping coveralls.io upload")
+          Write-Host("APPVEYOR_PULL_REQUEST_NUMBER=$Env:APPVEYOR_PULL_REQUEST_NUMBER")
+          Write-Host("APPVEYOR_REPO_NAME=$Env:APPVEYOR_REPO_NAME")
+      }
+
+# prepare packaging 
+after_build:
+- ps: |
+      if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
+      {
+          Push-Location
+          cd packaging
+          .\OpenKit.NET.package.ps1
+          nuget pack
+          Pop-Location
+      }
+      else
+      {
+          Write-Host("Skipping nuget packaging")
+          Write-Host("APPVEYOR_PULL_REQUEST_NUMBER=$Env:APPVEYOR_PULL_REQUEST_NUMBER")
+          Write-Host("APPVEYOR_REPO_NAME=$Env:APPVEYOR_REPO_NAME")
+      }
+
 
 # artifacts being published  
 artifacts:
@@ -73,9 +98,13 @@ artifacts:
   name: netfull
 - path: src\**\bin\Release\**\*.dll
   name: netcore
+- path: packaging\*.nupkg
+  name: nupkg
+
 
 # deployment
 deploy:
+# (GitHub)
 - provider: GitHub
   release: $(APPVEYOR_REPO_TAG_NAME)
   auth_token:
@@ -86,3 +115,14 @@ deploy:
     branch: /release\/.+/
     configuration: Release
     APPVEYOR_REPO_TAG: true
+    APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
+# NuGet (Note: This for testing now and must be changed before making a PR)
+- provider: NuGet
+  api_key:
+    secure: dQdIfKMnPD7jf9TW/R+RZ6mj58D46+7G6F30LeAl3w5ZCrpNWqAo5z56qW73x58r
+  artifact: packaging\*.nupkg
+  skip_symbols: true
+  on:
+    branch: /release\/.+/
+    APPVEYOR_REPO_TAG: true
+    APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
