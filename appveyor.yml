@@ -79,11 +79,11 @@ after_build:
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
           Push-Location
+          cd packaging
           $source = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
           $destination = ".\nuget.exe"
           Invoke-WebRequest $source -OutFile $destination
           .\nuget Help
-          cd packaging
           .\OpenKit.NET.package.ps1
           .\nuget pack
           Pop-Location
