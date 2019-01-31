@@ -115,6 +115,9 @@ deploy:
     secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
   repository: Dynatrace/openkit-dotnet
   prerelease: false
+  artifact:
+  - netfull
+  - netcore
   on:
     branch: /release\/.+/
     configuration: Release
@@ -124,7 +127,7 @@ deploy:
 - provider: NuGet
   api_key:
     secure: dQdIfKMnPD7jf9TW/R+RZ6mj58D46+7G6F30LeAl3w5ZCrpNWqAo5z56qW73x58r
-  artifact: packaging\*.nupkg
+  artifact: nupkg
   skip_symbols: true
   on:
     branch: /release\/.+/
