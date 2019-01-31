@@ -7,9 +7,6 @@ environment:
 
 # Build with Visual Studio 2017
 image: Visual Studio 2017
-# also download the latest nuget
-install:
-- appveyor DownloadFile https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
 
 # Build Release and Coverage (2 build jobs)
 configuration:
@@ -81,12 +78,14 @@ after_build:
 - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
-          nuget Help
-          ..\nuget.exe Help
           Push-Location
+          $source = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+          $destination = ".\nuget.exe"
+          Invoke-WebRequest $source -OutFile $destination
+          .\nuget Help
           cd packaging
           .\OpenKit.NET.package.ps1
-          ..\nuget.exe pack
+          .\nuget pack
           Pop-Location
       }
       else
