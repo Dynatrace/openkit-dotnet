@@ -115,9 +115,7 @@ deploy:
     secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
   repository: Dynatrace/openkit-dotnet
   prerelease: false
-  artifact:
-  - netfull
-  - netcore
+  artifact: /.*\.dll/
   on:
     branch: /release\/.+/
     configuration: Release
