@@ -12,7 +12,7 @@ $packagingContentFolderName = Join-Path -Path $packagingFolderName -ChildPath "c
 New-Item -ItemType directory -Path $packagingContentFolderName | Out-Null
 
 # copy license
-Copy-Item "$PSScriptRoot\..\LICENSE" -Destination $packagingContentFolderName
+Copy-Item "$PSScriptRoot\..\LICENSE" -Destination "$packagingFolderName\LICENSE.txt"
 
 # Copy documentation
 Copy-Item "$PSScriptRoot\..\" -Filter "*.md" -Destination $packagingContentFolderName
