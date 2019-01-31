@@ -80,8 +80,12 @@ after_build:
       {
           Push-Location
           cd packaging
+          $source = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+          $destination = ".\nuget.exe"
+          Invoke-WebRequest $source -OutFile $destination
+          .\nuget Help
           .\OpenKit.NET.package.ps1
-          nuget pack
+          .\nuget pack
           Pop-Location
       }
       else
