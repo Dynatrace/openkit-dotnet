@@ -81,10 +81,12 @@ after_build:
 - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
+          nuget Help
+          ..\nuget.exe Help
           Push-Location
           cd packaging
           .\OpenKit.NET.package.ps1
-          nuget pack
+          ..\nuget.exe pack
           Pop-Location
       }
       else
