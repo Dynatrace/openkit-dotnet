@@ -126,7 +126,7 @@ deploy:
 # NuGet (Note: This for testing now and must be changed before making a PR)
 - provider: NuGet
   api_key:
-    secure: txBsw0jSVI6IfPfAWVRKCvErE+jn4wn8FFe7lQpW7J+3G306+nurWXrXUeRO/7dJ
+    secure: bwyZzffqNaPMCCWrwFMrwwyT1U0cRnAafB8Ld+eWiHO4Iahe6T0Tuf4d+tQNZfLe
   artifact: /.*\.nupkg/
   skip_symbols: true
   on:
