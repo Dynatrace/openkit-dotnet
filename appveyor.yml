@@ -72,9 +72,6 @@ for:
           Write-Host("APPVEYOR_PULL_REQUEST_NUMBER=$Env:APPVEYOR_PULL_REQUEST_NUMBER")
           Write-Host("APPVEYOR_REPO_NAME=$Env:APPVEYOR_REPO_NAME")
       }
-
-# prepare packaging 
-for:
 -
   matrix:
     only:
