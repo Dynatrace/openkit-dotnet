@@ -1,10 +1,17 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.3.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.0...HEAD)
+
+## 1.4.0 [Release date: 2018-02-01]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.0)
+
+### Added
+- Package distribution via NuGet
 
 ### Changed
 - Application ID and Visitor ID are correctly encoded for special characters
   The encoding is a percent-encoding based on RFC 3986 with additional encoding of underscore characters.
+- OpenKit assemblies are strongly named
 
 ## 1.3.0 [Release date: 2018-10-25]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.3.0)

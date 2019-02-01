@@ -66,6 +66,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetpcl-4.5", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "openkit-dotnetpcl-4.5.Tests", "tests\openkit-dotnetpcl-4.5.Tests\openkit-dotnetpcl-4.5.Tests.csproj", "{47A26BEC-3D72-4C6A-911E-242687327EC4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "packaging", "packaging", "{699B922F-9C65-46B4-835A-76E9B4CA08BC}"
+	ProjectSection(SolutionItems) = preProject
+		packaging\OpenKit.NET.nuspec = packaging\OpenKit.NET.nuspec
+		packaging\OpenKit.NET.package.ps1 = packaging\OpenKit.NET.package.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		tests\openkit-shared-tests\openkit-shared-tests.projitems*{0dee56ca-e460-488f-900e-35bdef9e890c}*SharedItemsImports = 4
