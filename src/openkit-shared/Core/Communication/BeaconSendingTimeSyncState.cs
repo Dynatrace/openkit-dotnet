@@ -108,10 +108,6 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             //sanity check to catch case with div/0
             var calculatedOffset = ComputeClusterTimeOffset(response.timeSyncOffsets);
-            if (calculatedOffset < 0)
-            {
-                return;
-            }
 
             // initialize time provider with cluster time offset
             context.InitializeTimeSync(calculatedOffset, true);
@@ -241,7 +237,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             if (count == 0)
             { // shouldn't come here under normal circumstances
-                return -1; // prevents div/0
+                return 0; // prevents div/0
             }
 
             return (long)Math.Round(sum / (double)count);
