@@ -218,6 +218,11 @@ namespace Dynatrace.OpenKit.Core.Communication
                     count++;
                 }
             }
+            
+            if (count == 0)
+            { // shouldn't come here under normal circumstances
+                return 0; // prevents div/0
+            }
 
             return (long)Math.Round(sum / (double)count);
         }
