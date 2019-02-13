@@ -225,11 +225,122 @@ namespace Dynatrace.OpenKit.Core.Communication
             });
         }
 
+        [Test]
+        public void TimeSyncRequestsAreInterruptedAfterUnsuccessfulRetries()
+        {
+            // given
+            var target = new BeaconSendingTimeSyncState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            httpClient.Received(BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS + 1).SendTimeSyncRequest();
+        }
+
+        [Test]
+        public void TimeSyncRequestsAreInterruptedAfterUnsuccessfulRetriesWithNullResponse()
+        {
+            // given
+            httpClient.SendTimeSyncRequest().Returns((TimeSyncResponse)null);
+            var target = new BeaconSendingTimeSyncState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            httpClient.Received(BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS + 1).SendTimeSyncRequest();
+        }
+
+        [Test]
+        public void SuccessfulTimeSyncInitializesTimeProvider()
+        {
+            // given
+            httpClient.SendTimeSyncRequest().Returns(
+                    // request 1 fails 2 times
+                    x => CreateValidTimeResponse(6, 1),
+                    x => CreateValidTimeResponse(20, 2),
+                    x => CreateValidTimeResponse(40, 1),
+                    x => CreateValidTimeResponse(48, 2),
+                    x => CreateValidTimeResponse(60, 1)
+                );
+
+            context.CurrentTimestamp.Returns(
+                    x => 2L,
+                    x => 8L,
+                    x => 10L,
+                    x => 23L,
+                    x => 32L,
+                    x => 42L,
+                    x => 44L,
+                    x => 52L,
+                    x => 54L,
+                    x => 62L,
+                    x => 66L
+                );
+
+            var target = new BeaconSendingTimeSyncState(true);
+
+            // when being executed
+            target.Execute(context);
+
+            // verify init was done
+            context.Received(1).InitializeTimeSync(2L, true);
+
+            // verify number of method calls
+            httpClient.Received(BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS).SendTimeSyncRequest();
+            var tmp = context.Received(2 * BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS + 1).CurrentTimestamp;
+
+            context.Received(1).LastTimeSyncTime = 66;
+        }
+
+        [Test]
+        public void ClusterTimeOffsetCanBeNegativeAsWell()
+        {
+            // given
+            httpClient.SendTimeSyncRequest().Returns(
+                    // request 1 fails 2 times
+                    x => CreateValidTimeResponse(3, 3),
+                    x => CreateValidTimeResponse(12, 7),
+                    x => CreateValidTimeResponse(34, 2),
+                    x => CreateValidTimeResponse(45, 2),
+                    x => CreateValidTimeResponse(56, 2)
+                );
+
+            context.CurrentTimestamp.Returns(
+                    x => 2L,
+                    x => 8L,
+                    x => 10L,
+                    x => 23L,
+                    x => 32L,
+                    x => 42L,
+                    x => 44L,
+                    x => 52L,
+                    x => 54L,
+                    x => 62L,
+                    x => 66L
+                );
+
+            var target = new BeaconSendingTimeSyncState(true);
+
+            // when being executed
+            target.Execute(context);
+
+            // verify init was done
+            context.Received(1).InitializeTimeSync(-1, true);
+
+            // verify number of method calls
+            httpClient.Received(BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS).SendTimeSyncRequest();
+            var tmp = context.Received(2 * BeaconSendingTimeSyncState.TIME_SYNC_REQUESTS + 1).CurrentTimestamp;
+
+            context.Received(1).LastTimeSyncTime = 66;
+        }
+
         private static TimeSyncResponse CreateValidTimeResponse(long receiveTime, long delta)
         {
-            var responseFormatString = TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME + "={0}&" + TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME + "={1}";
+            var responseContent =$"{TimeSyncResponse.RESPONSE_KEY_REQUEST_RECEIVE_TIME}={receiveTime}&{TimeSyncResponse.RESPONSE_KEY_RESPONSE_SEND_TIME}={receiveTime + delta}";
 
-            return new TimeSyncResponse(string.Format(responseFormatString, receiveTime, receiveTime + delta), 200);
+            return new TimeSyncResponse(responseContent, 200);
         }
     }
 }
