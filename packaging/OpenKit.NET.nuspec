@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <metadata>
-        <id>Dynatrace.OpenKit.NET</id>
-        <version>1.4.0-rc1</version>
-        <description>Dynatrace OpenKit - .NET Reference Implementation</description>
-		    <authors>Dynatrace LLC</authors>
-        <owners>Dynatrace</owners>
-        <projectUrl>https://github.com/Dynatrace/openkit-dotnet</projectUrl>
-        <license type="expression">Apache-2.0</license>
-        <iconUrl>https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png</iconUrl>
-        <copyright>Copyright ©2016-2019 Dynatrace LLC</copyright>
-    </metadata>
+  <metadata>
+    <id>OpenKit</id>
+    <version>1.5.0-SNAPSHOT</version>
+    <description>Dynatrace OpenKit - .NET Reference Implementation</description>
+    <authors>Dynatrace LLC</authors>
+    <owners>Dynatrace</owners>
+    <projectUrl>https://github.com/Dynatrace/openkit-dotnet</projectUrl>
+    <license type="expression">Apache-2.0</license>
+    <iconUrl>https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png</iconUrl>
+    <copyright>Copyright ©2016-2019 Dynatrace LLC</copyright>
+  </metadata>
 
-    <files>
-		<file src="OpenKit.NET.package\content\**" target="content" />
-		<file src="OpenKit.NET.package\lib\**" target="lib" />
-    </files>
+  <files>
+    <file src="OpenKit.NET.package\content\**" target="content" />
+    <file src="OpenKit.NET.package\lib\**" target="lib" />
+  </files>
 </package>

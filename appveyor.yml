@@ -1,4 +1,4 @@
-version: 1.4.0.{build}
+version: 1.5.0.{build}
 
 # environment variables
 environment:
@@ -72,10 +72,12 @@ for:
           Write-Host("APPVEYOR_PULL_REQUEST_NUMBER=$Env:APPVEYOR_PULL_REQUEST_NUMBER")
           Write-Host("APPVEYOR_REPO_NAME=$Env:APPVEYOR_REPO_NAME")
       }
-
-# prepare packaging 
-after_build:
-- ps: |
+-
+  matrix:
+    only:
+      - configuration: Release
+  after_build:
+  - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
           Push-Location
@@ -83,9 +85,11 @@ after_build:
           $source = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
           $destination = ".\nuget.exe"
           Invoke-WebRequest $source -OutFile $destination
-          .\nuget Help
           .\OpenKit.NET.package.ps1
           .\nuget pack
+          [xml]$xml = Get-Content .\OpenKit.NET.nuspec
+          $version = $xml.GetElementsByTagName('package').Item(0).GetElementsByTagName('metadata').Item(0).GetElementsByTagName('version').Item(0).'#text'
+          Compress-Archive -Path ".\OpenKit.NET.package\*" -CompressionLevel Optimal -DestinationPath .\OpenKit.$version.zip
           Pop-Location
       }
       else
@@ -95,12 +99,9 @@ after_build:
           Write-Host("APPVEYOR_REPO_NAME=$Env:APPVEYOR_REPO_NAME")
       }
 
-
 # artifacts being published  
 artifacts:
-- path: src\**\bin\Release\*.dll
-  name: netfull
-- path: src\**\bin\Release\**\*.dll
+- path: packaging\*.zip
   name: netcore
 - path: packaging\*.nupkg
   name: nupkg
@@ -115,6 +116,18 @@ deploy:
     secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
   repository: Dynatrace/openkit-dotnet
   prerelease: false
+  artifact: /.*\.zip/
+  on:
+    branch: /release\/.+/
+    configuration: Release
+    APPVEYOR_REPO_TAG: true
+    APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
+# NuGet (Note: This for testing now and must be changed before making a PR)
+- provider: NuGet
+  api_key:
+    secure: bwyZzffqNaPMCCWrwFMrwwyT1U0cRnAafB8Ld+eWiHO4Iahe6T0Tuf4d+tQNZfLe
+  artifact: /.*\.nupkg/
+  skip_symbols: true
   on:
     branch: /release\/.+/
     configuration: Release
@@ -130,3 +143,4 @@ deploy:
     branch: /release\/.+/
     APPVEYOR_REPO_TAG: true
     APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
+
