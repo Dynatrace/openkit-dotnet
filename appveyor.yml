@@ -85,9 +85,11 @@ for:
               $source = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
               $destination = ".\nuget.exe"
               Invoke-WebRequest $source -OutFile $destination
-              .\nuget Help
               .\OpenKit.NET.package.ps1
               .\nuget pack
+              [xml]$xml = Get-Content .\OpenKit.NET.nuspec
+              $version = $xml.GetElementsByTagName('package').Item(0).GetElementsByTagName('metadata').Item(0).GetElementsByTagName('version').Item(0).'#text'
+              Compress-Archive -Path ".\OpenKit.NET.package\*" -CompressionLevel Optimal -DestinationPath .\OpenKit.$version.zip
               Pop-Location
           }
           else
@@ -100,9 +102,7 @@ for:
 
 # artifacts being published  
 artifacts:
-- path: src\**\bin\Release\*.dll
-  name: netfull
-- path: src\**\bin\Release\**\*.dll
+- path: packaging\*.zip
   name: netcore
 - path: packaging\*.nupkg
   name: nupkg
@@ -117,7 +117,7 @@ deploy:
     secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
   repository: Dynatrace/openkit-dotnet
   prerelease: false
-  artifact: /.*\.dll/
+  artifact: /.*\.zip/
   on:
     branch: /release\/.+/
     configuration: Release
@@ -131,5 +131,6 @@ deploy:
   skip_symbols: true
   on:
     branch: /release\/.+/
+    configuration: Release
     APPVEYOR_REPO_TAG: true
     APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
