@@ -1,4 +1,4 @@
-version: 1.4.0.{build}
+version: 1.4.1.{build}
 
 # environment variables
 environment:
@@ -123,10 +123,10 @@ deploy:
     configuration: Release
     APPVEYOR_REPO_TAG: true
     APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
-# NuGet (Note: This for testing now and must be changed before making a PR)
+# NuGet
 - provider: NuGet
   api_key:
-    secure: bwyZzffqNaPMCCWrwFMrwwyT1U0cRnAafB8Ld+eWiHO4Iahe6T0Tuf4d+tQNZfLe
+    secure: FLH3rCl/Okbe8lchEljJpnCPrs18DiTlm5oQn3i03yAEIjNhpQcWQDFV3VMPXthc
   artifact: /.*\.nupkg/
   skip_symbols: true
   on:
