@@ -1,6 +1,13 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.1.3...release/1.1)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.1.4...release/1.1)
+
+## 1.1.4 [Release date: 2018-02-15]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.4)
+
+### Changed
+- Fixed problem with infinite time sync requests
+  This problem occurred mainly in AppMon settings.
 
 ## 1.1.3 [Release date: 2018-12-19]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.1.3)
