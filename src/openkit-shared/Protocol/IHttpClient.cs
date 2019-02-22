@@ -33,12 +33,6 @@ namespace Dynatrace.OpenKit.Protocol
         StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data);
 
         /// <summary>
-        /// Sends a time sync request and returns a time sync response
-        /// </summary>
-        /// <returns></returns>
-        TimeSyncResponse SendTimeSyncRequest();
-
-        /// <summary>
         /// Sends a special status request for a new session.
         /// </summary>
         /// <returns>Returns the status response.</returns>

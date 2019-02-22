@@ -30,7 +30,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTerminalStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingInitStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingRequestUtilTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncStateTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitConfigurationTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\RootActionTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\SessionTest.cs" />
@@ -43,9 +42,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\HTTPClientTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\ResponseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\StatusResponseTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Protocol\TimeSyncResponseTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultSessionIDProviderTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultTimingProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultPRNGeneratorTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\TestSessionIDProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProviderTest.cs" />

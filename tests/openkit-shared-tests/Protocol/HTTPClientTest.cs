@@ -43,7 +43,6 @@ namespace Dynatrace.OpenKit.Protocol
             + "&" + HTTPClient.QueryKeyVersion + "=" + ProtocolConstants.OpenKitVersion
             + "&" + HTTPClient.QueryKeyPlatformType + "=" + ProtocolConstants.PlatformTypeOpenKit
             + "&" + HTTPClient.QueryKeyAgentTechnologyType + "=" + ProtocolConstants.AgentTechnologyType;
-        private const string TimeSyncURL = BaseURL + "?" + HTTPClient.RequestTypeTimeSync;
 
         private static readonly HTTPClient.HTTPResponse StatusResponse = new HTTPClient.HTTPResponse
         {
@@ -52,10 +51,17 @@ namespace Dynatrace.OpenKit.Protocol
             Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
         };
 
-        private static readonly HTTPClient.HTTPResponse TimeSyncResponse = new HTTPClient.HTTPResponse
+        private static readonly HTTPClient.HTTPResponse TimeSyncResponseShort = new HTTPClient.HTTPResponse
         {
             ResponseCode = 200,
-            Response = HTTPClient.RequestTypeTimeSync,
+            Response = "type=mts",
+            Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
+        };
+
+        private static readonly HTTPClient.HTTPResponse TimeSyncResponseLong = new HTTPClient.HTTPResponse
+        {
+            ResponseCode = 200,
+            Response = "type=mts&t1=-1&t2=-1",
             Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
         };
 
@@ -188,9 +194,9 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             HTTPClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponse);
 
             // when
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseShort);
             var obtained = target.SendStatusRequest();
 
             // then
@@ -198,7 +204,16 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
             Assert.That(obtained.Headers, Is.Empty);
 
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
+            // and when
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseLong);
+            obtained = target.SendStatusRequest();
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
+            Assert.That(obtained.Headers, Is.Empty);
+
+            spyClient.ReceivedWithAnyArgs(2).DoGetRequest(string.Empty, string.Empty);
         }
 
         [Test]
@@ -332,9 +347,9 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             HTTPClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponse);
 
             // when
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseShort);
             var obtained = target.SendNewSessionRequest();
 
             // then
@@ -342,7 +357,16 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
             Assert.That(obtained.Headers, Is.Empty);
 
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
+            // and when
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseLong);
+            obtained = target.SendNewSessionRequest();
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
+            Assert.That(obtained.Headers, Is.Empty);
+
+            spyClient.ReceivedWithAnyArgs(2).DoGetRequest(string.Empty, string.Empty);
         }
 
         [Test]
@@ -356,150 +380,6 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             var obtained = target.SendNewSessionRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
-
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestSendsOneHTTPGetRequest()
-        {
-            // given
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponse);
-
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(200));
-
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestSendRequestToTimeSyncURL()
-        {
-            // given
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponse);
-
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(200));
-
-            spyClient.Received(1).DoGetRequest(TimeSyncURL, null);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestWorksIfResponseIsNull()
-        {
-            // given
-            var headers = new Dictionary<string, List<string>>
-            {
-                {"Content-Length", new List<string> {"42"} },
-                {"Content-Type", new List<string> { "application/json" } }
-            };
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HTTPClient.HTTPResponse { ResponseCode = 200, Headers = headers, Response = null });
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(200));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
-
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestReturnsErrorCode()
-        {
-            // given
-            var headers = new Dictionary<string, List<string>>
-            {
-                {"Content-Length", new List<string> {"42"} },
-                {"Content-Type", new List<string> { "application/json" } }
-            };
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HTTPClient.HTTPResponse { ResponseCode = 400, Headers = headers, Response = null });
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(400));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
-
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestIsRetriedThreeTimesBeforeGivingUp()
-        {
-            // given
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).Do(x => throw new Exception("dummy"));
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
-
-            spyClient.ReceivedWithAnyArgs(3).DoGetRequest(string.Empty, string.Empty);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestReturnsAnUnknownErrorResponseForWrongHttpResponse()
-        {
-            // given
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(StatusResponse);
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
-
-            // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
-
-            spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
-        }
-
-        [Test]
-        public void SendTimeSyncRequestReturnsAnUnknownErrorResponseForUnparseableStatusResponse()
-        {
-            // given
-            HTTPClient target = spyClient;
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(
-                new HTTPClient.HTTPResponse { ResponseCode = 200, Headers = new Dictionary<string, List<string>>(), Response = TimeSyncResponse.Response + "&t1=a" });
-
-            // when
-            var obtained = target.SendTimeSyncRequest();
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -679,9 +559,9 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             HTTPClient target = spyClient; 
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
-            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(TimeSyncResponse);
 
             // when
+            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(TimeSyncResponseShort);
             var obtained = target.SendBeaconRequest("156.33.241.5", null);
 
             // then
@@ -689,7 +569,16 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
             Assert.That(obtained.Headers, Is.Empty);
 
-            spyClient.ReceivedWithAnyArgs(1).DoPostRequest(string.Empty, string.Empty, null);
+            // and when
+            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(TimeSyncResponseLong);
+            obtained = target.SendBeaconRequest("156.33.241.5", null);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
+            Assert.That(obtained.Headers, Is.Empty);
+
+            spyClient.ReceivedWithAnyArgs(2).DoPostRequest(string.Empty, string.Empty, null);
         }
 
         [Test]

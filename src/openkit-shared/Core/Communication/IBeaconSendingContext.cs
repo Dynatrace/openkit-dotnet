@@ -63,24 +63,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         long LastStatusCheckTime { get; set; }
 
         /// <summary>
-        /// Last time a successful time sync was peformed
-        /// </summary>
-        long LastTimeSyncTime { get; set; }
-
-        /// <summary>
         /// Returns <code>true</code> if the initialization was performed otherwise <code>false</code>
         /// </summary>
         bool IsInitialized { get; }
-
-        /// <summary>
-        /// Returns <code>true</code> if time sync is supported otherwise <code>false</code>
-        /// </summary>
-        bool IsTimeSyncSupported { get; }
-
-        /// <summary>
-        /// Returns <code>true</code> if the time sync was performed otherwise <code>false</code>
-        /// </summary>
-        bool IsTimeSynced { get; }
 
         /// <summary>
         /// Returns <code>true</code> if a shutdown was requested otherwise <code>false</code>
@@ -123,11 +108,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         List<SessionWrapper> FinishedAndConfiguredSessions { get; }
 
         /// <summary>
-        /// Disables the time sync support
-        /// </summary>
-        void DisableTimeSyncSupport();
-
-        /// <summary>
         /// Executes the current state
         /// </summary>
         void ExecuteCurrentState();
@@ -155,13 +135,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="success"><code>true</code> if init was successful otherwise <code>false</code></param>
         void InitCompleted(bool success);
-
-        /// <summary>
-        /// Initialize time synchronization with cluster time.
-        /// </summary>
-        /// <param name="clusterTimeOffset">the cluster offset</param>
-        /// <param name="isTimeSyncSupported"><code>true</code> if time sync is supported, otherwise <code>false</code></param>
-        void InitializeTimeSync(long clusterTimeOffset, bool isTimeSyncSupported);
 
         /// <summary>
         /// Returns an instance of HTTPClient using the current configuration

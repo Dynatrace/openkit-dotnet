@@ -42,7 +42,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void StateIsNotTerminal()
         {
-            // when
+            // given
             var target = new BeaconSendingInitState();
 
             // then
@@ -52,7 +52,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void ShutdownStateIsTerminalState()
         {
-            // when
+            // given
             var target = new BeaconSendingInitState();
 
             // then
@@ -86,9 +86,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
             context.CurrentTimestamp.Returns(123456L);
+            var target = new BeaconSendingInitState();
 
             // when
-            var target = new BeaconSendingInitState();
             target.Execute(context);
 
             // then
@@ -101,9 +101,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
             context.CurrentTimestamp.Returns(654321L);
+            var target = new BeaconSendingInitState();
 
             // when
-            var target = new BeaconSendingInitState();
             target.Execute(context);
 
             // then
@@ -115,9 +115,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             context.IsShutdownRequested.Returns(true); // shutdown is requested
+            var target = new BeaconSendingInitState();
 
             // when
-            var target = new BeaconSendingInitState();
             target.Execute(context);
 
             // then
@@ -209,9 +209,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var erroneousResponse = new StatusResponse(logger, string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             httpClient.SendStatusRequest().Returns(erroneousResponse); // always return erroneous response
             context.IsShutdownRequested.Returns(false, false, false, false, false, true);
+            var target = new BeaconSendingInitState();
 
             // when
-            var target = new BeaconSendingInitState();
             target.Execute(context);
 
             // then
@@ -219,14 +219,59 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void TransitionToTimeSyncIsPerformedOnSuccess()
+        public void OpenKitInitIsCompletedOnSuccessIfCapturingIsEnabled()
         {
-            // when
+            // given
+            context.IsCaptureOn.Returns(true);
             var target = new BeaconSendingInitState();
+
+            // when
             target.Execute(context);
 
             // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingTimeSyncState>();
+            context.Received(1).InitCompleted(true);
+        }
+
+        [Test]
+        public void OpenKitInitIsCompletedOnSuccessIfCapturingIsDisabled()
+        {
+            // given
+            context.IsCaptureOn.Returns(true);
+            var target = new BeaconSendingInitState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            context.Received(1).InitCompleted(true);
+        }
+
+        [Test]
+        public void TransitionToCaptureOnIsPerformedOnSuccessIfCapturingIsEnabled()
+        {
+            // given
+            context.IsCaptureOn.Returns(true);
+            var target = new BeaconSendingInitState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            context.Received(1).NextState = Arg.Any<BeaconSendingCaptureOnState>();
+        }
+
+        [Test]
+        public void TransitionToCaptureOffIsPerformedOnSuccessIfCapturingIsDisabled()
+        {
+            // given
+            context.IsCaptureOn.Returns(false);
+            var target = new BeaconSendingInitState();
+
+            // when
+            target.Execute(context);
+
+            // then
+            context.Received(1).NextState = Arg.Any<BeaconSendingCaptureOffState>();
         }
 
         [Test]
