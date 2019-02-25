@@ -24,9 +24,8 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to
     /// <ul>
-    ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaputreOn is <code>true</code> and time sync is NOT required</li>
+    ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaputreOn is <code>true</code></li>
     ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown</li>
-    ///     <li><see cref="BeaconSendingTimeSyncState"/> if initial time sync failed</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingCaptureOffState : AbstractBeaconSendingState
@@ -100,17 +99,11 @@ namespace Dynatrace.OpenKit.Core.Communication
                 // if it's an erroneous response capturing is disabled
                 context.HandleStatusResponse(statusResponse);
             }
-            // if initial time sync failed before
             if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
             {
                 // received "too many requests" response
                 // in this case stay in capture off state and use the retry-after delay for sleeping
                 context.NextState = new BeaconSendingCaptureOffState(statusResponse.GetRetryAfterInMilliseconds());
-            }
-            else if (context.IsTimeSyncSupported && !context.IsTimeSynced)
-            {
-                // if initial time sync failed before, then retry initial time sync
-                context.NextState = new BeaconSendingTimeSyncState(true);
             }
             else if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse) && context.IsCaptureOn)
             {

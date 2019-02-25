@@ -21,7 +21,7 @@ namespace Dynatrace.OpenKit.Protocol
 {
 
     /// <summary>
-    ///  Abstract base class for a response to one of the 3 request types (status check, beacon send, time sync).
+    ///  Abstract base class for a response to one of the 2 request types (status check, beacon send).
     /// </summary>
     public abstract class Response
     {

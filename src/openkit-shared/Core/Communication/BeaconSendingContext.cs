@@ -64,11 +64,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             HTTPClientProvider = httpClientProvider;
             TimingProvider = timingProvider;
 
-            // set time sync supported to true
-            IsTimeSyncSupported = true;
-            // set last time sync time to -1
-            LastTimeSyncTime = -1;
-
             // set current state to init state
             CurrentState = new BeaconSendingInitState();
         }
@@ -81,9 +76,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         public AbstractBeaconSendingState NextState { get; set; }
         public long LastOpenSessionBeaconSendTime { get; set; }
         public long LastStatusCheckTime { get; set; }
-        public long LastTimeSyncTime { get; set; }
-        public bool IsTimeSyncSupported { get; private set; }
-        public bool IsTimeSynced => !IsTimeSyncSupported || LastTimeSyncTime >= 0;
 
         public bool IsInitialized => initSucceeded;
 
@@ -97,12 +89,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         public int SendInterval { get { return Configuration.SendInterval; } }
         public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
         public bool IsInTerminalState { get { return CurrentState.IsTerminalState; } }
-       
-
-        public void DisableTimeSyncSupport()
-        {
-            IsTimeSyncSupported = false;
-        }
 
         public void ExecuteCurrentState()
         {
@@ -140,11 +126,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             initSucceeded = success;
             resetEvent.Set();
-        }
-
-        public void InitializeTimeSync(long clusterTimeOffset, bool isTimeSyncSupported)
-        {
-            TimingProvider.Initialze(clusterTimeOffset, isTimeSyncSupported);
         }
 
         public IHTTPClient GetHTTPClient()

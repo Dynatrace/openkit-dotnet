@@ -24,7 +24,6 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// 
     /// Transitions to 
     /// <ul>
-    ///     <li><see cref="BeaconSendingTimeSyncState"/> if <code><see cref="BeaconSendingTimeSyncState.IsTimeSyncRequired(IBeaconSendingContext)"/> == true</code></li>
     ///     <li><see cref="BeaconSendingCaptureOffState"/> if IsCaptureOn is <code>false</code></li>
     ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown</li>
     /// </ul>
@@ -38,14 +37,6 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(IBeaconSendingContext context)
         {
-            // every two hours a time sync shall be performed
-            if (BeaconSendingTimeSyncState.IsTimeSyncRequired(context))
-            {
-                // transition to time sync state. if cature on is still true after time sync we will end up in the CaputerOnState again
-                context.NextState = new BeaconSendingTimeSyncState();
-                return;
-            }
-
             context.Sleep();
 
             // send new session request for all sessions that are new
