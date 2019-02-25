@@ -27,7 +27,8 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// Transitions to:
     /// <ul>
     ///     <li><see cref="BeaconSendingTerminalState"/> upon shutdown request</li>
-    ///     <li><see cref="BeaconSendingTimeSyncState"/> if initial status request succeeded</li>
+    ///     <li><see cref="BeaconSendingCaptureOnState"/> if initial status request succeeded and capturing is enabbled.</li>
+    ///     <li><see cref="BeaconSendingCaptureOffState"/> if initial status request succeeded and capturing is disabled.</li>
     /// </ul>
     /// </summary>
     internal class BeaconSendingInitState : AbstractBeaconSendingState
@@ -69,9 +70,17 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
             else if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
             {
-                // success -> continue with time sync
+                // success -> continue with capture on/capture off
                 context.HandleStatusResponse(statusResponse);
-                context.NextState = new BeaconSendingTimeSyncState(true);
+                if (context.IsCaptureOn)
+                {
+                    context.NextState = new BeaconSendingCaptureOnState();
+                }
+                else
+                {
+                    context.NextState = new BeaconSendingCaptureOffState();
+                }
+                context.InitCompleted(true);
             }
         }
 

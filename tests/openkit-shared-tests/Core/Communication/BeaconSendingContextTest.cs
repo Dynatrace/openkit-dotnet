@@ -41,19 +41,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             timingProvider = Substitute.For<ITimingProvider>();
             nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
         }
-        
-        [Test]
-        public void InitializeTimeSyncDelegatesToTimingProvider()
-        {
-            // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
-            // when
-            target.InitializeTimeSync(1L, true);
-
-            // then
-            timingProvider.Received(1).Initialze(1L, true);
-        }
 
         [Test]
         public void ContextIsInitializedWithInitState()
@@ -210,37 +197,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.LastStatusCheckTime = expected;
 
             Assert.AreEqual(expected, target.LastStatusCheckTime);
-        }
-
-        [Test]
-        public void TimeSyncSupportIsTrueByDefault()
-        {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
-            Assert.That(target.IsTimeSyncSupported, Is.True);
-        }
-
-        [Test]
-        public void LastTimeSyncTimeIsInitializedWithMinus1()
-        {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
-            var expected = -1;
-
-            Assert.AreEqual(expected, target.LastTimeSyncTime);
-        }
-
-        [Test]
-        public void LastTimeSyncTimeIsSet()
-        {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
-            Assert.AreEqual(-1, target.LastTimeSyncTime);
-
-            var expected = 17;
-            target.LastTimeSyncTime = expected;
-
-            Assert.AreEqual(expected, target.LastTimeSyncTime);
         }
 
         [Test]

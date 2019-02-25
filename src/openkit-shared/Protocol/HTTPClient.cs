@@ -28,10 +28,9 @@ namespace Dynatrace.OpenKit.Protocol
 {
 
     /// <summary>
-    ///  HTTP client helper which abstracts the 3 basic request types:
+    ///  HTTP client helper which abstracts the 2 basic request types:
     ///  - status check
     ///  - beacon send
-    ///  - time sync
     /// </summary>
     public abstract class HTTPClient : IHTTPClient
     {
@@ -41,7 +40,6 @@ namespace Dynatrace.OpenKit.Protocol
 
             public static readonly RequestType Status = new RequestType("Status");              // status check
             public static readonly RequestType Beacon = new RequestType("Beacon");              // beacon send
-            public static readonly RequestType TimeSync = new RequestType("TimeSync");          // time sync
             public static readonly RequestType NewSession = new RequestType("NewSession");     // new session
 
             public string RequestName { get; }
@@ -61,7 +59,6 @@ namespace Dynatrace.OpenKit.Protocol
 
         // request type constants
         internal const string RequestTypeMobile = "type=m";
-        internal const string RequestTypeTimeSync = "type=mts";
 
         // query parameter constants
         internal const string QueryKeyServerId = "srvid";
@@ -79,7 +76,6 @@ namespace Dynatrace.OpenKit.Protocol
 
         // URLs for requests
         private readonly string monitorURL;
-        private readonly string timeSyncURL;
 
         private readonly int serverID;
         private readonly ILogger logger;
@@ -91,7 +87,6 @@ namespace Dynatrace.OpenKit.Protocol
             this.logger = logger;
             serverID = configuration.ServerID;
             monitorURL = BuildMonitorURL(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
-            timeSyncURL = BuildTimeSyncURL(configuration.BaseURL);
         }
 
         // sends a status check request and returns a status response
@@ -104,12 +99,6 @@ namespace Dynatrace.OpenKit.Protocol
         public StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data)
         {
             return (StatusResponse)SendRequest(RequestType.Beacon, monitorURL, clientIPAddress, data, "POST") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
-        }
-
-        // sends a time sync request and returns a time sync response
-        public TimeSyncResponse SendTimeSyncRequest()
-        {
-            return (TimeSyncResponse)SendRequest(RequestType.TimeSync, timeSyncURL, null, null, "GET") ?? new TimeSyncResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         public StatusResponse SendNewSessionRequest()
@@ -177,13 +166,7 @@ namespace Dynatrace.OpenKit.Protocol
                     }
 
                     // create typed response based on request type and response content
-                    if (requestType.RequestName == RequestType.TimeSync.RequestName)
-                    {
-                        return httpResponse.Response == null || httpResponse.ResponseCode >= 400
-                            ? new TimeSyncResponse(logger, string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
-                            : ParseTimeSyncResponse(httpResponse);
-                    }
-                    else if ((requestType.RequestName == RequestType.Beacon.RequestName)
+                    if ((requestType.RequestName == RequestType.Beacon.RequestName)
                         || (requestType.RequestName == RequestType.Status.RequestName)
                         || (requestType.RequestName == RequestType.NewSession.RequestName))
                     {
@@ -215,7 +198,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         private Response ParseStatusResponse(HTTPResponse httpResponse)
         {
-            if (IsStatusResponse(httpResponse) && !IsTimeSyncResponse(httpResponse))
+            if (IsStatusResponse(httpResponse))
             {
                 try
                 {
@@ -233,34 +216,10 @@ namespace Dynatrace.OpenKit.Protocol
             return UnknownErrorResponse(RequestType.Status);
         }
 
-        private Response ParseTimeSyncResponse(HTTPResponse httpResponse)
-        {
-            if (IsTimeSyncResponse(httpResponse))
-            {
-                try
-                {
-                    return new TimeSyncResponse(logger, httpResponse.Response, httpResponse.ResponseCode, httpResponse.Headers);
-                }
-                catch(Exception e)
-                {
-                    logger.Error(GetType().Name + " Failed to parse TimeSyncResponse", e);
-                    return UnknownErrorResponse(RequestType.TimeSync);
-                }
-            }
-
-            // invalid/unexpected response
-            logger.Warn(GetType().Name + " The HTTPResponse \"" + httpResponse.Response + "\" is not a valid time sync response");
-            return UnknownErrorResponse(RequestType.TimeSync);
-        }
-
         private static bool IsStatusResponse(HTTPResponse httpResponse)
         {
-            return httpResponse.Response.StartsWith(RequestTypeMobile);
-        }
-
-        private static bool IsTimeSyncResponse(HTTPResponse httpResponse)
-        {
-            return httpResponse.Response.StartsWith(RequestTypeTimeSync);
+            return httpResponse.Response == RequestTypeMobile
+                || httpResponse.Response.StartsWith($"{RequestTypeMobile}&");
         }
 
         protected abstract HTTPResponse GetRequest(string url, string clientIPAddress);
@@ -283,18 +242,6 @@ namespace Dynatrace.OpenKit.Protocol
             AppendQueryParam(monitorURLBuilder, QueryKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
 
             return monitorURLBuilder.ToString();
-        }
-
-        // build URL used for time sync requests
-        private string BuildTimeSyncURL(string baseURL)
-        {
-            StringBuilder timeSyncURLBuilder = new StringBuilder();
-
-            timeSyncURLBuilder.Append(baseURL);
-            timeSyncURLBuilder.Append('?');
-            timeSyncURLBuilder.Append(RequestTypeTimeSync);
-
-            return timeSyncURLBuilder.ToString();
         }
 
         // helper method for appending query parameters
@@ -330,10 +277,6 @@ namespace Dynatrace.OpenKit.Protocol
                 || (requestType.RequestName == RequestType.NewSession.RequestName))
             {
                 return new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
-            }
-            else if ((requestType.RequestName == RequestType.TimeSync.RequestName))
-            {
-                return new TimeSyncResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
             }
             else
             {
