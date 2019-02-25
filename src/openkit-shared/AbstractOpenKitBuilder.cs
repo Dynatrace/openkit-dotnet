@@ -204,12 +204,51 @@ namespace Dynatrace.OpenKit
             return this;
         }
 
+        /// <summary>
+        /// Set the data collection level
+        /// 
+        /// Depending on the chosen level the amount and granularity of data sent is controlled.
+        /// <list type="bullet">
+        /// <item>
+        /// <description><see cref="DataCollectionLevel.OFF"/> no data collected</description>
+        /// </item>
+        /// <item>
+        /// <description><see cref="DataCollectionLevel.PERFORMANCE"/> only performance related data is collected</description>
+        /// </item>
+        /// <item>
+        /// <description><see cref="DataCollectionLevel.USER_BEHAVIOR"/> all available RUM data including performance related data is collected</description>
+        /// </item>
+        /// </list>
+        /// 
+        /// Default value: <see cref="DataCollectionLevel.USER_BEHAVIOR"/>
+        /// </summary>
+        /// <param name="dataCollectionLevel">Data collection level to apply.</param>
+        /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithDataCollectionLevel(DataCollectionLevel dataCollectionLevel)
         {
             this.dataCollectionLevel = dataCollectionLevel;
             return this;
         }
 
+        /// <summary>
+        /// Set the crash reporting level
+        /// 
+        /// <list type="bullet">
+        /// <item>
+        /// <description><see cref="CrashReportingLevel.OFF"/> Crashes are not send to the server</description>
+        /// </item>
+        /// <item>
+        /// <description><see cref="CrashReportingLevel.OPT_OUT_CRASHES"/> Crashes are not send to the server</description>
+        /// </item>
+        /// <item>
+        /// <description><see cref="CrashReportingLevel.OPT_IN_CRASHES"/> Crashes are send to the server</description>
+        /// </item>
+        /// </list>
+        /// 
+        /// Default value: <see cref="CrashReportingLevel.OPT_IN_CRASHES"/>
+        /// </summary>
+        /// <param name="crashReportingLevel"></param>
+        /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithCrashReportingLevel(CrashReportingLevel crashReportingLevel)
         {
             this.crashReportingLevel = crashReportingLevel;
