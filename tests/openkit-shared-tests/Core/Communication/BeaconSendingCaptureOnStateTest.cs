@@ -32,7 +32,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         private List<SessionWrapper> openSessions;
         private List<SessionWrapper> finishedSessions;
         private long currentTime = 0;
-        private long lastTimeSyncTime = 1;
 
         private ILogger logger;
         private IHTTPClient httpClient;
@@ -45,7 +44,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             currentTime = 1;
-            lastTimeSyncTime = 1;
             newSessions = new List<SessionWrapper>();
             openSessions = new List<SessionWrapper>();
             finishedSessions = new List<SessionWrapper>();
@@ -63,22 +61,14 @@ namespace Dynatrace.OpenKit.Core.Communication
             context = Substitute.For<IBeaconSendingContext>();
             context.HTTPClientProvider.Returns(x => httpClientProvider);
             context.GetHTTPClient().Returns(x => httpClient);
-            context.LastTimeSyncTime.Returns(x => currentTime); // always return the current time to prevent re-sync
             context.IsCaptureOn.Returns(true);
 
             // beacon sender
             logger = Substitute.For<ILogger>();
             beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
-
-            // return true by default
-            context.IsTimeSyncSupported.Returns(true);
-
+            
             // current time getter
             context.CurrentTimestamp.Returns(x => timingProvider.ProvideTimestampInMilliseconds());
-
-            // last time sycn getter + setter
-            context.LastTimeSyncTime = Arg.Do<long>(x => lastTimeSyncTime = x);
-            context.LastTimeSyncTime = lastTimeSyncTime;
 
             // sessions
             context.NewSessions.Returns(newSessions);
@@ -114,23 +104,6 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             Assert.That(target.ToString(), Is.EqualTo("CaptureOn"));
-        }
-
-        [Test]
-        public void TransitionToTimeSycnIsPerformed()
-        {
-            // given
-            var lastTimeSync = 1;
-
-            context.LastTimeSyncTime.Returns(lastTimeSync); // return fixed value
-            context.CurrentTimestamp.Returns(lastTimeSync + BeaconSendingTimeSyncState.TIME_SYNC_INTERVAL_IN_MILLIS + 1); // timesync interval + 1 sec
-
-            // when
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingTimeSyncState>();
         }
 
         [Test]

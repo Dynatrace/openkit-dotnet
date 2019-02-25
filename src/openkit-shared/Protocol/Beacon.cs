@@ -61,7 +61,6 @@ namespace Dynatrace.OpenKit.Protocol
 
         // timestamp constants
         private const string BeaconKeySessionStartTime = "tv";
-        private const string BeaconKeyTimeSyncTime = "ts";
         private const string BeaconKeyTransmissionTime = "tx";
 
         // Action related constants
@@ -787,12 +786,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             StringBuilder timestampBuilder = new StringBuilder();
 
-            AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, timingProvider.ConvertToClusterTime(sessionStartTime));
-            AddKeyValuePair(timestampBuilder, BeaconKeyTimeSyncTime, timingProvider.ConvertToClusterTime(sessionStartTime));
-            if (!timingProvider.IsTimeSyncSupported)
-            {
-                AddKeyValuePair(timestampBuilder, BeaconKeyTransmissionTime, timingProvider.ProvideTimestampInMilliseconds());
-            }
+            AddKeyValuePair(timestampBuilder, BeaconKeyTransmissionTime, timingProvider.ProvideTimestampInMilliseconds());
+            AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, sessionStartTime);
 
             return timestampBuilder.ToString();
         }

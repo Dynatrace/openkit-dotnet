@@ -46,7 +46,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingCaptureOnState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingRequestUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTerminalState.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\BeaconSendingTimeSyncState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Communication\IBeaconSendingContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\OpenKitConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Core\Configuration\HTTPClientConfiguration.cs" />
@@ -81,7 +80,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\HTTPClientWebClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\Response.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Protocol\StatusResponse.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Protocol\TimeSyncResponse.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultHTTPClientProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\IHTTPClientProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\ISessionIDProvider.cs" />

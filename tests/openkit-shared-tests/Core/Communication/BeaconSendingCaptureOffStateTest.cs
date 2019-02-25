@@ -46,9 +46,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             // default return success
             httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
-            // return true by default
-            context.IsTimeSyncSupported.Returns(true);
-
             // current time getter
             context.CurrentTimestamp.Returns(x => { return ++currentTime; });
 
@@ -92,8 +89,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             context.IsCaptureOn.Returns(true);
-            context.IsTimeSyncSupported.Returns(true);
-            context.IsTimeSynced.Returns(true);
             httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // when
@@ -102,24 +97,6 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             context.Received(1).NextState = Arg.Any<BeaconSendingCaptureOnState>();
-        }
-
-        [Test]
-        public void TransitionToTimeSyncIsPerformedIfNotDoneYet()
-        {
-            // given
-            context.IsCaptureOn.Returns(true);
-            context.IsTimeSyncSupported.Returns(true);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
-
-            var target = new BeaconSendingCaptureOffState();
-
-            // when
-            target.Execute(context);
-
-            // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingTimeSyncState>();
-            context.Received(1).NextState = Arg.Is<BeaconSendingTimeSyncState>(arg => arg.IsInitialTimeSync == true);
         }
 
         [Test]
@@ -188,7 +165,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             //given
             var target = new BeaconSendingCaptureOffState(12345);
-            context.IsTimeSyncSupported.Returns(true);
             context.IsCaptureOn.Returns(true);
 
             // when calling execute
@@ -209,7 +185,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             };
             var tooManyRequestsResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
             httpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
-            context.IsTimeSyncSupported.Returns(false);
             context.IsCaptureOn.Returns(false);
 
             AbstractBeaconSendingState capturedState = null;

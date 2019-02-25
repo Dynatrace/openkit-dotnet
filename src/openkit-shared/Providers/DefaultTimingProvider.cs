@@ -22,20 +22,6 @@ namespace Dynatrace.OpenKit.Providers
     public class DefaultTimingProvider : ITimingProvider
     {
         private static readonly DateTime jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        
-        private long clusterTimeOffset = 0;
-        private bool isTimeSyncSupported = true;
-
-        public bool IsTimeSyncSupported
-        {
-            get
-            {
-                lock (this)
-                {
-                    return isTimeSyncSupported;
-                }
-            }
-        }
 
         public virtual long ProvideTimestampInMilliseconds()
         {
@@ -49,31 +35,6 @@ namespace Dynatrace.OpenKit.Providers
 #else
             Thread.Sleep(milliseconds);
 #endif
-        }
-
-        public void Initialze(long clusterTimeOffset, bool isTimeSyncSupported)
-        {
-            lock (this)
-            {
-                // set init time in milliseconds since 1970-01-01
-                this.isTimeSyncSupported = isTimeSyncSupported;
-                if (isTimeSyncSupported)
-                {
-                    this.clusterTimeOffset = clusterTimeOffset;
-                }
-                else
-                {
-                    this.clusterTimeOffset = 0;
-                }
-            }
-        }
-
-        public long ConvertToClusterTime(long timestamp)
-        {
-            lock (this)
-            {
-                return timestamp + clusterTimeOffset;
-            }
         }
     }
 }

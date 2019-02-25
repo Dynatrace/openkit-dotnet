@@ -22,11 +22,6 @@ namespace Dynatrace.OpenKit.Providers
     public interface ITimingProvider
     {
         /// <summary>
-        /// Returns whether time sync is supported or not
-        /// </summary>
-        bool IsTimeSyncSupported { get; }
-
-        /// <summary>
         /// Provide the current timestamp in milliseconds in local time.
         /// </summary>
         /// <returns></returns>
@@ -37,19 +32,5 @@ namespace Dynatrace.OpenKit.Providers
         /// </summary>
         /// <param name="milliseconds">Milliseconds to sleep</param>
         void Sleep(int milliseconds);
-
-        /// <summary>
-        /// Initialize time provider with cluster time offset
-        /// </summary>
-        /// <param name="clusterTimeOffset">cluster time offset in milliseconds</param>
-        /// <param name="isTimeSyncSupported"><code>true</code> if time sync is supported otherwise <code>false</code></param>
-        void Initialze(long clusterTimeOffset, bool isTimeSyncSupported);
-
-        /// <summary>
-        /// Converts a local timestamp to cluster time. 
-        /// </summary>
-        /// <param name="timestamp">timestamp in local time</param>
-        /// <returns>Returns local time if not time synced or if not yet initialized</returns>
-        long ConvertToClusterTime(long timestamp);
     }
 }
