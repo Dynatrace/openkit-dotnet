@@ -71,7 +71,6 @@ namespace Dynatrace.OpenKit.Core.Communication
             else if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
             {
                 // success -> continue with capture on/capture off
-                context.InitCompleted(true);
                 context.HandleStatusResponse(statusResponse);
                 if (context.IsCaptureOn)
                 {
@@ -81,6 +80,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 {
                     context.NextState = new BeaconSendingCaptureOffState();
                 }
+                context.InitCompleted(true);
             }
         }
 
