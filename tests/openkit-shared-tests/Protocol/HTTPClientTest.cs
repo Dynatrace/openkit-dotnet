@@ -51,14 +51,14 @@ namespace Dynatrace.OpenKit.Protocol
             Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
         };
 
-        private static readonly HTTPClient.HTTPResponse TimeSyncResponseShort = new HTTPClient.HTTPResponse
+        private static readonly HTTPClient.HTTPResponse InvalidStatusResponseShort = new HTTPClient.HTTPResponse
         {
             ResponseCode = 200,
             Response = "type=mts",
             Headers = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>()
         };
 
-        private static readonly HTTPClient.HTTPResponse TimeSyncResponseLong = new HTTPClient.HTTPResponse
+        private static readonly HTTPClient.HTTPResponse InvalidStatusResponseLong = new HTTPClient.HTTPResponse
         {
             ResponseCode = 200,
             Response = "type=mts&t1=-1&t2=-1",
@@ -196,7 +196,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
 
             // when
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseShort);
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseShort);
             var obtained = target.SendStatusRequest();
 
             // then
@@ -205,7 +205,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.Headers, Is.Empty);
 
             // and when
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseLong);
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseLong);
             obtained = target.SendStatusRequest();
 
             // then
@@ -349,7 +349,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
 
             // when
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseShort);
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseShort);
             var obtained = target.SendNewSessionRequest();
 
             // then
@@ -358,7 +358,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.Headers, Is.Empty);
 
             // and when
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(TimeSyncResponseLong);
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseLong);
             obtained = target.SendNewSessionRequest();
 
             // then
@@ -561,7 +561,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
 
             // when
-            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(TimeSyncResponseShort);
+            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseShort);
             var obtained = target.SendBeaconRequest("156.33.241.5", null);
 
             // then
@@ -570,7 +570,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.Headers, Is.Empty);
 
             // and when
-            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(TimeSyncResponseLong);
+            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseLong);
             obtained = target.SendBeaconRequest("156.33.241.5", null);
 
             // then
