@@ -207,7 +207,7 @@ namespace Dynatrace.OpenKit
         /// <summary>
         /// Set the data collection level
         /// 
-        /// Depending on the chosen level the amount and granularity of data sent is controlled.
+        /// 
         /// <list type="bullet">
         /// <item>
         /// <description><see cref="DataCollectionLevel.OFF"/> no data collected</description>
@@ -235,13 +235,13 @@ namespace Dynatrace.OpenKit
         /// 
         /// <list type="bullet">
         /// <item>
-        /// <description><see cref="CrashReportingLevel.OFF"/> Crashes are not send to the server</description>
+        /// <description><see cref="CrashReportingLevel.OFF"/> Crashes are not sent to the server</description>
         /// </item>
         /// <item>
-        /// <description><see cref="CrashReportingLevel.OPT_OUT_CRASHES"/> Crashes are not send to the server</description>
+        /// <description><see cref="CrashReportingLevel.OPT_OUT_CRASHES"/> Crashes are not sent to the server</description>
         /// </item>
         /// <item>
-        /// <description><see cref="CrashReportingLevel.OPT_IN_CRASHES"/> Crashes are send to the server</description>
+        /// <description><see cref="CrashReportingLevel.OPT_IN_CRASHES"/> Crashes are sent to the server</description>
         /// </item>
         /// </list>
         /// 
