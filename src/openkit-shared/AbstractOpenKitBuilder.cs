@@ -18,7 +18,6 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
-using System.Globalization;
 
 namespace Dynatrace.OpenKit
 {
@@ -40,11 +39,6 @@ namespace Dynatrace.OpenKit
         private long beaconCacheUpperMemoryBoundary = BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES;
         private DataCollectionLevel dataCollectionLevel = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
         private CrashReportingLevel crashReportingLevel = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
-
-        protected AbstractOpenKitBuilder(string endpointURL, long deviceID) :
-            this(endpointURL, deviceID.ToString(CultureInfo.InvariantCulture))
-        {
-        }
 
         protected AbstractOpenKitBuilder(string endpointURL, string deviceID)
         {
