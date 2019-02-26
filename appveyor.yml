@@ -53,12 +53,12 @@ for:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll,openkit-dotnetstandard-*Tests.dll,openkit-dotnetpcl-*Tests.dll  | ? {$_.FullName -match "\\bin\\Coverage\\" } | % FullName 
-      packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]* -[*.Tests]*" -output:coverage.xml
+      .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]* -[*.Tests]*" -output:coverage.xml
       # Run .NET Core tests
       $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
       foreach ($project in $testProjects)
       {
-        packages\OpenCover.4.6.519\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test -c Coverage $project --no-build" -register:user  -filter:"+[*]* -[*.Tests]*" -oldstyle  -output:coverage.xml -mergeoutput
+        .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test -c Coverage $project --no-build" -register:user  -filter:"+[*]* -[*.Tests]*" -oldstyle  -output:coverage.xml -mergeoutput
       }
   after_test: 
   - ps: |
