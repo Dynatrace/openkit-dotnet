@@ -15,7 +15,6 @@
 //
 
 using NUnit.Framework;
-using System.Threading;
 
 namespace Dynatrace.OpenKit.Providers
 {
