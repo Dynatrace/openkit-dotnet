@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace Dynatrace.OpenKit.Core
         public void ErrorLogsAppropriateMessage()
         {
             //given
-            var target = new DefaultLogger(true, writeLineAction);
+            var target = new DefaultLogger(LogLevel.DEBUG, writeLineAction);
 
             // when
             target.Error("Error message");
@@ -54,7 +55,7 @@ namespace Dynatrace.OpenKit.Core
         {
             //given
             var exception = new Exception("test exception");
-            var target = new DefaultLogger(true, writeLineAction);
+            var target = new DefaultLogger(LogLevel.DEBUG, writeLineAction);
 
             // when
             target.Error("Error message", exception);
@@ -69,7 +70,7 @@ namespace Dynatrace.OpenKit.Core
         public void WarningLogsAppropriateMessage()
         {
             //given
-            var target = new DefaultLogger(true, writeLineAction);
+            var target = new DefaultLogger(LogLevel.DEBUG, writeLineAction);
 
             // when
             target.Warn("Warning message");
@@ -83,7 +84,7 @@ namespace Dynatrace.OpenKit.Core
         public void InfoLogsAppropriateMessage()
         {
             //given
-            var target = new DefaultLogger(true, writeLineAction);
+            var target = new DefaultLogger(LogLevel.DEBUG, writeLineAction);
 
             // when
             target.Info("Info message");
@@ -94,10 +95,10 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
-        public void InfoDoesNotLogIfVerboseIsDisabled()
+        public void InfoDoesNotLogIfLogLevelInfoIsDisabled()
         {
             //given
-            var target = new DefaultLogger(false, writeLineAction);
+            var target = new DefaultLogger(LogLevel.WARN, writeLineAction);
 
             // when
             target.Info("Info message");
@@ -110,7 +111,7 @@ namespace Dynatrace.OpenKit.Core
         public void DebugLogsAppropriateMessage()
         {
             //given
-            var target = new DefaultLogger(true, writeLineAction);
+            var target = new DefaultLogger(LogLevel.DEBUG, writeLineAction);
 
             // when
             target.Debug("Debug message");
@@ -121,10 +122,10 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
-        public void DebugDoesNotLogIfVerboseIsDisabled()
+        public void InfoDoesNotLogIfLogLevelDebugIsDisabled()
         {
             //given
-            var target = new DefaultLogger(false, writeLineAction);
+            var target = new DefaultLogger(LogLevel.INFO, writeLineAction);
 
             // when
             target.Debug("Debug message");
@@ -134,59 +135,63 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
-        public void IsErrorEnabledIsTrueIfVerboseIsTrue()
+        public void IsErrorEnabledIsTrueIfLevelIsLessThanOrEqualToLevelError()
         {
-            // then
-            Assert.That(new DefaultLogger(true).IsErrorEnabled, Is.True);
+            // when >= ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.ERROR).IsErrorEnabled, Is.True);
+            Assert.That(new DefaultLogger(LogLevel.ERROR - 1).IsErrorEnabled, Is.True);
         }
 
         [Test]
-        public void IsErrorEnabledIsTrueIfVerboseIsFalse()
+        public void IsErrorEnabledIsFalseIfLevelIsGreaterThanLevelError()
         {
-            // then
-            Assert.That(new DefaultLogger(false).IsErrorEnabled, Is.True);
+            // when < ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.ERROR + 1).IsErrorEnabled, Is.False);
         }
 
         [Test]
-        public void IsWarnEnabledIsTrueIfVerboseIsTrue()
+        public void IsWarnEnabledIsTrueIfLevelIsLessThanOrEqualToLevelWarn()
         {
-            // then
-            Assert.That(new DefaultLogger(true).IsWarnEnabled, Is.True);
+            // when >= ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.WARN).IsWarnEnabled, Is.True);
+            Assert.That(new DefaultLogger(LogLevel.WARN - 1).IsWarnEnabled, Is.True);
         }
 
         [Test]
-        public void IsWarnEnabledIsTrueIfVerboseIsFalse()
+        public void IsWarnEnabledIsFalseIfLevelIsGreaterThanLevelWarn()
         {
-            // then
-            Assert.That(new DefaultLogger(false).IsWarnEnabled, Is.True);
+            // when < ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.WARN + 1).IsWarnEnabled, Is.False);
         }
 
         [Test]
-        public void IsInfoEnabledIsTrueIfVerboseIsTrue()
+        public void IsInfoEnabledIsTrueIfLevelIsLessThanOrEqualToLevelInfo()
         {
-            // then
-            Assert.That(new DefaultLogger(true).IsInfoEnabled, Is.True);
+            // when >= ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.INFO).IsInfoEnabled, Is.True);
+            Assert.That(new DefaultLogger(LogLevel.INFO - 1).IsInfoEnabled, Is.True);
         }
 
         [Test]
-        public void IsInfoEnabledIsFalseIfVerboseIsFalse()
+        public void IsInfoEnabledIsFalseIfLevelIsGreaterThanLevelInfo()
         {
-            // then
-            Assert.That(new DefaultLogger(false).IsInfoEnabled, Is.False);
+            // when < ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.INFO + 1).IsInfoEnabled, Is.False);
         }
 
         [Test]
-        public void IsDebugEnabledIsTrueIfVerboseIsTrue()
+        public void IsDebugEnabledIsTrueIfLevelIsLessThanOrEqualToLevelDebug()
         {
-            // then
-            Assert.That(new DefaultLogger(true).IsDebugEnabled, Is.True);
+            // when >= ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.DEBUG).IsDebugEnabled, Is.True);
+            Assert.That(new DefaultLogger(LogLevel.DEBUG - 1).IsDebugEnabled, Is.True);
         }
 
         [Test]
-        public void IsDebugEnabledIsFalseIfVerboseIsFalse()
+        public void IsDebugEnabledIsFalseIfLevelIsGreaterThanLevelDebug()
         {
-            // then
-            Assert.That(new DefaultLogger(false).IsDebugEnabled, Is.False);
+            // when < ERROR, then
+            Assert.That(new DefaultLogger(LogLevel.DEBUG + 1).IsDebugEnabled, Is.False);
         }
     }
 }

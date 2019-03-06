@@ -69,6 +69,7 @@ customize OpenKit. This includes device specific information like operating syst
 | `WithBeaconCacheLowerMemoryBoundary`  | sets the lower memory boundary of the beacon cache in bytes  | 100 MB |
 | `WithBeaconCacheUpperMemoryBoundary`  |  sets the upper memory boundary of the beacon cache in bytes | 80 MB |
 | `EnableVerbose`  | enables extended log output for OpenKit if the default logger is used | `false` |
+| `WithLogLevel` | sets the default log level if the default logger is used | `LogLevel.WARN` |
 
 
 ## SSL/TLS Security in OpenKit
@@ -86,12 +87,12 @@ the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request 
 
 ## Logging
 
-By default, OpenKit uses a logger implementation that logs to stdout. If the default logger is used, verbose 
-logging can be enabled by calling `EnableVerbose` in the builder. By enabling verbose mode, info and debug
-messages are logged.
+By default, OpenKit uses a logger implementation that logs to stdout. If the default logger is used, the desired
+minimum log level can be set by calling `WithLogLevel` in the builder, and only messages with the same or higher 
+priorities are logged.
 
 A custom logger can be set by calling `WithLogger` in the builder. When a custom logger is used, a call to 
-`EnableVerbose` has no effect. In that case, debug and info logs are logged depending on the values returned 
+`WithLogLevel` has no effect. In that case, debug and info logs are logged depending on the values returned 
 in `IsDebugEnabled` and `IsInfoEnabled`.
 
 ## Initializing OpenKit

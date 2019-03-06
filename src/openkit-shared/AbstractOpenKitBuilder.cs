@@ -18,6 +18,7 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
+using System;
 
 namespace Dynatrace.OpenKit
 {
@@ -28,8 +29,8 @@ namespace Dynatrace.OpenKit
     {
         // mutable fields
         private ILogger logger;
+        private LogLevel logLevel = LogLevel.WARN;
         private ISSLTrustManager trustManager = new SSLStrictTrustManager();
-        private bool verbose;
         private string operatingSystem = OpenKitConstants.DEFAULT_OPERATING_SYSTEM;
         private string manufacturer = OpenKitConstants.DEFAULT_MANUFACTURER;
         private string modelID = OpenKitConstants.DEFAULT_MODEL_ID;
@@ -51,7 +52,7 @@ namespace Dynatrace.OpenKit
         protected string ModelID => modelID;
         protected string ApplicationVersion => applicationVersion;
         protected ISSLTrustManager TrustManager => trustManager;
-        protected ILogger Logger => logger ?? new DefaultLogger(verbose);
+        protected ILogger Logger => logger ?? new DefaultLogger(logLevel);
         protected string EndpointURL { get; private set; }
         protected string DeviceID { get; private set; }
         protected long BeaconCacheMaxBeaconAge => beaconCacheMaxBeaconAge;
@@ -65,10 +66,26 @@ namespace Dynatrace.OpenKit
         /// If a custom logger is provided by calling <code>WithLogger</code> debug and info log output 
         /// depends on the values returned by <code>IsDebugEnabled</code> and <code>IsInfoEnabled</code>.
         /// </summary>
+        /// <remarks>
+        /// With the introduction <see cref="LogLevel"/> prefer the <see cref="WithLogLevel(LogLevel)"/> method.
+        /// </remarks>
         /// <returns><code>this</code></returns>
+        [Obsolete("EnableVerbose is deprecated, use WithLogLevel instead.")]
         public AbstractOpenKitBuilder EnableVerbose()
         {
-            verbose = true;
+            return WithLogLevel(LogLevel.DEBUG);
+        }
+
+        /// <summary>
+        /// Sets the default log level if the default logger is used.
+        /// If a custom logger is provided by calling <see cref="WithLogger(ILogger)"/>, debug and info log output
+        /// depends on the values returned by <see cref="ILogger.IsDebugEnabled"/> and <see cref="ILogger.IsInfoEnabled"/>.
+        /// </summary>
+        /// <param name="logLevel">The logLevel for the custom logger</param>
+        /// <returns><code>this</code></returns>
+        public AbstractOpenKitBuilder WithLogLevel(LogLevel logLevel)
+        {
+            this.logLevel = logLevel;
             return this;
         }
 
@@ -164,7 +181,7 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithBeaconCacheMaxRecordAge(long maxBeaconAgeInMilliseconds)
         {
-            this.beaconCacheMaxBeaconAge = maxBeaconAgeInMilliseconds;
+            beaconCacheMaxBeaconAge = maxBeaconAgeInMilliseconds;
             return this;
         }
 
@@ -179,7 +196,7 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithBeaconCacheLowerMemoryBoundary(long lowerMemoryBoundary)
         {
-            this.beaconCacheLowerMemoryBoundary = lowerMemoryBoundary;
+            beaconCacheLowerMemoryBoundary = lowerMemoryBoundary;
             return this;
         }
 
@@ -194,7 +211,7 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithBeaconCacheUpperMemoryBoundary(long upperMemoryBoundary)
         {
-            this.beaconCacheUpperMemoryBoundary = upperMemoryBoundary;
+            beaconCacheUpperMemoryBoundary = upperMemoryBoundary;
             return this;
         }
 
