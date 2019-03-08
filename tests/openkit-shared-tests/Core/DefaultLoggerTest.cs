@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Core
         [Test]
         public void IsErrorEnabledIsTrueIfLevelIsLessThanOrEqualToLevelError()
         {
-            // when >= ERROR, then
+            // when <= ERROR, then
             Assert.That(new DefaultLogger(LogLevel.ERROR).IsErrorEnabled, Is.True);
             Assert.That(new DefaultLogger(LogLevel.ERROR - 1).IsErrorEnabled, Is.True);
         }
@@ -145,14 +145,14 @@ namespace Dynatrace.OpenKit.Core
         [Test]
         public void IsErrorEnabledIsFalseIfLevelIsGreaterThanLevelError()
         {
-            // when < ERROR, then
+            // when > ERROR, then
             Assert.That(new DefaultLogger(LogLevel.ERROR + 1).IsErrorEnabled, Is.False);
         }
 
         [Test]
         public void IsWarnEnabledIsTrueIfLevelIsLessThanOrEqualToLevelWarn()
         {
-            // when >= ERROR, then
+            // when <= WARN, then
             Assert.That(new DefaultLogger(LogLevel.WARN).IsWarnEnabled, Is.True);
             Assert.That(new DefaultLogger(LogLevel.WARN - 1).IsWarnEnabled, Is.True);
         }
@@ -160,14 +160,14 @@ namespace Dynatrace.OpenKit.Core
         [Test]
         public void IsWarnEnabledIsFalseIfLevelIsGreaterThanLevelWarn()
         {
-            // when < ERROR, then
+            // when > WARN, then
             Assert.That(new DefaultLogger(LogLevel.WARN + 1).IsWarnEnabled, Is.False);
         }
 
         [Test]
         public void IsInfoEnabledIsTrueIfLevelIsLessThanOrEqualToLevelInfo()
         {
-            // when >= ERROR, then
+            // when <= INFO, then
             Assert.That(new DefaultLogger(LogLevel.INFO).IsInfoEnabled, Is.True);
             Assert.That(new DefaultLogger(LogLevel.INFO - 1).IsInfoEnabled, Is.True);
         }
@@ -175,14 +175,14 @@ namespace Dynatrace.OpenKit.Core
         [Test]
         public void IsInfoEnabledIsFalseIfLevelIsGreaterThanLevelInfo()
         {
-            // when < ERROR, then
+            // when > INFO, then
             Assert.That(new DefaultLogger(LogLevel.INFO + 1).IsInfoEnabled, Is.False);
         }
 
         [Test]
         public void IsDebugEnabledIsTrueIfLevelIsLessThanOrEqualToLevelDebug()
         {
-            // when >= ERROR, then
+            // when <= DEBUG, then
             Assert.That(new DefaultLogger(LogLevel.DEBUG).IsDebugEnabled, Is.True);
             Assert.That(new DefaultLogger(LogLevel.DEBUG - 1).IsDebugEnabled, Is.True);
         }
@@ -190,7 +190,7 @@ namespace Dynatrace.OpenKit.Core
         [Test]
         public void IsDebugEnabledIsFalseIfLevelIsGreaterThanLevelDebug()
         {
-            // when < ERROR, then
+            // when > DEBUG, then
             Assert.That(new DefaultLogger(LogLevel.DEBUG + 1).IsDebugEnabled, Is.False);
         }
     }
