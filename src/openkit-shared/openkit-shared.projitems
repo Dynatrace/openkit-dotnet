@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractOpenKitBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)API\LogLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\IRootAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)API\ISSLTrustManager.cs" />

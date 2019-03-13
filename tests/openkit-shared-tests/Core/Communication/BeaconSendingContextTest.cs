@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IHTTPClientProvider clientProvider;
         private ITimingProvider timingProvider;
         private AbstractBeaconSendingState nonTerminalStateMock;
-        private ILogger logger = new DefaultLogger(true);
+        private ILogger logger = new DefaultLogger(LogLevel.DEBUG);
 
         [SetUp]
         public void Setup()
@@ -202,7 +202,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void CanGetHttpClient()
         {
-            var expected = Substitute.For<HTTPClient>(new DefaultLogger(true), new HTTPClientConfiguration("", 0, "", null));
+            var expected = Substitute.For<HTTPClient>(new DefaultLogger(LogLevel.DEBUG), new HTTPClientConfiguration("", 0, "", null));
 
             clientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(expected);
 
@@ -220,7 +220,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             clientProvider
                 .CreateClient(Arg.Any<HTTPClientConfiguration>())
-                .Returns(Substitute.For<HTTPClient>(new DefaultLogger(true), new HTTPClientConfiguration("", 0, "", null)));
+                .Returns(Substitute.For<HTTPClient>(new DefaultLogger(LogLevel.DEBUG), new HTTPClientConfiguration("", 0, "", null)));
 
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 

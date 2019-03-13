@@ -17,36 +17,37 @@
 using Dynatrace.OpenKit.API;
 using System;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
 {
     public class DefaultLogger : ILogger
     {
-        private readonly bool verbose;
-        private readonly System.Action<string> writeLineAction;
+        private readonly LogLevel logLevel;
+        private readonly Action<string> writeLineAction;
 
         const string DateFormat = "O";
 
-        public DefaultLogger(bool verbose)
-        : this(verbose, WriteLine)
+        public DefaultLogger(LogLevel logLevel)
+        : this(logLevel, WriteLine)
 
         {
         }
 
-        internal DefaultLogger(bool verbose, System.Action<string> writeLineAction)
+        internal DefaultLogger(LogLevel logLevel, Action<string> writeLineAction)
         {
-            this.verbose = verbose;
+            this.logLevel = logLevel;
             this.writeLineAction = writeLineAction;
         }
         
-        public bool IsErrorEnabled => true;
+        public bool IsErrorEnabled => LogLevel.ERROR.HasSameOrGreaterPriorityThan(logLevel);
 
-        public bool IsWarnEnabled => true;
+        public bool IsWarnEnabled => LogLevel.WARN.HasSameOrGreaterPriorityThan(logLevel);
 
-        public bool IsInfoEnabled => verbose;
+        public bool IsInfoEnabled => LogLevel.INFO.HasSameOrGreaterPriorityThan(logLevel);
 
-        public bool IsDebugEnabled => verbose;
+        public bool IsDebugEnabled => LogLevel.DEBUG.HasSameOrGreaterPriorityThan(logLevel);
 
         private static string UTCTime => DateTime.UtcNow.ToString(DateFormat, CultureInfo.InvariantCulture);
         
@@ -68,36 +69,54 @@ namespace Dynatrace.OpenKit.Core
             }
         }
 
+        public void Log(LogLevel logLevel, string message)
+        {
+            Log(logLevel, message, null);
+        }
+
+        public void Log(LogLevel logLevel, string message, Exception exception)
+        {
+            if (!logLevel.HasSameOrGreaterPriorityThan(this.logLevel))
+            {
+                return;
+            }
+
+            var logMessageBuilder = new StringBuilder(UTCTime)
+                .Append(" ").Append(logLevel.Name())
+                .Append(" [").Append(CurrentThreadName).Append("]")
+                .Append(" ").Append(message);
+            if (exception != null)
+            {
+                logMessageBuilder.Append(Environment.NewLine)
+                    .Append(exception.ToString());
+            }
+
+            writeLineAction(logMessageBuilder.ToString());
+        }
+
         public void Error(string message)
         {
-            writeLineAction(UTCTime + " ERROR [" + CurrentThreadName + "] " + message);
+            Log(LogLevel.ERROR, message);
         }
 
         public void Error(string message, Exception exception)
         {
-            writeLineAction(UTCTime + " ERROR [" + CurrentThreadName + "] " + message 
-                + Environment.NewLine + exception.ToString());
+            Log(LogLevel.ERROR, message, exception);
         }
 
         public void Warn(string message)
         {
-            writeLineAction(UTCTime + " WARN  [" + CurrentThreadName + "] " + message);
+            Log(LogLevel.WARN, message);
         }
 
         public void Info(string message)
         {
-            if (IsInfoEnabled)
-            {
-                writeLineAction(UTCTime + " INFO  [" + CurrentThreadName + "] " + message);
-            }
+            Log(LogLevel.INFO, message);
         }
 
         public void Debug(string message)
         {
-            if (IsDebugEnabled)
-            {
-                writeLineAction(UTCTime + " DEBUG [" + CurrentThreadName + "] " + message);
-            }
+            Log(LogLevel.DEBUG, message);
         }
 
         private static void WriteLine(string text)
