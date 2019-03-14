@@ -50,10 +50,15 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * Visual Studio 2017 (to open VS solution)
 * In order to run all unit tests you must install the latest SDKs for both Framework and Core (approved: .Net Core 1.1.7+, .Net Core 2.1.4+, Framework 4.6.2+)
 
+## Obtaining OpenKit from NuGet
+
+OpenKit is available as NuGet package on [nuget.org](https://www.nuget.org/packages/Dynatrace.OpenKit.NET/) and should
+be used via Visual Studio's builtin NuGet package manager.
+
 ## Building the Source
 
 Open `openkit-dotnet.sln` in Visual Studio 2017 and build the needed project(s).
-The built dll file(s) `openkit-<version>-dotnet<dotnet_framework>-<dotnet_version>.dll` will be located under the `<project_name>/bin` directory.
+The built dll file(s) `Dynatrace.OpenKit.dll` will be located under the `src/<project_name>/bin` directory.
 
 ## General Concepts
 
