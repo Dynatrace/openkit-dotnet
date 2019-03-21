@@ -223,12 +223,12 @@ IAction childAction = rootAction.EnterAction(childActionName);
 
 ## Leaving Actions
 
-To leave an `IAction` simply use the `Leave` method. The method returns the parent action or `null`
+To leave an `IAction` simply use the `LeaveAction` method. The method returns the parent action or `null`
 if it has no parent.
 
 ```cs
-IAction parentAction = action.Leave(); // returns the appropriate RootAction
-IAction parent = parentAction.Leave(); // will always return null
+IAction parentAction = action.LeaveAction(); // returns the appropriate RootAction
+IAction parent = parentAction.LeaveAction(); // will always return null
 ```
 
 ## Report Named Event
