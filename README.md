@@ -72,7 +72,7 @@ an `IOpenKit` instance.
 
 ### OpenKit
 
-The OpenKit is responsible for creating user sessions (see Session).
+The OpenKit is responsible for creating user sessions (see `ISession`).
   
 Although it would be possible to have multiple `IOpenKit` instances connected to the same endpoint
 (Dynatrace/AppMon) within one process, there should be one unique instance. `IOpenKit` is designed to be
