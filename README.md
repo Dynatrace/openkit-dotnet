@@ -65,11 +65,14 @@ The built dll file(s) `Dynatrace.OpenKit.dll` will be located under the `src/<pr
 In this part the concepts used throughout OpenKit are explained. A short sample how to use OpenKit is
 also provided. For detailed code samples have a look into [example.md](docs/example.md).
 
+### DynatraceOpenKitBuilder / AppMonOpenKitBuilder
+A `DynatraceOpenKitBuilder`/`AppMonOpenKitBuilder` instance is responsible for setting 
+application relevant information, e.g. the application's version and device specific information, and to create
+an `IOpenKit` instance.
+
 ### OpenKit
 
-An `IOpenKit` instance is responsible for getting and setting application relevant information, e.g.
-the application's version and device specific information.  
-Furthermore the `IOpenKit` is responsible for creating user sessions (see `ISession`).
+The OpenKit is responsible for creating user sessions (see Session).
   
 Although it would be possible to have multiple `IOpenKit` instances connected to the same endpoint
 (Dynatrace/AppMon) within one process, there should be one unique instance. `IOpenKit` is designed to be
@@ -77,19 +80,11 @@ thread safe and therefore the instance can be shared among threads.
 
 On application shutdown, `Shutdown()` needs to be called on the OpenKit instance.
 
-### Device
-
-An `IDevice` instance, which can be retrieved from an `IOpenKit` instance, contains methods
-for setting device specific information. It's not mandatory for the application developer to
-provide this information, reasonable default values exist.  
-However when the application is run on multiple different devices it might be quite handy
-to know details about the used device (e.g device identifier, device manufacturer, operating system).
-
 ### Session
 
 An `ISession` represents kind of a user session, similar to a browser session in a web application.
 However the application developer is free to choose how to treat an `ISession`.  
-The `ISession` is used to create `IRootAction` instances and report application crashes.  
+The `ISession` is used to create `IRootAction` instances, report application crashes or for tracing web requests.
 
 When an `ISession` is no longer required, it's highly recommended to end it, using the `ISession.End()` method. 
 
@@ -97,14 +92,17 @@ When an `ISession` is no longer required, it's highly recommended to end it, usi
 
 The `IRootAction` and `IAction` are named hierarchical nodes for timing and attaching further details.
 An `IRootAction` is created from the `ISession` and it can create `IAction` instances. Both, `IRootAction` and
-`IAction`, provide the possibility to attach key-value pairs, named events and errors, and are used 
+`IAction`, provide the possibility to attach key-value pairs, named events and errors, and can be used 
 for tracing web requests.
+
+When an `IRootAction` or `IAction` is no longer required, it's highly recommended to close it, using the `IAction::LeaveAction()` or
+`IRootAction::LeaveAction()` method.
 
 ### WebRequestTracer
 
 When the application developer wants to trace a web request, which is served by a service 
 instrumented by Dynatrace, an `IWebRequestTracer` should be used, which can be
-requested from an `IAction`.  
+requested from a `ISession` or an `IAction`.  
 
 ### Named Events
 
