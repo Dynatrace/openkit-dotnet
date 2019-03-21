@@ -102,7 +102,7 @@ When an `IRootAction` or `IAction` is no longer required, it's highly recommende
 
 When the application developer wants to trace a web request, which is served by a service 
 instrumented by Dynatrace, an `IWebRequestTracer` should be used, which can be
-requested from a `ISession` or an `IAction`.  
+requested from an `ISession` or an `IAction`.  
 
 ### Named Events
 
