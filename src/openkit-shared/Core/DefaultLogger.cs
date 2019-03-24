@@ -55,7 +55,7 @@ namespace Dynatrace.OpenKit.Core
         {
             get
             {
-#if !(WINDOWS_UWP || NETPCL4_5)
+#if !(WINDOWS_UWP || NETSTANDARD1_1)
 
                 var threadName = Thread.CurrentThread.Name;
                 if (!string.IsNullOrEmpty(threadName))
@@ -121,7 +121,7 @@ namespace Dynatrace.OpenKit.Core
 
         private static void WriteLine(string text)
         {
-#if !(WINDOWS_UWP || NETPCL4_5)
+#if !(WINDOWS_UWP || NETSTANDARD1_1)
             Console.WriteLine(text);
 #endif
         }

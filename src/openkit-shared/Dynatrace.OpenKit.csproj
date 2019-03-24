@@ -1,0 +1,150 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- common properties -->
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard1.1;netcoreapp2.0;netcoreapp1.1;netcoreapp1.0;net35;net40;net45;net46;net47;uap10.0</TargetFrameworks>
+    <AssemblyName>Dynatrace.OpenKit</AssemblyName>
+    <RootNamespace>Dynatrace.OpenKit</RootNamespace>
+    <!-- IsPackable is true iff it's a Release build -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- generate full debug information when coverage is built -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- release builds are packable -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <!-- .NET Standard 2.0 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETSTANDARD2_0</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Standard 2.0</Description>
+  </PropertyGroup>
+
+  <!-- .NET Standard 1.1 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.1'">
+    <DefineConstants>NETSTANDARD1_1</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Standard 1.1</Description>
+  </PropertyGroup>
+
+  <!-- .NET Core 2.0 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <DefineConstants>NETCOREAPP2_0</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Core 2.0</Description>
+  </PropertyGroup>
+  
+  <!-- .NET Core 1.1 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
+    <DefineConstants>NETCOREAPP1_1</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Core 1.1</Description>
+  </PropertyGroup>
+  
+  <!-- .NET Core 1.0 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
+    <DefineConstants>NETCOREAPP1_0</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Core 1.0</Description>
+  </PropertyGroup>
+
+  <!-- .NET Full 3.5 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net35' ">
+    <Reference Include="System" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
+    <DefineConstants>NET35</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Framework 3.5</Description>
+  </PropertyGroup>
+
+  <!-- .NET Full 4.0 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+    <DefineConstants>NET40</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Framework 4.0</Description>
+  </PropertyGroup>
+
+  <!-- .NET Full 4.5 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+    <DefineConstants>NET45</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Framework 4.5</Description>
+  </PropertyGroup>
+
+  <!-- .NET Full 4.6 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+    <DefineConstants>NET46</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Framework 4.6</Description>
+  </PropertyGroup>
+
+  <!-- .NET Full 4.7 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net47' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net47'">
+    <DefineConstants>NET47</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET Framework 4.7</Description>
+  </PropertyGroup>
+  
+  <!-- .NET UWP references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'uap10.0' ">
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.8" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'uap10.0'">
+    <NugetTargetMoniker>UAP,Version=v10.0</NugetTargetMoniker>
+    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
+    <TargetPlatformVersion Condition="'$(TargetPlatformVersion)' == ''">10.0.16299.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
+    <TargetFrameworkIdentifier>.NETCore</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <DefineConstants>NETFX_CORE;WINDOWS_UWP</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for Universal Windows Platform</Description>
+  </PropertyGroup>
+
+  <!-- package additional content files (documentation) -->
+  <ItemGroup Label="Packaging">
+    <Content Include="$(SolutionDir)\*.md">
+      <PackagePath>content\</PackagePath>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(SolutionDir)\docs\**\*">
+      <PackagePath>content\docs\</PackagePath>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+    </Content>
+    <Content Remove="C:\Users\cpppw\projects\openkit-dotnet\docs\pics\**" />
+  </ItemGroup>
+  
+  <!-- make internals visible to test assembly -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>$(AssemblyName).Tests, PublicKey=002400000480000094000000060200000024000052534131000400000100010005df99dd5dd29e6ff6d75a55caadeb2969f3c9b68535f2a68755af814a61bd93e81c0f524898e7d41d06ffebd8b68538916aac769da3876656df30306585e3fca8a5ce3744d534767287344418d29687a67bdc949e4424f086983f7c66b936f8b40fb32eb52732a7d7c9b11175c3d9b56f57b75000abec9e381724beeeb4a298</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>DynamicProxyGenAssembly2, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c547cac37abd99c8db225ef2f6c8a3602f3b3606cc9891605d02baa56104f4cfc0734aa39b93bf7852f7d9266654753cc297e7d2edfe0bac1cdcf9f717241550e0a7b191195b7667bb4f64bcb8e2121380fd1d9d46ad2d92d2d15605093924cceaf74c4861eff62abf69b9291ed0a340e113be11e6a7d3113e92484cf7045cc7</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

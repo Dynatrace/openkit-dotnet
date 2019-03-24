@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         private readonly IBeaconCache beaconCache;
         private readonly IBeaconCacheEvictionStrategy[] strategies;
 
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
         private readonly System.Threading.Tasks.Task evictionThread;
 #else
         private readonly Thread evictionThread;
@@ -74,7 +74,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             this.logger = logger;
             this.beaconCache = beaconCache;
             this.strategies = strategies;
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
             evictionThread = new System.Threading.Tasks.Task(RunEvictionThread);
 #else
             evictionThread = new Thread(RunEvictionThread)
@@ -91,7 +91,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// otherwise <code>false</code> is returned.
         /// </summary>
         public bool IsAlive =>
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
             !evictionThread.IsCompleted && evictionThread.Status != System.Threading.Tasks.TaskStatus.Created;
 #else
             evictionThread.IsAlive;
@@ -198,7 +198,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                 {
                     Monitor.PulseAll(syncObject);
                 }
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
                 evictionThread.Wait(joinTimeout);
 #else
                 evictionThread.Join(joinTimeout);

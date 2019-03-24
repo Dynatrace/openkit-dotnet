@@ -97,7 +97,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         #region CreateHTTPClient implementations
 
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
         
         // handling for all frameworks that do not support certificate validation
         private System.Net.Http.HttpClient CreateHTTPClient()

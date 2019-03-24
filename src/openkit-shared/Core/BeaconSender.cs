@@ -35,7 +35,7 @@ namespace Dynatrace.OpenKit.Core
         private readonly ILogger logger;
 
         // beacon sender thread
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
         private System.Threading.Tasks.Task beaconSenderThread;
 #else
         private Thread beaconSenderThread;
@@ -64,7 +64,7 @@ namespace Dynatrace.OpenKit.Core
             }
 
             // create sending thread
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
             beaconSenderThread = System.Threading.Tasks.Task.Factory.StartNew(SenderThread);
 #else
             beaconSenderThread = new Thread(new ThreadStart(SenderThread))
@@ -103,11 +103,11 @@ namespace Dynatrace.OpenKit.Core
 
             if (beaconSenderThread != null)
             {
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP || NETPCL4_5)
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP || NETSTANDARD1_1)
                 beaconSenderThread.Interrupt();                     // not available in .NET Core 1.0 & .NET Core 1.1
                                                                     // might cause up to 1s delay at shutdown
 #endif
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
                 beaconSenderThread.Wait(SHUTDOWN_TIMEOUT);
 #else
                 beaconSenderThread.Join(SHUTDOWN_TIMEOUT);

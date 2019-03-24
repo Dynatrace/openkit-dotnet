@@ -1,0 +1,33 @@
+<Project>
+  <!-- General properties for OpenKit and tests -->
+  <PropertyGroup>
+    <Configurations>Debug;Release;Coverage</Configurations>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <PackageVersion>1.5.0.0-SNAPSHOT</PackageVersion>
+    <Title>OpenKit .NET</Title>
+    <Authors>Dynatrace LLC</Authors>
+    <Company>Dynatrace LLC</Company>
+    <Description>Dynatrace OpenKit SDK for .NET</Description>
+    <Copyright>(c) 2016-2019 Dynatrace LLC</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageIconUrl>https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/Dynatrace/openkit-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Dynatrace/openkit-dotnet.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!-- when packing, also create a symbol pacakge (in the new format) -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Intermediate & output directories are outside the source tree -->
+    <!-- Assembly information, which was previously part of the AssemblyInfo.cs -->
+    <IntermediateOutputPath>$(SolutionDir)\.build\obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+    <OutputPath>$(SolutionDir)\.build\bin\$(Configuration)\$(MSBuildProjectName)\</OutputPath>
+  </PropertyGroup>
+  <!-- generate full debug information when coverage is built -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+</Project>

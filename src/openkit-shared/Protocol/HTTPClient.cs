@@ -187,7 +187,7 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         throw exception;
                     }
-#if WINDOWS_UWP || NETPCL4_5
+#if WINDOWS_UWP || NETSTANDARD1_1
                     System.Threading.Tasks.Task.Delay(RetrySleepTime).Wait();
 #else
                     Thread.Sleep(RetrySleepTime);

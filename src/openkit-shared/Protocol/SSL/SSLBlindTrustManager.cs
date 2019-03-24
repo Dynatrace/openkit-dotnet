@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Protocol.SSL
     /// 
     /// NOTE: DO NOT USE THIS IN PRODUCTION!!
     /// </remarks>
-#if !(WINDOWS_UWP || NETPCL4_5)
+#if !(WINDOWS_UWP || NETSTANDARD1_1)
     public class SSLBlindTrustManager : ISSLTrustManager
     {
         public SSLBlindTrustManager()

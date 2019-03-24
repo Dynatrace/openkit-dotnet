@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Protocol.SSL
     /// </summary>
     public class SSLStrictTrustManager : ISSLTrustManager
     {
-#if !(WINDOWS_UWP || NETPCL4_5)
+#if !(WINDOWS_UWP || NETSTANDARD1_1)
         public System.Net.Security.RemoteCertificateValidationCallback ServerCertificateValidationCallback
         {
             get
