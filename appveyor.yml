@@ -44,6 +44,7 @@ build:
   
 # run tests with code coverage only for Coverage configuration
 for:
+-
   matrix:
     only:
       - configuration: Coverage
