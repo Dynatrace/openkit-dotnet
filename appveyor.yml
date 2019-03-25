@@ -50,11 +50,7 @@ for:
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
       .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
       # Run .NET Core tests
-      $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -match "\\netcoreapp\d\.\d\\"}  | % FullName
-      foreach ($testAssembly in $testAssemblies)
-      {
-        .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"vstest $testAssembly" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
-      }
+      .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test openkit-dotnet.sln --no-build -c Coverage" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
   after_test: 
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
