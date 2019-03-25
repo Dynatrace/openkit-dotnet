@@ -22,8 +22,13 @@ matrix:
 # Assembly patching, only the top level Directory.Build.props file must be patched
 dotnet_csproj:
   patch: true
-  file: '.\Directory.Build.props'
-  package_version: $(appveyor_build_version)
+  file: .\Directory.Build.props
+  version: '{version}'
+  package_version: '{version}'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}'
+
 
 # restore NuGet packages
 before_build:
