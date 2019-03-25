@@ -52,7 +52,7 @@ for:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
+      .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.10.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
       # Run .NET Core tests
       .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test openkit-dotnet.sln --no-build -c Coverage" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
   after_test: 
@@ -75,7 +75,7 @@ for:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      .\packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe $testAssemblies
+      .\packages\NUnit.ConsoleRunner.3.10.0\tools\nunit3-console.exe $testAssemblies
       # Run .NET Core tests
       dotnet.exe test openkit-dotnet.sln --no-build -c Release
   after_build:
