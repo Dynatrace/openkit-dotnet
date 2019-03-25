@@ -17,7 +17,7 @@
   <!-- package references for .NET 3.5 and .NET 4.0 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net35'  Or '$(TargetFramework)' == 'net40'">
     <!--references to external packages -->
-    <PackageReference Include="NUnit.ConsoleRunner" Version="3.10.0" />
+    <PackageReference Include="NUnit.ConsoleRunner" Version="3.9.0" />
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="OpenCover" Version="4.7.922" />
@@ -29,7 +29,7 @@
   <!-- package references for .NET 4.5 and above -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'net47'">
     <!--references to external packages -->
-    <PackageReference Include="NUnit.ConsoleRunner" Version="3.10.0" />
+    <PackageReference Include="NUnit.ConsoleRunner" Version="3.9.0" />
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="NUnit" Version="3.11.0" />
     <PackageReference Include="OpenCover" Version="4.7.922" />
