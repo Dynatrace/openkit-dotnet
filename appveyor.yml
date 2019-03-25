@@ -4,6 +4,8 @@ version: 1.5.0.{build}
 environment:
   COVERALLS_REPO_TOKEN:
     secure: IH0irnGyWP3Z9jcxBz6LsnYIH2pStkwq23/tMRWFCFswYfTA5DvVPTp4pbz9r0Hi
+  NUGET_API_KEY:
+    secure: FLH3rCl/Okbe8lchEljJpnCPrs18DiTlm5oQn3i03yAEIjNhpQcWQDFV3VMPXthc
 
 # Build with Visual Studio 2017
 image: Visual Studio 2017
@@ -17,25 +19,18 @@ configuration:
 matrix:
   fast_finish: true
 
-# Assembly patching for .NET and .NET Core projects
-assembly_info:
-  patch: true
-  file: '**\AssemblyInfo.*'
-  assembly_version: $(appveyor_build_version)
-  assembly_file_version: $(appveyor_build_version)
-  assembly_informational_version: $(appveyor_build_version)
+# Assembly patching, only the top level Directory.Build.props file must be patched
 dotnet_csproj:
   patch: true
-  file: '**\openkit-dotnetcore-*.csproj'
-  version: $(appveyor_build_version)
+  file: '.\Directory.Build.props'
   package_version: $(appveyor_build_version)
-  assembly_version: $(appveyor_build_version)
-  file_version: $(appveyor_build_version)
-  informational_version: $(appveyor_build_version)
 
 # restore NuGet packages
 before_build:
-- cmd: nuget restore
+- ps: |
+    # first download latest NuGet executable
+    Invoke-WebRequest "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -OutFile nuget.exe
+    .\nuget.exe restore
 
 # build
 build:
@@ -52,13 +47,13 @@ for:
   test_script:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
-      $testAssemblies = Get-ChildItem -Recurse -Include openkit-dotnetfull-*Tests.dll,openkit-dotnetstandard-*Tests.dll,openkit-dotnetpcl-*Tests.dll  | ? {$_.FullName -match "\\bin\\Coverage\\" } | % FullName 
+      $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
       .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
       # Run .NET Core tests
-      $testProjects = Get-ChildItem -Recurse -Include openkit-dotnetcore-*Tests.csproj  | % FullName
-      foreach ($project in $testProjects)
+      $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -match "\\netcoreapp\d\.\d\\"}  | % FullName
+      foreach ($testAssembly in $testAssemblies)
       {
-        .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test -c Coverage $project --no-build" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
+        .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"vstest $testAssembly" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
       }
   after_test: 
   - ps: |
@@ -80,17 +75,24 @@ for:
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
-          Push-Location
-          cd packaging
-          $source = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
-          $destination = ".\nuget.exe"
-          Invoke-WebRequest $source -OutFile $destination
-          .\OpenKit.NET.package.ps1
-          .\nuget pack
-          [xml]$xml = Get-Content .\OpenKit.NET.nuspec
-          $version = $xml.GetElementsByTagName('package').Item(0).GetElementsByTagName('metadata').Item(0).GetElementsByTagName('version').Item(0).'#text'
-          Compress-Archive -Path ".\OpenKit.NET.package\*" -CompressionLevel Optimal -DestinationPath .\OpenKit.$version.zip
-          Pop-Location
+          [xml]$xml = Get-Content .\Directory.Build.props
+          $version = $xml.GetElementsByTagName('Project').Item(0).GetElementsByTagName('PropertyGroup').Item(0).GetElementsByTagName('PackageVersion').Item(0).'#text'
+          # first compress the directories (NOTE: A copy of all files is needed)
+          if( -Not (Test-Path -Path .\.package) ) {
+              New-Item -ItemType directory -Path .\.package | Out-Null
+          }
+          Get-ChildItem -Recurse .\.build\bin\Release\Dynatrace.OpenKit\*\Dynatrace.OpenKit.* | ? {$_.Extension -match "\.dll|\.pdb"}  | ForEach-Object {
+              $path = Join-Path -Path .\.package -ChildPath $_.Directory.Name
+              if( -Not (Test-Path -Path $path) ) {
+                  New-Item -ItemType directory -Path $path | Out-Null
+              }
+              $newName = Join-Path -Path $path -ChildPath $_.Name
+              Copy-Item $_.FullName $newName
+          }
+          # now the compression works
+          Compress-Archive -Path ".\.package\*" -CompressionLevel Optimal -Update -DestinationPath .\Dynatrace.OpenKit.$version.zip
+          # create NuGet package and source package
+          msbuild.exe /v:minimal /t:Pack /p:IncludeSymbols=true /p:Configuration=Release
       }
       else
       {
@@ -101,9 +103,9 @@ for:
 
 # artifacts being published  
 artifacts:
-- path: packaging\*.zip
-  name: netcore
-- path: packaging\*.nupkg
+- path: .\Dynatrace.OpenKit.*.zip
+  name: zip
+- path: .\.build\bin\Release\Dynatrace.OpenKit\*.nupkg
   name: nupkg
 
 
@@ -124,8 +126,7 @@ deploy:
     APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
 # NuGet
 - provider: NuGet
-  api_key:
-    secure: FLH3rCl/Okbe8lchEljJpnCPrs18DiTlm5oQn3i03yAEIjNhpQcWQDFV3VMPXthc
+  api_key: $env:NUGET_API_KEY
   artifact: /.*\.nupkg/
   skip_symbols: true
   on:
@@ -133,3 +134,12 @@ deploy:
     configuration: Release
     APPVEYOR_REPO_TAG: true
     APPVEYOR_REPO_NAME: Dynatrace/openkit-dotnet
+
+after_deploy:
+- ps: |
+    # Since AppVeyor cannot deal with 
+    if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet" -And "$Env:APPVEYOR_REPO_BRANCH" -match "release\/\d+\.\d+" -And "$Env:APPVEYOR_REPO_TAG" -eq $true) {
+        Get-ChildItem .\.build\bin\Release\Dynatrace.OpenKit\*.snupkg | % { 
+            .\nuget.exe push $_.FullName -s https://api.nuget.org/v3/index.json -k $env:NUGET_API_KEY
+        }
+    }
