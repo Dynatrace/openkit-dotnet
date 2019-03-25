@@ -44,11 +44,9 @@ build:
   
 # run tests with code coverage only for Coverage configuration
 for:
--
   matrix:
     only:
       - configuration: Coverage
-
   test_script:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
@@ -72,6 +70,13 @@ for:
   matrix:
     only:
       - configuration: Release
+  test_script:
+  - ps: |
+      # Run .NET test assemblies, excluding .NET Core
+      $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
+      packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe $testAssemblies
+      # Run .NET Core tests
+      dotnet.exe test openkit-dotnet.sln --no-build -c Release
   after_build:
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")

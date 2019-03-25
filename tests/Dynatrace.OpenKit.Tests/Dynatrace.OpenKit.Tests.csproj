@@ -51,18 +51,21 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <DefineConstants>NETCOREAPP2_0</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 2.0</Description>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   
   <!-- .NET Core 1.1 references, compilation flags and build options -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
     <DefineConstants>NETCOREAPP1_1</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 1.1</Description>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   
   <!-- .NET Core 1.0 references, compilation flags and build options -->
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
     <DefineConstants>NETCOREAPP1_0</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 1.0</Description>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <!-- .NET Full 3.5 references, compilation flags and build options -->

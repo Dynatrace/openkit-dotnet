@@ -24,6 +24,7 @@
     <!-- Assembly information, which was previously part of the AssemblyInfo.cs -->
     <IntermediateOutputPath>$(SolutionDir)\.build\obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
     <OutputPath>$(SolutionDir)\.build\bin\$(Configuration)\$(MSBuildProjectName)\</OutputPath>
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
   <!-- generate full debug information when coverage is built -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Coverage|AnyCPU'">
