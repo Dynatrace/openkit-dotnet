@@ -47,11 +47,10 @@ for:
       - configuration: Coverage
   test_script:
   - ps: |
-      $nunitConsole = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.10.0\tools\nunit3-console.exe"
       $openCoverConsole = "$env:USERPROFILE\.nuget\packages\opencover\4.7.922\tools\OpenCover.Console.exe"
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      & $openCoverConsole -target:"$nunitConsole" -targetargs:"'--result=myresults.xml' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
+      & $openCoverConsole -target:"nunit3-console" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
       # Run .NET Core tests
       & $openCoverConsole -target:"dotnet.exe" -targetargs:"test openkit-dotnet.sln --no-build -c Coverage" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
   after_test: 
@@ -73,13 +72,12 @@ for:
       - configuration: Release
   test_script:
   - ps: |
-      $nunitConsole = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.10.0\tools\nunit3-console.exe"
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
       echo $testAssemblies
-      & $nunitConsole $testAssemblies '--result=myresults.xml'
+      nunit3-console $testAssemblies '--result=myresults.xml;format=AppVeyor'
       # Run .NET Core tests
-      dotnet.exe test openkit-dotnet.sln --no-build -c Release
+      dotnet.exe test openkit-dotnet.sln --no-build -c Release --result=myresults.xml
   after_build:
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
