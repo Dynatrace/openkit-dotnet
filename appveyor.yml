@@ -77,7 +77,7 @@ for:
       echo $testAssemblies
       nunit3-console $testAssemblies '--result=myresults.xml;format=AppVeyor'
       # Run .NET Core tests
-      dotnet.exe test openkit-dotnet.sln --no-build -c Release --result=myresults.xml
+      dotnet.exe test openkit-dotnet.sln --no-build --configuration Release
   after_build:
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
