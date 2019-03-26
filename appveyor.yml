@@ -73,9 +73,9 @@ for:
   test_script:
   - ps: |
       # Run .NET test assemblies, excluding .NET Core
-      $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      echo $testAssemblies
-      nunit3-console $testAssemblies '--result=myresults.xml;format=AppVeyor'
+      Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | ForEach-Object {
+          nunit3-console $_.FullName '--result=myresults.xml;format=AppVeyor'
+      }
       # Run .NET Core tests
       dotnet.exe test openkit-dotnet.sln --no-build --configuration Release
   after_build:
