@@ -32,10 +32,7 @@ dotnet_csproj:
 
 # restore NuGet packages
 before_build:
-- ps: |
-    # first download latest NuGet executable
-    Invoke-WebRequest "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -OutFile nuget.exe
-    .\nuget.exe restore
+- ps: msbuild /t:restore /p:RestorePackagesPath=packages openkit-dotnet.sln
 
 # build
 build:
@@ -73,6 +70,7 @@ for:
       - configuration: Release
   test_script:
   - ps: |
+      .
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
       .\packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe $testAssemblies
@@ -144,9 +142,11 @@ deploy:
 
 after_deploy:
 - ps: |
-    # Since AppVeyor cannot deal with 
+    # Since AppVeyor cannot deal with source packages, handle them manually for now
+    # See also https://github.com/appveyor/ci/issues/2753
     if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet" -And "$Env:APPVEYOR_REPO_BRANCH" -match "release\/\d+\.\d+" -And "$Env:APPVEYOR_REPO_TAG" -eq $true) {
-        Get-ChildItem .\.build\bin\Release\Dynatrace.OpenKit\*.snupkg | % { 
+        Get-ChildItem .\.build\bin\Release\Dynatrace.OpenKit\*.snupkg | % {
+            Invoke-WebRequest "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe" -OutFile nuget.exe
             .\nuget.exe push $_.FullName -s https://api.nuget.org/v3/index.json -k $env:NUGET_API_KEY
         }
     }
