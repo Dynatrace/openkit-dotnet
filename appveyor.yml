@@ -32,7 +32,7 @@ dotnet_csproj:
 
 # restore NuGet packages
 before_build:
-- ps: msbuild /t:restore /p:RestorePackagesPath=packages openkit-dotnet.sln
+- ps: msbuild /t:restore openkit-dotnet.sln
 
 # build
 build:
@@ -47,16 +47,19 @@ for:
       - configuration: Coverage
   test_script:
   - ps: |
+      $nunitConsole = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.10.0\tools\nunit3-console.exe"
+      $openCoverConsole = "$env:USERPROFILE\.nuget\packages\opencover\4.7.922\tools\OpenCover.Console.exe""
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
+      & $openCoverConsole -target:"$nunitConsole" -targetargs:"'--result=myresults.xml;format=AppVeyor' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:coverage.xml
       # Run .NET Core tests
-      .\packages\OpenCover.4.7.922\tools\OpenCover.Console.exe -target:"dotnet.exe" -targetargs:"test openkit-dotnet.sln --no-build -c Coverage" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
+      & $openCoverConsole -target:"dotnet.exe" -targetargs:"test openkit-dotnet.sln --no-build -c Coverage" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:coverage.xml -mergeoutput
   after_test: 
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
-        packages\coveralls.io.1.4.2\tools\coveralls.net.exe --opencover .\coverage.xml -r $Env:COVERALLS_REPO_TOKEN
+          $coveralls = "$env:USERPROFILE\.nuget\packages\coveralls.io\1.4.2\tools\coveralls.net.exe"
+          & $coveralls --opencover .\coverage.xml -r $Env:COVERALLS_REPO_TOKEN
       }
       else
       {
@@ -70,10 +73,10 @@ for:
       - configuration: Release
   test_script:
   - ps: |
-      .
+      $nunitConsole = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.10.0\tools\nunit3-console.exe"
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      .\packages\NUnit.ConsoleRunner.3.9.0\tools\nunit3-console.exe $testAssemblies
+      & $nunitConsole $testAssemblies --result=myresults.xml;format=AppVeyor
       # Run .NET Core tests
       dotnet.exe test openkit-dotnet.sln --no-build -c Release
   after_build:
