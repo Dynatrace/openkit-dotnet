@@ -22,7 +22,7 @@ matrix:
 # Assembly patching, only the top level Directory.Build.props file must be patched
 dotnet_csproj:
   patch: true
-  file: .\Directory.Build.props
+  file: .\*.props
   version: '{version}'
   package_version: '{version}'
   assembly_version: '{version}'
@@ -76,7 +76,7 @@ for:
       $nunitConsole = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.10.0\tools\nunit3-console.exe"
       # Run .NET test assemblies, excluding .NET Core
       $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Release\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-      & $nunitConsole $testAssemblies --result=myresults.xml;format=AppVeyor
+      & $nunitConsole $testAssemblies '--result=myresults.xml;format=AppVeyor'
       # Run .NET Core tests
       dotnet.exe test openkit-dotnet.sln --no-build -c Release
   after_build:
