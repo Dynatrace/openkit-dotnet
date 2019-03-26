@@ -22,7 +22,7 @@ matrix:
 # Assembly patching, only the top level Directory.Build.props file must be patched
 dotnet_csproj:
   patch: true
-  file: .\*.props
+  file: '*.props'
   version: '{version}'
   package_version: '{version}'
   assembly_version: '{version}'
