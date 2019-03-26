@@ -58,7 +58,7 @@ be used via Visual Studio's builtin NuGet package manager.
 ## Building the Source
 
 Open `openkit-dotnet.sln` in Visual Studio 2017 and build the needed project(s).
-The built dll file(s) `Dynatrace.OpenKit.dll` will be located under the `src/<project_name>/bin` directory.
+The built dll file(s) `Dynatrace.OpenKit.dll` will be located under the `.build/bin/<configuration>/Dynatrace.OpenKit` directory.
 
 ## General Concepts
 
