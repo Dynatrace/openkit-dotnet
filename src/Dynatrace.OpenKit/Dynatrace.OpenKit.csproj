@@ -7,6 +7,8 @@
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
     <!-- IsPackable is true iff it's a Release build -->
     <IsPackable>false</IsPackable>
+    <!-- set the package id, otherwise it's equal to the AssemblyName -->
+    <PackageId>Dynatrace.OpenKit.NET</PackageId>
   </PropertyGroup>
 
   <!-- generate full debug information when coverage is built -->
