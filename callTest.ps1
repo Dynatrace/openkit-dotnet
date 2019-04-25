@@ -30,7 +30,7 @@ if($option -eq "Release") {
     $openCoverConsole = "$env:USERPROFILE\.nuget\packages\opencover\4.7.922\tools\OpenCover.Console.exe"
     # Run .NET test assemblies, excluding .NET Core
     $testAssemblies = Get-ChildItem -Recurse -Path .\.build\bin\Coverage\Dynatrace.OpenKit.Tests -Include Dynatrace.OpenKit.Tests.dll | ? {$_.FullName -notmatch "\\netcoreapp\d\.\d\\"}  | % FullName
-    & $openCoverConsole -target:"nunit3-console" -targetargs:"'--result=myresults.xml;format=$format' $testAssemblies" -register:user -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -output:$outputDir\coverage.xml
+    & $openCoverConsole "-target:$nunit3_console" "-targetargs:--result=$outputDir\myresults.xml;format=$format $testAssemblies" -register:user "-filter:+[*]Dynatrace.OpenKit*" "-hideskipped:Filter;MissingPdb" -output:$outputDir\coverage.xml
     # Run .NET Core tests
-    & $openCoverConsole -target:"dotnet.exe" -targetargs:"test openkit-dotnet.sln --no-build -c Coverage" -register:user  -filter:"+[*]Dynatrace.OpenKit* -[*.Tests]*" -hideskipped:"Filter;MissingPdb" -oldstyle  -output:$outputDir\coverage.xml -mergeoutput
+    & $openCoverConsole "-target:dotnet.exe" "-targetargs:test openkit-dotnet.sln --no-build -c Coverage" -register:user "-filter:+[*]Dynatrace.OpenKit*" "-hideskipped:Filter;MissingPdb" -oldstyle  -output:$outputDir\coverage.xml -mergeoutput
 }
