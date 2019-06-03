@@ -1,8 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- common properties -->
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+        <TargetFrameworks>netcoreapp2.0;netcoreapp1.1;netcoreapp1.0;net47;net46;net45;net40;net35</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
+        <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
+        <TargetFrameworks>net47;net46;net45;net40;net35</TargetFrameworks>
+  </PropertyGroup>
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0;netcoreapp1.1;netcoreapp1.0;net47;net46;net45;net40;net35</TargetFrameworks>
     <AssemblyName>Dynatrace.OpenKit.Tests</AssemblyName>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
     <!-- IsPackable is true iff it's a Release build -->
