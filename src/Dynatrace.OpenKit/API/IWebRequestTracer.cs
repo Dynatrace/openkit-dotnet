@@ -40,13 +40,21 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Stops the web request timing. Should be called when the web request is finished.
         /// </summary>
+        [Obsolete("Use Stop(int) instead")]
         void Stop();
+
+        /// <summary>
+        /// Stops the web request timing with the given responseCode. Should be called when the web request is finished.
+        /// </summary>
+        /// <param name="responseCode">return code provided by the server response</param>
+        void Stop(int responseCode);
 
         /// <summary>
         ///  Sets the response code on the web request
         /// </summary>
         /// <param name="responseCode">return code provided by server response</param>
         /// <returns></returns>
+        [Obsolete("use Stop(int) instead")]
         IWebRequestTracer SetResponseCode(int responseCode);
 
         /// <summary>

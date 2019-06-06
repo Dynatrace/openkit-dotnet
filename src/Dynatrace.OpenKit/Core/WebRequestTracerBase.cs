@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using System.Threading;
+using System;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -73,7 +74,7 @@ namespace Dynatrace.OpenKit.Core
         {
             get
             {
-                if(logger.IsDebugEnabled)
+                if (logger.IsDebugEnabled)
                 {
                     logger.Debug($"{this} Tag returning '{tag}'");
                 }
@@ -91,12 +92,12 @@ namespace Dynatrace.OpenKit.Core
 
         public void Dispose()
         {
-            Stop();
+            Stop(ResponseCode);
         }
 
         public IWebRequestTracer Start()
         {
-            if( logger.IsDebugEnabled)
+            if (logger.IsDebugEnabled)
             {
                 logger.Debug(this + "Start()");
             }
@@ -107,23 +108,31 @@ namespace Dynatrace.OpenKit.Core
             return this;
         }
 
+        [Obsolete("Use Stop(int) instead")]
         public void Stop()
+        {
+            Stop(ResponseCode);
+        }
+
+        public void Stop(int responseCode)
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(this + "Stop()");
+                logger.Debug($"{this} Stop(rc='{responseCode}')");
             }
             if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
             {
                 return;
             }
 
+            ResponseCode = responseCode;
             EndSequenceNo = beacon.NextSequenceNumber;
 
             // add web request to beacon
             beacon.AddWebRequest(parentActionID, this);
         }
 
+        [Obsolete("Use Stop(int) instead")]
         public IWebRequestTracer SetResponseCode(int responseCode)
         {
             if (!IsStopped)

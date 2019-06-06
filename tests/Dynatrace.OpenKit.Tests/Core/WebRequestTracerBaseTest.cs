@@ -97,7 +97,19 @@ namespace Dynatrace.OpenKit.Core
             // then
             Assert.That(target.IsStopped, Is.True);
         }
-        
+
+        [Test]
+        public void AWebRequestTracerIsStoppedWithResponseCodeAfterStopHasBeenCalled()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            // when calling the stop method with response code
+            target.Stop(200);
+
+            // then
+            Assert.That(target.IsStopped, Is.True);
+        }
+
         [Test]
         public void DisposingAWebRequestTracerStopsIt()
         {
@@ -109,6 +121,20 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(((WebRequestTracerBase)target).IsStopped, Is.True);
+        }
+
+        [Test]
+        public void DisposingAWebRequestWithSetResponseCodeTracerStopsIt()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            target.SetResponseCode(200);
+
+            // when disposing the target
+            target.Dispose();
+
+            // then
+            Assert.That(((WebRequestTracerBase)target).ResponseCode, Is.EqualTo(200));
         }
 
         [Test]
@@ -126,6 +152,19 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void StopWithResponseCodeSetsTheResponseCode()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+
+            // when stopping with response code
+            target.Stop(418);
+
+            // then
+            Assert.That(target.ResponseCode, Is.EqualTo(418));
+        }
+
+        [Test]
         public void SetResponseCodeDoesNotSetTheResponseCodeIfStopped()
         {
             // given
@@ -140,6 +179,19 @@ namespace Dynatrace.OpenKit.Core
             Assert.That(obtained, Is.SameAs(target));
         }
 
+        [Test]
+        public void StopWithResponseCodeDoesNotSetTheResponseCodeIfStopped()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            target.Stop(200);
+
+            // when stopping with response code
+            target.Stop(404);
+
+            // then
+            Assert.That(target.ResponseCode, Is.EqualTo(200));
+        }
 
         [Test]
         public void SetBytesSentSetsTheNumberOfSentBytes()
@@ -171,6 +223,21 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void SetBytesSentDoesNotSetAnythingIfStoppedWithResponseCode()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            target.Stop(200);
+
+            // when setting the sent bytes
+            var obtained = target.SetBytesSent(1234);
+
+            // then
+            Assert.That(target.BytesSent, Is.EqualTo(-1));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
         public void SetBytesReceivedSetsTheNumberOfReceivedBytes()
         {
             // given
@@ -190,6 +257,21 @@ namespace Dynatrace.OpenKit.Core
             // given
             var target = new TestWebRequestTracerBase(logger, beacon, 17);
             target.Stop();
+
+            // when setting the received bytes
+            var obtained = target.SetBytesReceived(4321);
+
+            // then
+            Assert.That(target.BytesReceived, Is.EqualTo(-1));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void SetBytesReceivedDoesNotSetAnythingIfStoppedWithResponseCode()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            target.Stop(200);
 
             // when setting the received bytes
             var obtained = target.SetBytesReceived(4321);
@@ -231,6 +313,22 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void StartDoesNothingIfAlreadyStoppedWithResponseCode()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123456789L);
+            target.Stop(200);
+
+            // when starting web request tracing
+            var obtained = target.Start();
+
+            // then
+            Assert.That(target.StartTime, Is.EqualTo(0L));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
         public void StopCanOnlyBeExecutedOnce()
         {
             // given
@@ -249,6 +347,32 @@ namespace Dynatrace.OpenKit.Core
             // and when executed the second time
             beacon.ClearData();
             target.Stop();
+
+            // then
+            Assert.That(target.EndSequenceNo, Is.EqualTo(2));
+            Assert.That(target.EndTime, Is.EqualTo(123L));
+            Assert.That(beacon.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void StopWithResponseCodeCanOnlyBeExecutedOnce()
+        {
+            // given
+            var target = new TestWebRequestTracerBase(logger, beacon, 17);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(123L, 321L);
+
+            // when executed the first time
+            beacon.ClearData();
+            target.Stop(200);
+
+            // then
+            Assert.That(target.EndSequenceNo, Is.EqualTo(2));
+            Assert.That(target.EndTime, Is.EqualTo(123L));
+            Assert.That(beacon.IsEmpty, Is.False);
+
+            // and when executed the second time
+            beacon.ClearData();
+            target.Stop(200);
 
             // then
             Assert.That(target.EndSequenceNo, Is.EqualTo(2));

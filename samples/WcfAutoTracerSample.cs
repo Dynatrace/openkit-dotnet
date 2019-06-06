@@ -83,18 +83,19 @@ namespace Samples
                 if (webRequestTracer != null)
                 {
                     object httpResponseMessageObject;
+                    int responseCode;
                     if (reply.Properties.TryGetValue(HttpResponseMessageProperty.Name, out httpResponseMessageObject))
                     {
                         var httpResponseMessage = httpResponseMessageObject as HttpResponseMessageProperty;
-                        webRequestTracer.SetResponseCode((int)httpResponseMessage.StatusCode);
+                        responseCode = (int)httpResponseMessage.StatusCode;
                     }
                     else
                     {
                         // assume HTTP OK by default
-                        webRequestTracer.SetResponseCode((int)HttpStatusCode.OK);
+                        responseCode = (int)HttpStatusCode.OK
                     }
 
-                    webRequestTracer.Stop();
+                    webRequestTracer.Stop(responseCode);
                     webRequestTracer = null;
                 }
             }
@@ -187,9 +188,9 @@ namespace Samples
             var tracingAction = session.EnterAction("WCF Tracing Action");
 
             sendWcfServiceCall(tracingAction);
-			
-			// leave the tracing action
-			tracingAction.Leave();
+
+            // leave the tracing action
+            tracingAction.Leave();
 
             // end session
             session.End();

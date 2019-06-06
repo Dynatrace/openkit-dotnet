@@ -118,10 +118,7 @@ namespace Samples
 
                     tracer.SetBytesSent(bytesToSend)
                         .SetBytesReceived(bytesReceived)
-                        .SetResponseCode((int)response.StatusCode);
-
-                    // stop the tracer
-                    tracer.Stop();
+                        .Stop((int)response.StatusCode);        // stop the tracer
                 }
             }
         }

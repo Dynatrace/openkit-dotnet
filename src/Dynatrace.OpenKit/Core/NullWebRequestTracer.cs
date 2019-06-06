@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using System;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -36,6 +37,7 @@ namespace Dynatrace.OpenKit.Core
             return this;
         }
 
+        [Obsolete("Use Stop(int) instead")]
         public IWebRequestTracer SetResponseCode(int responseCode)
         {
             return this;
@@ -46,14 +48,20 @@ namespace Dynatrace.OpenKit.Core
             return this;
         }
 
+        [Obsolete("Use Stop(int) instead")]
         public void Stop()
         {
             // intentionally left empty, due to NullObject pattern
         }
 
+        public void Stop(int responseCode)
+        {
+            // nothing, NullObject pattern
+        }
+
         public void Dispose()
         {
-            Stop();
+            // nothing, NullObject pattern
         }
     }
 }

@@ -95,13 +95,13 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-            
+
             const string testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesSent = 123;
 
             //when
-            webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(bytesSent).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
@@ -115,13 +115,13 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-            
+
             const string testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesSent = 0;
 
             //when
-            webRequest.Start().SetBytesSent(bytesSent).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(bytesSent).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
@@ -135,12 +135,12 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-            
+
             const string testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
 
             //when
-            webRequest.Start().SetBytesSent(-1).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(-1).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
@@ -154,13 +154,13 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-            
+
             const string testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesReceived = 12321;
 
             //when
-            webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
@@ -174,13 +174,13 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-            
+
             const string testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
             var bytesReceived = 0;
 
             //when
-            webRequest.Start().SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
@@ -194,12 +194,12 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 BeaconConfiguration = beaconConfig
             };
-            
+
             const string testURL = "https://127.0.0.1";
             var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
 
             //when
-            webRequest.Start().SetBytesReceived(-1).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesReceived(-1).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
@@ -220,7 +220,7 @@ namespace Dynatrace.OpenKit.Protocol
             var bytesSent = 123;
 
             //when
-            webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
 
             //then
             Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs=123&br=12321" }));
@@ -432,7 +432,7 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            
+
             var webRequestTracer = new WebRequestTracerStringURL(logger, target, 17, "https://foo.bar");
 
             // when
@@ -465,7 +465,7 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            
+
             var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
 
             //when
@@ -485,7 +485,7 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            
+
             var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
 
             //when
@@ -506,7 +506,7 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
-            
+
             var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
 
             //when
@@ -678,7 +678,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             var obtained = target.DeviceID;
-            
+
             // then
             Assert.That(obtained.Length, Is.EqualTo(Beacon.MaximumNameLength));
             Assert.That(obtained, Is.EqualTo(deviceID.Substring(0, Beacon.MaximumNameLength)));

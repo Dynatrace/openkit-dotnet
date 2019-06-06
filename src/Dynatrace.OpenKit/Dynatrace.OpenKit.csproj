@@ -6,7 +6,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
          <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
-        <TargetFrameworks>net35;net40;net45;net46;net47</TargetFrameworks>
+        <TargetFrameworks>net47;net46;net45;net40;net35</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>Dynatrace.OpenKit</AssemblyName>
