@@ -125,16 +125,16 @@ namespace Dynatrace.OpenKit.Protocol
 
         private readonly BeaconCache beaconCache;
 
-        // *** constructor ***
+        #region constructors
 
         /// <summary>
         /// Creates a new instance of type Beacon
         /// </summary>
         /// <param name="logger">Logger for logging messages</param>
-        /// <param name="cache">Cache storing beacon related data</param>
+        /// <param name="beaconCache">Cache storing beacon related data</param>
         /// <param name="configuration">OpenKit related configuration</param>
         /// <param name="clientIPAddress">The client's IP address</param>
-        /// <param name="threadIdProvider">Provider for retrieving thread id</param>
+        /// <param name="threadIDProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
         public Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
             IThreadIDProvider threadIDProvider, ITimingProvider timingProvider)
@@ -146,10 +146,10 @@ namespace Dynatrace.OpenKit.Protocol
         /// Creates a new instance of type Beacon
         /// </summary>
         /// <param name="logger">Logger for logging messages</param>
-        /// <param name="cache">Cache storing beacon related data</param>
+        /// <param name="beaconCache">Cache storing beacon related data</param>
         /// <param name="configuration">OpenKit related configuration</param>
         /// <param name="clientIPAddress">The client's IP address</param>
-        /// <param name="threadIdProvider">Provider for retrieving thread id</param>
+        /// <param name="threadIDProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
         /// <param name="randomNumberGenerator">Random number generator</param>
         internal Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIPAddress,
@@ -190,7 +190,11 @@ namespace Dynatrace.OpenKit.Protocol
             httpConfiguration = configuration.HTTPClientConfig;
             basicBeaconData = CreateBasicBeaconData();
         }
-        // *** public properties ***
+
+        #endregion
+
+        #region public properties
+
         public int SessionNumber { get; }
 
         public string DeviceID { get; }
@@ -211,6 +215,10 @@ namespace Dynatrace.OpenKit.Protocol
         /// Get the current timestamp in milliseconds by delegating to TimingProvider
         /// </summary>
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
+
+        #endregion
+
+        #region internal properties
 
         internal BeaconConfiguration BeaconConfiguration
         {
@@ -243,7 +251,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 var events = beaconCache.GetEvents(SessionNumber);
                 if (events == null)
-                {                    
+                {
                     return new List<string>();
                 }
 
@@ -265,13 +273,15 @@ namespace Dynatrace.OpenKit.Protocol
                 if (actions == null)
                 {
                     return new List<string>();
-                }                   
+                }
 
                 return actions.Select(x => x.Data).ToList();
             }
         }
 
-        // *** public methods ***
+        #endregion
+
+        #region public methods
 
         /// <summary>
         /// create web request tag
@@ -550,7 +560,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         /// <param name="parentActionID"></param>
         /// <param name="webRequestTracer"></param>
-        public void AddWebRequest(int parentActionID, WebRequestTracerBase webRequestTracer)
+        public void AddWebRequest(int parentActionID, WebRequestTracer webRequestTracer)
         {
             if (CapturingDisabled)
             {
@@ -619,7 +629,6 @@ namespace Dynatrace.OpenKit.Protocol
         /// send current state of Beacon
         /// </summary>
         /// <param name="httpClientProvider"></param>
-        /// <param name="numRetries"></param>
         /// <returns></returns>
         public StatusResponse Send(IHTTPClientProvider httpClientProvider)
         {
@@ -661,13 +670,19 @@ namespace Dynatrace.OpenKit.Protocol
             return response;
         }
 
+        #endregion
+
+        #region internal methods
+
         internal void ClearData()
         {
             // remove all cached data for this Beacon from the cache
             beaconCache.DeleteCacheEntry(SessionNumber);
         }
 
-        // *** private methods ***
+        #endregion
+
+        #region private methods
 
         /// <summary>
         /// Add previously serialized action data to the beacon cache.
@@ -749,7 +764,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePairIfValueIsNotNull(builder, BeaconKeyName, TruncateNullSafe(name));
             AddKeyValuePair(builder, BeaconKeyThreadID, threadIDProvider.ThreadID);
         }
-       
+
 
         // helper method for creating basic beacon protocol data
         private string CreateBasicBeaconData()
@@ -866,5 +881,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             return timestamp - sessionStartTime;
         }
+
+        #endregion
     }
 }

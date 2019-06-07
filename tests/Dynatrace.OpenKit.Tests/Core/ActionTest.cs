@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Core
         private OpenKitConfiguration testConfiguration;
         private ITimingProvider mockTimingProvider;
         private ILogger logger;
-        
+
         [SetUp]
         public void SetUp()
         {
@@ -559,7 +559,7 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained, Is.InstanceOf<WebRequestTracerStringURL>());
+            Assert.That(obtained, Is.InstanceOf<WebRequestTracer>());
         }
 
         [Test]

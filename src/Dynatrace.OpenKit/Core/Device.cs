@@ -29,8 +29,6 @@ namespace Dynatrace.OpenKit.Core
             ModelID = modelID;
         }
 
-        // *** IDevice interface methods & propreties ***
-
         public string OperatingSystem { get; }
 
         public string Manufacturer { get; }

@@ -45,7 +45,7 @@ namespace Dynatrace.OpenKit.Core
 
         private volatile bool isShutdown = false;
 
-        // *** constructors ***
+        #region constructors
 
         public OpenKit(ILogger logger, OpenKitConfiguration configuration)
             : this(logger, configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
@@ -58,7 +58,7 @@ namespace Dynatrace.OpenKit.Core
             ITimingProvider timingProvider,
             IThreadIDProvider threadIDProvider)
         {
-            if(logger.IsInfoEnabled)
+            if (logger.IsInfoEnabled)
             {
                 //TODO: Use proper version information (incl. the build number)
                 logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DEFAULT_APPLICATION_VERSION + " instantiated");
@@ -80,12 +80,14 @@ namespace Dynatrace.OpenKit.Core
             beaconCacheEvictor = new BeaconCacheEvictor(logger, beaconCache, configuration.BeaconCacheConfig, timingProvider);
         }
 
+        #endregion
+
         /// <summary>
         /// Initialize this OpenKit instance.
         /// </summary>
         /// <remarks>
         /// This method starts the <see cref="BeaconSender"/>  and is called directly after
-        /// the instance has been created in <see cref="OpenKitFactory"/>.
+        /// the instance has been created in <see cref="AbstractOpenKitBuilder.Build"/>.
         /// </remarks>
         internal void Initialize()
         {
@@ -93,12 +95,12 @@ namespace Dynatrace.OpenKit.Core
             beaconSender.Initialize();
         }
 
-        // *** IOpenKit interface methods ***
-
         public void Dispose()
         {
             Shutdown();
         }
+
+        #region IOpenKit implementation
 
         public bool WaitForInitCompletion()
         {
@@ -122,7 +124,7 @@ namespace Dynatrace.OpenKit.Core
 
         public ISession CreateSession(string clientIPAddress)
         {
-            if(logger.IsDebugEnabled)
+            if (logger.IsDebugEnabled)
             {
                 logger.Debug(GetType().Name + " CreateSession(" + clientIPAddress + ")");
             }
@@ -146,5 +148,7 @@ namespace Dynatrace.OpenKit.Core
             beaconCacheEvictor.Stop();
             beaconSender.Shutdown();
         }
+
+        #endregion
     }
 }

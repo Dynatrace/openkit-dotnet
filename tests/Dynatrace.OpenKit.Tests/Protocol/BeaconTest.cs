@@ -97,7 +97,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
             var bytesSent = 123;
 
             //when
@@ -117,7 +117,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
             var bytesSent = 0;
 
             //when
@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
 
             //when
             webRequest.Start().SetBytesSent(-1).Stop(-1); //stop will add the web request to the beacon
@@ -156,7 +156,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
             var bytesReceived = 12321;
 
             //when
@@ -176,7 +176,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
             var bytesReceived = 0;
 
             //when
@@ -196,7 +196,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
 
             //when
             webRequest.Start().SetBytesReceived(-1).Stop(-1); //stop will add the web request to the beacon
@@ -215,7 +215,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
 
             const string testURL = "https://127.0.0.1";
-            var webRequest = new WebRequestTracerStringURL(logger, target, 1, testURL);
+            var webRequest = new WebRequestTracer(logger, target, 1, testURL);
             var bytesReceived = 12321;
             var bytesSent = 123;
 
@@ -433,7 +433,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var webRequestTracer = new WebRequestTracerStringURL(logger, target, 17, "https://foo.bar");
+            var webRequestTracer = new WebRequestTracer(logger, target, 17, "https://foo.bar");
 
             // when
             target.AddWebRequest(17, webRequestTracer);
@@ -466,7 +466,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
+            var webRequestTracer = Substitute.For<WebRequestTracer>(logger, target, 17);
 
             //when
             target.AddWebRequest(17, webRequestTracer);
@@ -486,7 +486,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
+            var webRequestTracer = Substitute.For<WebRequestTracer>(logger, target, 17);
 
             //when
             target.AddWebRequest(17, webRequestTracer);
@@ -507,7 +507,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration("1", beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var webRequestTracer = Substitute.For<WebRequestTracerBase>(logger, target, 17);
+            var webRequestTracer = Substitute.For<WebRequestTracer>(logger, target, 17);
 
             //when
             target.AddWebRequest(17, webRequestTracer);

@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Core
         // data structures for managing actions
         private SynchronizedQueue<IAction> openChildActions = new SynchronizedQueue<IAction>();
 
-        // *** constructors ***
+        #region constructors
 
         public RootAction(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
             : base(logger, beacon, name, thisLevelActions)
@@ -37,18 +37,20 @@ namespace Dynatrace.OpenKit.Core
             this.beacon = beacon;
         }
 
-        // *** interface methods ***
+        #endregion
+
+        #region IRootAction interface implementations
 
         public IAction EnterAction(string actionName)
         {
-            if(Logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
                 Logger.Debug(this + "EnterAction(" + actionName + ")");
             }
             if (string.IsNullOrEmpty(actionName))
             {
-                    Logger.Warn(this + "EnterAction: actionName must not be null or empty");
-                    return new NullAction(this);
+                Logger.Warn(this + "EnterAction: actionName must not be null or empty");
+                return new NullAction(this);
             }
             if (!IsActionLeft)
             {
@@ -57,7 +59,9 @@ namespace Dynatrace.OpenKit.Core
             return new NullAction(this);
         }
 
-        // *** protected methods ***
+        #endregion
+
+        #region protected methods
 
         protected override IAction DoLeaveAction()
         {
@@ -70,6 +74,8 @@ namespace Dynatrace.OpenKit.Core
 
             return base.DoLeaveAction();
         }
+
+        #endregion
 
         public override string ToString()
         {

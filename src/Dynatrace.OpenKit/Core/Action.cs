@@ -181,7 +181,7 @@ namespace Dynatrace.OpenKit.Core
                 logger.Warn(this + "TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
-            if (!WebRequestTracerStringURL.IsValidURLScheme(url))
+            if (!WebRequestTracer.IsValidURLScheme(url))
             {
                 logger.Warn(this + $"TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
@@ -192,7 +192,7 @@ namespace Dynatrace.OpenKit.Core
             }
             if (!IsActionLeft)
             {
-                return new WebRequestTracerStringURL(logger, beacon, ID, url);
+                return new WebRequestTracer(logger, beacon, ID, url);
             }
 
             return NullWebRequestTracer;

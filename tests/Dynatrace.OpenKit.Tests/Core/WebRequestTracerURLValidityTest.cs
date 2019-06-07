@@ -23,7 +23,7 @@ using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core
 {
-    public class WebRequestTracerStringURLTest
+    public class WebRequestTracerURLValidityTest
     {
         private Beacon beacon;
         private Action action;
@@ -46,21 +46,21 @@ namespace Dynatrace.OpenKit.Core
         public void NullIsNotAValidURLScheme()
         {
             // then
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme(null), Is.False);
+            Assert.That(WebRequestTracer.IsValidURLScheme(null), Is.False);
         }
 
         [Test]
         public void AValidSchemeStartsWithALetter()
         {
             // when starting with lower case letter, then
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme("a://some.host"), Is.True);
+            Assert.That(WebRequestTracer.IsValidURLScheme("a://some.host"), Is.True);
         }
 
         [Test]
         public void AValidSchemeOnlyContainsLettersDigitsPlusPeriodOrHyphen()
         {
             // when the url scheme contains all allowed characters
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme("b1+Z6.-://some.host"), Is.True);
+            Assert.That(WebRequestTracer.IsValidURLScheme("b1+Z6.-://some.host"), Is.True);
         }
 
         [Test]
@@ -68,30 +68,30 @@ namespace Dynatrace.OpenKit.Core
         {
 
             // when the url scheme contains all allowed characters
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme("Obp1e+nZK6i.t-://some.host"), Is.True);
+            Assert.That(WebRequestTracer.IsValidURLScheme("Obp1e+nZK6i.t-://some.host"), Is.True);
         }
 
         [Test]
         public void AValidSchemeDoesNotStartWithADigit()
         {
             // when it does not start with a digit, then it's valid
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme("a1://some.host"), Is.True);
+            Assert.That(WebRequestTracer.IsValidURLScheme("a1://some.host"), Is.True);
             // when it starts with a digit, then it's invalid
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme("1a://some.host"), Is.False);
+            Assert.That(WebRequestTracer.IsValidURLScheme("1a://some.host"), Is.False);
         }
 
         [Test]
         public void ASchemeIsInvalidIfInvalidCharactersAreEncountered()
         {
             // then
-            Assert.That(WebRequestTracerStringURL.IsValidURLScheme("a()[]{}@://some.host"), Is.False);
+            Assert.That(WebRequestTracer.IsValidURLScheme("a()[]{}@://some.host"), Is.False);
         }
 
         [Test]
         public void AnURLIsOnlySetInConstructorIfItIsValid()
         {
             // given
-            var target = new WebRequestTracerStringURL(logger, beacon, 21, "a1337://foo");
+            var target = new WebRequestTracer(logger, beacon, 21, "a1337://foo");
 
             // then
             Assert.That(target.URL, Is.EqualTo("a1337://foo"));
@@ -101,7 +101,7 @@ namespace Dynatrace.OpenKit.Core
         public void IfURLIsInvalidTheDefaultValueIsUsed()
         {
             // given
-            var target = new WebRequestTracerStringURL(logger, beacon, 42, "foobar");
+            var target = new WebRequestTracer(logger, beacon, 42, "foobar");
 
             // then
             Assert.That(target.URL, Is.EqualTo("<unknown>"));

@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
         private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
         private const bool DEFAULT_CAPTURE_CRASHES = true;              // default: capture crashes on
-        
+
         // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
@@ -51,8 +51,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         private readonly ISessionIDProvider sessionIDProvider;
 
-        // *** constructors ***
-       public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, string deviceID, string endpointURL,
+        #region constructors
+
+        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, string deviceID, string endpointURL,
             ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
             BeaconCacheConfiguration beaconCacheConfiguration, BeaconConfiguration beaconConfiguration)
         {
@@ -61,7 +62,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // immutable settings
             ApplicationName = applicationName;
             ApplicationID = applicationID;
-            ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new []{ '_' });
+            ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new[] { '_' });
             DeviceID = deviceID;
             EndpointURL = endpointURL;
 
@@ -89,7 +90,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
             BeaconConfig = beaconConfiguration;
         }
 
-        // *** public methods ***
+        #endregion
+
+        #region public properties
 
         // return next session number
         public int NextSessionNumber
@@ -203,6 +206,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public HTTPClientConfiguration HTTPClientConfig { get; private set; }
 
         public BeaconConfiguration BeaconConfig { get; }
+
+        #endregion
 
         // updates settings based on a status response
         public void UpdateSettings(StatusResponse statusResponse)

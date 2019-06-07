@@ -18,16 +18,19 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using System.Threading;
 using System;
+using System.Text.RegularExpressions;
 
 namespace Dynatrace.OpenKit.Core
 {
 
     /// <summary>
-    ///  Abstract base class implementation of the IWebRequestTracer interface.
+    ///  Standard implementation of the IWebRequestTracer interface.
     /// </summary>
-    public abstract class WebRequestTracerBase : IWebRequestTracer
+    public class WebRequestTracer : IWebRequestTracer
     {
         private readonly ILogger logger = null;
+
+        private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", RegexOptions.IgnoreCase);
 
         // Dynatrace tag that has to be used for tracing the web request
         private readonly string tag = null;
@@ -42,9 +45,9 @@ namespace Dynatrace.OpenKit.Core
         private readonly Beacon beacon;
         private readonly int parentActionID;
 
-        // *** constructors ***
+        #region constructors
 
-        public WebRequestTracerBase(ILogger logger, Beacon beacon, int parentActionID)
+        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionID)
         {
             this.logger = logger;
             this.beacon = beacon;
@@ -58,7 +61,24 @@ namespace Dynatrace.OpenKit.Core
             StartTime = beacon.CurrentTimestamp;
         }
 
-        // *** IWebRequestTracer interface methods ***
+        /// <summary>
+        ///  This constructor can be used for tracing and timing of a web request handled by any 3rd party HTTP Client.
+        ///  Setting the Dynatrace tag to the OpenKit.WEBREQUEST_TAG_HEADER HTTP header has to be done manually by the user.
+        /// </summary>
+        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionID, string url) : this(logger, beacon, parentActionID)
+        {
+            if (IsValidURLScheme(url))
+            {
+                this.url = url.Split(new char[] { '?' }, 2)[0];
+            }
+        }
+
+        #endregion
+
+        internal static bool IsValidURLScheme(string url)
+        {
+            return url != null && SchemaValidationPattern.Match(url).Success;
+        }
 
         public string URL => url;
 
@@ -69,18 +89,6 @@ namespace Dynatrace.OpenKit.Core
         public int StartSequenceNo { get; }
 
         public int EndSequenceNo { get; private set; } = -1;
-
-        public string Tag
-        {
-            get
-            {
-                if (logger.IsDebugEnabled)
-                {
-                    logger.Debug($"{this} Tag returning '{tag}'");
-                }
-                return tag;
-            }
-        }
 
         public int ResponseCode { get; private set; } = -1;
 
@@ -93,6 +101,20 @@ namespace Dynatrace.OpenKit.Core
         public void Dispose()
         {
             Stop(ResponseCode);
+        }
+
+        #region IWebRequestTracer implementation
+
+        public string Tag
+        {
+            get
+            {
+                if (logger.IsDebugEnabled)
+                {
+                    logger.Debug($"{this} Tag returning '{tag}'");
+                }
+                return tag;
+            }
         }
 
         public IWebRequestTracer Start()
@@ -159,6 +181,8 @@ namespace Dynatrace.OpenKit.Core
             }
             return this;
         }
+
+        #endregion
 
         public override string ToString()
         {

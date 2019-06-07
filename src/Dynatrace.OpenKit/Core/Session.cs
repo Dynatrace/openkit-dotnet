@@ -71,12 +71,12 @@ namespace Dynatrace.OpenKit.Core
 
         internal bool IsSessionEnded => EndTime != -1;
 
-        // *** ISession interface methods ***
-
         public void Dispose()
         {
             End();
         }
+
+        #region ISession implementation
 
         public IRootAction EnterAction(string actionName)
         {
@@ -85,7 +85,7 @@ namespace Dynatrace.OpenKit.Core
                 logger.Warn(this + "EnterAction: actionName must not be null or empty");
                 return NullRootAction;
             }
-            if(logger.IsDebugEnabled)
+            if (logger.IsDebugEnabled)
             {
                 logger.Debug(this + "EnterAction(" + actionName + ")");
             }
@@ -138,7 +138,7 @@ namespace Dynatrace.OpenKit.Core
                 logger.Warn($"{this}TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
-            if (!WebRequestTracerStringURL.IsValidURLScheme(url))
+            if (!WebRequestTracer.IsValidURLScheme(url))
             {
                 logger.Warn($"{this}TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
@@ -149,7 +149,7 @@ namespace Dynatrace.OpenKit.Core
             }
             if (!IsSessionEnded)
             {
-                return new WebRequestTracerStringURL(logger, beacon, 0, url);
+                return new WebRequestTracer(logger, beacon, 0, url);
             }
 
             return NullWebRequestTracer;
@@ -184,12 +184,14 @@ namespace Dynatrace.OpenKit.Core
             beaconSender.FinishSession(this);
         }
 
+        #endregion
+
         // sends the current Beacon state
         public StatusResponse SendBeacon(IHTTPClientProvider clientProvider)
         {
             return beacon.Send(clientProvider);
         }
-        
+
         /// <summary>
         /// Clear captured beacon data.
         /// </summary>

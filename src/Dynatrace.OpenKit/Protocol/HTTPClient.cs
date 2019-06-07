@@ -80,7 +80,7 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly int serverID;
         private readonly ILogger logger;
 
-        // *** constructors ***
+        #region constructors
 
         public HTTPClient(ILogger logger, HTTPClientConfiguration configuration)
         {
@@ -88,6 +88,8 @@ namespace Dynatrace.OpenKit.Protocol
             serverID = configuration.ServerID;
             monitorURL = BuildMonitorURL(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
         }
+
+        #endregion
 
         // sends a status check request and returns a status response
         public StatusResponse SendStatusRequest()
