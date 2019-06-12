@@ -19,6 +19,8 @@ using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
 using System;
+using System.Globalization;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit
 {
@@ -41,10 +43,36 @@ namespace Dynatrace.OpenKit
         private DataCollectionLevel dataCollectionLevel = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
         private CrashReportingLevel crashReportingLevel = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
 
+        protected AbstractOpenKitBuilder(string endpointURL, long deviceID)
+            : this(endpointURL, deviceID, deviceID.ToString(CultureInfo.InvariantCulture))
+        {
+        }
+
+        [Obsolete("use AbstractOpenKitBuilder(string, long) instead")]
         protected AbstractOpenKitBuilder(string endpointURL, string deviceID)
+            : this(endpointURL, DeviceIdFromString(deviceID), deviceID)
+        {
+        }
+
+        private AbstractOpenKitBuilder(string endpointURL, long deviceID, string origDeviceID)
         {
             EndpointURL = endpointURL;
             DeviceID = deviceID;
+            OrigDeviceID = origDeviceID;
+        }
+
+        private static long DeviceIdFromString(string deviceId)
+        {
+            deviceId = deviceId?.Trim() ?? string.Empty;
+
+            try
+            {
+                return long.Parse(deviceId, CultureInfo.InvariantCulture);
+            }
+            catch (FormatException)
+            {
+                return StringUtil.To64BitHash(deviceId);
+            }
         }
 
         protected string OperatingSystem => operatingSystem;
@@ -54,7 +82,8 @@ namespace Dynatrace.OpenKit
         protected ISSLTrustManager TrustManager => trustManager;
         protected ILogger Logger => logger ?? new DefaultLogger(logLevel);
         protected string EndpointURL { get; private set; }
-        protected string DeviceID { get; private set; }
+        protected long DeviceID { get; private set; }
+        protected string OrigDeviceID { get; private set; }
         protected long BeaconCacheMaxBeaconAge => beaconCacheMaxBeaconAge;
         protected long BeaconCacheLowerMemoryBoundary => beaconCacheLowerMemoryBoundary;
         protected long BeaconCacheUpperMemoryBoundary => beaconCacheUpperMemoryBoundary;

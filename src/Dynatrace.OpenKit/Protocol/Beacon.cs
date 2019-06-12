@@ -162,13 +162,12 @@ namespace Dynatrace.OpenKit.Protocol
             if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
             {
                 SessionNumber = configuration.NextSessionNumber;
-                DeviceID = Truncate(configuration.DeviceID);
+                DeviceID = configuration.DeviceID;
             }
             else
             {
                 SessionNumber = 1;
-                DeviceID = randomNumberGenerator.NextLong(long.MaxValue)
-                    .ToString(CultureInfo.InvariantCulture);
+                DeviceID = randomNumberGenerator.NextLong(long.MaxValue);
             }
 
             this.timingProvider = timingProvider;
@@ -197,7 +196,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         public int SessionNumber { get; }
 
-        public string DeviceID { get; }
+        public long DeviceID { get; }
 
         public bool IsEmpty => beaconCache.IsEmpty(SessionNumber);
 
@@ -299,7 +298,7 @@ namespace Dynatrace.OpenKit.Protocol
             return $"{WebRequestTagPrefix}_"
                 + $"{ProtocolConstants.ProtocolVersion}_"
                 + $"{httpConfiguration.ServerID}_"
-                + $"{PercentEncoder.Encode(DeviceID, Encoding.UTF8, ReservedCharacters)}_"
+                + $"{DeviceID}_"
                 + $"{SessionNumber}_"
                 + $"{configuration.ApplicationIDPercentEncoded}_"
                 + $"{parentActionID}_"

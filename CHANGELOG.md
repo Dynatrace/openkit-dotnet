@@ -3,6 +3,9 @@
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.0...HEAD)
 
 ### Changed
+- On OpenKitBuilder creation device ID is parsed from the given string. Non-numeric
+  device IDs are hashed to a corresponding numeric value. Internally a numeric
+  type is used for the device ID.
 - Response code is now a parameter of WebRequestTracer's stop method.
   Existing methods for stopping and setting the response code have been deprecated.
 

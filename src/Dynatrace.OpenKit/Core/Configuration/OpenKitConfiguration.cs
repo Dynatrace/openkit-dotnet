@@ -53,7 +53,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         #region constructors
 
-        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, string deviceID, string endpointURL,
+        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string origDeviceID, string endpointURL,
             ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
             BeaconCacheConfiguration beaconCacheConfiguration, BeaconConfiguration beaconConfiguration)
         {
@@ -64,6 +64,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             ApplicationID = applicationID;
             ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new[] { '_' });
             DeviceID = deviceID;
+            OrigDeviceID = origDeviceID;
             EndpointURL = endpointURL;
 
             // mutable settings
@@ -113,7 +114,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public string ApplicationIDPercentEncoded { get; }
 
-        public string DeviceID { get; }
+        public long DeviceID { get; }
+
+        public string OrigDeviceID { get; }
 
         public string EndpointURL { get; }
 

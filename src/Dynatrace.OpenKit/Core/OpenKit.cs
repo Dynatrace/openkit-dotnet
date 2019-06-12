@@ -65,10 +65,12 @@ namespace Dynatrace.OpenKit.Core
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(
-                  "applicationName=" + configuration.ApplicationName + ", applicationID=" + configuration.ApplicationID
-                  + ", deviceID=" + configuration.DeviceID + ", endpointURL=" + configuration.EndpointURL
-                    );
+                logger.Debug($"applicationName={configuration.ApplicationName}"
+                  + $", applicationID={configuration.ApplicationID}"
+                  + $", deviceID={configuration.DeviceID}"
+                  + $", origDeviceID={configuration.OrigDeviceID}"
+                  + $", endpointURL={configuration.EndpointURL}"
+                );
             }
             this.configuration = configuration;
             this.logger = logger;
