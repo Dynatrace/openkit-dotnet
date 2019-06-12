@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.1..HEAD)
 
+### Changed
+- On OpenKitBuilder creation device ID is parsed from the given string. Non-numeric
+  device IDs are hashed to a corresponding numeric value. Internally a numeric
+  type is used for the device ID.
+
 ## 1.4.1 [Release date: 2019-02-14]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.1)
 

@@ -20,6 +20,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol.SSL;
 using NSubstitute;
 using NUnit.Framework;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit
 {
@@ -42,10 +43,10 @@ namespace Dynatrace.OpenKit
 
             // then
             Assert.That(obtained.EndpointURL, Is.EqualTo(Endpoint));
-            Assert.That(obtained.DeviceID, Is.EqualTo("1234"));
+            Assert.That(obtained.DeviceID, Is.EqualTo(1234));
             Assert.That(obtained.ApplicationName, Is.EqualTo(AppName));
             Assert.That(obtained.ApplicationID, Is.EqualTo(AppName));
-            
+
             // ensure remaining defaults
             VerifyDefaultsAreSet(obtained);
         }
@@ -54,10 +55,45 @@ namespace Dynatrace.OpenKit
         public void AppMonOpenKitBuilderTakesStringDeviceID()
         {
             // given
-            var target = new AppMonOpenKitBuilder(Endpoint, AppName, "stringDeviceID");
+            var deviceIdAsString = "stringDeviceID";
+            var target = new AppMonOpenKitBuilder(Endpoint, AppName, deviceIdAsString);
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo("stringDeviceID"));
+            var hashedDeviceId = StringUtil.To64BitHash(deviceIdAsString);
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(hashedDeviceId));
+        }
+
+        [Test]
+        public void AppMonOpenKitBuilderTakesOverNumericDeviceIdString()
+        {
+            // given
+            var deviceId = 42;
+            AbstractOpenKitBuilder target = new AppMonOpenKitBuilder(Endpoint, AppName, deviceId.ToString());
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
+        }
+
+        [Test]
+        public void AppMonOpenKitBuilderTrimsDeviceIdString()
+        {
+            // given
+            var deviceIdString = " 42 ";
+            AbstractOpenKitBuilder target = new AppMonOpenKitBuilder(Endpoint, AppID, deviceIdString);
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(42L));
+        }
+
+        [Test]
+        public void AppMonOpenKitBuilderTakesNumericDeviceId()
+        {
+            // given
+            var deviceId = 42;
+            AbstractOpenKitBuilder target = new AppMonOpenKitBuilder(Endpoint, AppID, deviceId);
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
         }
 
         [Test]
@@ -68,7 +104,7 @@ namespace Dynatrace.OpenKit
 
             // then
             Assert.That(obtained.EndpointURL, Is.EqualTo(Endpoint));
-            Assert.That(obtained.DeviceID, Is.EqualTo("1234"));
+            Assert.That(obtained.DeviceID, Is.EqualTo(1234));
             Assert.That(obtained.ApplicationName, Is.EqualTo(string.Empty));
             Assert.That(obtained.ApplicationID, Is.EqualTo(AppID));
 
@@ -80,10 +116,45 @@ namespace Dynatrace.OpenKit
         public void DynatraceOpenKitBuilderTakesStringDeviceID()
         {
             // given
-            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, "stringDeviceID");
+            var deviceIdAsString = "stringDeviceID";
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceIdAsString);
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo("stringDeviceID"));
+            var hashedDeviceId = StringUtil.To64BitHash(deviceIdAsString);
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(hashedDeviceId));
+        }
+
+        [Test]
+        public void DynatraceOpenKitBuilderTakesOverNumericDeviceIdString()
+        {
+            // given
+            var deviceId = 42;
+            var target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceId.ToString());
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
+        }
+
+        [Test]
+        public void DynatraceOpenKitBuilderTrimsDeviceIdString()
+        {
+            // given
+            var deviceIdString = " 42 ";
+            AbstractOpenKitBuilder target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceIdString);
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(42L));
+        }
+
+        [Test]
+        public void DynatraceOpenKitBuilderTakesNumericDeviceId()
+        {
+            // given
+            var deviceId = 42;
+            AbstractOpenKitBuilder target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceId);
+
+            // when, then
+            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
         }
 
         private void VerifyDefaultsAreSet(OpenKitConfiguration configuration)
@@ -278,12 +349,13 @@ namespace Dynatrace.OpenKit
         }
 
         [Test]
-        public void CanSetLogger() {
+        public void CanSetLogger()
+        {
             // given
             var logger = Substitute.For<ILogger>();
 
             // when
-            var target = (TestOpenKitBuilder) new TestOpenKitBuilder()
+            var target = (TestOpenKitBuilder)new TestOpenKitBuilder()
                 .WithLogger(logger);
 
             // then
@@ -494,12 +566,12 @@ namespace Dynatrace.OpenKit
             internal override OpenKitConfiguration BuildConfiguration()
             {
                 return null;
-            }         
+            }
 
             public ILogger GetLogger()
             {
                 return Logger;
-            } 
+            }
         }
     }
 }

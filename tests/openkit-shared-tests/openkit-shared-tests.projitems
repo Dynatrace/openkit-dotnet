@@ -51,5 +51,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultThreadIDProviderTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\GZipStreamExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Core\Util\StringUtilTest.cs" />
   </ItemGroup>
 </Project>

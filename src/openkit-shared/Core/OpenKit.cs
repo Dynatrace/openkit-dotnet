@@ -58,17 +58,19 @@ namespace Dynatrace.OpenKit.Core
             ITimingProvider timingProvider,
             IThreadIDProvider threadIDProvider)
         {
-            if(logger.IsInfoEnabled)
+            if (logger.IsInfoEnabled)
             {
                 //TODO: Use proper version information (incl. the build number)
                 logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DEFAULT_APPLICATION_VERSION + " instantiated");
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(
-                  "applicationName=" + configuration.ApplicationName + ", applicationID=" + configuration.ApplicationID
-                  + ", deviceID=" + configuration.DeviceID + ", endpointURL=" + configuration.EndpointURL
-                    );
+                logger.Debug($"applicationName={configuration.ApplicationName}"
+                  + $", applicationID={configuration.ApplicationID}"
+                  + $", deviceID={configuration.DeviceID}"
+                  + $", origDeviceID={configuration.OrigDeviceID}"
+                  + $", endpointURL={configuration.EndpointURL}"
+                );
             }
             this.configuration = configuration;
             this.logger = logger;
@@ -85,7 +87,7 @@ namespace Dynatrace.OpenKit.Core
         /// </summary>
         /// <remarks>
         /// This method starts the <see cref="BeaconSender"/>  and is called directly after
-        /// the instance has been created in <see cref="OpenKitFactory"/>.
+        /// the instance has been created in <see cref="AbstractOpenKitBuilder.Build"/>.
         /// </remarks>
         internal void Initialize()
         {
@@ -122,7 +124,7 @@ namespace Dynatrace.OpenKit.Core
 
         public ISession CreateSession(string clientIPAddress)
         {
-            if(logger.IsDebugEnabled)
+            if (logger.IsDebugEnabled)
             {
                 logger.Debug(GetType().Name + " CreateSession(" + clientIPAddress + ")");
             }

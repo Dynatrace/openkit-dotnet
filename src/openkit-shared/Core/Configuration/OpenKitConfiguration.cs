@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const int DEFAULT_MAX_BEACON_SIZE = 30 * 1024;          // default: max 30KB (in B) to send in one beacon
         private const bool DEFAULT_CAPTURE_ERRORS = true;               // default: capture errors on
         private const bool DEFAULT_CAPTURE_CRASHES = true;              // default: capture crashes on
-        
+
         // mutable settings
         private bool capture;                                       // capture on/off; can be written/read by different threads -> atomic (bool should be accessed atomic in .NET)
         private int sendInterval;                                   // beacon send interval; is only written/read by beacon sender thread -> non-atomic
@@ -52,17 +52,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private readonly ISessionIDProvider sessionIDProvider;
 
         // *** constructors ***
-       public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, string deviceID, string endpointURL,
-            ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
-            BeaconCacheConfiguration beaconCacheConfiguration, BeaconConfiguration beaconConfiguration)
+        public OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationID, long deviceID, string origDeviceID, string endpointURL,
+             ISessionIDProvider sessionIDProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
+             BeaconCacheConfiguration beaconCacheConfiguration, BeaconConfiguration beaconConfiguration)
         {
             OpenKitType = openKitType;
 
             // immutable settings
             ApplicationName = applicationName;
             ApplicationID = applicationID;
-            ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new []{ '_' });
+            ApplicationIDPercentEncoded = PercentEncoder.Encode(applicationID, Encoding.UTF8, new[] { '_' });
             DeviceID = deviceID;
+            OrigDeviceID = origDeviceID;
             EndpointURL = endpointURL;
 
             // mutable settings
@@ -110,7 +111,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public string ApplicationIDPercentEncoded { get; }
 
-        public string DeviceID { get; }
+        public long DeviceID { get; }
+
+        public string OrigDeviceID { get; }
 
         public string EndpointURL { get; }
 

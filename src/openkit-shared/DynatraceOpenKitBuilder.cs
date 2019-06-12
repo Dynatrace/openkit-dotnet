@@ -18,6 +18,7 @@ using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using System.Globalization;
+using System;
 
 namespace Dynatrace.OpenKit
 {
@@ -32,12 +33,13 @@ namespace Dynatrace.OpenKit
         /// <summary>
         /// Creates a new instance of type DynatraceOpenKitBuilder
         /// </summary>
-        /// <param name="endointURL">endpoint OpenKit connects to</param>
+        /// <param name="endpointURL">endpoint OpenKit connects to</param>
         /// <param name="applicationID">unique application id</param>
         /// <param name="deviceID">unique device id</param>
-        public DynatraceOpenKitBuilder(string endointURL, string applicationID, long deviceID)
-            : this(endointURL, applicationID, deviceID.ToString(CultureInfo.InvariantCulture))
+        public DynatraceOpenKitBuilder(string endpointURL, string applicationID, long deviceID)
+            : base(endpointURL, deviceID)
         {
+            this.applicationID = applicationID;
         }
 
         /// <summary>
@@ -46,6 +48,7 @@ namespace Dynatrace.OpenKit
         /// <param name="endointURL">endpoint OpenKit connects to</param>
         /// <param name="applicationID">unique application id</param>
         /// <param name="deviceID">unique device id</param>
+        [Obsolete("use DynatraceOpenKitBuilder(string string, long) instead")]
         public DynatraceOpenKitBuilder(string endointURL, string applicationID, string deviceID)
             : base(endointURL, deviceID)
         {
@@ -80,6 +83,7 @@ namespace Dynatrace.OpenKit
                applicationName,
                applicationID,
                DeviceID,
+               OrigDeviceID,
                EndpointURL,
                new DefaultSessionIDProvider(),
                TrustManager,

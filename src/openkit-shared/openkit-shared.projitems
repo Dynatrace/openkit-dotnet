@@ -89,5 +89,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Util\CustomAttributeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\IEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\ListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\StringUtil.cs" />
   </ItemGroup>
 </Project>
