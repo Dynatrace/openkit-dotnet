@@ -316,10 +316,9 @@ using (HttpClient httpClient = new HttpClient()) {
     // set metadata
     webRequestTracer.SetBytesSent(12345);     // 12345 bytes sent
     webRequestTracer.SetBytesReceived(67890); // 67890 bytes received
-    webRequestTracer.SetResponseCode(200);    // 200 was the response code
 
     // stop timing
-    webRequestTracer.Stop();
+    webRequestTracer.Stop(200);               // 200 was the response code
 }
 
 ```
