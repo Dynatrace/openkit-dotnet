@@ -40,6 +40,10 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * Avoid usage of too much .NET-specific APIs to allow rather easy porting to other languages
 * Design reentrant APIs and document them
 
+## General Remarks
+
+* All non binary files within the repository are formatted with unix style (LF) line endings.
+
 ## Prerequisites
 
 ### Running the OpenKit
