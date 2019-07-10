@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.0...HEAD)
 
+### Added
+- Support for parsing JSON
+
 ### Changed
 - On OpenKitBuilder creation device ID is parsed from the given string. Non-numeric
   device IDs are hashed to a corresponding numeric value. Internally a numeric
