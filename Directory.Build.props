@@ -1,6 +1,7 @@
 <Project>
   <!-- General properties for OpenKit and tests -->
   <PropertyGroup>
+    <LangVersion>7.3</LangVersion>
     <Configurations>Debug;Release;Coverage</Configurations>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
