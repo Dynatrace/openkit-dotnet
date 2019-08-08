@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.1..HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.2..HEAD)
+
+## 1.4.2 [Release date: 2019-08-08]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.2)
 
 ### Changed
 - On OpenKitBuilder creation device ID is parsed from the given string. Non-numeric

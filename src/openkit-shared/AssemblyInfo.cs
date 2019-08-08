@@ -45,8 +45,8 @@ using System.Runtime.CompilerServices;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("1.4.1.0")]
-[assembly: AssemblyFileVersion("1.4.1.0")]
+[assembly: AssemblyVersion("1.4.2.0")]
+[assembly: AssemblyFileVersion("1.4.2.0")]
 
 // Expose internal classes to test assemblies
 [assembly: InternalsVisibleTo("openkit-dotnetcore-1.0.Tests, PublicKey=" + AssemblyInfoConstants.PublicKey)]
