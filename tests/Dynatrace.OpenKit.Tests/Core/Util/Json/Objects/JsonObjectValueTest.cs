@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.Util.Json.Objects;
 using NSubstitute;
@@ -55,7 +54,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null);
-            var unused = jsonObjectDict.Received(1).Keys;
+            _ = jsonObjectDict.Received(1).Keys;
         }
 
         [Test]
@@ -71,7 +70,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             // then
             Assert.That(obtained, Is. EqualTo(42));
-            var unused = jsonObjectDict.Received(1).Count;
+            _ = jsonObjectDict.Received(1).Count;
         }
 
         [Test]
@@ -87,14 +86,14 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             // then
             Assert.That(obtained, Is.True);
-            jsonObjectDict.Received(1).ContainsKey("foo");
+            _ = jsonObjectDict.Received(1).ContainsKey("foo");
 
             // and when
             obtained = target.ContainsKey("bar");
 
             // then
             Assert.That(obtained, Is.True);
-            jsonObjectDict.Received(1).ContainsKey("bar");
+            _ = jsonObjectDict.Received(1).ContainsKey("bar");
         }
 
         [Test]
@@ -110,14 +109,14 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null);
-            var unused = jsonObjectDict.Received(1)["foo"];
+           _ = jsonObjectDict.Received(1)["foo"];
 
             // and when
             obtained = target["bar"];
 
             // then
             Assert.That(obtained, Is.Not.Null);
-            unused = jsonObjectDict.Received(1)["bar"];
+            _ = jsonObjectDict.Received(1)["bar"];
         }
     }
 }

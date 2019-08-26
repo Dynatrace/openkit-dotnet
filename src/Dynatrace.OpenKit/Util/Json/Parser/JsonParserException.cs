@@ -21,6 +21,9 @@ namespace Dynatrace.OpenKit.Util.Json.Parser
     /// <summary>
     ///     Exception class thrown by the <see cref="JsonParser" /> in case of an error.
     /// </summary>
+#if !NETSTANDARD1_1 && !WINDOWS_UWP && !NETCOREAPP1_0 && !NETCOREAPP1_1
+    [Serializable]
+#endif
     public class JsonParserException : Exception
     {
         /// <summary>

@@ -19,7 +19,7 @@ namespace Dynatrace.OpenKit.Util.Json.Lexer
     /// <summary>
     ///     Specifies the state of <see cref="JsonLexer" />
     /// </summary>
-    internal enum JsonLexerState
+    public enum JsonLexerState
     {
         /// <summary>
         ///     Initial parsing state

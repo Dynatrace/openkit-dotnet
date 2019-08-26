@@ -54,7 +54,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             // then
             Assert.That(obtained, Is.EqualTo(42));
-            var unused = jsonValues.Received(1).Count;
+            _ = jsonValues.Received(1).Count;
         }
 
       [Test]
@@ -73,7 +73,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             //then
             Assert.That(obtained, Is.Not.Null);
-            using(jsonValues.Received(1).GetEnumerator());
+            using (jsonValues.Received(1).GetEnumerator()) {}
         }
     }
 }

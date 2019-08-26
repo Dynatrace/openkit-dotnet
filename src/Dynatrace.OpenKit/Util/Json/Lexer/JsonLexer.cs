@@ -57,6 +57,8 @@ namespace Dynatrace.OpenKit.Util.Json.Lexer
             this.reader = reader;
         }
 
+        public JsonLexerState State => lexerState;
+
         /// <summary>
         ///     Returns the next token or <code>null</code> if no next token is available.
         /// </summary>
@@ -567,9 +569,18 @@ namespace Dynatrace.OpenKit.Util.Json.Lexer
             return $"Unexpected literal \"{literalToken}\"";
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                reader.Dispose();
+            }
+        }
+
         public void Dispose()
         {
-            reader.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -370,7 +370,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Reader
             // when
             target.Mark(1);
 
-            var obtained = target.Read();
+            target.Read();
             target.Read();
 
             // then

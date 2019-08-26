@@ -373,6 +373,17 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Lexer
         }
 
         [Test]
+        public void LexingNullLiteralWithWrongCasingThrowsAnError()
+        {
+            // given
+            var target = new JsonLexer("nUll");
+
+            // when, then
+            var ex = Assert.Throws<JsonLexerException>(() => target.NextToken());
+            Assert.That(ex.Message, Is.EqualTo("Unexpected literal \"nUll\""));
+        }
+
+        [Test]
         public void LexingIntegerNumberGivesAppropriateToken()
         {
             // given
@@ -1035,6 +1046,27 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Lexer
             // and when requesting next token a second time, then
             ex = Assert.Throws<JsonLexerException>(() => target.NextToken());
             Assert.That(ex.Message, Is.EqualTo("JSON Lexer is in erroneous state"));
+        }
+
+        [Test]
+        public void RequestingNextTokenAfterEofReturnsNullAsNextToken()
+        {
+            // given
+            var target = new JsonLexer("");
+
+            // when parsing empty string
+            var obtained = target.NextToken();
+
+            // then
+            Assert.That(obtained, Is.Null);
+            Assert.That(target.State, Is.EqualTo(JsonLexerState.EOF));
+
+            // when lexer is in state eof
+            obtained = target.NextToken();
+
+            // then
+            Assert.That(obtained, Is.Null);
+            Assert.That(target.State, Is.EqualTo(JsonLexerState.EOF));
         }
 
         [Test]

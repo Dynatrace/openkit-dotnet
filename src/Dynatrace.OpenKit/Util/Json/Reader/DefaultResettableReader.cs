@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Util.Json.Reader
     ///     buffer allows for <see cref="Mark">marking</see> and <see cref="Reset">resetting</see> resetting the reader
     ///     to this marked position.
     /// </summary>
-    public class DefaultResettableReader : IResettableReader, IDisposable
+    public class DefaultResettableReader : IResettableReader
     {
         /// <summary>
         ///     The underlying reader from which the actual characters are read.
@@ -250,9 +250,18 @@ namespace Dynatrace.OpenKit.Util.Json.Reader
             reader.Close();
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                reader.Dispose();
+            }
+        }
+
         public void Dispose()
         {
-            reader.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
