@@ -11,6 +11,7 @@
   type is used for the device ID.
 - Response code is now a parameter of WebRequestTracer's stop method.
   Existing methods for stopping and setting the response code have been deprecated.
+- Fix missing parameter in request URL when requesting a new session.
 
 ### Improvements
 - Reformatted text files to unix style line endings.

@@ -44,6 +44,9 @@ namespace Dynatrace.OpenKit.Protocol
             + "&" + HTTPClient.QueryKeyPlatformType + "=" + ProtocolConstants.PlatformTypeOpenKit
             + "&" + HTTPClient.QueryKeyAgentTechnologyType + "=" + ProtocolConstants.AgentTechnologyType;
 
+        private static readonly string NewSessionUrl = MonitorURL
+            + $"&{HTTPClient.QueryKeyNewSession}=1";
+
         private static readonly HTTPClient.HTTPResponse StatusResponse = new HTTPClient.HTTPResponse
         {
             ResponseCode = 200,
@@ -256,7 +259,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void SendNewSessionRequestSendRequestToMonitorURL()
+        public void SendNewSessionRequestSendRequestToNewSessionURL()
         {
             // given
             HTTPClient target = spyClient;
@@ -271,7 +274,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(200));
 
-            spyClient.Received(1).DoGetRequest(MonitorURL, null);
+            spyClient.Received(1).DoGetRequest(NewSessionUrl, null);
         }
 
         [Test]
@@ -557,7 +560,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void SendBeaconRequestReturnsAnUnknownErrorResponseForWrongHttpResponse()
         {
             // given
-            HTTPClient target = spyClient; 
+            HTTPClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
 
             // when

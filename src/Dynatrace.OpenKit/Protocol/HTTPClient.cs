@@ -66,6 +66,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string QueryKeyVersion = "va";
         internal const string QueryKeyPlatformType = "pt";
         internal const string QueryKeyAgentTechnologyType = "tt";
+        internal const string QueryKeyNewSession = "ns";
 
         // additional reserved characters for URL encoding
         private static readonly char[] QueryReservedCharacters = { '_' };
@@ -76,6 +77,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         // URLs for requests
         private readonly string monitorURL;
+        private readonly string newSessionUrl;
 
         private readonly int serverID;
         private readonly ILogger logger;
@@ -87,6 +89,7 @@ namespace Dynatrace.OpenKit.Protocol
             this.logger = logger;
             serverID = configuration.ServerID;
             monitorURL = BuildMonitorURL(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
+            newSessionUrl = BuildNewSessionUrl(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
         }
 
         #endregion
@@ -105,7 +108,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         public StatusResponse SendNewSessionRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.NewSession, monitorURL, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+            return (StatusResponse)SendRequest(RequestType.NewSession, newSessionUrl, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // generic request send with some verbose output and exception handling
@@ -244,6 +247,15 @@ namespace Dynatrace.OpenKit.Protocol
             AppendQueryParam(monitorURLBuilder, QueryKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
 
             return monitorURLBuilder.ToString();
+        }
+
+        private string BuildNewSessionUrl(string baseUrl, string applicationId, int serverId)
+        {
+            var newSessionUrlBuilder = new StringBuilder(BuildMonitorURL(baseUrl, applicationId, serverId));
+
+            AppendQueryParam(newSessionUrlBuilder, QueryKeyNewSession, "1");
+
+            return newSessionUrlBuilder.ToString();
         }
 
         // helper method for appending query parameters
