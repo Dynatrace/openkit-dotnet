@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.2..HEAD)
 
+### Changed
+
+- Fix missing parameter in request URL when requesting a new session. 
+
 ## 1.4.2 [Release date: 2019-08-08]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.2)
 
