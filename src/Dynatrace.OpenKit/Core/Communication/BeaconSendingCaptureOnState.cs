@@ -20,9 +20,9 @@ using Dynatrace.OpenKit.Protocol;
 namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
-    /// The sending state when init is completed and IsCaputreOn == <code>true</code>
-    /// 
-    /// Transitions to 
+    /// The sending state when init is completed and IsCaptureOn == <code>true</code>
+    ///
+    /// Transitions to
     /// <ul>
     ///     <li><see cref="BeaconSendingCaptureOffState"/> if IsCaptureOn is <code>false</code></li>
     ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown</li>

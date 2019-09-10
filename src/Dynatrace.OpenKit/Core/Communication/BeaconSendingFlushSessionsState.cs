@@ -21,11 +21,11 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
     /// In this state open sessions are finished. After that all sessions are sent to the server.
-    /// 
+    ///
     /// Transitions to:
     /// <ul>
     ///     <li><see cref="BeaconSendingTerminalState"/></li>
-    /// </ul> 
+    /// </ul>
     /// </summary>
     internal class BeaconSendingFlushSessionsState : AbstractBeaconSendingState
     {
@@ -37,7 +37,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         protected override void DoExecute(IBeaconSendingContext context)
         {
-            // first get all sessions that do not have any multiplicity explicitely set
+            // first get all sessions that do not have any multiplicity explicitly set
             context.NewSessions.ForEach(newSession =>
             {
                 var currentConfiguration = newSession.BeaconConfiguration;

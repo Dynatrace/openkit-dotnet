@@ -16,7 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
     /// This class is returned as Action by <see cref="IRootAction.EnterAction(string)"/>

@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Providers
         public void DefaultPRNGeneratorProvidesPositiveInt()
         {
             // given
-            var randomGenerator = new DefaultPRNGenerator();
+            var randomGenerator = new DefaultPrnGenerator();
 
             //when
             var randomNumber = randomGenerator.NextInt(int.MaxValue);
@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Providers
         public void DefaultPRNGeneratorProvidesPositiveLong()
         {
             // given
-            var randomGenerator = new DefaultPRNGenerator();
+            var randomGenerator = new DefaultPrnGenerator();
 
             //when
             var randomNumber = randomGenerator.NextLong(long.MaxValue);

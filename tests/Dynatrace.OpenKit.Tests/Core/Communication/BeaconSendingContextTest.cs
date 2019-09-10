@@ -14,21 +14,22 @@
 // limitations under the License.
 //
 
-using NUnit.Framework;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Providers;
-using NSubstitute;
-using Dynatrace.OpenKit.Protocol;
+using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
-using System.Linq;
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingContextTest
     {
         private OpenKitConfiguration config;
-        private IHTTPClientProvider clientProvider;
+        private IHttpClientProvider clientProvider;
         private ITimingProvider timingProvider;
         private AbstractBeaconSendingState nonTerminalStateMock;
         private ILogger logger = new DefaultLogger(LogLevel.DEBUG);
@@ -37,7 +38,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             config = new TestConfiguration();
-            clientProvider = Substitute.For<IHTTPClientProvider>();
+            clientProvider = Substitute.For<IHttpClientProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
             nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
         }
@@ -202,9 +203,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void CanGetHttpClient()
         {
-            var expected = Substitute.For<HTTPClient>(new DefaultLogger(LogLevel.DEBUG), new HTTPClientConfiguration("", 0, "", null));
+            var expected = Substitute.For<HttpClient>(new DefaultLogger(LogLevel.DEBUG), new HttpClientConfiguration("", 0, "", null));
 
-            clientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(expected);
+            clientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(expected);
 
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
@@ -212,21 +213,21 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             Assert.NotNull(actual);
             Assert.AreSame(expected, actual);
-            clientProvider.Received(1).CreateClient(Arg.Any<HTTPClientConfiguration>());
+            clientProvider.Received(1).CreateClient(Arg.Any<HttpClientConfiguration>());
         }
 
         [Test]
         public void GetHttpClientUsesCurrentHttpConfig()
         {
             clientProvider
-                .CreateClient(Arg.Any<HTTPClientConfiguration>())
-                .Returns(Substitute.For<HTTPClient>(new DefaultLogger(LogLevel.DEBUG), new HTTPClientConfiguration("", 0, "", null)));
+                .CreateClient(Arg.Any<HttpClientConfiguration>())
+                .Returns(Substitute.For<HttpClient>(new DefaultLogger(LogLevel.DEBUG), new HttpClientConfiguration("", 0, "", null)));
 
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
             var actual = target.GetHTTPClient();
 
-            clientProvider.Received(1).CreateClient(config.HTTPClientConfig);
+            clientProvider.Received(1).CreateClient(config.HttpClientConfig);
         }
 
         [Test]
@@ -334,7 +335,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // when starting the first session
             // Caution: Session CTOR implicityly starts itself!!!
             var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // then
             Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { sessionOne }));
@@ -344,7 +345,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // when starting the second session
             // Caution: Session CTOR implicityly starts itself!!!
             var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // then
             Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { sessionOne, sessionTwo }));
@@ -373,7 +374,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
             var session = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // then
             Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { session }));
@@ -389,18 +390,18 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
 
         }
-        
+
         [Test]
         public void AfterASessionHasBeenConfiguredItsOpenAndConfigured()
         {
             // given
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-            
+
             // when both session are added
             var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
             var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // and configuring the first one
             target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
@@ -426,15 +427,15 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
             var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
             var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // when both session are added
             // Caution: Session CTOR implicityly starts itself!!!
             target.FinishSession(sessionOne);
             target.FinishSession(sessionTwo);
-            
+
             // and configuring the first one
             target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
 

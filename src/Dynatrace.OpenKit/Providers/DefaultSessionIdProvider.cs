@@ -14,29 +14,27 @@
 // limitations under the License.
 //
 
-using System;
-
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
     ///  Class for providing a session ids
     /// </summary>
-    public class DefaultSessionIDProvider : ISessionIDProvider
+    public class DefaultSessionIdProvider : ISessionIdProvider
     {
         private int initialIntegerOffset = 0;
 
-        private static readonly object syncLock = new object();
+        private static readonly object SyncLock = new object();
 
-        public DefaultSessionIDProvider() : this(new DefaultPRNGenerator().NextInt(int.MaxValue)) { }
+        public DefaultSessionIdProvider() : this(new DefaultPrnGenerator().NextInt(int.MaxValue)) { }
 
-        internal DefaultSessionIDProvider(int initialOffset)
+        internal DefaultSessionIdProvider(int initialOffset)
         {
             initialIntegerOffset = initialOffset;
         }
 
-        public int GetNextSessionID()
+        public int GetNextSessionId()
         {
-            lock (syncLock)
+            lock (SyncLock)
             {
                 if (initialIntegerOffset == int.MaxValue)
                 {

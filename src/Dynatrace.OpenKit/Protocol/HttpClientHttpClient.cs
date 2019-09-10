@@ -14,54 +14,54 @@
 // limitations under the License.
 //
 
+using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
-using System.Linq;
 
 namespace Dynatrace.OpenKit.Protocol
 {
 #if (!NET40 && !NET35)
 
-    public class HTTPClientHttpClient : HTTPClient
+    public class HttpClientHttpClient : HttpClient
     {
-        private readonly HTTPClientConfiguration configuration;
+        private readonly HttpClientConfiguration configuration;
 
-        public HTTPClientHttpClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
+        public HttpClientHttpClient(ILogger logger, HttpClientConfiguration configuration) : base(logger, configuration)
         {
             this.configuration = configuration;
         }
 
-        protected override HTTPResponse GetRequest(string url, string clientIPAddress)
+        protected override HttpResponse GetRequest(string url, string clientIpAddress)
         {
-            using (System.Net.Http.HttpClient httpClient = CreateHTTPClient(clientIPAddress))
+            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIpAddress))
             {
                 var responseTask = httpClient.GetAsync(url);
                 responseTask.Wait();
 
-                return CreateHTTPResponse(responseTask.Result);
+                return CreateHttpResponse(responseTask.Result);
             }
         }
 
-        protected override HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload)
+        protected override HttpResponse PostRequest(string url, string clientIpAddress, byte[] gzippedPayload)
         {
-            using (System.Net.Http.HttpClient httpClient = CreateHTTPClient(clientIPAddress))
+            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIpAddress))
             {
                 var content = CreatePostContent(gzippedPayload);
                 var responseTask = httpClient.PostAsync(url, content);
                 responseTask.Wait();
 
-                return CreateHTTPResponse(responseTask.Result);
+                return CreateHttpResponse(responseTask.Result);
             }
         }
 
-        private System.Net.Http.HttpClient CreateHTTPClient(string clientIPAddress)
+        private System.Net.Http.HttpClient CreateHttpClient(string clientIpAddress)
         {
-            // The implementation of CreateHTTPClient varies based on the .NET technology
-            var httpClient = CreateHTTPClient();
+            // The implementation of CreateHttpClient varies based on the .NET technology
+            var httpClient = CreateHttpClient();
 
-            if (clientIPAddress != null)
+            if (clientIpAddress != null)
             {
-                httpClient.DefaultRequestHeaders.Add("X-Client-IP", clientIPAddress);
+                httpClient.DefaultRequestHeaders.Add("X-Client-IP", clientIpAddress);
             }
 
             return httpClient;
@@ -79,7 +79,7 @@ namespace Dynatrace.OpenKit.Protocol
             return content;
         }
 
-        private static HTTPResponse CreateHTTPResponse(System.Net.Http.HttpResponseMessage result)
+        private static HttpResponse CreateHttpResponse(System.Net.Http.HttpResponseMessage result)
         {
             System.Threading.Tasks.Task<string> httpResponseContentTask = result.Content.ReadAsStringAsync();
             httpResponseContentTask.Wait();
@@ -87,7 +87,7 @@ namespace Dynatrace.OpenKit.Protocol
             var responseCode = result.StatusCode;
             var headers = result.Headers.ToDictionary(pair => pair.Key.ToLowerInvariant(), pair => pair.Value.ToList());
 
-            return new HTTPResponse
+            return new HttpResponse
             {
                 Response = response,
                 ResponseCode = (int)responseCode,
@@ -95,12 +95,12 @@ namespace Dynatrace.OpenKit.Protocol
             };
         }
 
-        #region CreateHTTPClient implementations
+        #region CreateHttpClient implementations
 
 #if WINDOWS_UWP || NETSTANDARD1_1
-        
+
         // handling for all frameworks that do not support certificate validation
-        private System.Net.Http.HttpClient CreateHTTPClient()
+        private System.Net.Http.HttpClient CreateHttpClient()
         {
             return new System.Net.Http.HttpClient();
         }
@@ -110,11 +110,11 @@ namespace Dynatrace.OpenKit.Protocol
         // .NET standard uses the ServicePointManager's global callback
         private static bool remoteCertificateValidationCallbackInitialized = false;
 
-        private System.Net.Http.HttpClient CreateHTTPClient()
+        private System.Net.Http.HttpClient CreateHttpClient()
         {
             if (!remoteCertificateValidationCallbackInitialized)
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SSLTrustManager.ServerCertificateValidationCallback;
+                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SslTrustManager.ServerCertificateValidationCallback;
                 remoteCertificateValidationCallbackInitialized = true;
             }
             return new System.Net.Http.HttpClient();
@@ -122,20 +122,20 @@ namespace Dynatrace.OpenKit.Protocol
 
 #elif NET45 || NET46 || NET47
 
-        private System.Net.Http.HttpClient CreateHTTPClient()
+        private System.Net.Http.HttpClient CreateHttpClient()
         {
             var webRequestHandler = new System.Net.Http.WebRequestHandler();
-            webRequestHandler.ServerCertificateValidationCallback += configuration.SSLTrustManager.ServerCertificateValidationCallback;
+            webRequestHandler.ServerCertificateValidationCallback += configuration.SslTrustManager.ServerCertificateValidationCallback;
             return new System.Net.Http.HttpClient(webRequestHandler, true);
         }
 
 #else
 
-        private System.Net.Http.HttpClient CreateHTTPClient()
+        private System.Net.Http.HttpClient CreateHttpClient()
         {
             var httpClientHandler = new System.Net.Http.HttpClientHandler
             {
-                ServerCertificateCustomValidationCallback = configuration.SSLTrustManager.ServerCertificateValidationCallback.Invoke
+                ServerCertificateCustomValidationCallback = configuration.SslTrustManager.ServerCertificateValidationCallback.Invoke
             };
             return new System.Net.Http.HttpClient(httpClientHandler, true);
         }

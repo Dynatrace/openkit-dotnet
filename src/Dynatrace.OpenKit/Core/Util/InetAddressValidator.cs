@@ -23,13 +23,13 @@ namespace Dynatrace.OpenKit.Core.Util
     /// <summary>
     ///  Utility to check if a InetAddress is valid
     /// </summary>
-    public class InetAddressValidator
+    public static class InetAddressValidator
     {
-        // 
+        //
         // 4 blocks of number ranging from 0-255
         // the first part of the regex checks the first block
         // the second block checks that there are three further blocks prepended by a '.'
-        // 
+        //
         private static readonly Regex IpV4Regex = new Regex( "^"          // start of string
                             + "(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)"         // first block - a number from 0-255
                             + "(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}" // three more blocks - numbers from 0-255 - each prepended by a point character '.'
@@ -47,7 +47,7 @@ namespace Dynatrace.OpenKit.Core.Util
                             + "(?:[0-9A-Fa-f]{1,4}"                            // at least one block of a 1 to 4 digit hex number
                             + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optional further blocks, any number
                             + ")"
-                            + "::"                                             // in the middle of the expression the two occurences of ':' are neccessary
+                            + "::"                                             // in the middle of the expression the two occurrences of ':' are necessary
                             + "("                                              // 2nd group
                             + "(?:[0-9A-Fa-f]{1,4}"                            // at least one block of a 1 to 4 digit hex number
                             + "(?::[0-9A-Fa-f]{1,4})*)?"                       // optional further blocks, any number
@@ -61,11 +61,11 @@ namespace Dynatrace.OpenKit.Core.Util
                             + "(?:[0-9A-Fa-f]{1,4}"                             // at least one block of a 1 to 4 digit hex number
                             + "(?::[0-9A-Fa-f]{1,4})*)?"                        // optional further blocks, any number
                             + ")"
-                            + "::"                                              // in the middle of the expression the two occurences of ':' are neccessary
+                            + "::"                                              // in the middle of the expression the two occurrences of ':' are necessary
                             + "("                                               // 2nd group
                             + "(?:[0-9A-Fa-f]{1,4}:"                            // at least one block of a 1 to 4 digit hex number followed by a ':' character
                             + "(?:[0-9A-Fa-f]{1,4}:)*)?"                        // optional further blocks, any number, all succeeded by ':' character
-                            + ")" 
+                            + ")"
                             + "$"                                               // end of string
                             , RegexOptions.ECMAScript);
 
@@ -93,7 +93,8 @@ namespace Dynatrace.OpenKit.Core.Util
         /// Check if the given address is a valid IPv6 address in the standard format
         ///  The format is 'xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx'. Eight blocks of hexadecimal digits
         ///  are required.
-        ///<param name="input">ip-adress to check</param>
+        /// </summary>
+        ///<param name="input">ip-address to check</param>
         ///<returns>true if input is in correct IPv6 notation.</returns>
         public static bool IsIPv6StdAddress(string input)
         {
@@ -105,7 +106,7 @@ namespace Dynatrace.OpenKit.Core.Util
         ///  The format is 'xxxx:xxxx:xxxx:xxxx::xxxx:xxxx'. The longest consecutive block
         ///  of '0's can be replaced by '::'
         ///</summary>
-        ///<param name="input">ip-adress to check</param>
+        ///<param name="input">ip-address to check</param>
         ///<returns>true if input is in correct IPv6 (hex-compressed) notation</returns>
         public static bool IsIPv6HexCompressedAddress(string input)
         {
@@ -121,7 +122,7 @@ namespace Dynatrace.OpenKit.Core.Util
         ///   IPv4-mapped-to-IPV6 address
         ///   iPv6 mixed address
         /// </summary>
-        /// <param name="input">ip-adress to check</param>
+        /// <param name="input">ip-address to check</param>
         /// <returns>true if input is in correct IPv6 notation</returns>
         public static bool IsIPv6Address(string input)
         {
@@ -161,7 +162,7 @@ namespace Dynatrace.OpenKit.Core.Util
 
         ///<summary>
         /// Check if <code>input</code> is an IPv4 address mapped into a IPv6 address. These are
-        /// starting with "::fff:" followed by the IPv4 address in a dot-seperated notation.
+        /// starting with "::fff:" followed by the IPv4 address in a dot-separated notation.
         /// </summary>
         /// <param name="input">ip-address to check </param>
         /// <returns>true if input is in correct IPv6 notation</returns>
@@ -182,7 +183,7 @@ namespace Dynatrace.OpenKit.Core.Util
         /// Check if <code>input</code> is a link local IPv6 address starting with "fe80:" and containing
         /// a zone index with "%xxx". The zone index will not be checked.
         /// </summary>
-        /// <param name="input">InetAdress to check </param>
+        /// <param name="input">InetAddress to check </param>
         /// <returns>true if address part of input is in correct IPv6 notation</returns>
         public static bool IsLinkLocalIPv6WithZoneIndex(string input)
         {
@@ -202,10 +203,10 @@ namespace Dynatrace.OpenKit.Core.Util
         /// Check if ipAddress is a valid IPv4 or IPv6 address
         /// </summary>
         /// <param name="ipAddress">ip-address tp check</param>
-        /// <returns>true if ipAdress is a valid IPv4 or IPv6 address </returns>
+        /// <returns>true if ipAddress is a valid IPv4 or IPv6 address </returns>
         public static bool IsValidIP(string ipAddress)
         {
-            if (ipAddress == null || ipAddress.Length == 0)
+            if (string.IsNullOrEmpty(ipAddress))
             {
                 return false;
             }

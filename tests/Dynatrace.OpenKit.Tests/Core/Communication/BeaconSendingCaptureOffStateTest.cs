@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private long lastStatusCheckTime = -1;
 
         private ILogger logger;
-        private IHTTPClient httpClient;
+        private IHttpClient httpClient;
         private IBeaconSendingContext context;
 
 
@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             lastStatusCheckTime = -1;
 
             logger = Substitute.For<ILogger>();
-            httpClient = Substitute.For<IHTTPClient>();
+            httpClient = Substitute.For<IHttpClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
 

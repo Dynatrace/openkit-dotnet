@@ -14,15 +14,15 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Core.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Threading;
+using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Protocol
     ///  - status check
     ///  - beacon send
     /// </summary>
-    public abstract class HTTPClient : IHTTPClient
+    public abstract class HttpClient : IHttpClient
     {
 
         public class RequestType
@@ -50,7 +50,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        public class HTTPResponse
+        public class HttpResponse
         {
             public string Response { get; set; }
             public int ResponseCode { get; set; }
@@ -72,38 +72,39 @@ namespace Dynatrace.OpenKit.Protocol
         private static readonly char[] QueryReservedCharacters = { '_' };
 
         // connection constants
-        internal const int MaxSendRetries = 3;
+        private const int MaxSendRetries = 3;
         private const int RetrySleepTime = 200;       // retry sleep time in ms
 
         // URLs for requests
-        private readonly string monitorURL;
+        private readonly string monitorUrl;
         private readonly string newSessionUrl;
 
-        private readonly int serverID;
         private readonly ILogger logger;
 
         #region constructors
 
-        public HTTPClient(ILogger logger, HTTPClientConfiguration configuration)
+        public HttpClient(ILogger logger, HttpClientConfiguration configuration)
         {
             this.logger = logger;
-            serverID = configuration.ServerID;
-            monitorURL = BuildMonitorURL(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
-            newSessionUrl = BuildNewSessionUrl(configuration.BaseURL, configuration.ApplicationID, configuration.ServerID);
+            ServerId = configuration.ServerId;
+            monitorUrl = BuildMonitorUrl(configuration.BaseUrl, configuration.ApplicationId, ServerId);
+            newSessionUrl = BuildNewSessionUrl(configuration.BaseUrl, configuration.ApplicationId, ServerId);
         }
 
         #endregion
 
+        public int ServerId { get; }
+
         // sends a status check request and returns a status response
         public StatusResponse SendStatusRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.Status, monitorURL, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+            return (StatusResponse)SendRequest(RequestType.Status, monitorUrl, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // sends a beacon send request and returns a status response
-        public StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data)
+        public StatusResponse SendBeaconRequest(string clientIpAddress, byte[] data)
         {
-            return (StatusResponse)SendRequest(RequestType.Beacon, monitorURL, clientIPAddress, data, "POST") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+            return (StatusResponse)SendRequest(RequestType.Beacon, monitorUrl, clientIpAddress, data, "POST") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         public StatusResponse SendNewSessionRequest()
@@ -112,7 +113,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // generic request send with some verbose output and exception handling
-        protected Response SendRequest(RequestType requestType, string url, string clientIPAddress, byte[] data, string method)
+        protected Response SendRequest(RequestType requestType, string url, string clientIpAddress, byte[] data, string method)
         {
             try
             {
@@ -120,7 +121,7 @@ namespace Dynatrace.OpenKit.Protocol
                 {
                     logger.Debug(GetType().Name + " HTTP " + requestType.RequestName + " Request: " + url);
                 }
-                return SendRequestInternal(requestType, url, clientIPAddress, data, method);
+                return SendRequestInternal(requestType, url, clientIpAddress, data, method);
             }
             catch (Exception e)
             {
@@ -130,7 +131,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // generic internal request send
-        protected Response SendRequestInternal(RequestType requestType, string url, string clientIPAddress, byte[] data, string method)
+        protected Response SendRequestInternal(RequestType requestType, string url, string clientIpAddress, byte[] data, string method)
         {
             int retry = 1;
             while (true)
@@ -150,14 +151,14 @@ namespace Dynatrace.OpenKit.Protocol
                         }
                     }
 
-                    HTTPResponse httpResponse = null;
+                    HttpResponse httpResponse;
                     if (method == "GET")
                     {
-                        httpResponse = GetRequest(url, clientIPAddress);
+                        httpResponse = GetRequest(url, clientIpAddress);
                     }
                     else if (method == "POST")
                     {
-                        httpResponse = PostRequest(url, clientIPAddress, gzippedData);
+                        httpResponse = PostRequest(url, clientIpAddress, gzippedData);
                     }
                     else
                     {
@@ -179,18 +180,16 @@ namespace Dynatrace.OpenKit.Protocol
                             ? new StatusResponse(logger, string.Empty, httpResponse.ResponseCode, httpResponse.Headers)
                             : ParseStatusResponse(httpResponse);
                     }
-                    else
-                    {
-                        logger.Warn(GetType().Name + " Unknown request type " + requestType + " - ignoring response");
-                        return UnknownErrorResponse(requestType);
-                    }
+
+                    logger.Warn(GetType().Name + " Unknown request type " + requestType + " - ignoring response");
+                    return UnknownErrorResponse(requestType);
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
                     retry++;
                     if (retry > MaxSendRetries)
                     {
-                        throw exception;
+                        throw;
                     }
 #if WINDOWS_UWP || NETSTANDARD1_1
                     System.Threading.Tasks.Task.Delay(RetrySleepTime).Wait();
@@ -201,7 +200,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        private Response ParseStatusResponse(HTTPResponse httpResponse)
+        private Response ParseStatusResponse(HttpResponse httpResponse)
         {
             if (IsStatusResponse(httpResponse))
             {
@@ -221,37 +220,37 @@ namespace Dynatrace.OpenKit.Protocol
             return UnknownErrorResponse(RequestType.Status);
         }
 
-        private static bool IsStatusResponse(HTTPResponse httpResponse)
+        private static bool IsStatusResponse(HttpResponse httpResponse)
         {
             return httpResponse.Response == RequestTypeMobile
                 || httpResponse.Response.StartsWith($"{RequestTypeMobile}&");
         }
 
-        protected abstract HTTPResponse GetRequest(string url, string clientIPAddress);
+        protected abstract HttpResponse GetRequest(string url, string clientIpAddress);
 
-        protected abstract HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload);
+        protected abstract HttpResponse PostRequest(string url, string clientIpAddress, byte[] gzippedPayload);
 
         // build URL used for status check and beacon send requests
-        private string BuildMonitorURL(string baseURL, string applicationID, int serverID)
+        private static string BuildMonitorUrl(string baseUrl, string applicationId, int serverId)
         {
-            StringBuilder monitorURLBuilder = new StringBuilder();
+            var monitorUrlBuilder = new StringBuilder();
 
-            monitorURLBuilder.Append(baseURL);
-            monitorURLBuilder.Append('?');
-            monitorURLBuilder.Append(RequestTypeMobile);
+            monitorUrlBuilder.Append(baseUrl);
+            monitorUrlBuilder.Append('?');
+            monitorUrlBuilder.Append(RequestTypeMobile);
 
-            AppendQueryParam(monitorURLBuilder, QueryKeyServerId, serverID.ToString());
-            AppendQueryParam(monitorURLBuilder, QueryKeyApplication, applicationID);
-            AppendQueryParam(monitorURLBuilder, QueryKeyVersion, ProtocolConstants.OpenKitVersion);
-            AppendQueryParam(monitorURLBuilder, QueryKeyPlatformType, Convert.ToString(ProtocolConstants.PlatformTypeOpenKit));
-            AppendQueryParam(monitorURLBuilder, QueryKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
+            AppendQueryParam(monitorUrlBuilder, QueryKeyServerId, serverId.ToString());
+            AppendQueryParam(monitorUrlBuilder, QueryKeyApplication, applicationId);
+            AppendQueryParam(monitorUrlBuilder, QueryKeyVersion, ProtocolConstants.OpenKitVersion);
+            AppendQueryParam(monitorUrlBuilder, QueryKeyPlatformType, Convert.ToString(ProtocolConstants.PlatformTypeOpenKit));
+            AppendQueryParam(monitorUrlBuilder, QueryKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
 
-            return monitorURLBuilder.ToString();
+            return monitorUrlBuilder.ToString();
         }
 
         private string BuildNewSessionUrl(string baseUrl, string applicationId, int serverId)
         {
-            var newSessionUrlBuilder = new StringBuilder(BuildMonitorURL(baseUrl, applicationId, serverId));
+            var newSessionUrlBuilder = new StringBuilder(BuildMonitorUrl(baseUrl, applicationId, serverId));
 
             AppendQueryParam(newSessionUrlBuilder, QueryKeyNewSession, "1");
 
@@ -259,7 +258,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // helper method for appending query parameters
-        private void AppendQueryParam(StringBuilder urlBuilder, string key, string value)
+        private static void AppendQueryParam(StringBuilder urlBuilder, string key, string value)
         {
             urlBuilder.Append('&');
             urlBuilder.Append(key);
@@ -267,12 +266,11 @@ namespace Dynatrace.OpenKit.Protocol
             urlBuilder.Append(PercentEncoder.Encode(value, Encoding.UTF8, QueryReservedCharacters));
         }
 
-        private byte[] CompressByteArray(byte[] raw)
+        private static byte[] CompressByteArray(byte[] raw)
         {
-            using (MemoryStream memory = new MemoryStream())
+            using (var memory = new MemoryStream())
             {
-                using (GZipStream gzip = new GZipStream(memory,
-                    CompressionMode.Compress, true))
+                using (var gzip = new GZipStream(memory, CompressionMode.Compress, true))
                 {
                     gzip.Write(raw, 0, raw.Length);
                 }
@@ -286,17 +284,15 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 return null;
             }
-            else if ((requestType.RequestName == RequestType.Status.RequestName)
-                || (requestType.RequestName == RequestType.Beacon.RequestName)
-                || (requestType.RequestName == RequestType.NewSession.RequestName))
+            if (requestType.RequestName == RequestType.Status.RequestName
+                || requestType.RequestName == RequestType.Beacon.RequestName
+                || requestType.RequestName == RequestType.NewSession.RequestName)
             {
                 return new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
             }
-            else
-            {
-                // should not be reached
-                return null;
-            }
+
+            // should not be reached
+            return null;
         }
     }
 }

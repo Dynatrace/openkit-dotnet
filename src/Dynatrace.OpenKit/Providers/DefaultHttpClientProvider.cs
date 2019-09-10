@@ -15,19 +15,27 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Providers
 {
-    /// <summary>
-    /// This class is returned as <see cref="RootAction"/> by
-    /// <see cref="Session.EnterAction(string)"/> when the <see cref="Session.End()"/>
-    /// has been called before.
-    /// </summary>
-    public class NullRootAction : NullAction, IRootAction
+    public class DefaultHttpClientProvider : IHttpClientProvider
     {
-        public IAction EnterAction(string actionName)
+        private readonly ILogger logger;
+
+        public DefaultHttpClientProvider(ILogger logger)
         {
-            return new NullAction(this);
+            this.logger = logger;
+        }
+
+        public IHttpClient CreateClient(HttpClientConfiguration configuration)
+        {
+#if NET40 || NET35
+            return new HttpClientWebClient(logger, configuration); // HttpClient is not available in .NET 3.5 and 4.0
+#else
+            return new HttpClientHttpClient(logger, configuration);
+#endif
         }
     }
 }

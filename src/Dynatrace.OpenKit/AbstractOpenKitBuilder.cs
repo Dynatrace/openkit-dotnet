@@ -14,13 +14,13 @@
 // limitations under the License.
 //
 
+using System;
+using System.Globalization;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol.SSL;
-using System;
-using System.Globalization;
-using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit
 {
@@ -32,33 +32,27 @@ namespace Dynatrace.OpenKit
         // mutable fields
         private ILogger logger;
         private LogLevel logLevel = LogLevel.WARN;
-        private ISSLTrustManager trustManager = new SSLStrictTrustManager();
-        private string operatingSystem = OpenKitConstants.DEFAULT_OPERATING_SYSTEM;
-        private string manufacturer = OpenKitConstants.DEFAULT_MANUFACTURER;
-        private string modelID = OpenKitConstants.DEFAULT_MODEL_ID;
-        private string applicationVersion = OpenKitConstants.DEFAULT_APPLICATION_VERSION;
-        private long beaconCacheMaxBeaconAge = BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS;
-        private long beaconCacheLowerMemoryBoundary = BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES;
-        private long beaconCacheUpperMemoryBoundary = BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES;
-        private DataCollectionLevel dataCollectionLevel = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
-        private CrashReportingLevel crashReportingLevel = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
+        private string operatingSystem = OpenKitConstants.DefaultOperatingSystem;
+        private string manufacturer = OpenKitConstants.DefaultManufacturer;
+        private string modelId = OpenKitConstants.DefaultModelId;
+        private string applicationVersion = OpenKitConstants.DefaultApplicationVersion;
 
-        protected AbstractOpenKitBuilder(string endpointURL, long deviceID)
-            : this(endpointURL, deviceID, deviceID.ToString(CultureInfo.InvariantCulture))
+        protected AbstractOpenKitBuilder(string endpointUrl, long deviceId)
+            : this(endpointUrl, deviceId, deviceId.ToString(CultureInfo.InvariantCulture))
         {
         }
 
         [Obsolete("use AbstractOpenKitBuilder(string, long) instead")]
-        protected AbstractOpenKitBuilder(string endpointURL, string deviceID)
-            : this(endpointURL, DeviceIdFromString(deviceID), deviceID)
+        protected AbstractOpenKitBuilder(string endpointUrl, string deviceId)
+            : this(endpointUrl, DeviceIdFromString(deviceId), deviceId)
         {
         }
 
-        private AbstractOpenKitBuilder(string endpointURL, long deviceID, string origDeviceID)
+        private AbstractOpenKitBuilder(string endpointUrl, long deviceId, string origDeviceId)
         {
-            EndpointURL = endpointURL;
-            DeviceID = deviceID;
-            OrigDeviceID = origDeviceID;
+            EndpointUrl = endpointUrl;
+            DeviceId = deviceId;
+            OrigDeviceId = origDeviceId;
         }
 
         private static long DeviceIdFromString(string deviceId)
@@ -77,22 +71,27 @@ namespace Dynatrace.OpenKit
 
         protected string OperatingSystem => operatingSystem;
         protected string Manufacturer => manufacturer;
-        protected string ModelID => modelID;
+        protected string ModelID => modelId;
         protected string ApplicationVersion => applicationVersion;
-        protected ISSLTrustManager TrustManager => trustManager;
+        protected ISSLTrustManager TrustManager { get; private set; } = new SSLStrictTrustManager();
+
         protected ILogger Logger => logger ?? new DefaultLogger(logLevel);
-        protected string EndpointURL { get; private set; }
-        protected long DeviceID { get; private set; }
-        protected string OrigDeviceID { get; private set; }
-        protected long BeaconCacheMaxBeaconAge => beaconCacheMaxBeaconAge;
-        protected long BeaconCacheLowerMemoryBoundary => beaconCacheLowerMemoryBoundary;
-        protected long BeaconCacheUpperMemoryBoundary => beaconCacheUpperMemoryBoundary;
-        protected DataCollectionLevel DataCollectionLevel => dataCollectionLevel;
-        protected CrashReportingLevel CrashReportingLevel => crashReportingLevel;
+        protected string EndpointUrl { get; }
+        protected long DeviceId { get; }
+        protected string OrigDeviceId { get; }
+        protected long BeaconCacheMaxBeaconAge { get; private set; } = BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS;
+
+        protected long BeaconCacheLowerMemoryBoundary { get; private set; } = BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES;
+
+        protected long BeaconCacheUpperMemoryBoundary { get; private set; } = BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES;
+
+        protected DataCollectionLevel DataCollectionLevel { get; private set; } = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
+
+        protected CrashReportingLevel CrashReportingLevel { get; private set; } = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
 
         /// <summary>
         /// Enables verbose mode. Verbose mode is only enabled if the the default logger is used.
-        /// If a custom logger is provided by calling <code>WithLogger</code> debug and info log output 
+        /// If a custom logger is provided by calling <code>WithLogger</code> debug and info log output
         /// depends on the values returned by <code>IsDebugEnabled</code> and <code>IsInfoEnabled</code>.
         /// </summary>
         /// <remarks>
@@ -156,7 +155,7 @@ namespace Dynatrace.OpenKit
         {
             if (trustManager != null)
             {
-                this.trustManager = trustManager;
+                this.TrustManager = trustManager;
             }
             return this;
         }
@@ -192,13 +191,13 @@ namespace Dynatrace.OpenKit
         /// <summary>
         /// Sets the model id. The value is only set if it is neither null nor empty.
         /// </summary>
-        /// <param name="modelID">the model id</param>
+        /// <param name="modelId">the model id</param>
         /// <returns><code>this</code></returns>
-        public AbstractOpenKitBuilder WithModelID(string modelID)
+        public AbstractOpenKitBuilder WithModelId(string modelId)
         {
-            if (!string.IsNullOrEmpty(modelID))
+            if (!string.IsNullOrEmpty(modelId))
             {
-                this.modelID = modelID;
+                this.modelId = modelId;
             }
             return this;
         }
@@ -210,88 +209,88 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithBeaconCacheMaxRecordAge(long maxBeaconAgeInMilliseconds)
         {
-            beaconCacheMaxBeaconAge = maxBeaconAgeInMilliseconds;
+            BeaconCacheMaxBeaconAge = maxBeaconAgeInMilliseconds;
             return this;
         }
 
         /// <summary>
         /// Sets the lower memory boundary of the beacon cache.
-        /// 
+        ///
         /// When this is set to a positive value the memory based eviction strategy clears the collected data,
         /// until the data size in the cache falls below the configured limit.
-        /// 
+        ///
         /// </summary>
         /// <param name="lowerMemoryBoundary">The lower boundary of the beacon cache or negative if unlimited.</param>
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithBeaconCacheLowerMemoryBoundary(long lowerMemoryBoundary)
         {
-            beaconCacheLowerMemoryBoundary = lowerMemoryBoundary;
+            BeaconCacheLowerMemoryBoundary = lowerMemoryBoundary;
             return this;
         }
 
         /// <summary>
         /// Sets the upper memory boundary of the beacon cache.
-        /// 
+        ///
         /// When this is set to a positive value the memory based eviction strategy starts to clear
         /// data from the beacon cache when the cache size exceeds this setting.
-        /// 
+        ///
         /// </summary>
         /// <param name="upperMemoryBoundary">The upper boundary of the beacon cache or negative if unlimited.</param>
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithBeaconCacheUpperMemoryBoundary(long upperMemoryBoundary)
         {
-            beaconCacheUpperMemoryBoundary = upperMemoryBoundary;
+            BeaconCacheUpperMemoryBoundary = upperMemoryBoundary;
             return this;
         }
 
         /// <summary>
         /// Set the data collection level
-        /// 
-        /// 
+        ///
+        ///
         /// <list type="bullet">
         /// <item>
-        /// <description><see cref="DataCollectionLevel.OFF"/> no data collected</description>
+        /// <description><see cref="Dynatrace.OpenKit.DataCollectionLevel.OFF"/> no data collected</description>
         /// </item>
         /// <item>
-        /// <description><see cref="DataCollectionLevel.PERFORMANCE"/> only performance related data is collected</description>
+        /// <description><see cref="Dynatrace.OpenKit.DataCollectionLevel.PERFORMANCE"/> only performance related data is collected</description>
         /// </item>
         /// <item>
-        /// <description><see cref="DataCollectionLevel.USER_BEHAVIOR"/> all available RUM data including performance related data is collected</description>
+        /// <description><see cref="Dynatrace.OpenKit.DataCollectionLevel.USER_BEHAVIOR"/> all available RUM data including performance related data is collected</description>
         /// </item>
         /// </list>
-        /// 
-        /// Default value: <see cref="DataCollectionLevel.USER_BEHAVIOR"/>
+        ///
+        /// Default value: <see cref="Dynatrace.OpenKit.DataCollectionLevel.USER_BEHAVIOR"/>
         /// </summary>
         /// <param name="dataCollectionLevel">Data collection level to apply.</param>
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithDataCollectionLevel(DataCollectionLevel dataCollectionLevel)
         {
-            this.dataCollectionLevel = dataCollectionLevel;
+            this.DataCollectionLevel = dataCollectionLevel;
             return this;
         }
 
         /// <summary>
         /// Set the crash reporting level
-        /// 
+        ///
         /// <list type="bullet">
         /// <item>
-        /// <description><see cref="CrashReportingLevel.OFF"/> Crashes are not sent to the server</description>
+        /// <description><see cref="Dynatrace.OpenKit.CrashReportingLevel.OFF"/> Crashes are not sent to the server</description>
         /// </item>
         /// <item>
-        /// <description><see cref="CrashReportingLevel.OPT_OUT_CRASHES"/> Crashes are not sent to the server</description>
+        /// <description><see cref="Dynatrace.OpenKit.CrashReportingLevel.OPT_OUT_CRASHES"/> Crashes are not sent to the server</description>
         /// </item>
         /// <item>
-        /// <description><see cref="CrashReportingLevel.OPT_IN_CRASHES"/> Crashes are sent to the server</description>
+        /// <description><see cref="Dynatrace.OpenKit.CrashReportingLevel.OPT_IN_CRASHES"/> Crashes are sent to the server</description>
         /// </item>
         /// </list>
-        /// 
-        /// Default value: <see cref="CrashReportingLevel.OPT_IN_CRASHES"/>
+        ///
+        /// Default value: <see cref="Dynatrace.OpenKit.CrashReportingLevel.OPT_IN_CRASHES"/>
         /// </summary>
         /// <param name="crashReportingLevel"></param>
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithCrashReportingLevel(CrashReportingLevel crashReportingLevel)
         {
-            this.crashReportingLevel = crashReportingLevel;
+            this.CrashReportingLevel = crashReportingLevel;
             return this;
         }
 
@@ -301,7 +300,7 @@ namespace Dynatrace.OpenKit
         /// <returns></returns>
         public IOpenKit Build()
         {
-            var openKit = new Core.OpenKit(Logger, BuildConfiguration());
+            var openKit = new Core.Objects.OpenKit(Logger, BuildConfiguration());
             openKit.Initialize();
 
             return openKit;

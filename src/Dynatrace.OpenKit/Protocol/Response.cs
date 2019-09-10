@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
 using System.Collections.Generic;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol
 {

@@ -14,11 +14,10 @@
 // limitations under the License.
 //
 
+using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
-using System;
-using System.Threading;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -40,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 #endif
 
         private readonly object startStopLock = new object();
-        private volatile bool isShutdownRequested = false;
+        private volatile bool isShutdownRequested;
 
         private readonly object syncObject = new object();
 
@@ -102,8 +101,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         private bool IsShutdownRequested
         {
-            get { return isShutdownRequested; }
-            set { isShutdownRequested = value; }
+            get => isShutdownRequested;
+            set => isShutdownRequested = value;
         }
 
         /// <summary>

@@ -14,10 +14,10 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Util;
 using System.Collections;
 using System.Linq;
 using System.Text;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Util
 {
@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Util
     /// </summary>
     /// <remarks>
     /// This class shall be used to percent escape (URL encode) strings.
-    /// 
+    ///
     /// Reserved characters are based on RFC 3986 (<seealso cref="https://tools.ietf.org/html/rfc3986#section-2.3"/>)
     /// </remarks>
     public static class PercentEncoder
@@ -59,13 +59,13 @@ namespace Dynatrace.OpenKit.Core.Util
         /// <param name="encoding">Encoding used to encode characters.</param>
         /// <param name="additionalReservedChars">Unreserved characters based on RFC 3986, but need to be encoded as well</param>
         /// <returns>Percent encoded string.</returns>
-        public static string Encode(string input, Encoding encoding, char[] additionalReservedChars = default(char[]))
+        public static string Encode(string input, Encoding encoding, char[] additionalReservedChars = default)
         {
             if (string.IsNullOrEmpty(input))
             {
                 return input;
             }
-            
+
             var unreservedCharacters = BuildUnreservedCharacters(additionalReservedChars);
             var resultBuilder = new StringBuilder(input.Length);
 

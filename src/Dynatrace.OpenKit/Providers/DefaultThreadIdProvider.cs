@@ -21,7 +21,7 @@ namespace Dynatrace.OpenKit.Providers
     /// <summary>
     ///  Class for providing a thread ID.
     /// </summary>
-    public class DefaultThreadIDProvider : IThreadIDProvider
+    public class DefaultThreadIdProvider : IThreadIdProvider
     {
         /// <summary>
         /// Get ID of calling thread
@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Providers
         /// The most significant bit is forced to '0' by a bitwise-and operation with an integer
         /// where all bits except for the most significant bit are set to '1'.
         /// </remarks>
-        public int ThreadID =>
+        public int ThreadId =>
 #if WINDOWS_UWP || NETSTANDARD1_1
             System.Environment.CurrentManagedThreadId & 0x7fffffff;
 #else

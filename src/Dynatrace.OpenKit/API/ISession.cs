@@ -30,7 +30,7 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <remarks>
         /// If <paramref name="actionName"/> is <code>null</code> or an empty string,
-        /// a <see cref="NullAction"/> is entered and therefore no action tracing happens.
+        /// a <see cref="Dynatrace.OpenKit.Core.Objects.NullAction"/> is entered and therefore no action tracing happens.
         /// </remarks>
         /// <param name="actionName">name of the Action</param>
         /// <returns>Action instance to work with</returns>
@@ -63,7 +63,7 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <remarks>
         /// If given <paramref name="url"/> is <code>null</code> or an empty string, then
-        /// a <see cref="NullWebRequestTracer"/> is returned and nothing is reported to the server.
+        /// a <see cref="Dynatrace.OpenKit.Core.Objects.NullWebRequestTracer"/> is returned and nothing is reported to the server.
         /// </remarks>
         /// <param name="url">the URL of the web request to be traced and timed</param>
         /// <returns>a WebRequestTracer which allows getting the tag value and adding timing information</returns>

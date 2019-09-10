@@ -24,7 +24,7 @@ using NSubstitute;
 using NUnit.Framework;
 using System;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     public class SessionTest
     {
@@ -45,7 +45,7 @@ namespace Dynatrace.OpenKit.Core
 
             mockTimingProvider = Substitute.For<ITimingProvider>();
             var configuration = new TestConfiguration();
-            beacon = new Beacon(logger, new Caching.BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIDProvider>(), mockTimingProvider);
+            beacon = new Beacon(logger, new Caching.BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIdProvider>(), mockTimingProvider);
         }
 
         [Test]

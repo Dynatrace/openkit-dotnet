@@ -19,12 +19,12 @@ using Dynatrace.OpenKit.Protocol;
 namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
-    /// State where no data is captured. Periodically issues a status request to check 
-    /// if capuring should be enabled again. The check interval is defined in <code>STATUS_CHECK_INTERVAL</code> 
-    /// 
+    /// State where no data is captured. Periodically issues a status request to check
+    /// if capturing should be enabled again. The check interval is defined in <code>STATUS_CHECK_INTERVAL</code>
+    ///
     /// Transitions to
     /// <ul>
-    ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaputreOn is <code>true</code></li>
+    ///     <li><see cref="BeaconSendingCaptureOnState"/> if IsCaptureOn is <code>true</code></li>
     ///     <li><see cref="BeaconSendingFlushSessionsState"/> on shutdown</li>
     /// </ul>
     /// </summary>
@@ -35,7 +35,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         public const int STATUS_REQUEST_RETRIES = 5;
         /// <summary>
-        /// Inital sleep time for retries in milliseconds
+        /// Initial sleep time for retries in milliseconds
         /// </summary>
         public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
 
@@ -63,7 +63,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             this.sleepTimeInMilliseconds = sleepTimeInMilliseconds;
         }
-        
+
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
         protected override void DoExecute(IBeaconSendingContext context)

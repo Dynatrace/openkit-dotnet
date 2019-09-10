@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using System.Threading;
+
 namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
@@ -38,7 +40,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         /// <summary>
         /// Execute the current state
-        /// 
+        ///
         /// In case shutdown was requested, a state transition is performed by this method to the <code>ShutdownState</code>
         /// </summary>
         /// <param name="context"></param>
@@ -51,16 +53,16 @@ namespace Dynatrace.OpenKit.Core.Communication
                 DoExecute(context);
                 if (context.IsShutdownRequested)
                 {
-                    // call on interruped
+                    // call on interrupted
                     OnInterrupted(context);
                     // request shutdown
                     context.RequestShutdown();
                 }
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1 || WINDOWS_UWP || NETSTANDARD1_1)
             }
-            catch (System.Threading.ThreadInterruptedException)
+            catch (ThreadInterruptedException)
             {
-                // call on interruped
+                // call on interrupted
                 OnInterrupted(context);
                 // request shutdown
                 context.RequestShutdown();

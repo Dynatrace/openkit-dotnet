@@ -94,7 +94,7 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <remarks>
         /// If given <paramref name="url"/> is <code>null</code> or an empty string, then
-        /// a <see cref="NullWebRequestTracer"/> is returned and nothing is reported to the server.
+        /// a <see cref="Dynatrace.OpenKit.Core.Objects.NullWebRequestTracer"/> is returned and nothing is reported to the server.
         /// </remarks>
         /// <param name="url">the URL of the web request to be traced and timed</param>
         /// <returns>a WebRequestTracer which allows getting the tag value and adding timing information</returns>

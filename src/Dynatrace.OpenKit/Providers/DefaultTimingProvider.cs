@@ -21,11 +21,11 @@ namespace Dynatrace.OpenKit.Providers
 {
     public class DefaultTimingProvider : ITimingProvider
     {
-        private static readonly DateTime jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime Jan1St1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public virtual long ProvideTimestampInMilliseconds()
         {
-            return (long)(DateTime.UtcNow - jan1st1970).TotalMilliseconds;
+            return (long)(DateTime.UtcNow - Jan1St1970).TotalMilliseconds;
         }
 
         public virtual void Sleep(int milliseconds)

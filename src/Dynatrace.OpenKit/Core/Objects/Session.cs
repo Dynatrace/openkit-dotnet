@@ -14,13 +14,13 @@
 // limitations under the License.
 //
 
+using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
-using System.Threading;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
 
     /// <summary>
@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit.Core
         private readonly Beacon beacon;
 
         // used for taking care to really leave all Actions at the end of this Session
-        private SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
+        private readonly SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
 
 
         public Session(ILogger logger, BeaconSender beaconSender, Beacon beacon)
@@ -56,7 +56,7 @@ namespace Dynatrace.OpenKit.Core
 
         /// <summary>
         /// Test if this Session is empty or not.
-        /// 
+        ///
         /// A session is considered to be empty, if it does not contain any action or event data.
         /// </summary>
         public bool IsEmpty => beacon.IsEmpty;
@@ -65,8 +65,8 @@ namespace Dynatrace.OpenKit.Core
 
         public BeaconConfiguration BeaconConfiguration
         {
-            get { return beacon.BeaconConfiguration; }
-            set { beacon.BeaconConfiguration = value; }
+            get => beacon.BeaconConfiguration;
+            set => beacon.BeaconConfiguration = value;
         }
 
         internal bool IsSessionEnded => EndTime != -1;
@@ -138,7 +138,7 @@ namespace Dynatrace.OpenKit.Core
                 logger.Warn($"{this}TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
-            if (!WebRequestTracer.IsValidURLScheme(url))
+            if (!WebRequestTracer.IsValidUrlScheme(url))
             {
                 logger.Warn($"{this}TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
@@ -187,7 +187,7 @@ namespace Dynatrace.OpenKit.Core
         #endregion
 
         // sends the current Beacon state
-        public StatusResponse SendBeacon(IHTTPClientProvider clientProvider)
+        public StatusResponse SendBeacon(IHttpClientProvider clientProvider)
         {
             return beacon.Send(clientProvider);
         }

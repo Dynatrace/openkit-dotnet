@@ -16,7 +16,7 @@
 
 namespace Dynatrace.OpenKit.Protocol
 {
-    public interface IHTTPClient
+    public interface IHttpClient
     {
         /// <summary>
         /// Sends a status request and returns a status response
@@ -27,10 +27,10 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Sends a beacon send request and returns a status response
         /// </summary>
-        /// <param name="clientIPAddress"></param>
+        /// <param name="clientIpAddress"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        StatusResponse SendBeaconRequest(string clientIPAddress, byte[] data);
+        StatusResponse SendBeaconRequest(string clientIpAddress, byte[] data);
 
         /// <summary>
         /// Sends a special status request for a new session.

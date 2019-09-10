@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol.SSL;
 using NSubstitute;
 using NUnit.Framework;
@@ -42,10 +43,10 @@ namespace Dynatrace.OpenKit
             var obtained = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID).BuildConfiguration();
 
             // then
-            Assert.That(obtained.EndpointURL, Is.EqualTo(Endpoint));
-            Assert.That(obtained.DeviceID, Is.EqualTo(1234));
+            Assert.That(obtained.EndpointUrl, Is.EqualTo(Endpoint));
+            Assert.That(obtained.DeviceId, Is.EqualTo(1234));
             Assert.That(obtained.ApplicationName, Is.EqualTo(AppName));
-            Assert.That(obtained.ApplicationID, Is.EqualTo(AppName));
+            Assert.That(obtained.ApplicationId, Is.EqualTo(AppName));
 
             // ensure remaining defaults
             VerifyDefaultsAreSet(obtained);
@@ -60,7 +61,7 @@ namespace Dynatrace.OpenKit
 
             // when, then
             var hashedDeviceId = StringUtil.To64BitHash(deviceIdAsString);
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(hashedDeviceId));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(hashedDeviceId));
         }
 
         [Test]
@@ -71,7 +72,7 @@ namespace Dynatrace.OpenKit
             AbstractOpenKitBuilder target = new AppMonOpenKitBuilder(Endpoint, AppName, deviceId.ToString());
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(deviceId));
         }
 
         [Test]
@@ -82,7 +83,7 @@ namespace Dynatrace.OpenKit
             AbstractOpenKitBuilder target = new AppMonOpenKitBuilder(Endpoint, AppID, deviceIdString);
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(42L));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(42L));
         }
 
         [Test]
@@ -93,7 +94,7 @@ namespace Dynatrace.OpenKit
             AbstractOpenKitBuilder target = new AppMonOpenKitBuilder(Endpoint, AppID, deviceId);
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(deviceId));
         }
 
         [Test]
@@ -103,10 +104,10 @@ namespace Dynatrace.OpenKit
             var obtained = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID).BuildConfiguration();
 
             // then
-            Assert.That(obtained.EndpointURL, Is.EqualTo(Endpoint));
-            Assert.That(obtained.DeviceID, Is.EqualTo(1234));
+            Assert.That(obtained.EndpointUrl, Is.EqualTo(Endpoint));
+            Assert.That(obtained.DeviceId, Is.EqualTo(1234));
             Assert.That(obtained.ApplicationName, Is.EqualTo(string.Empty));
-            Assert.That(obtained.ApplicationID, Is.EqualTo(AppID));
+            Assert.That(obtained.ApplicationId, Is.EqualTo(AppID));
 
             // ensure remaining defaults
             VerifyDefaultsAreSet(obtained);
@@ -121,7 +122,7 @@ namespace Dynatrace.OpenKit
 
             // when, then
             var hashedDeviceId = StringUtil.To64BitHash(deviceIdAsString);
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(hashedDeviceId));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(hashedDeviceId));
         }
 
         [Test]
@@ -132,7 +133,7 @@ namespace Dynatrace.OpenKit
             var target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceId.ToString());
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(deviceId));
         }
 
         [Test]
@@ -143,7 +144,7 @@ namespace Dynatrace.OpenKit
             AbstractOpenKitBuilder target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceIdString);
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(42L));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(42L));
         }
 
         [Test]
@@ -154,19 +155,19 @@ namespace Dynatrace.OpenKit
             AbstractOpenKitBuilder target = new DynatraceOpenKitBuilder(Endpoint, AppID, deviceId);
 
             // when, then
-            Assert.That(target.BuildConfiguration().DeviceID, Is.EqualTo(deviceId));
+            Assert.That(target.BuildConfiguration().DeviceId, Is.EqualTo(deviceId));
         }
 
         private void VerifyDefaultsAreSet(OpenKitConfiguration configuration)
         {
             // default values
-            Assert.That(configuration.ApplicationVersion, Is.EqualTo(OpenKitConstants.DEFAULT_APPLICATION_VERSION));
-            Assert.That(configuration.Device.Manufacturer, Is.EqualTo(OpenKitConstants.DEFAULT_MANUFACTURER));
-            Assert.That(configuration.Device.OperatingSystem, Is.EqualTo(OpenKitConstants.DEFAULT_OPERATING_SYSTEM));
-            Assert.That(configuration.Device.ModelID, Is.EqualTo(OpenKitConstants.DEFAULT_MODEL_ID));
+            Assert.That(configuration.ApplicationVersion, Is.EqualTo(OpenKitConstants.DefaultApplicationVersion));
+            Assert.That(configuration.Device.Manufacturer, Is.EqualTo(OpenKitConstants.DefaultManufacturer));
+            Assert.That(configuration.Device.OperatingSystem, Is.EqualTo(OpenKitConstants.DefaultOperatingSystem));
+            Assert.That(configuration.Device.ModelId, Is.EqualTo(OpenKitConstants.DefaultModelId));
 
             // default trust manager
-            Assert.That(configuration.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
+            Assert.That(configuration.HttpClientConfig.SslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
 
             // default values for beacon cache configuration
             Assert.That(configuration.BeaconCacheConfig, Is.Not.Null);
@@ -183,7 +184,7 @@ namespace Dynatrace.OpenKit
             var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID).BuildConfiguration();
 
             Assert.That(target.ApplicationName, Is.EqualTo(AppName));
-            Assert.That(target.ApplicationName, Is.EqualTo(target.ApplicationID));
+            Assert.That(target.ApplicationName, Is.EqualTo(target.ApplicationId));
         }
 
         [Test]
@@ -198,7 +199,7 @@ namespace Dynatrace.OpenKit
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.SameAs(trustManager));
+            Assert.That(target.HttpClientConfig.SslTrustManager, Is.SameAs(trustManager));
         }
 
         [Test]
@@ -210,7 +211,7 @@ namespace Dynatrace.OpenKit
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
+            Assert.That(target.HttpClientConfig.SslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
         }
 
         [Test]
@@ -225,7 +226,7 @@ namespace Dynatrace.OpenKit
                     .BuildConfiguration();
 
             // then
-            Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.SameAs(trustManager));
+            Assert.That(target.HttpClientConfig.SslTrustManager, Is.SameAs(trustManager));
         }
 
         [Test]
@@ -237,7 +238,7 @@ namespace Dynatrace.OpenKit
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.HTTPClientConfig.SSLTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
+            Assert.That(target.HttpClientConfig.SslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
         }
 
         [Test]
@@ -317,11 +318,11 @@ namespace Dynatrace.OpenKit
         {
             // when
             var target = new AppMonOpenKitBuilder(Endpoint, AppName, DeviceID)
-                .WithModelID(ModelID)
+                .WithModelId(ModelID)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.ModelID, Is.EqualTo(ModelID));
+            Assert.That(target.Device.ModelId, Is.EqualTo(ModelID));
         }
 
         [Test]
@@ -329,11 +330,11 @@ namespace Dynatrace.OpenKit
         {
             // when
             var target = new DynatraceOpenKitBuilder(Endpoint, AppID, DeviceID)
-                .WithModelID(ModelID)
+                .WithModelId(ModelID)
                 .BuildConfiguration();
 
             // then
-            Assert.That(target.Device.ModelID, Is.EqualTo(ModelID));
+            Assert.That(target.Device.ModelId, Is.EqualTo(ModelID));
         }
 
         [Test]

@@ -16,7 +16,7 @@
 
 using System.Collections.Generic;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
 
     /// <summary>
@@ -27,14 +27,14 @@ namespace Dynatrace.OpenKit.Core
     /// - first-in, first-out
     /// - shallow copies should be possible
     /// - should be easy to clear
-    /// 
+    ///
     /// It's for sure not the best-performing implementation and it could make sense to introduce upper bounds, but it works well enough.
     /// </summary>
     public class SynchronizedQueue<T>
     {
 
         // use a linked list as basic data structure
-        private LinkedList<T> list;
+        private readonly LinkedList<T> list;
 
         public SynchronizedQueue()
         {

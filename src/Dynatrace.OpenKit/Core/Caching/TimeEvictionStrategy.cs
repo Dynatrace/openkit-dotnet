@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
-using System;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -30,7 +30,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         private readonly ITimingProvider timingProvider;
         private readonly Func<bool> isShutdownFunc;
 
-        private bool infoShown = false;
+        private bool infoShown;
 
         internal TimeEvictionStrategy(ILogger logger, IBeaconCache beaconCache, BeaconCacheConfiguration configuration, ITimingProvider timingProvider, Func<bool> isShutdownFunc)
         {
@@ -89,14 +89,17 @@ namespace Dynatrace.OpenKit.Core.Caching
             var smallestAllowedBeaconTimestamp = currentTimestamp - configuration.MaxRecordAge;
 
             // iterate over the previously obtained set and evict for each beacon
-            IEnumerator<int> beaconIDIterator = beaconIDs.GetEnumerator();
-            while (!isShutdownFunc() && beaconIDIterator.MoveNext())
+            using (IEnumerator<int> beaconIdIterator = beaconIDs.GetEnumerator())
             {
-                var beaconID = beaconIDIterator.Current;
-                var numRecordsRemoved = beaconCache.EvictRecordsByAge(beaconID, smallestAllowedBeaconTimestamp);
-                if (numRecordsRemoved > 0 && logger.IsDebugEnabled)
+                while (!isShutdownFunc() && beaconIdIterator.MoveNext())
                 {
-                    logger.Debug(GetType().Name + " - Removed " + numRecordsRemoved + " records from Beacon with ID " + beaconID);
+                    var beaconId = beaconIdIterator.Current;
+                    var numRecordsRemoved = beaconCache.EvictRecordsByAge(beaconId, smallestAllowedBeaconTimestamp);
+                    if (numRecordsRemoved > 0 && logger.IsDebugEnabled)
+                    {
+                        logger.Debug(GetType().Name + " - Removed " + numRecordsRemoved +
+                                     " records from Beacon with ID " + beaconId);
+                    }
                 }
             }
 

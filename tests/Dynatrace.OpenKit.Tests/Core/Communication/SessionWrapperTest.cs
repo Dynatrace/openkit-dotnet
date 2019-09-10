@@ -15,7 +15,9 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -35,10 +37,10 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
             var beaconSender = new BeaconSender(logger, beaconSendingContext);
-            
+
             var configuration = new TestConfiguration();
             var beacon = new Beacon(logger,
-                new Caching.BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIDProvider>(), Substitute.For<ITimingProvider>());
+                new BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIdProvider>(), Substitute.For<ITimingProvider>());
 
             wrappedSession = new Session(logger, beaconSender, beacon);
         }

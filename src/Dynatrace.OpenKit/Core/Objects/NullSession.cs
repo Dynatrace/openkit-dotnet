@@ -16,7 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     public class NullSession : ISession
     {

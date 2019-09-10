@@ -97,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
             target.EnableCapture();
 
-            var response = new StatusResponse(logger, StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "1", 200, new Dictionary<string, List<string>>());
+            var response = new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=" + "1", 200, new Dictionary<string, List<string>>());
 
             // when capturing is enabled in status response
             target.UpdateSettings(response);
@@ -113,7 +113,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
             target.EnableCapture();
 
-            var response = new StatusResponse(logger, StatusResponse.RESPONSE_KEY_CAPTURE + "=" + "0", 200, new Dictionary<string, List<string>>());
+            var response = new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=" + "0", 200, new Dictionary<string, List<string>>());
 
             // when capturing is enabled in status response
             target.UpdateSettings(response);
@@ -169,7 +169,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
 
             //when retrieving SSL Trust manager
-            var sslTrustManager = target.HTTPClientConfig.SSLTrustManager;
+            var sslTrustManager = target.HttpClientConfig.SslTrustManager;
 
             // then
             Assert.That(sslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
@@ -182,7 +182,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
 
             // then
-            Assert.That(target.ApplicationID, Is.EqualTo("/App_ID%"));
+            Assert.That(target.ApplicationId, Is.EqualTo("/App_ID%"));
         }
 
         [Test]
@@ -192,7 +192,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = CreateDefaultConfig();
 
             // then
-            Assert.That(target.ApplicationIDPercentEncoded, Is.EqualTo("%2FApp%5FID%25"));
+            Assert.That(target.ApplicationIdPercentEncoded, Is.EqualTo("%2FApp%5FID%25"));
         }
 
         private static OpenKitConfiguration CreateDefaultConfig()
@@ -204,8 +204,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             var defaultBeaconConfig = new BeaconConfiguration();
 
-            return new OpenKitConfiguration(OpenKitType.DYNATRACE, "", "/App_ID%", 0, "0", "", new Providers.TestSessionIDProvider(),
-                  new SSLStrictTrustManager(), new Core.Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
+            return new OpenKitConfiguration(OpenKitType.Dynatrace, "", "/App_ID%", 0, "0", "", new Providers.TestSessionIDProvider(),
+                  new SSLStrictTrustManager(), new Core.Objects.Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
         }
     }
 }

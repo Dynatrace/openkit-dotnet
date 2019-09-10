@@ -14,14 +14,15 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -34,11 +35,11 @@ namespace Dynatrace.OpenKit.Core.Communication
         private long currentTime = 0;
 
         private ILogger logger;
-        private IHTTPClient httpClient;
+        private IHttpClient httpClient;
         private ITimingProvider timingProvider;
         private IBeaconSendingContext context;
         private BeaconSender beaconSender;
-        private IHTTPClientProvider httpClientProvider;
+        private IHttpClientProvider httpClientProvider;
 
         [SetUp]
         public void Setup()
@@ -49,13 +50,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             finishedSessions = new List<SessionWrapper>();
 
             // http client
-            httpClient = Substitute.For<IHTTPClient>();
+            httpClient = Substitute.For<IHttpClient>();
 
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
             timingProvider.ProvideTimestampInMilliseconds().Returns(x => { return ++currentTime; }); // every access is a tick
-            httpClientProvider = Substitute.For<IHTTPClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+            httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
@@ -66,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // beacon sender
             logger = Substitute.For<ILogger>();
             beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
-            
+
             // current time getter
             context.CurrentTimestamp.Returns(x => timingProvider.ProvideTimestampInMilliseconds());
 
@@ -252,7 +253,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void FinishedSessionsAreSent()
         {
-            // given 
+            // given
             var clientIp = "127.0.0.1";
             var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
 
@@ -264,7 +265,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
-            // when 
+            // when
             var target = new BeaconSendingCaptureOnState();
             target.Execute(context);
 
@@ -276,7 +277,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void SendingFinishedSessionsIsAbortedImmediatelyWhenTooManyRequestsResponseIsReceived()
         {
-            // given 
+            // given
             var clientIp = "127.0.0.1";
             var responseHeaders = new Dictionary<string, List<string>>
             {
@@ -297,7 +298,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var target = new BeaconSendingCaptureOnState();
 
-            // when 
+            // when
             target.Execute(context);
 
             // then
@@ -373,7 +374,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
             openSessions.Add(session);
 
-            // when 
+            // when
             var target = new BeaconSendingCaptureOnState();
             target.Execute(context);
 
@@ -402,7 +403,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
             openSessions.Add(session);
 
-            // when 
+            // when
             var target = new BeaconSendingCaptureOnState();
             target.Execute(context);
 
@@ -414,7 +415,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void SendingOpenSessionsIsAbortedImmediatelyWhenTooManyRequestsResponseIsReceived()
         {
-            //given 
+            //given
             var clientIp = "127.0.0.1";
 
             var lastSendTime = 1;
@@ -461,7 +462,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var logger = Substitute.For<ILogger>();
             var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, clientIP, Substitute.For<IThreadIdProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
 
@@ -472,7 +473,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var logger = Substitute.For<ILogger>();
             return new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                config, clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
+                config, clientIP, Substitute.For<IThreadIdProvider>(), timingProvider));
         }
     }
 }

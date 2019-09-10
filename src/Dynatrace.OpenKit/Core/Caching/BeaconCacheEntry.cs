@@ -40,12 +40,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <summary>
         /// List storing all event data being sent.
         /// </summary>
-        private LinkedList<BeaconCacheRecord> eventDataBeingSent = null;
+        private LinkedList<BeaconCacheRecord> eventDataBeingSent;
 
         /// <summary>
         /// List storing all action data being sent.
         /// </summary>
-        private LinkedList<BeaconCacheRecord> actionDataBeingSent = null;
+        private LinkedList<BeaconCacheRecord> actionDataBeingSent;
 
         /// <summary>
         /// Total number of bytes consumed by this entry.
@@ -91,9 +91,9 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <summary>
         /// Test if data shall be copied, before creating chunks for sending.
         /// </summary>
-        /// <remarks></remarks>
+        /// <remarks>
         /// This property returns <code>true</code> if data needs to be copied, <code>false</code> otherwise.
-        /// </remakrs>
+        /// </remarks>
         internal bool NeedsDataCopyBeforeChunking => actionDataBeingSent == null && eventDataBeingSent == null;
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="chunkPrefix">The prefix to add to each chunk</param>
         /// <param name="maxSize">The maximum size in characters for one chunk</param>
@@ -194,16 +194,18 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         private void ChunkifyDataList(StringBuilder chunkBuilder, LinkedList<BeaconCacheRecord> dataBeingSent, int maxSize, char delimiter)
         {
-            IEnumerator<BeaconCacheRecord> iterator = dataBeingSent.GetEnumerator();
-
-            while (iterator.MoveNext() && chunkBuilder.Length <= maxSize)
+            using (IEnumerator<BeaconCacheRecord> iterator = dataBeingSent.GetEnumerator())
             {
-                // mark the record for sending
-                var record = iterator.Current;
-                record.MarkForSending();
 
-                // append delimiter & data
-                chunkBuilder.Append(delimiter).Append(record.Data);
+                while (iterator.MoveNext() && chunkBuilder.Length <= maxSize)
+                {
+                    // mark the record for sending
+                    var record = iterator.Current;
+                    record.MarkForSending();
+
+                    // append delimiter & data
+                    chunkBuilder.Append(delimiter).Append(record.Data);
+                }
             }
         }
 
@@ -262,9 +264,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 eventDataBeingSent.AddLast(record);
             }
-            foreach (var reacord in actionData)
+            foreach (var record in actionData)
             {
-                actionDataBeingSent.AddLast(reacord);
+                actionDataBeingSent.AddLast(record);
             }
             eventData = eventDataBeingSent;
             actionData = actionDataBeingSent;
@@ -275,7 +277,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        /// Remove all <see cref="BeaconCacheRecord"/> from event and action data 
+        /// Remove all <see cref="BeaconCacheRecord"/> from event and action data
         /// which are older than given <paramref name="minTimestamp"/>
         /// </summary>
         /// <param name="minTimestamp">The minimum timestamp allowed</param>
@@ -329,7 +331,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         internal int RemoveOldestRecords(int numRecords)
         {
             int numRecordsRemoved = 0;
-            
+
             var currentEvent = eventData.First?.Value;
             var currentAction = actionData.First?.Value;
 

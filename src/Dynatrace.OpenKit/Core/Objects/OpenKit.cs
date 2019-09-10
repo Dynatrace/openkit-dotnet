@@ -20,7 +20,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
 
     /// <summary>
@@ -34,7 +34,7 @@ namespace Dynatrace.OpenKit.Core
         private readonly OpenKitConfiguration configuration;
         private readonly ITimingProvider timingProvider;
         private readonly BeaconSender beaconSender;
-        private readonly IThreadIDProvider threadIDProvider;
+        private readonly IThreadIdProvider threadIdProvider;
         private readonly BeaconCache beaconCache;
 
         // Cache eviction thread
@@ -48,34 +48,34 @@ namespace Dynatrace.OpenKit.Core
         #region constructors
 
         public OpenKit(ILogger logger, OpenKitConfiguration configuration)
-            : this(logger, configuration, new DefaultHTTPClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIDProvider())
+            : this(logger, configuration, new DefaultHttpClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIdProvider())
         {
         }
 
         protected OpenKit(ILogger logger,
             OpenKitConfiguration configuration,
-            IHTTPClientProvider httpClientProvider,
+            IHttpClientProvider httpClientProvider,
             ITimingProvider timingProvider,
-            IThreadIDProvider threadIDProvider)
+            IThreadIdProvider threadIdProvider)
         {
             if (logger.IsInfoEnabled)
             {
                 //TODO: Use proper version information (incl. the build number)
-                logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DEFAULT_APPLICATION_VERSION + " instantiated");
+                logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DefaultApplicationVersion + " instantiated");
             }
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"applicationName={configuration.ApplicationName}"
-                  + $", applicationID={configuration.ApplicationID}"
-                  + $", deviceID={configuration.DeviceID}"
-                  + $", origDeviceID={configuration.OrigDeviceID}"
-                  + $", endpointURL={configuration.EndpointURL}"
+                  + $", applicationID={configuration.ApplicationId}"
+                  + $", deviceID={configuration.DeviceId}"
+                  + $", origDeviceID={configuration.OrigDeviceId}"
+                  + $", endpointURL={configuration.EndpointUrl}"
                 );
             }
             this.configuration = configuration;
             this.logger = logger;
             this.timingProvider = timingProvider;
-            this.threadIDProvider = threadIDProvider;
+            this.threadIdProvider = threadIdProvider;
 
             beaconCache = new BeaconCache(logger);
             beaconSender = new BeaconSender(logger, configuration, httpClientProvider, timingProvider);
@@ -118,24 +118,21 @@ namespace Dynatrace.OpenKit.Core
 
         public string ApplicationVersion
         {
-            set
-            {
-                configuration.ApplicationVersion = value;
-            }
+            set => configuration.ApplicationVersion = value;
         }
 
-        public ISession CreateSession(string clientIPAddress)
+        public ISession CreateSession(string clientIpAddress)
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " CreateSession(" + clientIPAddress + ")");
+                logger.Debug(GetType().Name + " CreateSession(" + clientIpAddress + ")");
             }
             if (isShutdown)
             {
                 return NullSession;
             }
             // create beacon for session
-            var beacon = new Beacon(logger, beaconCache, configuration, clientIPAddress, threadIDProvider, timingProvider);
+            var beacon = new Beacon(logger, beaconCache, configuration, clientIpAddress, threadIdProvider, timingProvider);
             // create session
             return new Session(logger, beaconSender, beacon);
         }

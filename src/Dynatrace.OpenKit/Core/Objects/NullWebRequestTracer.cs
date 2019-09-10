@@ -14,10 +14,10 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
 using System;
+using Dynatrace.OpenKit.API;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
     /// This class is returned as WebRequestTracer by <see cref="IAction.TraceWebRequest(string)"/>

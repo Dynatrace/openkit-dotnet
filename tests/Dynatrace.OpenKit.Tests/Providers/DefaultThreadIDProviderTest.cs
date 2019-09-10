@@ -25,10 +25,10 @@ namespace Dynatrace.OpenKit.Providers
         public void CurrentThreadIDIsReturned()
         {
             // given
-            var provider = new DefaultThreadIDProvider();
+            var provider = new DefaultThreadIdProvider();
 
             // then
-            Assert.That(provider.ThreadID, Is.EqualTo(Thread.CurrentThread.ManagedThreadId));
+            Assert.That(provider.ThreadId, Is.EqualTo(Thread.CurrentThread.ManagedThreadId));
         }
     }
 }

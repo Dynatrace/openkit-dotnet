@@ -14,11 +14,10 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Providers;
-using System.Globalization;
 using System;
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit
 {
@@ -32,11 +31,11 @@ namespace Dynatrace.OpenKit
         /// <summary>
         /// Creates a new instance of type AppMonOpenKitBuilder
         /// </summary>
-        /// <param name="endpointURL">endpoint OpenKit connects to</param>
+        /// <param name="endpointUrl">endpoint OpenKit connects to</param>
         /// <param name="applicationName">unique application id</param>
-        /// <param name="deviceID">unique device id</param>
-        public AppMonOpenKitBuilder(string endpointURL, string applicationName, long deviceID)
-           : base(endpointURL, deviceID)
+        /// <param name="deviceId">unique device id</param>
+        public AppMonOpenKitBuilder(string endpointUrl, string applicationName, long deviceId)
+           : base(endpointUrl, deviceId)
         {
             this.applicationName = applicationName;
         }
@@ -44,12 +43,12 @@ namespace Dynatrace.OpenKit
         /// <summary>
         /// Creates a new instance of type AppMonOpenKitBuilder
         /// </summary>
-        /// <param name="endpointURL">endpoint OpenKit connects to</param>
+        /// <param name="endpointUrl">endpoint OpenKit connects to</param>
         /// <param name="applicationName">unique application id</param>
-        /// <param name="deviceID">unique device id</param>
+        /// <param name="deviceId">unique device id</param>
         [Obsolete("use AppMonOpenKitBuilder(string, string, long) instead")]
-        public AppMonOpenKitBuilder(string endpointURL, string applicationName, string deviceID)
-            : base(endpointURL, deviceID)
+        public AppMonOpenKitBuilder(string endpointUrl, string applicationName, string deviceId)
+            : base(endpointUrl, deviceId)
         {
             this.applicationName = applicationName;
         }
@@ -64,13 +63,13 @@ namespace Dynatrace.OpenKit
             var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DEFAULT_MULITPLICITY, DataCollectionLevel, CrashReportingLevel);
 
             return new OpenKitConfiguration(
-                OpenKitType.APPMON,
+                OpenKitType.AppMon,
                 applicationName,
                 applicationName,
-                DeviceID,
-                OrigDeviceID,
-                EndpointURL,
-                new DefaultSessionIDProvider(),
+                DeviceId,
+                OrigDeviceId,
+                EndpointUrl,
+                new DefaultSessionIdProvider(),
                 TrustManager,
                 device,
                 ApplicationVersion,

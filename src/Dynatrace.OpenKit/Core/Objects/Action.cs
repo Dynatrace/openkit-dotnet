@@ -14,11 +14,12 @@
 // limitations under the License.
 //
 
+using System;
+using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
-using System.Threading;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
 
     /// <summary>
@@ -28,72 +29,66 @@ namespace Dynatrace.OpenKit.Core
     {
         private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
-        private readonly ILogger logger;
-
         // Action ID, name and parent ID (default: null)
-        private int id;
-        private readonly string name;
-        private Action parentAction = null;
+        private readonly Action parentAction;
 
         // start/end time & sequence number
-        private readonly long startTime;
         private long endTime = -1;
-        private readonly int startSequenceNo;
-        private int endSequenceNo = -1;
 
         // Beacon reference
-        private Beacon beacon;
+        private readonly Beacon beacon;
 
         // data structures for managing IAction hierarchies
-        private SynchronizedQueue<IAction> thisLevelActions = null;
+        private readonly SynchronizedQueue<IAction> thisLevelActions;
 
-        public Action(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions) : this(logger, beacon, name, null, thisLevelActions)
+        public Action(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
+            : this(logger, beacon, name, null, thisLevelActions)
         {
         }
 
         internal Action(ILogger logger, Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions)
         {
-            this.logger = logger;
+            Logger = logger;
             this.beacon = beacon;
             this.parentAction = parentAction;
 
-            this.startTime = beacon.CurrentTimestamp;
-            this.startSequenceNo = beacon.NextSequenceNumber;
-            this.id = beacon.NextID;
-            this.name = name;
+            StartTime = beacon.CurrentTimestamp;
+            StartSequenceNo = beacon.NextSequenceNumber;
+            Id = beacon.NextId;
+            Name = name;
 
             this.thisLevelActions = thisLevelActions;
             this.thisLevelActions.Put(this);
         }
 
-        public int ID => id;
+        public int Id { get; }
 
-        public string Name => name;
+        public string Name { get; }
 
-        public int ParentID => parentAction == null ? 0 : parentAction.ID;
+        public int ParentId => parentAction?.Id ?? 0;
 
-        public long StartTime => startTime;
+        public long StartTime { get; }
 
         public long EndTime => Interlocked.Read(ref endTime);
 
-        public int StartSequenceNo => startSequenceNo;
+        public int StartSequenceNo { get; }
 
-        public int EndSequenceNo => endSequenceNo;
+        public int EndSequenceNo { get; private set; } = -1;
 
         internal bool IsActionLeft => EndTime != -1L;
 
-        internal ILogger Logger => logger;
+        internal ILogger Logger { get; }
 
         public IAction ReportEvent(string eventName)
         {
             if (string.IsNullOrEmpty(eventName))
             {
-                logger.Warn(this + "ReportEvent: eventName must not be null or empty");
+                Logger.Warn(this + "ReportEvent: eventName must not be null or empty");
                 return this;
             }
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "ReportEvent(" + eventName + ")");
+                Logger.Debug(this + "ReportEvent(" + eventName + ")");
             }
             if (!IsActionLeft)
             {
@@ -106,12 +101,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn(this + "ReportValue (string): valueName must not be null or empty");
+                Logger.Warn(this + "ReportValue (string): valueName must not be null or empty");
                 return this;
             }
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "ReportValue(string) (" + valueName + ", " + value + ")");
+                Logger.Debug(this + "ReportValue(string) (" + valueName + ", " + value + ")");
             }
             if (!IsActionLeft)
             {
@@ -124,12 +119,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn(this + "ReportValue (double): valueName must not be null or empty");
+                Logger.Warn(this + "ReportValue (double): valueName must not be null or empty");
                 return this;
             }
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "ReportValue(double) (" + valueName + ", " + value + ")");
+                Logger.Debug(this + "ReportValue(double) (" + valueName + ", " + value + ")");
             }
             if (!IsActionLeft)
             {
@@ -142,12 +137,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                logger.Warn(this + "ReportValue (int): valueName must not be null or empty");
+                Logger.Warn(this + "ReportValue (int): valueName must not be null or empty");
                 return this;
             }
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "ReportValue(int) (" + valueName + ", " + value + ")");
+                Logger.Debug(this + "ReportValue(int) (" + valueName + ", " + value + ")");
             }
             if (!IsActionLeft)
             {
@@ -160,12 +155,12 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                logger.Warn(this + "ReportError: errorName must not be null or empty");
+                Logger.Warn(this + "ReportError: errorName must not be null or empty");
                 return this;
             }
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "ReportError(" + errorName + ", " + errorCode + ", " + reason + ")");
+                Logger.Debug(this + "ReportError(" + errorName + ", " + errorCode + ", " + reason + ")");
             }
             if (!IsActionLeft)
             {
@@ -178,21 +173,21 @@ namespace Dynatrace.OpenKit.Core
         {
             if (string.IsNullOrEmpty(url))
             {
-                logger.Warn(this + "TraceWebRequest (String): url must not be null or empty");
+                Logger.Warn(this + "TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
-            if (!WebRequestTracer.IsValidURLScheme(url))
+            if (!WebRequestTracer.IsValidUrlScheme(url))
             {
-                logger.Warn(this + $"TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
+                Logger.Warn(this + $"TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
             }
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "TraceWebRequest (String) (" + url + ")");
+                Logger.Debug(this + "TraceWebRequest (String) (" + url + ")");
             }
             if (!IsActionLeft)
             {
-                return new WebRequestTracer(logger, beacon, ID, url);
+                return new WebRequestTracer(Logger, beacon, Id, url);
             }
 
             return NullWebRequestTracer;
@@ -200,9 +195,9 @@ namespace Dynatrace.OpenKit.Core
 
         public IAction LeaveAction()
         {
-            if (logger.IsDebugEnabled)
+            if (Logger.IsDebugEnabled)
             {
-                logger.Debug(this + "LeaveAction(" + name + ")");
+                Logger.Debug(this + "LeaveAction(" + Name + ")");
             }
             // check if leaveAction() was already called before by looking at endTime
             if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
@@ -217,7 +212,7 @@ namespace Dynatrace.OpenKit.Core
         {
             // set end time and end sequence number
             Interlocked.Exchange(ref endTime, beacon.CurrentTimestamp);
-            endSequenceNo = beacon.NextSequenceNumber;
+            EndSequenceNo = beacon.NextSequenceNumber;
 
             // add Action to Beacon
             beacon.AddAction(this);
@@ -235,8 +230,8 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + id + ", name=" + name + ", pa="
-                + (parentAction != null ? System.Convert.ToString(parentAction.id) : "no parent") + "] ";
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + Id + ", name=" + Name + ", pa="
+                + (parentAction != null ? Convert.ToString(parentAction.Id) : "no parent") + "] ";
         }
     }
 }

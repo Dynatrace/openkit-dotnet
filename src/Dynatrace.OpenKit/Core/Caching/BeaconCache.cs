@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         private EventHandler recordsAdded;
         private readonly object recordsAddedLock = new object();
-        
+
         public HashSet<int> BeaconIDs => CopyBeaconIDs();
 
         public long NumBytesInCache => Interlocked.Read(ref cacheSizeInBytes);
@@ -59,14 +59,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             }
         }
 
-        public void AddActionData(int beaconID, long timestamp, string data)
+        public void AddActionData(int beaconId, long timestamp, string data)
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " AddActionData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
+                logger.Debug(GetType().Name + " AddActionData(sn=" + beaconId + ", timestamp=" + timestamp + ", data='" + data + "')");
             }
             // get a reference to the cache entry
-            var entry = GetCachedEntryOrInsert(beaconID);
+            var entry = GetCachedEntryOrInsert(beaconId);
 
             // add action data for that beacon
             var record = new BeaconCacheRecord(timestamp, data);
@@ -88,14 +88,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             OnDataAdded();
         }
 
-        public void AddEventData(int beaconID, long timestamp, string data)
+        public void AddEventData(int beaconId, long timestamp, string data)
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " AddEventData(sn=" + beaconID + ", timestamp=" + timestamp + ", data='" + data + "')");
+                logger.Debug(GetType().Name + " AddEventData(sn=" + beaconId + ", timestamp=" + timestamp + ", data='" + data + "')");
             }
             // get a reference to the cache entry
-            var entry = GetCachedEntryOrInsert(beaconID);
+            var entry = GetCachedEntryOrInsert(beaconId);
 
             // add event data for that beacon
             var record = new BeaconCacheRecord(timestamp, data);
@@ -117,20 +117,20 @@ namespace Dynatrace.OpenKit.Core.Caching
             OnDataAdded();
         }
 
-        public void DeleteCacheEntry(int beaconID)
+        public void DeleteCacheEntry(int beaconId)
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " DeleteCacheEntry(sn=" + beaconID + ")");
+                logger.Debug(GetType().Name + " DeleteCacheEntry(sn=" + beaconId + ")");
             }
             BeaconCacheEntry entry = null;
             try
             {
                 globalCacheLock.EnterWriteLock();
-                if (beacons.ContainsKey(beaconID))
+                if (beacons.ContainsKey(beaconId))
                 {
-                    entry = beacons[beaconID];
-                    beacons.Remove(beaconID);
+                    entry = beacons[beaconId];
+                    beacons.Remove(beaconId);
                 }
             }
             finally
@@ -144,9 +144,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             }
         }
 
-        public int EvictRecordsByAge(int beaconID, long minTimestamp)
+        public int EvictRecordsByAge(int beaconId, long minTimestamp)
         {
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
             if (entry == null)
             {
                 // already removed
@@ -166,16 +166,16 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " EvictRecordsByAge(sn=" + beaconID + ", minTimestamp=" + minTimestamp + ") has evicted "
+                logger.Debug(GetType().Name + " EvictRecordsByAge(sn=" + beaconId + ", minTimestamp=" + minTimestamp + ") has evicted "
                      + numRecordsRemoved + " records");
             }
 
             return numRecordsRemoved;
         }
 
-        public int EvictRecordsByNumber(int beaconID, int numRecords)
+        public int EvictRecordsByNumber(int beaconId, int numRecords)
         {
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
             if (entry == null)
             {
                 // already removed
@@ -195,16 +195,16 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " EvictRecordsByNumber(sn=" + beaconID + ", numRecords=" + numRecords + ") has evicted "
+                logger.Debug(GetType().Name + " EvictRecordsByNumber(sn=" + beaconId + ", numRecords=" + numRecords + ") has evicted "
                     + numRecordsRemoved + " records");
             }
 
             return numRecordsRemoved;
         }
 
-        public string GetNextBeaconChunk(int beaconID, string chunkPrefix, int maxSize, char delimiter)
+        public string GetNextBeaconChunk(int beaconId, string chunkPrefix, int maxSize, char delimiter)
         {
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
             if (entry == null)
             {
                 // a cache entry for the given beaconID does not exist
@@ -234,9 +234,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             return entry.GetChunk(chunkPrefix, maxSize, delimiter);
         }
 
-        public bool IsEmpty(int beaconID)
+        public bool IsEmpty(int beaconId)
         {
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
             if (entry == null)
             {
                 // already removed
@@ -257,9 +257,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             return isEmpty;
         }
 
-        public void RemoveChunkedData(int beaconID)
+        public void RemoveChunkedData(int beaconId)
         {
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
             if (entry == null)
             {
                 // a cache entry for the given beaconID does not exist
@@ -269,9 +269,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             entry.RemoveDataMarkedForSending();
         }
 
-        public void ResetChunkedData(int beaconID)
+        public void ResetChunkedData(int beaconId)
         {
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
             if (entry == null)
             {
                 // a cache entry for the given beaconID does not exist
@@ -394,55 +394,55 @@ namespace Dynatrace.OpenKit.Core.Caching
         #region for testing purposes
 
         /// <summary>
-        /// Get events stored for given <paramref name="beaconID"/>
+        /// Get events stored for given <paramref name="beaconId"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconID">The beacon ID for which to get the stored events.</param>
-        /// <returns>Events stored for given <paramref name="beaconID"/></returns>
-        internal IList<BeaconCacheRecord> GetEvents(int beaconID)
+        /// <param name="beaconId">The beacon ID for which to get the stored events.</param>
+        /// <returns>Events stored for given <paramref name="beaconId"/></returns>
+        internal IList<BeaconCacheRecord> GetEvents(int beaconId)
         {
-            return GetCachedEntry(beaconID)?.EventData?.AsReadOnly();
+            return GetCachedEntry(beaconId)?.EventData?.AsReadOnly();
         }
 
         /// <summary>
-        /// Get actions stored for given <paramref name="beaconID"/>
+        /// Get actions stored for given <paramref name="beaconId"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconID">The beacon ID for which to get the stored actions.</param>
-        /// <returns>Actions stored for given <paramref name="beaconID"/></returns>
-        internal IList<BeaconCacheRecord> GetActions(int beaconID)
+        /// <param name="beaconId">The beacon ID for which to get the stored actions.</param>
+        /// <returns>Actions stored for given <paramref name="beaconId"/></returns>
+        internal IList<BeaconCacheRecord> GetActions(int beaconId)
         {
-            return GetCachedEntry(beaconID)?.ActionData?.AsReadOnly();
+            return GetCachedEntry(beaconId)?.ActionData?.AsReadOnly();
         }
 
         /// <summary>
-        /// Get events being sent for given <paramref name="beaconID"/>
+        /// Get events being sent for given <paramref name="beaconId"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconID">The beacon ID for which to get the events being sent.</param>
-        /// <returns>Events being sent for given <paramref name="beaconID"/></returns>
-        internal IList<BeaconCacheRecord> GetEventsBeingSent(int beaconID)
+        /// <param name="beaconId">The beacon ID for which to get the events being sent.</param>
+        /// <returns>Events being sent for given <paramref name="beaconId"/></returns>
+        internal IList<BeaconCacheRecord> GetEventsBeingSent(int beaconId)
         {
-            return GetCachedEntry(beaconID)?.EventDataBeingSent?.AsReadOnly();
+            return GetCachedEntry(beaconId)?.EventDataBeingSent?.AsReadOnly();
         }
 
         /// <summary>
-        /// Get actions being sent for given <paramref name="beaconID"/>
+        /// Get actions being sent for given <paramref name="beaconId"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconID">The beacon ID for which to get the actions being sent.</param>
-        /// <returns>Actions being sent for given <paramref name="beaconID"/></returns>
-        internal IList<BeaconCacheRecord> GetActionsBeingSent(int beaconID)
+        /// <param name="beaconId">The beacon ID for which to get the actions being sent.</param>
+        /// <returns>Actions being sent for given <paramref name="beaconId"/></returns>
+        internal IList<BeaconCacheRecord> GetActionsBeingSent(int beaconId)
         {
-            return GetCachedEntry(beaconID)?.ActionDataBeingSent?.AsReadOnly();
+            return GetCachedEntry(beaconId)?.ActionDataBeingSent?.AsReadOnly();
         }
 
         #endregion for testing purposes

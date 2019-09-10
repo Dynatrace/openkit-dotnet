@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <remarks>
         /// If <paramref name="actionName"/> is <code>null</code> or an empty string,
-        /// a <see cref="NullAction"/> is entered and therefore no action tracing happens.
+        /// a <see cref="Dynatrace.OpenKit.Core.Objects.NullAction"/> is entered and therefore no action tracing happens.
         /// </remarks>
         /// <param name="actionName">name of the Action</param>
         /// <returns>Action instance to work with</returns>

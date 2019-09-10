@@ -15,6 +15,7 @@
 //
 
 using System;
+using Dynatrace.OpenKit.Core.Caching;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {

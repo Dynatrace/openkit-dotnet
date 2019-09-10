@@ -24,7 +24,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     public class ActionTest
     {
@@ -43,7 +43,7 @@ namespace Dynatrace.OpenKit.Core
                                 new BeaconCache(logger),
                                 testConfiguration,
                                 "127.0.0.1",
-                                Substitute.For<IThreadIDProvider>(),
+                                Substitute.For<IThreadIdProvider>(),
                                 mockTimingProvider);
         }
 
@@ -51,11 +51,11 @@ namespace Dynatrace.OpenKit.Core
         public void ANewlyCreatedActionHasAnID()
         {
             // given
-            while (beacon.NextID < 10) ; // increment the id
+            while (beacon.NextId < 10) ; // increment the id
             var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
-            Assert.That(target.ID, Is.EqualTo(11));
+            Assert.That(target.Id, Is.EqualTo(11));
         }
 
         [Test]
@@ -75,19 +75,19 @@ namespace Dynatrace.OpenKit.Core
             var target = new Action(logger, beacon, "test", new SynchronizedQueue<IAction>());
 
             // then
-            Assert.That(target.ParentID, Is.EqualTo(0));
+            Assert.That(target.ParentId, Is.EqualTo(0));
         }
 
         [Test]
         public void ParentIDIsEqualToParentActionsID()
         {
             // given
-            while (beacon.NextID < 10) ; // increment the id
+            while (beacon.NextId < 10) ; // increment the id
             var parent = new Action(logger, beacon, "parent", new SynchronizedQueue<IAction>());
             var target = new Action(logger, beacon, "test", parent, new SynchronizedQueue<IAction>());
 
             // then
-            Assert.That(target.ParentID, Is.EqualTo(11));
+            Assert.That(target.ParentId, Is.EqualTo(11));
         }
 
         [Test]

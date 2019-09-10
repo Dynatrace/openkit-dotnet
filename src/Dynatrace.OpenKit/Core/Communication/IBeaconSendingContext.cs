@@ -14,10 +14,11 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -34,7 +35,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Returns the HTTP client provider
         /// </summary>
-        IHTTPClientProvider HTTPClientProvider { get; }
+        IHttpClientProvider HTTPClientProvider { get; }
 
         /// <summary>
         /// Returns the timing provider
@@ -53,7 +54,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
 
         /// <summary>
-        /// Last time open sessions were sent 
+        /// Last time open sessions were sent
         /// </summary>
         long LastOpenSessionBeaconSendTime { get; set; }
 
@@ -131,7 +132,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         bool WaitForInit(int timeoutMillis);
 
         /// <summary>
-        /// Set the result of the init step. 
+        /// Set the result of the init step.
         /// </summary>
         /// <param name="success"><code>true</code> if init was successful otherwise <code>false</code></param>
         void InitCompleted(bool success);
@@ -140,7 +141,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Returns an instance of HTTPClient using the current configuration
         /// </summary>
         /// <returns></returns>
-        IHTTPClient GetHTTPClient();
+        IHttpClient GetHTTPClient();
 
         /// <summary>
         /// Sleeps <code>DEFAULT_SLEEP_TIME_MILLISECONDS</code> millis
@@ -163,7 +164,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="statusResponse"></param>
         void HandleStatusResponse(StatusResponse statusResponse);
-        
+
         /// <summary>
         /// Adds the provided session to the list of open sessions
         /// </summary>

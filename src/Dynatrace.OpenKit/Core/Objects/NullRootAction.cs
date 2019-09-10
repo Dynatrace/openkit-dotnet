@@ -14,16 +14,20 @@
 // limitations under the License.
 //
 
-namespace Dynatrace.OpenKit.Providers
+using Dynatrace.OpenKit.API;
+
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
-    /// Interface that provides the thread id
+    /// This class is returned as <see cref="RootAction"/> by
+    /// <see cref="Session.EnterAction(string)"/> when the <see cref="Session.End()"/>
+    /// has been called before.
     /// </summary>
-    public interface IThreadIDProvider
+    public class NullRootAction : NullAction, IRootAction
     {
-        /// <summary>
-        /// Returns the current thread id
-        /// </summary>
-        int ThreadID { get; }
+        public IAction EnterAction(string actionName)
+        {
+            return new NullAction(this);
+        }
     }
 }

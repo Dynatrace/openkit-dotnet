@@ -24,21 +24,21 @@ namespace Dynatrace.OpenKit.Providers
         public void DefaultSessionIDProviderReturnsNonNegativeID()
         {
             // given
-            var provider = new DefaultSessionIDProvider();
+            var provider = new DefaultSessionIdProvider();
 
             // then
-            Assert.That(provider.GetNextSessionID(), Is.GreaterThan(0));
+            Assert.That(provider.GetNextSessionId(), Is.GreaterThan(0));
         }
 
         [Test]
         public void DefaultSessionIDProviderReturnsConsecutiveIDs()
         {
             // given
-            var provider = new DefaultSessionIDProvider(int.MaxValue / 2);
+            var provider = new DefaultSessionIdProvider(int.MaxValue / 2);
 
             // when
-            var sessionIDOne = provider.GetNextSessionID();
-            var sessionIDTwo = provider.GetNextSessionID();
+            var sessionIDOne = provider.GetNextSessionId();
+            var sessionIDTwo = provider.GetNextSessionId();
 
             // then
             Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
@@ -48,10 +48,10 @@ namespace Dynatrace.OpenKit.Providers
         public void aProviderInitializedWithMaxIntValueProvidesMinSessionIdValueAtNextCall()
         {
             //given
-            DefaultSessionIDProvider provider = new DefaultSessionIDProvider(int.MaxValue);
+            DefaultSessionIdProvider provider = new DefaultSessionIdProvider(int.MaxValue);
 
             //when
-            int actual = provider.GetNextSessionID();
+            int actual = provider.GetNextSessionId();
 
             //then
             Assert.That(actual, Is.EqualTo(1));
@@ -61,10 +61,10 @@ namespace Dynatrace.OpenKit.Providers
         public void aProviderInitializedWithZeroProvidesMinSessionIdValueAtNextCall()
         {
             //given
-            DefaultSessionIDProvider provider = new DefaultSessionIDProvider(0);
+            DefaultSessionIdProvider provider = new DefaultSessionIdProvider(0);
 
             //when
-            int actual = provider.GetNextSessionID();
+            int actual = provider.GetNextSessionId();
 
             //then
             Assert.That(actual, Is.EqualTo(1));

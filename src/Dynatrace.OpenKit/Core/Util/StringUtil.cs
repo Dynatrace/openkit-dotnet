@@ -14,9 +14,7 @@
 // limitations under the License.
 //
 
-using System;
-
-namespace Dynatrace.OpenKit.Util
+namespace Dynatrace.OpenKit.Core.Util
 {
     public static class StringUtil
     {

@@ -14,23 +14,25 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Providers;
-using NUnit.Framework;
-using NSubstitute;
-using Dynatrace.OpenKit.Core;
+using System;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
-using System.Text;
+using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Providers;
+using NSubstitute;
+using NUnit.Framework;
+using Action = Dynatrace.OpenKit.Core.Objects.Action;
 
 namespace Dynatrace.OpenKit.Protocol
 {
     public class BeaconTest
     {
-        private IThreadIDProvider threadIDProvider;
+        private IThreadIdProvider threadIDProvider;
         private ITimingProvider timingProvider;
-        private IPRNGenerator randomGenerator;
+        private IPrnGenerator randomGenerator;
         private ILogger logger;
         private BeaconSender beaconSender;
         private BeaconConfiguration beaconConfig;
@@ -38,9 +40,9 @@ namespace Dynatrace.OpenKit.Protocol
         [SetUp]
         public void Setup()
         {
-            threadIDProvider = Substitute.For<IThreadIDProvider>();
+            threadIDProvider = Substitute.For<IThreadIdProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
-            randomGenerator = Substitute.For<IPRNGenerator>();
+            randomGenerator = Substitute.For<IPrnGenerator>();
             logger = Substitute.For<ILogger>();
 
             var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
@@ -104,7 +106,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(bytesSent).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
         }
 
         [Test]
@@ -124,7 +126,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(bytesSent).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
         }
 
         [Test]
@@ -143,7 +145,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(-1).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
         }
 
         [Test]
@@ -163,7 +165,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
         }
 
         [Test]
@@ -183,7 +185,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
         }
 
         [Test]
@@ -202,7 +204,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesReceived(-1).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
         }
 
         [Test]
@@ -223,7 +225,7 @@ namespace Dynatrace.OpenKit.Protocol
             webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
 
             //then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={System.Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs=123&br=12321" }));
+            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testURL)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs=123&br=12321" }));
         }
 
         [Test]
@@ -296,7 +298,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var session = new Session(logger, beaconSender, target); // will 
+            var session = new Session(logger, beaconSender, target); // will
 
             // when
             target.EndSession(session);
@@ -348,7 +350,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var doubleValue = System.Math.E;
+            var doubleValue = Math.E;
             var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
 
             // when
@@ -569,8 +571,8 @@ namespace Dynatrace.OpenKit.Protocol
         public void CreateWebRequestTagEncodesDeviceIDPropperly()
         {
             // given
-            var sessionIDProvider = Substitute.For<ISessionIDProvider>();
-            sessionIDProvider.GetNextSessionID().Returns(666);
+            var sessionIDProvider = Substitute.For<ISessionIdProvider>();
+            sessionIDProvider.GetNextSessionId().Returns(666);
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
             var config = new TestConfiguration("app_ID", -42, beaconConfig, sessionIDProvider);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
@@ -592,7 +594,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var deviceID = target.DeviceID;
+            var deviceID = target.DeviceId;
 
             //then
             randomGenerator.Received(1).NextLong(long.MaxValue);
@@ -607,7 +609,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var deviceID = target.DeviceID;
+            var deviceID = target.DeviceId;
 
             //then
             randomGenerator.Received(1).NextLong(long.MaxValue);
@@ -623,7 +625,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var obtained = target.DeviceID;
+            var obtained = target.DeviceId;
 
             //then
             randomGenerator.Received(0).NextLong(long.MaxValue);
@@ -639,7 +641,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var deviceID = target.DeviceID;
+            var deviceID = target.DeviceId;
 
             //then
             Assert.That(deviceID, Is.GreaterThanOrEqualTo(0L));
@@ -655,7 +657,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
-            var deviceID = target.DeviceID;
+            var deviceID = target.DeviceId;
 
             //then
             Assert.That(deviceID, Is.GreaterThanOrEqualTo(0L));
@@ -697,7 +699,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var sessionIDProvider = Substitute.For<ISessionIDProvider>();
+            var sessionIDProvider = Substitute.For<ISessionIdProvider>();
             var config = new TestConfiguration(1, beaconConfig, sessionIDProvider);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
@@ -706,7 +708,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             //then
             Assert.That(sessionID, Is.EqualTo(target.SessionNumber));
-            sessionIDProvider.Received(1).GetNextSessionID();
+            sessionIDProvider.Received(1).GetNextSessionId();
         }
 
         [Test]

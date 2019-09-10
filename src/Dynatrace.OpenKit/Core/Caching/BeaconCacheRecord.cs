@@ -18,10 +18,10 @@ namespace Dynatrace.OpenKit.Core.Caching
 {
     /// <summary>
     /// A single record in the BeaconCache.
-    /// 
+    ///
     /// <para>
     /// A record is described by
-    /// 
+    ///
     /// <list type="bullet">
     /// <item>The timestamp when it was created/ended</item>
     /// <item>Serialized data</item>
@@ -53,15 +53,15 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         /// <summary>
         /// Get data size estimation of this record.
-        /// 
+        ///
         /// <para>
         /// Note that this is just a very rough estimation required for cache eviction.
-        /// 
+        ///
         /// It's sufficient to approximate the bytes required by the string and omit any other information like
         /// the timestamp, any references and so on.
         /// </para>
         /// </summary>
-        internal long DataSizeInBytes => Data != null ? Data.Length * sizeof(char) : 0;
+        internal long DataSizeInBytes => Data?.Length * sizeof(char) ?? 0;
 
         /// <summary>
         /// Boolean indicating whether this record is already marked for sending or not.

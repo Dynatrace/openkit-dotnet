@@ -190,7 +190,7 @@ namespace Samples
             sendWcfServiceCall(tracingAction);
 
             // leave the tracing action
-            tracingAction.Leave();
+            tracingAction.LeaveAction();
 
             // end session
             session.End();

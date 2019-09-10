@@ -14,15 +14,16 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
-using Dynatrace.OpenKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -38,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         // container storing all sessions
         private readonly SynchronizedQueue<SessionWrapper> sessions = new SynchronizedQueue<SessionWrapper>();
 
-        // reset event is set when init was done - which can either be success or failure 
+        // reset event is set when init was done - which can either be success or failure
         private readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
 
         // boolean indicating whether shutdown was requested or not (accessed by multiple threads)
@@ -49,15 +50,15 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         /// <summary>
         /// Constructor
-        /// 
+        ///
         /// Current state is initialized to <see cref="Dynatrace.OpenKit.Core.Communication."/>
-        /// 
+        ///
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
         /// <param name="httpClientProvider"></param>
         /// <param name="timingProvider"></param>
-        public BeaconSendingContext(ILogger logger, OpenKitConfiguration configuration, IHTTPClientProvider httpClientProvider, ITimingProvider timingProvider)
+        public BeaconSendingContext(ILogger logger, OpenKitConfiguration configuration, IHttpClientProvider httpClientProvider, ITimingProvider timingProvider)
         {
             this.logger = logger;
             Configuration = configuration;
@@ -69,7 +70,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         public OpenKitConfiguration Configuration { get; }
-        public IHTTPClientProvider HTTPClientProvider { get; }
+        public IHttpClientProvider HTTPClientProvider { get; }
         public ITimingProvider TimingProvider { get; }
 
         public AbstractBeaconSendingState CurrentState { get; internal set; }
@@ -128,9 +129,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             resetEvent.Set();
         }
 
-        public IHTTPClient GetHTTPClient()
+        public IHttpClient GetHTTPClient()
         {
-            return HTTPClientProvider.CreateClient(Configuration.HTTPClientConfig);
+            return HTTPClientProvider.CreateClient(Configuration.HttpClientConfig);
         }
 
         public void Sleep()
@@ -188,7 +189,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 }
             });
         }
-        
+
         /// <summary>
         /// <seealso cref="IBeaconSendingContext.StartSession(Session)"/>
         /// </summary>
@@ -208,7 +209,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 wrappedSession.FinishSession();
             }
         }
-        
+
         public List<SessionWrapper> NewSessions => sessions.ToList().Where(wrapper => !wrapper.IsBeaconConfigurationSet).ToList();
 
         public List<SessionWrapper> OpenAndConfiguredSessions => sessions.ToList()

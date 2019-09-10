@@ -23,7 +23,7 @@ using NSubstitute;
 using NUnit.Framework;
 using System;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     public class WebRequestTracerTest
     {
@@ -43,7 +43,7 @@ namespace Dynatrace.OpenKit.Core
                                 new BeaconCache(logger),
                                 testConfiguration,
                                 "127.0.0.1",
-                                Substitute.For<IThreadIDProvider>(),
+                                Substitute.For<IThreadIdProvider>(),
                                 mockTimingProvider);
         }
 
@@ -54,7 +54,7 @@ namespace Dynatrace.OpenKit.Core
             var target = new TestWebRequestTracer(logger, beacon, 17);
 
             // then
-            Assert.That(target.URL, Is.EqualTo("<unknown>"));
+            Assert.That(target.Url, Is.EqualTo("<unknown>"));
             Assert.That(target.ResponseCode, Is.EqualTo(-1));
             Assert.That(target.StartTime, Is.EqualTo(0L));
             Assert.That(target.EndTime, Is.EqualTo(-1L));

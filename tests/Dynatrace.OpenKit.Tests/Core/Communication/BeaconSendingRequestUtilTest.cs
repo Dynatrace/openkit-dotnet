@@ -25,13 +25,13 @@ namespace Dynatrace.OpenKit.Core.Communication
     class BeaconSendingRequestUtilTest
     {
         private IBeaconSendingContext context;
-        private IHTTPClient httpClient;
+        private IHttpClient httpClient;
         private StatusResponse statusResponse;
 
         [SetUp]
         public void Setup()
         {
-            httpClient = Substitute.For<IHTTPClient>();
+            httpClient = Substitute.For<IHttpClient>();
             context = Substitute.For<IBeaconSendingContext>();
             context.GetHTTPClient().Returns(httpClient);
             statusResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, 200, new Dictionary<string, List<string>>());

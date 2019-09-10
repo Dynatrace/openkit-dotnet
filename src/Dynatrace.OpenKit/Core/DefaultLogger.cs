@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
 using System;
 using System.Globalization;
 using System.Text;
 using System.Threading;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Core
 {
@@ -40,7 +40,7 @@ namespace Dynatrace.OpenKit.Core
             this.logLevel = logLevel;
             this.writeLineAction = writeLineAction;
         }
-        
+
         public bool IsErrorEnabled => LogLevel.ERROR.HasSameOrGreaterPriorityThan(logLevel);
 
         public bool IsWarnEnabled => LogLevel.WARN.HasSameOrGreaterPriorityThan(logLevel);
@@ -49,8 +49,8 @@ namespace Dynatrace.OpenKit.Core
 
         public bool IsDebugEnabled => LogLevel.DEBUG.HasSameOrGreaterPriorityThan(logLevel);
 
-        private static string UTCTime => DateTime.UtcNow.ToString(DateFormat, CultureInfo.InvariantCulture);
-        
+        private static string UtcTime => DateTime.UtcNow.ToString(DateFormat, CultureInfo.InvariantCulture);
+
         private string CurrentThreadName
         {
             get
@@ -81,7 +81,7 @@ namespace Dynatrace.OpenKit.Core
                 return;
             }
 
-            var logMessageBuilder = new StringBuilder(UTCTime)
+            var logMessageBuilder = new StringBuilder(UtcTime)
                 .Append(" ").Append(logLevel.Name())
                 .Append(" [").Append(CurrentThreadName).Append("]")
                 .Append(" ").Append(message);

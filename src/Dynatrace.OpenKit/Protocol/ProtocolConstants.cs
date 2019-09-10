@@ -16,8 +16,8 @@
 
 namespace Dynatrace.OpenKit.Protocol
 {
-    public class ProtocolConstants
-    {     
+    public static class ProtocolConstants
+    {
         // version constants
         public const string OpenKitVersion = "7.0.0000";
         public const int ProtocolVersion = 3;

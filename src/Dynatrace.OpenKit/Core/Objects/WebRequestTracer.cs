@@ -14,13 +14,13 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Protocol;
-using System.Threading;
 using System;
 using System.Text.RegularExpressions;
+using System.Threading;
+using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Protocol;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
 
     /// <summary>
@@ -28,35 +28,35 @@ namespace Dynatrace.OpenKit.Core
     /// </summary>
     public class WebRequestTracer : IWebRequestTracer
     {
-        private readonly ILogger logger = null;
+        private readonly ILogger logger;
 
         private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", RegexOptions.IgnoreCase);
 
         // Dynatrace tag that has to be used for tracing the web request
-        private readonly string tag = null;
+        private readonly string tag;
 
         // HTTP information: URL & response code, bytesSent, bytesReceived
-        protected string url = "<unknown>";
+        private readonly string url = "<unknown>";
 
         // start/end time & sequence number
         private long endTime = -1;
 
         // Beacon and Action references
         private readonly Beacon beacon;
-        private readonly int parentActionID;
+        private readonly int parentActionId;
 
         #region constructors
 
-        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionID)
+        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionId)
         {
             this.logger = logger;
             this.beacon = beacon;
-            this.parentActionID = parentActionID;
+            this.parentActionId = parentActionId;
 
             // creating start sequence number has to be done here, because it's needed for the creation of the tag
             StartSequenceNo = beacon.NextSequenceNumber;
 
-            tag = beacon.CreateTag(parentActionID, StartSequenceNo);
+            tag = beacon.CreateTag(parentActionId, StartSequenceNo);
 
             StartTime = beacon.CurrentTimestamp;
         }
@@ -65,22 +65,22 @@ namespace Dynatrace.OpenKit.Core
         ///  This constructor can be used for tracing and timing of a web request handled by any 3rd party HTTP Client.
         ///  Setting the Dynatrace tag to the OpenKit.WEBREQUEST_TAG_HEADER HTTP header has to be done manually by the user.
         /// </summary>
-        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionID, string url) : this(logger, beacon, parentActionID)
+        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionId, string url) : this(logger, beacon, parentActionId)
         {
-            if (IsValidURLScheme(url))
+            if (IsValidUrlScheme(url))
             {
-                this.url = url.Split(new char[] { '?' }, 2)[0];
+                this.url = url.Split(new [] { '?' }, 2)[0];
             }
         }
 
         #endregion
 
-        internal static bool IsValidURLScheme(string url)
+        internal static bool IsValidUrlScheme(string url)
         {
             return url != null && SchemaValidationPattern.Match(url).Success;
         }
 
-        public string URL => url;
+        public string Url => url;
 
         public long StartTime { get; private set; }
 
@@ -151,7 +151,7 @@ namespace Dynatrace.OpenKit.Core
             EndSequenceNo = beacon.NextSequenceNumber;
 
             // add web request to beacon
-            beacon.AddWebRequest(parentActionID, this);
+            beacon.AddWebRequest(parentActionId, this);
         }
 
         [Obsolete("Use Stop(int) instead")]
@@ -186,7 +186,7 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={parentActionID}, url='{url}'] ";
+            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={parentActionId}, url='{url}'] ";
         }
     }
 }

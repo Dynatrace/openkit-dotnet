@@ -14,9 +14,9 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
 using System;
 using System.Collections.Generic;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -26,17 +26,17 @@ namespace Dynatrace.OpenKit.Protocol
     /// </summary>
     public class StatusResponse : Response
     {
-        internal static readonly char[] PARTS_SEPARATOR = new char[] { '&' };
+        private static readonly char[] PartsSeparator = { '&' };
 
         // status response constants
-        public const string RESPONSE_KEY_CAPTURE = "cp";
-        public const string RESPONSE_KEY_SEND_INTERVAL = "si";
-        public const string RESPONSE_KEY_MONITOR_NAME = "bn";
-        public const string RESPONSE_KEY_SERVER_ID = "id";
-        public const string RESPONSE_KEY_MAX_BEACON_SIZE = "bl";
-        public const string RESPONSE_KEY_CAPTURE_ERRORS = "er";
-        public const string RESPONSE_KEY_CAPTURE_CRASHES = "cr";
-        public const string RESPONSE_KEY_MULTIPLICITY = "mp";
+        public const string ResponseKeyCapture = "cp";
+        public const string ResponseKeySendInterval = "si";
+        public const string ResponseKeyMonitorName = "bn";
+        public const string ResponseKeyServerId = "id";
+        public const string ResponseKeyMaxBeaconSize = "bl";
+        public const string ResponseKeyCaptureErrors = "er";
+        public const string ResponseKeyCaptureCrashes = "cr";
+        public const string ResponseKeyMultiplicity = "mp";
 
         public StatusResponse(ILogger logger, string response, int responseCode, Dictionary<string, List<string>> headers) :
             base(logger, responseCode, headers)
@@ -50,7 +50,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         public string MonitorName { get; private set; } = null;
 
-        public int ServerID { get; private set; } = -1;
+        public int ServerId { get; private set; } = -1;
 
         public int MaxBeaconSize { get; private set; } = -1;
 
@@ -68,7 +68,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            foreach (var parts in response.Split(PARTS_SEPARATOR, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var parts in response.Split(PartsSeparator, StringSplitOptions.RemoveEmptyEntries))
             {
                 var tokens = parts.Split('=');
                 if (tokens.Length != 2)
@@ -81,28 +81,28 @@ namespace Dynatrace.OpenKit.Protocol
 
                 switch (key)
                 {
-                    case RESPONSE_KEY_CAPTURE:
+                    case ResponseKeyCapture:
                         Capture = (int.Parse(value) == 1);
                         break;
-                    case RESPONSE_KEY_SEND_INTERVAL:
+                    case ResponseKeySendInterval:
                         SendInterval = int.Parse(value) * 1000;
                         break;
-                    case RESPONSE_KEY_MONITOR_NAME:
+                    case ResponseKeyMonitorName:
                         MonitorName = value;
                         break;
-                    case RESPONSE_KEY_SERVER_ID:
-                        ServerID = int.Parse(value);
+                    case ResponseKeyServerId:
+                        ServerId = int.Parse(value);
                         break;
-                    case RESPONSE_KEY_MAX_BEACON_SIZE:
+                    case ResponseKeyMaxBeaconSize:
                         MaxBeaconSize = int.Parse(value) * 1024;
                         break;
-                    case RESPONSE_KEY_CAPTURE_ERRORS:
+                    case ResponseKeyCaptureErrors:
                         CaptureErrors = (int.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
                         break;
-                    case RESPONSE_KEY_CAPTURE_CRASHES:
+                    case ResponseKeyCaptureCrashes:
                         CaptureCrashes = (int.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
                         break;
-                    case RESPONSE_KEY_MULTIPLICITY:
+                    case ResponseKeyMultiplicity:
                         Multiplicity = int.Parse(value);
                         break;
                     default:

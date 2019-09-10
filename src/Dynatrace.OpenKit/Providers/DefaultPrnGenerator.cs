@@ -14,21 +14,23 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
+using System;
 
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
-    /// Interface providing a method to create a new http client
+    /// Default implementation of PRNGenerator providing random numbers
     /// </summary>
-    public interface IHTTPClientProvider
+    internal class DefaultPrnGenerator : IPrnGenerator
     {
-        /// <summary>
-        /// Returns an HTTPClient based on the provided configuration
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <returns></returns>
-        IHTTPClient CreateClient(HTTPClientConfiguration configuration);
+        public int NextInt(int upperBoundary)
+        {
+            return new Random().Next( upperBoundary);
+        }
+
+        public long NextLong(long upperBoundary)
+        {
+            return (long)(new Random().NextDouble() * upperBoundary);
+        }
     }
 }

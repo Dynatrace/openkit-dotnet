@@ -15,44 +15,37 @@
 //
 
 using Dynatrace.OpenKit.API;
-using System;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     /// <summary>
     /// The HttpClientConfiguration holds all http client related settings
     /// </summary>
-    public class HTTPClientConfiguration
+    public class HttpClientConfiguration
     {
-        public HTTPClientConfiguration(string baseURL, int serverID, string applicationID, ISSLTrustManager sslTrustManager)
+        public HttpClientConfiguration(string baseUrl, int serverId, string applicationId, ISSLTrustManager sslTrustManager)
         {
-            BaseURL = baseURL;
-            ServerID = serverID;
-            ApplicationID = applicationID;
-            SSLTrustManager = sslTrustManager;
+            BaseUrl = baseUrl;
+            ServerId = serverId;
+            ApplicationId = applicationId;
+            SslTrustManager = sslTrustManager;
         }
 
         /// <summary>
         /// The base URL for the http client
         /// </summary>
-        public string BaseURL { get; }
+        public string BaseUrl { get; }
 
         /// <summary>
         /// The server id to be used for the http client
         /// </summary>
-        public int ServerID { get; }
+        public int ServerId { get; }
 
         /// <summary>
         /// The application id for the http client
         /// </summary>
-        public string ApplicationID { get; }
+        public string ApplicationId { get; }
 
-        /// <summary>
-        /// If <code>true</code> logging is enabled
-        /// </summary>
-        public bool IsVerbose { get; }
-
-
-        public ISSLTrustManager SSLTrustManager { get; }
+        public ISSLTrustManager SslTrustManager { get; }
     }
 }

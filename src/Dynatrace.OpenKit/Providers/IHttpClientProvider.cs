@@ -14,25 +14,21 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
+
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
-    /// Interface providing random numbers
+    /// Interface providing a method to create a new http client
     /// </summary>
-    public interface IPRNGenerator
+    public interface IHttpClientProvider
     {
         /// <summary>
-        /// Provide a random int between 0 (inclusive) and upperBoundary (exclusive)
+        /// Returns an HTTPClient based on the provided configuration
         /// </summary>
-        /// <param name="upperBoundary">value of upper boundary</param>
-        /// <returns>random int value between 0 and upper boundary</returns>
-        int NextInt(int upperBoundary);
-
-        /// <summary>
-        /// Provide a random long between 0 (inclusive) and upperBoundary (exclusive)
-        /// </summary
-        /// <param name="upperBoundary">value of upper boundary</param>
-        /// <returns>random long value between 0 and upper Boundary</returns>
-        long NextLong(long upperBoundary);
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        IHttpClient CreateClient(HttpClientConfiguration configuration);
     }
 }

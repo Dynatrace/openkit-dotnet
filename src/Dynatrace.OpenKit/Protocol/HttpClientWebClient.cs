@@ -22,22 +22,22 @@ namespace Dynatrace.OpenKit.Protocol
 {
 #if NET40 || NET35
 
-    public class HTTPClientWebClient : HTTPClient
+    public class HttpClientWebClient : HttpClient
     {
-        private static bool remoteCertificateValidationCallbackInitialized = false;
+        private static bool _remoteCertificateValidationCallbackInitialized = false;
 
-        public HTTPClientWebClient(ILogger logger, HTTPClientConfiguration configuration) : base(logger, configuration)
+        public HttpClientWebClient(ILogger logger, HttpClientConfiguration configuration) : base(logger, configuration)
         {
-            if (!remoteCertificateValidationCallbackInitialized)
+            if (!_remoteCertificateValidationCallbackInitialized)
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SSLTrustManager?.ServerCertificateValidationCallback;
-                remoteCertificateValidationCallbackInitialized = true;
+                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SslTrustManager?.ServerCertificateValidationCallback;
+                _remoteCertificateValidationCallbackInitialized = true;
             }
         }
 
-        protected override HTTPResponse GetRequest(string url, string clientIPAddress)
+        protected override HttpResponse GetRequest(string url, string clientIpAddress)
         {
-            using (WrappedWebClient webClient = new WrappedWebClient(clientIPAddress))
+            using (var webClient = new WrappedWebClient(clientIpAddress))
             {
                 using (System.Net.HttpWebResponse response = webClient.Get(url))
                 {
@@ -46,9 +46,9 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        protected override HTTPResponse PostRequest(string url, string clientIPAddress, byte[] gzippedPayload)
+        protected override HttpResponse PostRequest(string url, string clientIpAddress, byte[] gzippedPayload)
         {
-            using (WrappedWebClient webClient = new WrappedWebClient(clientIPAddress))
+            using (var webClient = new WrappedWebClient(clientIpAddress))
             {
                 using (System.Net.HttpWebResponse response = webClient.Post(url, gzippedPayload))
                 {
@@ -57,10 +57,10 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        private static HTTPResponse ReadResponse(System.Net.WebResponse webResponse)
+        private static HttpResponse ReadResponse(System.Net.WebResponse webResponse)
         {
             string response;
-            using (System.IO.StreamReader reader = new System.IO.StreamReader(webResponse.GetResponseStream()))
+            using (var reader = new System.IO.StreamReader(webResponse.GetResponseStream()))
             {
                 response = reader.ReadToEnd();
             }
@@ -71,7 +71,7 @@ namespace Dynatrace.OpenKit.Protocol
                 headers.Add(header.ToLowerInvariant(), new List<string>(webResponse.Headers.GetValues(header)));
             }
 
-            return new HTTPResponse
+            return new HttpResponse
             {
                 Response = response,
                 ResponseCode = (int)responseCode,
@@ -81,11 +81,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         private class WrappedWebClient : System.Net.WebClient
         {
-            public WrappedWebClient(string clientIPAddress)
+            public WrappedWebClient(string clientIpAddress)
             {
-                if (clientIPAddress != null)
+                if (clientIpAddress != null)
                 {
-                    Headers.Add("X-Client-IP", clientIPAddress);
+                    Headers.Add("X-Client-IP", clientIpAddress);
                 }
             }
 
@@ -99,7 +99,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 var request = (System.Net.HttpWebRequest)GetWebRequest(new System.Uri(url));
                 request.Method = "POST";
-                
+
                 // if there is compressed data, post it to the server
                 if (gzippedPayload != null && gzippedPayload.Length > 0)
                 {

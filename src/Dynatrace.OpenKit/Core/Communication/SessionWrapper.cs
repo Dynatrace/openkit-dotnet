@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
@@ -31,8 +32,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         private const int MaxNewSessionRequests = 4;
 
-        private volatile bool beaconConfigurationSet = false;
-        private volatile bool sessionFinished = false;
+        private volatile bool beaconConfigurationSet;
+        private volatile bool sessionFinished;
 
         /// <summary>
         /// Constructor taking the wrapped <see cref="Session"/>.
@@ -50,7 +51,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         internal Session Session { get; }
 
         /// <summary>
-        /// Get a boolean flag indicating whether <see cref="UpdateBeaconConfiguration(BeaconConfiguration)"/>
+        /// Get a boolean flag indicating whether <see cref="UpdateBeaconConfiguration(Configuration.BeaconConfiguration)"/>
         /// has been called before.
         /// </summary>
         internal bool IsBeaconConfigurationSet => beaconConfigurationSet;
@@ -109,7 +110,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         internal void DecreaseNumNewSessionRequests() {
             NumNewSessionRequestsLeft -= 1;
         }
-        
+
         /// <summary>
         /// Clear captured data.
         /// </summary>
@@ -123,11 +124,11 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="httpClientProvider"></param>
         /// <returns></returns>
-        internal StatusResponse SendBeacon(IHTTPClientProvider httpClientProvider)
+        internal StatusResponse SendBeacon(IHttpClientProvider httpClientProvider)
         {
             return Session.SendBeacon(httpClientProvider);
         }
-        
+
         /// <summary>
         /// Ends the session.
         /// </summary>

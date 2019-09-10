@@ -14,20 +14,20 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Protocol;
 using System;
+using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
     /// <summary>
     /// Initial state for beacon sending.
-    /// 
+    ///
     /// The initial state is used to retrieve the configuration from the server and update the configuration.
-    /// 
+    ///
     /// Transitions to:
     /// <ul>
     ///     <li><see cref="BeaconSendingTerminalState"/> upon shutdown request</li>
-    ///     <li><see cref="BeaconSendingCaptureOnState"/> if initial status request succeeded and capturing is enabbled.</li>
+    ///     <li><see cref="BeaconSendingCaptureOnState"/> if initial status request succeeded and capturing is enabled.</li>
     ///     <li><see cref="BeaconSendingCaptureOffState"/> if initial status request succeeded and capturing is disabled.</li>
     /// </ul>
     /// </summary>
@@ -42,8 +42,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             1 * 60 * 1000, // 1 minute in milliseconds
             5 * 60 * 1000, // 5 minutes in milliseconds
             15 * 60 * 1000, // 15 minutes in milliseconds
-            1 * 60 * 60 * 1000, // 1 hour in millisecondsd
-            2 * 60 * 60 * 1000 // 2 housrs in milliseconds
+            1 * 60 * 60 * 1000, // 1 hour in milliseconds
+            2 * 60 * 60 * 1000 // 2 hours in milliseconds
         };
 
         // current index into RE_INIT_DELAY_MILLISECONDS

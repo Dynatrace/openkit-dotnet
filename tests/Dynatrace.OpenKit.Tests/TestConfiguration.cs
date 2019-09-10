@@ -23,24 +23,24 @@ namespace Dynatrace.OpenKit
     public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : this(0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new Providers.TestSessionIDProvider())
+            : this(0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new TestSessionIDProvider())
         {
         }
 
         internal TestConfiguration(long deviceID, BeaconConfiguration beaconConfig)
-            : this(deviceID, beaconConfig, new Providers.DefaultSessionIDProvider())
+            : this(deviceID, beaconConfig, new DefaultSessionIdProvider())
         {
 
         }
 
-        internal TestConfiguration(long deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
+        internal TestConfiguration(long deviceID, BeaconConfiguration beaconConfig, ISessionIdProvider sessionIDProvider)
             : this("", deviceID, beaconConfig, sessionIDProvider)
         {
         }
 
-        internal TestConfiguration(string appID, long deviceID, BeaconConfiguration beaconConfig, ISessionIDProvider sessionIDProvider)
-            : base(OpenKitType.DYNATRACE, "", appID, deviceID, deviceID.ToString(), "", sessionIDProvider,
-          new SSLStrictTrustManager(), new Core.Device("", "", ""), "",
+        internal TestConfiguration(string appID, long deviceID, BeaconConfiguration beaconConfig, ISessionIdProvider sessionIDProvider)
+            : base(OpenKitType.Dynatrace, "", appID, deviceID, deviceID.ToString(), "", sessionIDProvider,
+          new SSLStrictTrustManager(), new Core.Objects.Device("", "", ""), "",
           new BeaconCacheConfiguration(
             BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
             BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,

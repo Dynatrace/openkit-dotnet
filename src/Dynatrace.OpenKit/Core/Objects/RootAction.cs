@@ -17,7 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
     /// Actual implementation of the RootAction interface.
@@ -27,7 +27,7 @@ namespace Dynatrace.OpenKit.Core
         // Beacon reference
         private readonly Beacon beacon;
         // data structures for managing actions
-        private SynchronizedQueue<IAction> openChildActions = new SynchronizedQueue<IAction>();
+        private readonly SynchronizedQueue<IAction> openChildActions = new SynchronizedQueue<IAction>();
 
         #region constructors
 
@@ -79,7 +79,7 @@ namespace Dynatrace.OpenKit.Core
 
         public override string ToString()
         {
-            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + ID + ", name=" + Name + "] ";
+            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + Id + ", name=" + Name + "] ";
         }
     }
 }

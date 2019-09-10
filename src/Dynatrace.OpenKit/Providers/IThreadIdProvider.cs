@@ -14,23 +14,16 @@
 // limitations under the License.
 //
 
-using System;
-
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
-    /// Default implementation of PRNGenerator providing random numbers
+    /// Interface that provides the thread id
     /// </summary>
-    class DefaultPRNGenerator : IPRNGenerator
+    public interface IThreadIdProvider
     {
-        public int NextInt(int upperBoundary)
-        {
-            return new Random().Next( upperBoundary);
-        }
-
-        public long NextLong(long upperBoundary)
-        {
-            return (long)(new Random().NextDouble() * upperBoundary);
-        }
+        /// <summary>
+        /// Returns the current thread id
+        /// </summary>
+        int ThreadId { get; }
     }
 }

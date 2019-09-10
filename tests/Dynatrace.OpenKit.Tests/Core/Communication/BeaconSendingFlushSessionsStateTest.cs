@@ -14,14 +14,15 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -31,23 +32,23 @@ namespace Dynatrace.OpenKit.Core.Communication
         private List<SessionWrapper> openSessions;
         private List<SessionWrapper> finishedSessions;
         private ITimingProvider timingProvider;
-        private IHTTPClient httpClient;
+        private IHttpClient httpClient;
         private IBeaconSendingContext context;
-        private IHTTPClientProvider httpClientProvider;
+        private IHttpClientProvider httpClientProvider;
         private BeaconSender beaconSender;
 
         [SetUp]
         public void Setup()
         {
-            httpClient = Substitute.For<IHTTPClient>();
+            httpClient = Substitute.For<IHttpClient>();
             newSessions = new List<SessionWrapper>();
             openSessions = new List<SessionWrapper>();
             finishedSessions = new List<SessionWrapper>();
 
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
-            httpClientProvider = Substitute.For<IHTTPClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(x => httpClient);
+            httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
@@ -102,7 +103,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // when
             target.Execute(context);
-            
+
             // then verify transition to terminal state
             context.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>();
         }
@@ -116,10 +117,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
             var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
             var sessionThree = new SessionWrapper(CreateValidSession("127.0.0.2"));
-            // end one session to demonstrate that those which are already ended are also configured 
+            // end one session to demonstrate that those which are already ended are also configured
             sessionThree.End();
             newSessions.AddRange(new[] { sessionOne, sessionTwo, sessionThree });
-            
+
             // when
             target.Execute(context);
 
@@ -131,7 +132,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(sessionThree.IsBeaconConfigurationSet, Is.True);
             Assert.That(sessionThree.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
         }
-        
+
         [Test]
         public void ABeaconSendingFlushSessionsStateClosesOpenSessions()
         {
@@ -157,7 +158,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var logger = Substitute.For<ILogger>();
             var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                new TestConfiguration(), clientIP, Substitute.For<IThreadIDProvider>(), timingProvider));
+                new TestConfiguration(), clientIP, Substitute.For<IThreadIdProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
 

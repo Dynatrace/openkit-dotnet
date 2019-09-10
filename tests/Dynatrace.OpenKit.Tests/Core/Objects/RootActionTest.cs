@@ -21,7 +21,7 @@ using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     public class RootActionTest
     {
@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Core
                                 new BeaconCache(logger),
                                 new TestConfiguration(),
                                 "127.0.0.1",
-                                Substitute.For<IThreadIDProvider>(),
+                                Substitute.For<IThreadIdProvider>(),
                                 mockTimingProvider);
         }
 
@@ -53,14 +53,14 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(childOne, Is.Not.Null.And.TypeOf<Action>());
-            Assert.That(((Action)childOne).ParentID, Is.EqualTo(target.ID));
+            Assert.That(((Action)childOne).ParentId, Is.EqualTo(target.Id));
 
             // when entering second child
             var childTwo = target.EnterAction("child one");
 
             // then
             Assert.That(childTwo, Is.Not.Null.And.TypeOf<Action>());
-            Assert.That(((Action)childTwo).ParentID, Is.EqualTo(target.ID));
+            Assert.That(((Action)childTwo).ParentId, Is.EqualTo(target.Id));
             Assert.That(childTwo, Is.Not.SameAs(childOne));
         }
 
@@ -96,7 +96,7 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
-            
+
             // also verify that warning has been written to log
             logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
         }

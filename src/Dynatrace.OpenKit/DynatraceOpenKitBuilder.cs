@@ -14,11 +14,10 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Providers;
-using System.Globalization;
 using System;
+using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit
 {
@@ -27,32 +26,32 @@ namespace Dynatrace.OpenKit
     /// </summary>
     public class DynatraceOpenKitBuilder : AbstractOpenKitBuilder
     {
-        private readonly string applicationID;
+        private readonly string applicationId;
         private string applicationName = string.Empty;
 
         /// <summary>
         /// Creates a new instance of type DynatraceOpenKitBuilder
         /// </summary>
-        /// <param name="endointURL">endpoint OpenKit connects to</param>
-        /// <param name="applicationID">unique application id</param>
-        /// <param name="deviceID">unique device id</param>
-        public DynatraceOpenKitBuilder(string endointURL, string applicationID, long deviceID)
-            : base(endointURL, deviceID)
+        /// <param name="endPointUrl">endpoint OpenKit connects to</param>
+        /// <param name="applicationId">unique application id</param>
+        /// <param name="deviceId">unique device id</param>
+        public DynatraceOpenKitBuilder(string endPointUrl, string applicationId, long deviceId)
+            : base(endPointUrl, deviceId)
         {
-            this.applicationID = applicationID;
+            this.applicationId = applicationId;
         }
 
         /// <summary>
         /// Creates a new instance of type DynatraceOpenKitBuilder
         /// </summary>
-        /// <param name="endointURL">endpoint OpenKit connects to</param>
-        /// <param name="applicationID">unique application id</param>
-        /// <param name="deviceID">unique device id</param>
+        /// <param name="endPointUrl">endpoint OpenKit connects to</param>
+        /// <param name="applicationId">unique application id</param>
+        /// <param name="deviceId">unique device id</param>
         [Obsolete("use DynatraceOpenKitBuilder(string string, long) instead")]
-        public DynatraceOpenKitBuilder(string endointURL, string applicationID, string deviceID)
-            : base(endointURL, deviceID)
+        public DynatraceOpenKitBuilder(string endPointUrl, string applicationId, string deviceId)
+            : base(endPointUrl, deviceId)
         {
-            this.applicationID = applicationID;
+            this.applicationId = applicationId;
         }
 
         /// <summary>
@@ -79,13 +78,13 @@ namespace Dynatrace.OpenKit
             var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DEFAULT_MULITPLICITY, DataCollectionLevel, CrashReportingLevel);
 
             return new OpenKitConfiguration(
-               OpenKitType.DYNATRACE,
+               OpenKitType.Dynatrace,
                applicationName,
-               applicationID,
-               DeviceID,
-               OrigDeviceID,
-               EndpointURL,
-               new DefaultSessionIDProvider(),
+               applicationId,
+               DeviceId,
+               OrigDeviceId,
+               EndpointUrl,
+               new DefaultSessionIdProvider(),
                TrustManager,
                device,
                ApplicationVersion,

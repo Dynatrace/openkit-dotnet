@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
     ///  Class holding device specific information
@@ -22,18 +22,18 @@ namespace Dynatrace.OpenKit.Core
     public class Device
     {
 
-        public Device(string operatingSystem, string manufacturer, string modelID)
+        public Device(string operatingSystem, string manufacturer, string modelId)
         {
             OperatingSystem = operatingSystem;
             Manufacturer = manufacturer;
-            ModelID = modelID;
+            ModelId = modelId;
         }
 
         public string OperatingSystem { get; }
 
         public string Manufacturer { get; }
 
-        public string ModelID { get; }
+        public string ModelId { get; }
 
     }
 
