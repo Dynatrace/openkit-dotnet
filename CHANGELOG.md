@@ -16,7 +16,7 @@
 ### Improvements
 - Reformatted text files to unix style line endings.
 
-## 1.4.0 [Release date: 2018-02-14]
+## 1.4.0 [Release date: 2019-02-14]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.0)
 
 ### Added
