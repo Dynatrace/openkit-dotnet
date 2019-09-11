@@ -121,6 +121,7 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly ILogger logger;
 
         private readonly BeaconCache beaconCache;
+        private readonly int beaconId;
 
         #region constructors
 
@@ -156,9 +157,10 @@ namespace Dynatrace.OpenKit.Protocol
             this.beaconCache = beaconCache;
             BeaconConfiguration = configuration.BeaconConfig;
 
+            beaconId = configuration.NextSessionNumber;
             if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
             {
-                SessionNumber = configuration.NextSessionNumber;
+                SessionNumber = beaconId;
                 DeviceId = configuration.DeviceId;
             }
             else
@@ -187,7 +189,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         public long DeviceId { get; }
 
-        public bool IsEmpty => beaconCache.IsEmpty(SessionNumber);
+        public bool IsEmpty => beaconCache.IsEmpty(beaconId);
 
         /// <summary>
         /// create next ID
@@ -234,7 +236,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             get
             {
-                var events = beaconCache.GetEvents(SessionNumber);
+                var events = beaconCache.GetEvents(beaconId);
                 if (events == null)
                 {
                     return new List<string>();
@@ -254,7 +256,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             get
             {
-                var actions = beaconCache.GetActions(SessionNumber);
+                var actions = beaconCache.GetActions(beaconId);
                 if (actions == null)
                 {
                     return new List<string>();
@@ -627,7 +629,7 @@ namespace Dynatrace.OpenKit.Protocol
                 // subtract 1024 to ensure that the chunk does not exceed the send size configured on server side?
                 // i guess that was the original intention, but i'm not sure about this
                 // TODO stefan.eberl - This is a quite uncool algorithm and should be improved, avoid subtracting some "magic" number
-                var chunk = beaconCache.GetNextBeaconChunk(SessionNumber, prefix, configuration.MaxBeaconSize - 1024, BeaconDataDelimiter);
+                var chunk = beaconCache.GetNextBeaconChunk(beaconId, prefix, configuration.MaxBeaconSize - 1024, BeaconDataDelimiter);
                 if (string.IsNullOrEmpty(chunk))
                 {
                     // no data added so far or no data to send
@@ -642,13 +644,13 @@ namespace Dynatrace.OpenKit.Protocol
                 {
                     // error happened - but don't know what exactly
                     // reset the previously retrieved chunk (restore it in internal cache) & retry another time
-                    beaconCache.ResetChunkedData(SessionNumber);
+                    beaconCache.ResetChunkedData(beaconId);
                     break;
                 }
                 else
                 {
                     // worked -> remove previously retrieved chunk from cache
-                    beaconCache.RemoveChunkedData(SessionNumber);
+                    beaconCache.RemoveChunkedData(beaconId);
                 }
             }
 
@@ -662,7 +664,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal void ClearData()
         {
             // remove all cached data for this Beacon from the cache
-            beaconCache.DeleteCacheEntry(SessionNumber);
+            beaconCache.DeleteCacheEntry(beaconId);
         }
 
         #endregion
@@ -678,7 +680,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (configuration.IsCaptureOn)
             {
-                beaconCache.AddActionData(SessionNumber, timestamp, actionBuilder.ToString());
+                beaconCache.AddActionData(beaconId, timestamp, actionBuilder.ToString());
             }
         }
 
@@ -691,7 +693,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (configuration.IsCaptureOn)
             {
-                beaconCache.AddEventData(SessionNumber, timestamp, eventBuilder.ToString());
+                beaconCache.AddEventData(beaconId, timestamp, eventBuilder.ToString());
             }
         }
 

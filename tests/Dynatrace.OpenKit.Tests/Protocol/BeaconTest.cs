@@ -23,6 +23,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
+using NSubstitute.Core.Arguments;
 using NUnit.Framework;
 using Action = Dynatrace.OpenKit.Core.Objects.Action;
 
@@ -541,6 +542,8 @@ namespace Dynatrace.OpenKit.Protocol
         public void CreateTagReturnsTagStringForDataCollectionLevel1()
         {
             // given
+            long deviceId = 37;
+            randomGenerator.NextLong(Arg.Any<long>()).Returns(deviceId);
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
@@ -549,22 +552,47 @@ namespace Dynatrace.OpenKit.Protocol
             var obtained = target.CreateTag(42, 1);
 
             //then
-            Assert.That(obtained, Is.Not.Empty);
+            Assert.That(obtained, Is.EqualTo(
+                "MT" +                    // tag prefix
+                "_3" +                    // protocol version
+                "_-1" +                   // server ID
+                "_" + deviceId +          // device ID
+                "_1" +                    // session number (must always 1 for data collection level performance)
+                "_" +                     // application ID
+                "_42" +                   // parent action ID
+                "_0" +                    // thread ID
+                "_1"                      // sequence number
+            ));
         }
 
         [Test]
         public void CreateTagReturnsTagStringForDataCollectionLevel2()
         {
             // given
+            int sessionId = 73;
+            long deviceId = 37;
+            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
+            sessionIdProvider.GetNextSessionId().Returns(sessionId);
+
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
+            var config = new TestConfiguration(deviceId, beaconConfig, sessionIdProvider);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
             //when
             var obtained = target.CreateTag(42, 1);
 
             //then
-            Assert.That(obtained, Is.Not.Empty);
+            Assert.That(obtained, Is.EqualTo(
+                "MT" +                    // tag prefix
+                "_3" +                    // protocol version
+                "_-1" +                   // server ID
+                "_" + deviceId +          // device ID
+                "_" + sessionId +         // session number (must always 1 for data collection level performance)
+                "_" +                     // application ID
+                "_42" +                   // parent action ID
+                "_0" +                    // thread ID
+                "_1"                      // sequence number
+            ));
         }
 
         [Test]
@@ -1230,6 +1258,28 @@ namespace Dynatrace.OpenKit.Protocol
 
             //then
             Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void UseInternalBeaconIdForAccessingBeaconCacheWhenSessionNumberReportingDisallowed()
+        {
+            // given
+            int beaconId = 73;
+            var beaconCache = Substitute.For<BeaconCache>(logger);
+            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
+            sessionIdProvider.GetNextSessionId().Returns(beaconId);
+
+            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OPT_IN_CRASHES);
+            var config = new TestConfiguration(1, beaconConfig);
+            var target = new Beacon(logger, beaconCache, config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
+
+            // when
+            target.ClearData();
+
+            // then
+            Assert.That(target.SessionNumber, Is.EqualTo(1));
+            beaconCache.Received(1).DeleteCacheEntry(beaconId);
+
         }
     }
 }
