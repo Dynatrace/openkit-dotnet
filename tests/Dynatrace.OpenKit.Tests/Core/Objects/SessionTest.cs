@@ -393,7 +393,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] TraceWebRequest (String): url must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] TraceWebRequest(String): url must not be null or empty");
         }
 
         [Test]
@@ -411,7 +411,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] TraceWebRequest (String): url must not be null or empty");
+            logger.Received(1).Warn("Session [sn=1] TraceWebRequest(String): url must not be null or empty");
         }
 
         [Test]
@@ -429,7 +429,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn($"Session [sn=1] TraceWebRequest (String): url \"foo:bar://test.com\" does not have a valid scheme");
+            logger.Received(1).Warn($"Session [sn=1] TraceWebRequest(String): url \"foo:bar://test.com\" does not have a valid scheme");
         }
     }
 }

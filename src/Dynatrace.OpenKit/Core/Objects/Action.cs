@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Actual implementation of the IAction interface.
     /// </summary>
-    public class Action : IAction
+    public class Action : OpenKitComposite, IAction
     {
         private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
@@ -79,16 +79,18 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         internal ILogger Logger { get; }
 
+        #region IAction implementation
+
         public IAction ReportEvent(string eventName)
         {
             if (string.IsNullOrEmpty(eventName))
             {
-                Logger.Warn(this + "ReportEvent: eventName must not be null or empty");
+                Logger.Warn($"{this} ReportEvent: eventName must not be null or empty");
                 return this;
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "ReportEvent(" + eventName + ")");
+                Logger.Debug($"{this} ReportEvent({eventName})");
             }
             if (!IsActionLeft)
             {
@@ -101,12 +103,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                Logger.Warn(this + "ReportValue (string): valueName must not be null or empty");
+                Logger.Warn($"{this} ReportValue (string): valueName must not be null or empty");
                 return this;
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "ReportValue(string) (" + valueName + ", " + value + ")");
+                Logger.Debug($"{this} ReportValue({valueName}, {value})");
             }
             if (!IsActionLeft)
             {
@@ -119,12 +121,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                Logger.Warn(this + "ReportValue (double): valueName must not be null or empty");
+                Logger.Warn($"{this} ReportValue (double): valueName must not be null or empty");
                 return this;
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "ReportValue(double) (" + valueName + ", " + value + ")");
+                Logger.Debug($"{this} ReportValue(double) ({valueName}, {value})");
             }
             if (!IsActionLeft)
             {
@@ -137,12 +139,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(valueName))
             {
-                Logger.Warn(this + "ReportValue (int): valueName must not be null or empty");
+                Logger.Warn($"{this} ReportValue (int): valueName must not be null or empty");
                 return this;
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "ReportValue(int) (" + valueName + ", " + value + ")");
+                Logger.Debug($"{this} ReportValue(int) ({valueName}, {value})");
             }
             if (!IsActionLeft)
             {
@@ -155,12 +157,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                Logger.Warn(this + "ReportError: errorName must not be null or empty");
+                Logger.Warn($"{this} ReportError: errorName must not be null or empty");
                 return this;
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "ReportError(" + errorName + ", " + errorCode + ", " + reason + ")");
+                Logger.Debug($"{this} ReportError({errorName}, {errorCode}, {reason})");
             }
             if (!IsActionLeft)
             {
@@ -173,21 +175,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(url))
             {
-                Logger.Warn(this + "TraceWebRequest (String): url must not be null or empty");
+                Logger.Warn($"{this} TraceWebRequest (String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
             if (!WebRequestTracer.IsValidUrlScheme(url))
             {
-                Logger.Warn(this + $"TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
+                Logger.Warn($"{this} TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "TraceWebRequest (String) (" + url + ")");
+                Logger.Debug($"{this} TraceWebRequest (${url})");
             }
             if (!IsActionLeft)
             {
-                return new WebRequestTracer(Logger, beacon, Id, url);
+                return new WebRequestTracer(Logger, this, beacon, url);
             }
 
             return NullWebRequestTracer;
@@ -197,7 +199,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "LeaveAction(" + Name + ")");
+                Logger.Debug($"{this} LeaveAction({Name})");
             }
             // check if leaveAction() was already called before by looking at endTime
             if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
@@ -223,15 +225,28 @@ namespace Dynatrace.OpenKit.Core.Objects
             return parentAction; // can be null if there's no parent Action!
         }
 
-        public void Dispose()
+        #endregion
+
+        #region OpenKitComposite implementation
+
+        public override int ActionId => Id;
+
+        internal override void OnChildClosed(IOpenKitObject childObject)
+        {
+            RemoveChildFromList(childObject);
+        }
+
+        #endregion
+
+        public override void Dispose()
         {
             LeaveAction();
         }
 
         public override string ToString()
         {
-            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + Id + ", name=" + Name + ", pa="
-                + (parentAction != null ? Convert.ToString(parentAction.Id) : "no parent") + "] ";
+            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={Id}, name={Name}, pa="
+                + $"{(parentAction != null ? Convert.ToString(parentAction.Id) : "no parent")}]";
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Actual implementation of the ISession interface.
     /// </summary>
-    public class Session : ISession
+    public class Session : OpenKitComposite, ISession
     {
         private static readonly NullRootAction NullRootAction = new NullRootAction();
         private static readonly NullWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
@@ -71,7 +71,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         internal bool IsSessionEnded => EndTime != -1;
 
-        public void Dispose()
+        public override void Dispose()
         {
             End();
         }
@@ -82,12 +82,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(actionName))
             {
-                logger.Warn(this + "EnterAction: actionName must not be null or empty");
+                logger.Warn($"{this} EnterAction: actionName must not be null or empty");
                 return NullRootAction;
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(this + "EnterAction(" + actionName + ")");
+                logger.Debug($"{this} EnterAction({actionName})");
             }
             if (!IsSessionEnded)
             {
@@ -101,12 +101,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(userTag))
             {
-                logger.Warn(this + "IdentifyUser: userTag must not be null or empty");
+                logger.Warn($"{this} IdentifyUser: userTag must not be null or empty");
                 return;
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(this + "IdentifyUser(" + userTag + ")");
+                logger.Debug($"{this} IdentifyUser({userTag})");
             }
             if (!IsSessionEnded)
             {
@@ -118,12 +118,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(errorName))
             {
-                logger.Warn(this + "ReportCrash: errorName must not be null or empty");
+                logger.Warn($"{this} ReportCrash: errorName must not be null or empty");
                 return;
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(this + "ReportCrash(" + errorName + ", " + reason + ", " + stacktrace + ")");
+                logger.Debug($"{this} ReportCrash({errorName}, {reason}, {stacktrace})");
             }
             if (!IsSessionEnded)
             {
@@ -135,21 +135,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (string.IsNullOrEmpty(url))
             {
-                logger.Warn($"{this}TraceWebRequest (String): url must not be null or empty");
+                logger.Warn($"{this} TraceWebRequest(String): url must not be null or empty");
                 return NullWebRequestTracer;
             }
             if (!WebRequestTracer.IsValidUrlScheme(url))
             {
-                logger.Warn($"{this}TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
+                logger.Warn($"{this} TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer;
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"{this}TraceWebRequest (String) ({url})");
+                logger.Debug($"{this} TraceWebRequest({url})");
             }
             if (!IsSessionEnded)
             {
-                return new WebRequestTracer(logger, beacon, 0, url);
+                return new WebRequestTracer(logger, this, beacon, url);
             }
 
             return NullWebRequestTracer;
@@ -159,7 +159,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(this + "End()");
+                logger.Debug($"{this} End()");
             }
 
             // check if end() was already called before by looking at endTime
@@ -200,9 +200,18 @@ namespace Dynatrace.OpenKit.Core.Objects
             beacon.ClearData();
         }
 
+        #region OpenKitComposite implementation
+
+        internal override void OnChildClosed(IOpenKitObject childObject)
+        {
+            RemoveChildFromList(childObject);
+        }
+
+        #endregion
+
         public override string ToString()
         {
-            return GetType().Name + " [sn=" + beacon.SessionNumber + "] ";
+            return $"{GetType().Name} [sn={beacon.SessionNumber}]";
         }
     }
 }

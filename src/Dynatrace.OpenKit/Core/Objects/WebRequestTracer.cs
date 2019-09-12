@@ -26,32 +26,48 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Standard implementation of the IWebRequestTracer interface.
     /// </summary>
-    public class WebRequestTracer : IWebRequestTracer
+    public class WebRequestTracer : IWebRequestTracer, IOpenKitObject
     {
-        private readonly ILogger logger;
-
         private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", RegexOptions.IgnoreCase);
 
-        // Dynatrace tag that has to be used for tracing the web request
+        /// <summary>
+        /// Logger for trace log messages
+        /// </summary>
+        private readonly ILogger logger;
+
+        /// <summary>
+        /// Object for synchronization
+        /// </summary>
+        private readonly  object lockObject  = new object();
+
+        /// <summary>
+        /// Parent object of this web request tracer
+        /// </summary>
+        private OpenKitComposite parent;
+
+        /// <summary>
+        /// Dynatrace tag that has to be used for tracing the web request
+        /// </summary>
         private readonly string tag;
 
-        // HTTP information: URL & response code, bytesSent, bytesReceived
-        private readonly string url = "<unknown>";
-
-        // start/end time & sequence number
-        private long endTime = -1;
-
-        // Beacon and Action references
+        /// <summary>
+        /// Beacon and Action references
+        /// </summary>
         private readonly Beacon beacon;
+
+        /// <summary>
+        /// action ID of the parent
+        /// </summary>
         private readonly int parentActionId;
 
         #region constructors
 
-        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionId)
+        public WebRequestTracer(ILogger logger, OpenKitComposite parent, Beacon beacon)
         {
             this.logger = logger;
             this.beacon = beacon;
-            this.parentActionId = parentActionId;
+            this.parent = parent;
+            this.parentActionId = parent.ActionId;
 
             // creating start sequence number has to be done here, because it's needed for the creation of the tag
             StartSequenceNo = beacon.NextSequenceNumber;
@@ -65,35 +81,65 @@ namespace Dynatrace.OpenKit.Core.Objects
         ///  This constructor can be used for tracing and timing of a web request handled by any 3rd party HTTP Client.
         ///  Setting the Dynatrace tag to the OpenKit.WEBREQUEST_TAG_HEADER HTTP header has to be done manually by the user.
         /// </summary>
-        public WebRequestTracer(ILogger logger, Beacon beacon, int parentActionId, string url) : this(logger, beacon, parentActionId)
+        public WebRequestTracer(ILogger logger, OpenKitComposite parent, Beacon beacon, string url)
+            : this(logger, parent, beacon)
         {
             if (IsValidUrlScheme(url))
             {
-                this.url = url.Split(new [] { '?' }, 2)[0];
+                Url = url.Split(new [] { '?' }, 2)[0];
             }
         }
 
         #endregion
 
+        /// <summary>
+        /// Checks whether the given URL is valid or not
+        /// </summary>
+        /// <param name="url">the URL to be checked</param>
+        /// <returns><code>true</code> if the given URL is valid, <code>false</code> otherwise.</returns>
         internal static bool IsValidUrlScheme(string url)
         {
             return url != null && SchemaValidationPattern.Match(url).Success;
         }
 
-        public string Url => url;
+        /// <summary>
+        /// Returns the URL to be traced (excluding query arguments)
+        /// </summary>
+        public string Url { get; } = "<unknown>";
 
+        /// <summary>
+        /// Start time of the web request
+        /// </summary>
         public long StartTime { get; private set; }
 
-        public long EndTime => Interlocked.Read(ref endTime);
+        /// <summary>
+        /// End time of the web request
+        /// </summary>
+        public long EndTime { get; private set; } = -1;
 
+        /// <summary>
+        /// Sequence number when the web request started
+        /// </summary>
         public int StartSequenceNo { get; }
 
+        /// <summary>
+        /// Sequence number when the web request ended
+        /// </summary>
         public int EndSequenceNo { get; private set; } = -1;
 
+        /// <summary>
+        /// The response code of the web request
+        /// </summary>
         public int ResponseCode { get; private set; } = -1;
 
+        /// <summary>
+        /// The number of bytes sent
+        /// </summary>
         public int BytesSent { get; private set; } = -1;
 
+        /// <summary>
+        /// The number of received bytes
+        /// </summary>
         public int BytesReceived { get; private set; } = -1;
 
         internal bool IsStopped => EndTime != -1;
@@ -121,12 +167,17 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(this + "Start()");
+                logger.Debug($"{this} Start()");
             }
-            if (!IsStopped)
+
+            lock (lockObject)
             {
-                StartTime = beacon.CurrentTimestamp;
+                if (!IsStopped)
+                {
+                    StartTime = beacon.CurrentTimestamp;
+                }
             }
+
             return this;
         }
 
@@ -142,51 +193,80 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} Stop(rc='{responseCode}')");
             }
-            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
+
+            lock (lockObject)
             {
-                return;
+                if (IsStopped)
+                {
+                    // stop was already previously called
+                    return;
+                }
+
+                EndSequenceNo = beacon.NextSequenceNumber;
+                EndTime = beacon.CurrentTimestamp;
             }
 
             ResponseCode = responseCode;
-            EndSequenceNo = beacon.NextSequenceNumber;
 
             // add web request to beacon
             beacon.AddWebRequest(parentActionId, this);
+
+            // last but not least notify the parent & detach from parent
+            parent.OnChildClosed(this);
+            parent = null;
         }
 
         [Obsolete("Use Stop(int) instead")]
         public IWebRequestTracer SetResponseCode(int responseCode)
         {
-            if (!IsStopped)
+            lock (lockObject)
             {
-                ResponseCode = responseCode;
+                if (!IsStopped)
+                {
+                    ResponseCode = responseCode;
+                }
             }
+
             return this;
         }
 
         public IWebRequestTracer SetBytesSent(int bytesSent)
         {
-            if (!IsStopped)
+            lock (lockObject)
             {
-                BytesSent = bytesSent;
+                if (!IsStopped)
+                {
+                    BytesSent = bytesSent;
+                }
             }
+
             return this;
         }
 
         public IWebRequestTracer SetBytesReceived(int bytesReceived)
         {
-            if (!IsStopped)
+            lock (lockObject)
             {
-                BytesReceived = bytesReceived;
+                if (!IsStopped)
+                {
+                    BytesReceived = bytesReceived;
+                }
             }
+
             return this;
         }
 
         #endregion
 
+        #region OpenKitComposite implementation
+
+
+
+        #endregion
+
         public override string ToString()
         {
-            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={parentActionId}, url='{url}'] ";
+            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={parentActionId}, url='{Url}'] ";
         }
     }
 }

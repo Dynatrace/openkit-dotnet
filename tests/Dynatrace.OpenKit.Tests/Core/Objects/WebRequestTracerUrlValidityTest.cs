@@ -26,7 +26,6 @@ namespace Dynatrace.OpenKit.Core.Objects
     public class WebRequestTracerUrlValidityTest
     {
         private Beacon beacon;
-        private Action action;
         private ILogger logger;
 
         [SetUp]
@@ -39,7 +38,6 @@ namespace Dynatrace.OpenKit.Core.Objects
                                 "127.0.0.1",
                                 Substitute.For<IThreadIdProvider>(),
                                 Substitute.For<ITimingProvider>());
-            action = new RootAction(logger, beacon, "ActionName", new SynchronizedQueue<IAction>());
         }
 
         [Test]
@@ -91,7 +89,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void AnUrlIsOnlySetInConstructorIfItIsValid()
         {
             // given
-            var target = new WebRequestTracer(logger, beacon, 21, "a1337://foo");
+            var parent = Substitute.For<OpenKitComposite>();
+            parent.ActionId.Returns(21);
+
+            var target = new WebRequestTracer(logger, parent, beacon, "a1337://foo");
 
             // then
             Assert.That(target.Url, Is.EqualTo("a1337://foo"));
@@ -101,7 +102,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void IfUrlIsInvalidTheDefaultValueIsUsed()
         {
             // given
-            var target = new WebRequestTracer(logger, beacon, 42, "foobar");
+            var parent = Substitute.For<OpenKitComposite>();
+            parent.ActionId.Returns(42);
+
+            var target = new WebRequestTracer(logger, parent, beacon, "foobar");
 
             // then
             Assert.That(target.Url, Is.EqualTo("<unknown>"));
