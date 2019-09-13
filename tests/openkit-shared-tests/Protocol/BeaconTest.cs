@@ -296,7 +296,7 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIDProvider, timingProvider, randomGenerator);
 
-            var session = new Session(logger, beaconSender, target); // will 
+            var session = new Session(logger, beaconSender, target); // will
 
             // when
             target.EndSession(session);
@@ -1228,6 +1228,60 @@ namespace Dynatrace.OpenKit.Protocol
 
             //then
             Assert.That(target.IsEmpty, Is.True);
+        }
+
+        [Test]
+        public void SendConstructsCorrectBeaconPrefix()
+        {
+            // given
+            var httpClient = Substitute.For<IHTTPClient>();
+            var httpClientProvider = Substitute.For<IHTTPClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(httpClient);
+
+            var beaconCache = new TestBeaconCache(logger);
+            var configuration = new TestConfiguration();
+
+            var target = new Beacon(logger, beaconCache, configuration, "127.0.0.1", threadIDProvider, timingProvider);
+
+            // when
+            var response = target.Send(httpClientProvider);
+
+            // then
+            Assert.That(response, Is.Null);
+            Assert.That(beaconCache.prefix, Is.EqualTo(
+                $"vv={ProtocolConstants.ProtocolVersion}" +
+                $"&va={ProtocolConstants.OpenKitVersion}" +
+                $"&ap={configuration.ApplicationID}" +
+                $"&an={configuration.ApplicationName}" +
+                $"&vn={configuration.ApplicationVersion}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit}" +
+                $"&tt={ProtocolConstants.AgentTechnologyType}" +
+                $"&vi={configuration.DeviceID}" +
+                 "&sn=1" +
+                 "&ip=127.0.0.1" +
+                $"&os={configuration.Device.OperatingSystem}" +
+                $"&mf={configuration.Device.Manufacturer}" +
+                $"&md={configuration.Device.ModelID}" +
+                $"&dl={(int)configuration.BeaconConfig.DataCollectionLevel}" +
+                $"&cl={(int)configuration.BeaconConfig.CrashReportingLevel}" +
+                 "&tv=0" +
+                 "&ts=0" +
+                 "&tx=0" +
+                $"&mp={configuration.BeaconConfig.Multiplicity}"
+                ));
+        }
+
+        private class TestBeaconCache : BeaconCache
+        {
+            internal string prefix;
+            internal TestBeaconCache(ILogger logger) : base(logger){
+            }
+
+            public override string GetNextBeaconChunk(int beaconId, string chunkPrefix, int maxSize, char delimiter)
+            {
+                prefix = chunkPrefix;
+                return null;
+            }
         }
     }
 }

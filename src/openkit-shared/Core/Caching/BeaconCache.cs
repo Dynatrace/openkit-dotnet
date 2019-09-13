@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         private EventHandler recordsAdded;
         private readonly object recordsAddedLock = new object();
-        
+
         public HashSet<int> BeaconIDs => CopyBeaconIDs();
 
         public long NumBytesInCache => Interlocked.Read(ref cacheSizeInBytes);
@@ -202,7 +202,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             return numRecordsRemoved;
         }
 
-        public string GetNextBeaconChunk(int beaconID, string chunkPrefix, int maxSize, char delimiter)
+        public virtual string GetNextBeaconChunk(int beaconID, string chunkPrefix, int maxSize, char delimiter)
         {
             var entry = GetCachedEntry(beaconID);
             if (entry == null)
