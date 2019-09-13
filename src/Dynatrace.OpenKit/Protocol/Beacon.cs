@@ -625,7 +625,7 @@ namespace Dynatrace.OpenKit.Protocol
             while (true)
             {
                 // prefix for this chunk - must be built up newly, due to changing timestamps
-                var prefix = basicBeaconData + BeaconDataDelimiter + CreateTimestampData();
+                var prefix = AppendMutableBeaconData(basicBeaconData);
                 // subtract 1024 to ensure that the chunk does not exceed the send size configured on server side?
                 // i guess that was the original intention, but i'm not sure about this
                 // TODO stefan.eberl - This is a quite uncool algorithm and should be improved, avoid subtracting some "magic" number
@@ -759,6 +759,22 @@ namespace Dynatrace.OpenKit.Protocol
             return basicBeaconBuilder.ToString();
         }
 
+        private string AppendMutableBeaconData(string immutableBasicBeaconData)
+        {
+            var builder = new StringBuilder();
+
+            builder.Append(immutableBasicBeaconData);
+            builder.Append(BeaconDataDelimiter);
+
+            // append timestamp data
+            builder.Append(CreateTimestampData());
+
+            // append multiplicity
+            builder.Append(BeaconDataDelimiter).Append(CreateMultiplicityData());
+
+            return builder.ToString();
+        }
+
         // helper method for creating basic timestamp data
         private string CreateTimestampData()
         {
@@ -768,6 +784,16 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, sessionStartTime);
 
             return timestampBuilder.ToString();
+        }
+
+        private string CreateMultiplicityData()
+        {
+            var builder = new StringBuilder();
+
+            // multiplicity information
+            AddKeyValuePair(builder, BeaconKeyMultiplicity, Multiplicity);
+
+            return builder.ToString();
         }
 
         // helper method for adding key/value pairs with string values

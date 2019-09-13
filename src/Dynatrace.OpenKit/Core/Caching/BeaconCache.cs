@@ -202,7 +202,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             return numRecordsRemoved;
         }
 
-        public string GetNextBeaconChunk(int beaconId, string chunkPrefix, int maxSize, char delimiter)
+        public virtual string GetNextBeaconChunk(int beaconId, string chunkPrefix, int maxSize, char delimiter)
         {
             var entry = GetCachedEntry(beaconId);
             if (entry == null)

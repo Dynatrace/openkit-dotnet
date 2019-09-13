@@ -1283,6 +1283,49 @@ namespace Dynatrace.OpenKit.Protocol
             beaconCache.Received(1).DeleteCacheEntry(beaconId);
         }
 
+        [Test]
+        public void SendConstructsCorrectBeaconPrefix()
+        {
+            // given
+            var httpClient = Substitute.For<IHttpClient>();
+            var httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(httpClient);
+
+            var beaconCache = Substitute.For<BeaconCache>(logger);
+            var configuration = new TestConfiguration();
+
+            var target = new Beacon(logger, beaconCache, configuration, "127.0.0.1", threadIdProvider, timingProvider);
+
+            // when
+            var response = target.Send(httpClientProvider);
+
+            // then
+            Assert.That(response, Is.Null);
+            beaconCache.Received(1).GetNextBeaconChunk(
+                Arg.Any<int>(),
+                $"vv={ProtocolConstants.ProtocolVersion}" +
+                $"&va={ProtocolConstants.OpenKitVersion}" +
+                $"&ap={configuration.ApplicationId}" +
+                $"&an={configuration.ApplicationName}" +
+                $"&vn={configuration.ApplicationVersion}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit}" +
+                $"&tt={ProtocolConstants.AgentTechnologyType}" +
+                $"&vi={configuration.DeviceId}" +
+                "&sn=1" +
+                "&ip=127.0.0.1" +
+                $"&os={configuration.Device.OperatingSystem}" +
+                $"&mf={configuration.Device.Manufacturer}" +
+                $"&md={configuration.Device.ModelId}" +
+                $"&dl={(int)configuration.BeaconConfig.DataCollectionLevel}" +
+                $"&cl={(int)configuration.BeaconConfig.CrashReportingLevel}" +
+                "&tx=0" +
+                "&tv=0" +
+                $"&mp={configuration.BeaconConfig.Multiplicity}",
+                Arg.Any<int>(),
+                Arg.Any<char>()
+            );
+        }
+
         private WebRequestTracer CreateWebRequestTracer(Beacon beacon, string url)
         {
             var parent = Substitute.For<OpenKitComposite>();
