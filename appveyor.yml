@@ -1,4 +1,4 @@
-version: 1.4.2.{build}
+version: 1.4.3.{build}
 
 # environment variables
 environment:
@@ -41,7 +41,7 @@ before_build:
 build:
   project: openkit-dotnet.sln
   verbosity: minimal
-  
+
 # run tests with code coverage only for Coverage configuration
 for:
 -
@@ -52,7 +52,7 @@ for:
   test_script:
   - ps: |
       .\callTest.ps1 -option Coverage
-  after_test: 
+  after_test:
   - ps: |
       if ("$Env:APPVEYOR_PULL_REQUEST_NUMBER" -eq "" -And "$Env:APPVEYOR_REPO_NAME" -eq "Dynatrace/openkit-dotnet")
       {
