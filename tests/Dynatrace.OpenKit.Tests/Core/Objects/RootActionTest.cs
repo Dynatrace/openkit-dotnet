@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
+using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -25,9 +26,13 @@ namespace Dynatrace.OpenKit.Core.Objects
 {
     public class RootActionTest
     {
+        private const string RootActionName = "root action";
+        private const string ChildActionName = "child action";
+
         private ITimingProvider mockTimingProvider;
         private ILogger logger;
         private Beacon beacon;
+        private Session session;
 
         [SetUp]
         public void SetUp()
@@ -40,35 +45,120 @@ namespace Dynatrace.OpenKit.Core.Objects
                                 "127.0.0.1",
                                 Substitute.For<IThreadIdProvider>(),
                                 mockTimingProvider);
+
+            var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
+            var beaconSender = new BeaconSender(logger, beaconSendingContext);
+
+            session = new Session(logger, beaconSender , beacon);
         }
 
         [Test]
-        public void EnterActionReturnsNewChildAction()
+        public void ParentActionReturnsNull()
         {
             // given
-            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = CreateRootAction();
 
-            // when entering first child
-            var childOne = target.EnterAction("child one");
-
-            // then
-            Assert.That(childOne, Is.Not.Null.And.TypeOf<Action>());
-            Assert.That(((Action)childOne).ParentId, Is.EqualTo(target.Id));
-
-            // when entering second child
-            var childTwo = target.EnterAction("child one");
+            // when
+            var obtained = target.ParentAction;
 
             // then
-            Assert.That(childTwo, Is.Not.Null.And.TypeOf<Action>());
-            Assert.That(((Action)childTwo).ParentId, Is.EqualTo(target.Id));
-            Assert.That(childTwo, Is.Not.SameAs(childOne));
+            Assert.That(obtained, Is.Null);
+        }
+
+        [Test]
+        public void EnterActionWithNullNameGivesNullAction()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            var childOne = target.EnterAction(null);
+
+            // then
+            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
+        }
+
+        [Test]
+        public void EnterActionWithEmptyNameGivesNullAction()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            var childOne = target.EnterAction(string.Empty);
+
+            // then
+            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
+
+            // also verify that warning has been written to log
+            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
+        }
+
+        [Test]
+        public void EnterActionReturnsLeafActionInstance()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            var obtained = target.EnterAction(ChildActionName);
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<LeafAction>());
+        }
+
+        [Test]
+        public void EnterActionReturnsNewInstanceEvenIfSameName()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            var obtainedOne = target.EnterAction(ChildActionName);
+            var obtainedTwo = target.EnterAction(ChildActionName);
+
+            // then
+            Assert.That(obtainedOne, Is.Not.Null.And.TypeOf<LeafAction>());
+            Assert.That(obtainedTwo, Is.Not.Null.And.TypeOf<LeafAction>());
+            Assert.That(obtainedOne, Is.Not.SameAs(obtainedTwo));
+        }
+
+        [Test]
+        public void EnterActionInstanceHasCorrectParentId()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            var obtained = target.EnterAction(RootActionName);
+
+            // then
+            Assert.That(((LeafAction)obtained).ParentId, Is.EqualTo(target.Id));
+        }
+
+        [Test]
+        public void EnterActionAddsLeafActionToListOfChildObjects()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            var obtained = target.EnterAction(ChildActionName);
+
+            // then
+            var childObjects = target.GetCopyOfChildObjects();
+            Assert.That(childObjects.Count, Is.EqualTo(1));
+            Assert.That(childObjects[0], Is.SameAs(obtained));
         }
 
         [Test]
         public void EnterActionReturnsNullActionIfAlreadyLeft()
         {
             // given
-            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = CreateRootAction();
             target.LeaveAction();
 
             // when entering first child
@@ -86,75 +176,26 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void EnterActionReturnsNullActionIfActionNameIsNull()
+        public void ToStringReturnsAppropriateResult()
         {
             // given
-            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
+            var target = CreateRootAction();
 
             // when
-            var childOne = target.EnterAction(null);
+            var obtained = target.ToString();
 
             // then
-            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
+            Assert.That(obtained, Is.EqualTo($"{typeof(RootAction).Name} [sn=1, id=1, name={RootActionName}]"));
         }
 
-        [Test]
-        public void EnterActionReturnsNullActionIfActionNameIsAnEmptyString()
+        private RootAction CreateRootAction()
         {
-            // given
-            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
-
-            // when
-            var childOne = target.EnterAction(string.Empty);
-
-            // then
-            Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
-        }
-
-        [Test]
-        public void LeavingAParentActionWillLeaveAllOpenChildActionsFirst()
-        {
-            // given
-            int startTimestamp = 100;
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(x =>
-            {
-                startTimestamp += 1;
-                return startTimestamp;
-            });
-            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
-
-            var childActionOne = target.EnterAction("child one");
-            var childActionTwo = target.EnterAction("child two");
-
-            // when leaving the parent action
-            target.LeaveAction();
-
-            // then
-            Assert.That(target.IsActionLeft, Is.True);
-            Assert.That(((Action)childActionOne).IsActionLeft, Is.True);
-            Assert.That(((Action)childActionTwo).IsActionLeft, Is.True);
-
-            Assert.That(((Action)childActionTwo).EndTime, Is.EqualTo(((Action)childActionOne).EndTime + 2));
-            Assert.That(target.EndTime, Is.EqualTo(((Action)childActionTwo).EndTime + 1));
-        }
-
-        [Test]
-        public void LeavingRootActionReturnsNullValueAsParent()
-        {
-            // given
-            var target = new RootAction(logger, beacon, "root action", new SynchronizedQueue<IAction>());
-
-            // when
-            var obtained = target.LeaveAction();
-
-            // then
-            Assert.That(obtained, Is.Null);
+            return new RootAction(
+                logger,
+                session,
+                RootActionName,
+                beacon
+                );
         }
     }
 }

@@ -14,8 +14,6 @@
 // limitations under the License.
 //
 
-using System;
-using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 
@@ -23,61 +21,97 @@ namespace Dynatrace.OpenKit.Core.Objects
 {
 
     /// <summary>
-    ///  Actual implementation of the IAction interface.
+    ///  Abstract base class implementing the <see cref="IAction"/> interface
     /// </summary>
-    public class Action : OpenKitComposite, IAction
+    public abstract class BaseAction : OpenKitComposite, IAction
     {
+        /// <summary>
+        /// The web request tracer being returned once this action was closed.
+        /// </summary>
         private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
-        // Action ID, name and parent ID (default: null)
-        private readonly Action parentAction;
+        /// <summary>
+        /// the parent object of this <see cref="IAction"/>
+        /// </summary>
+        private readonly OpenKitComposite parent;
 
-        // start/end time & sequence number
-        private long endTime = -1;
+        /// <summary>
+        /// object for synchronization
+        /// </summary>
+        protected readonly object LockObject = new object();
 
-        // Beacon reference
-        private readonly Beacon beacon;
-
-        // data structures for managing IAction hierarchies
-        private readonly SynchronizedQueue<IAction> thisLevelActions;
-
-        public Action(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
-            : this(logger, beacon, name, null, thisLevelActions)
-        {
-        }
-
-        internal Action(ILogger logger, Beacon beacon, string name, Action parentAction, SynchronizedQueue<IAction> thisLevelActions)
+        internal BaseAction(ILogger logger,
+            OpenKitComposite parent,
+            string name,
+            Beacon beacon)
         {
             Logger = logger;
-            this.beacon = beacon;
-            this.parentAction = parentAction;
+            this.parent = parent;
 
-            StartTime = beacon.CurrentTimestamp;
-            StartSequenceNo = beacon.NextSequenceNumber;
             Id = beacon.NextId;
             Name = name;
 
-            this.thisLevelActions = thisLevelActions;
-            this.thisLevelActions.Put(this);
+            StartTime = beacon.CurrentTimestamp;
+            StartSequenceNo = beacon.NextSequenceNumber;
+
+            Beacon = beacon;
         }
 
+        /// <summary>
+        /// Unique identifier of this <see cref="IAction"/>.
+        /// </summary>
         public int Id { get; }
 
+        /// <summary>
+        /// Name of this <see cref="IAction"/>.
+        /// </summary>
         public string Name { get; }
 
-        public int ParentId => parentAction?.Id ?? 0;
+        /// <summary>
+        /// Unique identifier of the parent <see cref="IAction"/>.
+        /// </summary>
+        public int ParentId => parent.ActionId;
 
+        /// <summary>
+        /// Returns the time when this <see cref="IAction"/> was started.
+        /// </summary>
         public long StartTime { get; }
 
-        public long EndTime => Interlocked.Read(ref endTime);
+        /// <summary>
+        /// Returns the time when this <see cref="IAction"/> was ended or <code>-1</code> if the action was not ended yet.
+        /// </summary>
+        public long EndTime { get; private set; } = -1;
 
+        /// <summary>
+        /// Returns the start sequence number of this <see cref="IAction"/>.
+        /// </summary>
         public int StartSequenceNo { get; }
 
+        /// <summary>
+        /// Returns the end sequence number of this <see cref="IAction"/>.
+        /// </summary>
         public int EndSequenceNo { get; private set; } = -1;
 
+        /// <summary>
+        /// Indicates if this action was <see cref="LeaveAction">left</see>
+        /// </summary>
         internal bool IsActionLeft => EndTime != -1L;
 
-        internal ILogger Logger { get; }
+        /// <summary>
+        /// Beacon for sending the data
+        /// </summary>
+        protected Beacon Beacon { get; }
+
+        /// <summary>
+        /// Logger for tracing log messages
+        /// </summary>
+        protected ILogger Logger { get; }
+
+        /// <summary>
+        /// Returns the parent <see cref="IAction"/> which might be <code>null</code> in case the parent is not an
+        /// implementor of the <see cref="IAction"/> interface.
+        /// </summary>
+        internal abstract IAction ParentAction { get; }
 
         #region IAction implementation
 
@@ -92,10 +126,15 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 Logger.Debug($"{this} ReportEvent({eventName})");
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                beacon.ReportEvent(this, eventName);
+                if (!IsActionLeft)
+                {
+                    Beacon.ReportEvent(Id, eventName);
+                }
             }
+
             return this;
         }
 
@@ -106,16 +145,22 @@ namespace Dynatrace.OpenKit.Core.Objects
                 Logger.Warn($"{this} ReportValue (string): valueName must not be null or empty");
                 return this;
             }
+
             if (Logger.IsDebugEnabled)
             {
                 Logger.Debug($"{this} ReportValue({valueName}, {value})");
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                beacon.ReportValue(this, valueName, value);
+                if (!IsActionLeft)
+                {
+                    Beacon.ReportValue(Id, valueName, value);
+                }
             }
+
             return this;
-        }
+    }
 
         public IAction ReportValue(string valueName, double value)
         {
@@ -128,10 +173,15 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 Logger.Debug($"{this} ReportValue(double) ({valueName}, {value})");
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                beacon.ReportValue(this, valueName, value);
+                if (!IsActionLeft)
+                {
+                    Beacon.ReportValue(Id, valueName, value);
+                }
             }
+
             return this;
         }
 
@@ -146,10 +196,15 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 Logger.Debug($"{this} ReportValue(int) ({valueName}, {value})");
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                beacon.ReportValue(this, valueName, value);
+                if (!IsActionLeft)
+                {
+                    Beacon.ReportValue(Id, valueName, value);
+                }
             }
+
             return this;
         }
 
@@ -164,10 +219,15 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 Logger.Debug($"{this} ReportError({errorName}, {errorCode}, {reason})");
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                beacon.ReportError(this, errorName, errorCode, reason);
+                if (!IsActionLeft)
+                {
+                    Beacon.ReportError(Id, errorName, errorCode, reason);
+                }
             }
+
             return this;
         }
 
@@ -187,9 +247,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 Logger.Debug($"{this} TraceWebRequest (${url})");
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                return new WebRequestTracer(Logger, this, beacon, url);
+                if (!IsActionLeft)
+                {
+                    var tracer = new WebRequestTracer(Logger, this, Beacon, url);
+                    StoreChildInList(tracer);
+
+                    return tracer;
+                }
             }
 
             return NullWebRequestTracer;
@@ -201,28 +268,31 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 Logger.Debug($"{this} LeaveAction({Name})");
             }
-            // check if leaveAction() was already called before by looking at endTime
-            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
+
+            lock (LockObject)
             {
-                return parentAction;
+                if (IsActionLeft)
+                {
+                    // LeaveAction was previously called
+                    return ParentAction;
+                }
+
+                EndTime = Beacon.CurrentTimestamp;
+                EndSequenceNo = Beacon.NextSequenceNumber;
+
+                Beacon.AddAction(this);
             }
 
-            return DoLeaveAction();
-        }
+            var childObjects = GetCopyOfChildObjects();
+            foreach (var childObject in childObjects)
+            {
+                childObject.Dispose();
+            }
 
-        protected virtual IAction DoLeaveAction()
-        {
-            // set end time and end sequence number
-            Interlocked.Exchange(ref endTime, beacon.CurrentTimestamp);
-            EndSequenceNo = beacon.NextSequenceNumber;
+            // detach from parent
+            parent.OnChildClosed(this);
 
-            // add Action to Beacon
-            beacon.AddAction(this);
-
-            // remove Action from the Actions on this level
-            thisLevelActions.Remove(this);
-
-            return parentAction; // can be null if there's no parent Action!
+            return ParentAction;
         }
 
         #endregion
@@ -233,7 +303,10 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         internal override void OnChildClosed(IOpenKitObject childObject)
         {
-            RemoveChildFromList(childObject);
+            lock (LockObject)
+            {
+                RemoveChildFromList(childObject);
+            }
         }
 
         #endregion
@@ -241,12 +314,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         public override void Dispose()
         {
             LeaveAction();
-        }
-
-        public override string ToString()
-        {
-            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={Id}, name={Name}, pa="
-                + $"{(parentAction != null ? Convert.ToString(parentAction.Id) : "no parent")}]";
         }
     }
 }

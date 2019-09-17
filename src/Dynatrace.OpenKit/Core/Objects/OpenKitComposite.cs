@@ -43,7 +43,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         ///
         /// <param name="childObject">the child object to add.</param>
-        protected void StoreChildInList(IOpenKitObject childObject)
+        internal void StoreChildInList(IOpenKitObject childObject)
         {
             children.Add(childObject);
         }
@@ -57,9 +57,18 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <returns><code>true</code> if the given <code>childObject</code> was successfully removed, <code>false</code>
         /// otherwise.
         /// </returns>
-        protected bool RemoveChildFromList(IOpenKitObject childObject)
+        internal bool RemoveChildFromList(IOpenKitObject childObject)
         {
             return children.Remove(childObject);
+        }
+
+        /// <summary>
+        /// Returns a shallow copy of the <see cref="IOpenKitObject"/> child objects
+        /// </summary>
+        /// <returns>shallow copy of the child objects</returns>
+        internal IList<IOpenKitObject> GetCopyOfChildObjects()
+        {
+            return new List<IOpenKitObject>(children);
         }
 
         /// <summary>

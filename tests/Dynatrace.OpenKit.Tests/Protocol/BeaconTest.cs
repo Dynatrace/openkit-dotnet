@@ -24,7 +24,6 @@ using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
-using Action = Dynatrace.OpenKit.Core.Objects.Action;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -244,11 +243,12 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when adding the root action
-            var action = new RootAction(logger, target, rootActionName, new SynchronizedQueue<IAction>()); // the action is added to the beacon in the constructor
+            var session = new Session(logger, beaconSender, target);
+            var action = new RootAction(logger, session, rootActionName,target); // the action is added to the beacon in the constructor
             action.LeaveAction();
 
             // then
-            Assert.That(target.ActionDataList, Is.EquivalentTo(new[] { $"et=1&na={rootActionName}&it=0&ca=1&pa=0&s0=1&t0=0&s1=2&t1=0" }));
+            Assert.That(target.ActionDataList, Is.EquivalentTo(new[] { $"et=1&na={rootActionName}&it=0&ca=1&pa=0&s0=2&t0=0&s1=3&t1=0" }));
         }
 
         [Test]
@@ -262,8 +262,9 @@ namespace Dynatrace.OpenKit.Protocol
                 configuration, "127.0.0.1", threadIdProvider, timingProvider);
 
             // when adding the root action
+            var session = new Session(logger, beaconSender, target);
             const string rootActionName = "TestRootAction";
-            target.AddAction(new RootAction(logger, target, rootActionName, new SynchronizedQueue<IAction>()));
+            target.AddAction(new RootAction(logger, session, rootActionName, target));
 
             // then
             Assert.That(target.ActionDataList, Is.Empty);
@@ -274,7 +275,10 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
-            var action = new Action(logger, target, "TestAction", new SynchronizedQueue<IAction>());
+
+            var session = new Session(logger, beaconSender, target);
+            var rootAction = new RootAction(logger, session, "rootAction", target);
+            var action = new LeafAction(logger, rootAction, "TestAction", target);
             action.ReportEvent("TestEvent").ReportValue("TheAnswerToLifeTheUniverseAndEverything", 42);
             target.AddAction(action);
 
@@ -315,7 +319,9 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
-            var action = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
+            var session = new Session(logger, beaconSender, target);
+            var rootAction = new RootAction(logger, session, "rootAction", target);
+            var action = new LeafAction(logger, rootAction, "ActionName", target);
 
             // when
             target.AddAction(action);
@@ -328,15 +334,16 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoIntValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
+            const int actionId = 73;
+
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
             var intValue = 42;
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(parentAction, "intValue", intValue);
+            target.ReportValue(actionId, "intValue", intValue);
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
@@ -346,15 +353,16 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoDoubleValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
+            const int actionId = 73;
+
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
             var doubleValue = Math.E;
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(parentAction, "doubleValue", doubleValue);
+            target.ReportValue(actionId, "doubleValue", doubleValue);
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
@@ -364,15 +372,16 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoStringValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
+            const int actionId = 73;
+
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
             var stringValue = "Write once, debug everywhere";
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(parentAction, "doubleValue", stringValue);
+            target.ReportValue(actionId, "doubleValue", stringValue);
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
@@ -382,14 +391,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoEventIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-
             // when
-            target.ReportEvent(parentAction, "Event name");
+            target.ReportEvent(actionId, "Event name");
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
@@ -399,14 +407,14 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoErrorIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
+            const int actionId = 73;
+
             var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
-            var parentAction = new Action(logger, target, "ActionName", new SynchronizedQueue<IAction>());
-
             // when
-            target.ReportError(parentAction, "Error name", 123, "The reason for this error");
+            target.ReportError(actionId, "Error name", 123, "The reason for this error");
 
             // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.True);
@@ -753,7 +761,10 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var session = new Session(logger, beaconSender, target);
+            var rootAction = new RootAction(logger, session, "rootAction", target);
+            var action = new LeafAction(logger, rootAction, "TestRootAction", target);
+            target.ClearData();
 
             // when
             target.AddAction(action);
@@ -770,7 +781,9 @@ namespace Dynatrace.OpenKit.Protocol
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
 
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+            var session = new Session(logger, beaconSender, target);
+            var rootAction = new RootAction(logger, session, "rootAction", target);
+            var action = new LeafAction(logger, rootAction, "TestRootAction", target);
 
             // when
             target.AddAction(action);
@@ -787,7 +800,10 @@ namespace Dynatrace.OpenKit.Protocol
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
+
+            var session = new Session(logger, beaconSender, target);
+            var rootAction = new RootAction(logger, session, "rootAction", target);
+            var action = new LeafAction(logger, rootAction, "TestRootAction", target);
 
             // when
             target.AddAction(action);
@@ -895,13 +911,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportErrorDoesNotReportOnDataCollectionLevel0()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportError(action, "error", 42, "the answer");
+            target.ReportError(actionId, "error", 42, "the answer");
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -911,13 +927,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportErrorDoesReportOnDataCollectionLevel1()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportError(action, "error", 42, "the answer");
+            target.ReportError(actionId, "error", 42, "the answer");
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -927,13 +943,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportErrorDoesReportOnDataCollectionLevel2()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "test action", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportError(action, "error", 42, "the answer");
+            target.ReportError(actionId, "error", 42, "the answer");
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -988,13 +1004,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void IntValueNotReportedForDataCollectionLevel0()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test int value", 13);
+            target.ReportValue(actionId, "test int value", 13);
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1004,13 +1020,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void IntValueNotReportedForDataCollectionLevel1()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test int value", 13);
+            target.ReportValue(actionId, "test int value", 13);
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1021,13 +1037,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void IntValueReportedForDataCollectionLevel2()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test int value", 13);
+            target.ReportValue(actionId, "test int value", 13);
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -1038,13 +1054,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void DoubleValueNotReportedForDataCollectionLevel0()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test double value", 2.71);
+            target.ReportValue(actionId, "test double value", 2.71);
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1054,13 +1070,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void DoubleValueNotReportedForDataCollectionLevel1()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test double value", 2.71);
+            target.ReportValue(actionId, "test double value", 2.71);
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1071,13 +1087,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void DoubleValueReportedForDataCollectionLevel2()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test double value", 2.71);
+            target.ReportValue(actionId, "test double value", 2.71);
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -1088,13 +1104,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void StringValueNotReportedForDataCollectionLevel0()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test string value", "test data");
+            target.ReportValue(actionId, "test string value", "test data");
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1104,13 +1120,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void StringValueNotReportedForDataCollectionLevel1()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test string value", "test data");
+            target.ReportValue(actionId, "test string value", "test data");
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1121,13 +1137,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void StringValueReportedForDataCollectionLevel2()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "test string value", "test data");
+            target.ReportValue(actionId, "test string value", "test data");
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -1138,13 +1154,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void NamedEventNotReportedForDataCollectionLevel0()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportEvent(action, "test event");
+            target.ReportEvent(actionId, "test event");
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1154,13 +1170,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void NamedEventNotReportedForDataCollectionLevel1()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportEvent(action, "test event");
+            target.ReportEvent(actionId, "test event");
 
             // then
             Assert.That(target.IsEmpty, Is.True);
@@ -1170,13 +1186,13 @@ namespace Dynatrace.OpenKit.Protocol
         public void NamedEventReportedForDataCollectionLevel2()
         {
             // given
+            const int actionId = 73;
             var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
             var config = new TestConfiguration(1, beaconConfig);
             var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var action = new Action(logger, target, "TestRootAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportEvent(action, "test event");
+            target.ReportEvent(actionId, "test event");
 
             // then
             Assert.That(target.IsEmpty, Is.False);

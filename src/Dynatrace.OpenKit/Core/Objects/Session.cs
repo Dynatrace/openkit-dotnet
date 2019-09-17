@@ -91,7 +91,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (!IsSessionEnded)
             {
-                return new RootAction(logger, beacon, actionName, openRootActions);
+                var result = new RootAction(logger, this, actionName, beacon);
+                openRootActions.Put(result);
+
+                return result;
             }
 
             return NullRootAction;

@@ -62,7 +62,13 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #region constructors
 
-        public WebRequestTracer(ILogger logger, OpenKitComposite parent, Beacon beacon)
+        /// <summary>
+        /// Constructor for creating a new WebRequestTracer instance.
+        /// </summary>
+        /// <param name="logger">the logger used to log information.</param>
+        /// <param name="parent">the parent object to which this web request tracer belongs to</param>
+        /// <param name="beacon">the <see cref="Dynatrace.OpenKit.Protocol.Beacon"/> for sending data and tag creation</param>
+        internal WebRequestTracer(ILogger logger, OpenKitComposite parent, Beacon beacon)
         {
             this.logger = logger;
             this.beacon = beacon;

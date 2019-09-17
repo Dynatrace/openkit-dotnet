@@ -77,12 +77,12 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyErrorCode = "ev";
         private const string BeaconKeyErrorReason = "rs";
         private const string BeaconKeyErrorStacktrace = "st";
-        private const string BeaconKeyWebrequstResponseCode = "rc";
-        private const string BeaconKeyWebrequestBytesSent = "bs";
-        private const string BeaconKeyWebrequestBytesReceived = "br";
+        private const string BeaconKeyWebRequestResponseCode = "rc";
+        private const string BeaconKeyWebRequestBytesSent = "bs";
+        private const string BeaconKeyWebRequestBytesReceived = "br";
 
         // max name length
-        internal const int MaximumNameLength = 250;
+        private const int MaximumNameLength = 250;
 
         // web request tag prefix constant
         private const string WebRequestTagPrefix = "MT";
@@ -295,10 +295,14 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         /// <summary>
-        /// add an Action to this Beacon
+        /// Adds an <see cref="BaseAction">action</see> to this beacon.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>
+        /// </para>
         /// </summary>
-        /// <param name="action"></param>
-        public void AddAction(Action action)
+        /// <param name="action">the action to add</param>
+        public void AddAction(BaseAction action)
         {
             if (CapturingDisabled)
             {
@@ -310,7 +314,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder actionBuilder = new StringBuilder();
+            var actionBuilder = new StringBuilder();
 
             BuildBasicEventData(actionBuilder, EventType.ACTION, action.Name);
 
@@ -334,7 +338,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.SESSION_START, null);
 
@@ -361,7 +365,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.SESSION_END, null);
 
@@ -374,12 +378,16 @@ namespace Dynatrace.OpenKit.Protocol
 
 
         /// <summary>
-        /// report int value on the provided Action
+        /// Reports the given integer value on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="parentAction"></param>
-        /// <param name="valueName"></param>
-        /// <param name="value"></param>
-        public void ReportValue(Action parentAction, string valueName, int value)
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
+        /// <param name="valueName">the name of the reported value.</param>
+        /// <param name="value">the reported integer value.</param>
+        public void ReportValue(int actionId, string valueName, int value)
         {
             if (CapturingDisabled)
             {
@@ -391,21 +399,25 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
-            var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_INT, valueName, parentAction);
+            var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_INT, valueName, actionId);
             AddKeyValuePair(eventBuilder, BeaconKeyValue, value);
 
             AddEventData(eventTimestamp, eventBuilder);
         }
 
         /// <summary>
-        /// report double value on the provided Action
+        /// Reports the given double value on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="parentAction"></param>
-        /// <param name="valueName"></param>
-        /// <param name="value"></param>
-        public void ReportValue(Action parentAction, string valueName, double value)
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
+        /// <param name="valueName">the name of the reported value.</param>
+        /// <param name="value">the reported double value.</param>
+        public void ReportValue(int actionId, string valueName, double value)
         {
             if (CapturingDisabled)
             {
@@ -417,21 +429,25 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
-            var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_DOUBLE, valueName, parentAction);
+            var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_DOUBLE, valueName, actionId);
             AddKeyValuePair(eventBuilder, BeaconKeyValue, value);
 
             AddEventData(eventTimestamp, eventBuilder);
         }
 
         /// <summary>
-        /// report string value on the provided Action
+        /// Reports the given string value on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="parentAction"></param>
-        /// <param name="valueName"></param>
-        /// <param name="value"></param>
-        public void ReportValue(Action parentAction, string valueName, string value)
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
+        /// <param name="valueName">the name of the reported value.</param>
+        /// <param name="value">the reported string value.</param>
+        public void ReportValue(int actionId, string valueName, string value)
         {
             if (CapturingDisabled)
             {
@@ -443,20 +459,24 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
-            var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, parentAction);
+            var eventTimestamp = BuildEvent(eventBuilder, EventType.VALUE_STRING, valueName, actionId);
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyValue, TruncateNullSafe(value));
 
             AddEventData(eventTimestamp, eventBuilder);
         }
 
         /// <summary>
-        /// report named event on the provided Action
+        /// Reports the given named event on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="parentAction"></param>
-        /// <param name="eventName"></param>
-        public void ReportEvent(Action parentAction, string eventName)
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the event was reported.</param>
+        /// <param name="eventName">the name of the reported event.</param>
+        public void ReportEvent(int actionId, string eventName)
         {
             if (CapturingDisabled)
             {
@@ -468,21 +488,25 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
-            var eventTimestamp = BuildEvent(eventBuilder, EventType.NAMED_EVENT, eventName, parentAction);
+            var eventTimestamp = BuildEvent(eventBuilder, EventType.NAMED_EVENT, eventName, actionId);
 
             AddEventData(eventTimestamp, eventBuilder);
         }
 
         /// <summary>
-        /// report error on the provided Action
+        /// Reports the given error code on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="parentAction"></param>
-        /// <param name="errorName"></param>
-        /// <param name="errorCode"></param>
-        /// <param name="reason"></param>
-        public void ReportError(Action parentAction, string errorName, int errorCode, string reason)
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the error code was reported.</param>
+        /// <param name="errorName">the name of the reported error.</param>
+        /// <param name="errorCode">the reported error code.</param>
+        /// <param name="reason">the reported reason of the error.</param>
+        public void ReportError(int actionId, string errorName, int errorCode, string reason)
         {
             // if capture errors is off -> do nothing
             if (CapturingDisabled || !configuration.CaptureErrors)
@@ -495,12 +519,12 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.ERROR, errorName);
 
             var timestamp = timingProvider.ProvideTimestampInMilliseconds();
-            AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, parentAction.Id);
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, actionId);
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePair(eventBuilder, BeaconKeyErrorCode, errorCode);
@@ -510,11 +534,15 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         /// <summary>
-        /// report a crash
+        /// Reports the given crash by adding it to the beacon.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="errorName"></param>
-        /// <param name="reason"></param>
-        /// <param name="stacktrace"></param>
+        /// <param name="errorName">the name of the reported crash.</param>
+        /// <param name="reason">the reason of the crash.</param>
+        /// <param name="stacktrace">the stacktrace of the crash.</param>
         public void ReportCrash(string errorName, string reason, string stacktrace)
         {
             // if capture crashes is off -> do nothing
@@ -528,7 +556,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.CRASH, errorName);
 
@@ -543,10 +571,14 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         /// <summary>
-        /// add web request to the provided Action
+        /// Adds the given traced web request on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="parentActionId"></param>
-        /// <param name="webRequestTracer"></param>
+        /// <param name="parentActionId">the identifier of the <see cref="IAction"/> in which the web request was traced.</param>
+        /// <param name="webRequestTracer">the traced web request.</param>
         public void AddWebRequest(int parentActionId, WebRequestTracer webRequestTracer)
         {
             if (CapturingDisabled)
@@ -559,7 +591,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.WEBREQUEST, webRequestTracer.Url);
 
@@ -570,24 +602,28 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyTimeOne, webRequestTracer.EndTime - webRequestTracer.StartTime);
             if (webRequestTracer.ResponseCode != -1)
             {
-                AddKeyValuePair(eventBuilder, BeaconKeyWebrequstResponseCode, webRequestTracer.ResponseCode);
+                AddKeyValuePair(eventBuilder, BeaconKeyWebRequestResponseCode, webRequestTracer.ResponseCode);
             }
             if (webRequestTracer.BytesSent > -1)
             {
-                AddKeyValuePair(eventBuilder, BeaconKeyWebrequestBytesSent, webRequestTracer.BytesSent);
+                AddKeyValuePair(eventBuilder, BeaconKeyWebRequestBytesSent, webRequestTracer.BytesSent);
             }
             if (webRequestTracer.BytesReceived > -1)
             {
-                AddKeyValuePair(eventBuilder, BeaconKeyWebrequestBytesReceived, webRequestTracer.BytesReceived);
+                AddKeyValuePair(eventBuilder, BeaconKeyWebRequestBytesReceived, webRequestTracer.BytesReceived);
             }
 
             AddEventData(webRequestTracer.StartTime, eventBuilder);
         }
 
         /// <summary>
-        /// Identify the user
+        /// Reports a user identification event.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
         /// </summary>
-        /// <param name="userTag"></param>
+        /// <param name="userTag">the name/tag of the user</param>
         public void IdentifyUser(string userTag)
         {
             if (CapturingDisabled)
@@ -600,7 +636,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            StringBuilder eventBuilder = new StringBuilder();
+            var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userTag);
 
@@ -636,7 +672,7 @@ namespace Dynatrace.OpenKit.Protocol
                     return response;
                 }
 
-                byte[] encodedBeacon = Encoding.UTF8.GetBytes(chunk);
+                var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 
                 // send the request
                 response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon);
@@ -647,11 +683,9 @@ namespace Dynatrace.OpenKit.Protocol
                     beaconCache.ResetChunkedData(beaconId);
                     break;
                 }
-                else
-                {
-                    // worked -> remove previously retrieved chunk from cache
-                    beaconCache.RemoveChunkedData(beaconId);
-                }
+
+                // worked -> remove previously retrieved chunk from cache
+                beaconCache.RemoveChunkedData(beaconId);
             }
 
             return response;
@@ -705,15 +739,15 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="builder">String builder storing the serialized data.</param>
         /// <param name="eventType">The event's type.</param>
         /// <param name="name">Event name</param>
-        /// <param name="parentAction">The action on which this event was reported.</param>
+        /// <param name="parentActionId">the unique identifier of the <see cref="IAction"/> on which the event was reported.</param>
         /// <returns>The timestamp associated with the event (timestamp since session start time).</returns>
-        private long BuildEvent(StringBuilder builder, EventType eventType, string name, Action parentAction)
+        private long BuildEvent(StringBuilder builder, EventType eventType, string name, int parentActionId)
         {
             BuildBasicEventData(builder, eventType, name);
 
             var eventTimestamp = timingProvider.ProvideTimestampInMilliseconds();
 
-            AddKeyValuePair(builder, BeaconKeyParentActionId, parentAction.Id);
+            AddKeyValuePair(builder, BeaconKeyParentActionId, parentActionId);
             AddKeyValuePair(builder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
             AddKeyValuePair(builder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(eventTimestamp));
 

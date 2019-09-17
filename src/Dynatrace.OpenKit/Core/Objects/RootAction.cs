@@ -22,19 +22,24 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     /// Actual implementation of the RootAction interface.
     /// </summary>
-    public class RootAction : Action, IRootAction
+    public class RootAction : BaseAction, IRootAction
     {
-        // Beacon reference
-        private readonly Beacon beacon;
-        // data structures for managing actions
-        private readonly SynchronizedQueue<IAction> openChildActions = new SynchronizedQueue<IAction>();
-
         #region constructors
 
-        public RootAction(ILogger logger, Beacon beacon, string name, SynchronizedQueue<IAction> thisLevelActions)
-            : base(logger, beacon, name, thisLevelActions)
+        /// <summary>
+        /// Constructor for creating a new root action instance
+        /// </summary>
+        /// <param name="logger">the logger used to log information</param>
+        /// <param name="parentSession">the session to which this root action belongs to</param>
+        /// <param name="name">the name of this root action</param>
+        /// <param name="beacon">the beacon for retrieving certain data and for sending data</param>
+        public RootAction(
+            ILogger logger,
+            Session parentSession,
+            string name,
+            Beacon beacon)
+            : base(logger, parentSession, name, beacon)
         {
-            this.beacon = beacon;
         }
 
         #endregion
@@ -45,41 +50,35 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug(this + "EnterAction(" + actionName + ")");
+                Logger.Debug($"{this} EnterAction(\"{actionName}\")");
             }
             if (string.IsNullOrEmpty(actionName))
             {
-                Logger.Warn(this + "EnterAction: actionName must not be null or empty");
+                Logger.Warn($"{this} EnterAction: actionName must not be null or empty");
                 return new NullAction(this);
             }
-            if (!IsActionLeft)
+
+            lock (LockObject)
             {
-                return new Action(Logger, beacon, actionName, this, openChildActions);
+                if (!IsActionLeft)
+                {
+                    var childAction = new LeafAction(Logger, this, actionName, Beacon);
+                    StoreChildInList(childAction);
+
+                    return childAction;
+                }
             }
+
             return new NullAction(this);
         }
 
         #endregion
 
-        #region protected methods
-
-        protected override IAction DoLeaveAction()
-        {
-            // leave all open Child-Actions
-            while (!openChildActions.IsEmpty())
-            {
-                IAction action = openChildActions.Get();
-                action.LeaveAction();
-            }
-
-            return base.DoLeaveAction();
-        }
-
-        #endregion
+        internal override IAction ParentAction => null; // Root actions do not have a parent action
 
         public override string ToString()
         {
-            return GetType().Name + " [sn=" + beacon.SessionNumber + ", id=" + Id + ", name=" + Name + "] ";
+            return $"{GetType().Name} [sn={Beacon.SessionNumber}, id={Id}, name={Name}]";
         }
     }
 }
