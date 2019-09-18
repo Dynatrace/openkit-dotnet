@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Actual implementation of the ISession interface.
     /// </summary>
-    public class Session : OpenKitComposite, ISession
+    internal class Session : OpenKitComposite, ISessionInternals
     {
         private static readonly NullRootAction NullRootAction = new NullRootAction();
         private static readonly NullWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
@@ -37,14 +37,14 @@ namespace Dynatrace.OpenKit.Core.Objects
         private long endTime = -1;
 
         // Configuration and Beacon reference
-        private readonly BeaconSender beaconSender;
-        private readonly Beacon beacon;
+        private readonly IBeaconSender beaconSender;
+        private readonly IBeacon beacon;
 
         // used for taking care to really leave all Actions at the end of this Session
         private readonly SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
 
 
-        public Session(ILogger logger, BeaconSender beaconSender, Beacon beacon)
+        internal Session(ILogger logger, IBeaconSender beaconSender, IBeacon beacon)
         {
             this.logger = logger;
             this.beaconSender = beaconSender;
@@ -55,21 +55,39 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         /// <summary>
-        /// Test if this Session is empty or not.
-        ///
-        /// A session is considered to be empty, if it does not contain any action or event data.
+        /// Accessor for simplified explicit access to <see cref="ISessionInternals"/>.
         /// </summary>
-        public bool IsEmpty => beacon.IsEmpty;
+        private ISessionInternals ThisSession => this;
 
-        public long EndTime => Interlocked.Read(ref endTime);
+        /// <summary>
+        /// Accessor for simplified explicit access to <see cref="IOpenKitComposite"/>.
+        /// </summary>
+        private IOpenKitComposite ThisComposite => this;
 
-        public BeaconConfiguration BeaconConfiguration
+        #region ISessionInternals implementation
+        bool ISessionInternals.IsEmpty => beacon.IsEmpty;
+
+        long ISessionInternals.EndTime => Interlocked.Read(ref endTime);
+
+        IBeaconConfiguration ISessionInternals.BeaconConfiguration
         {
             get => beacon.BeaconConfiguration;
             set => beacon.BeaconConfiguration = value;
         }
 
-        internal bool IsSessionEnded => EndTime != -1;
+        bool ISessionInternals.IsSessionEnded => ThisSession.EndTime != -1;
+
+        void ISessionInternals.ClearCapturedData()
+        {
+            beacon.ClearData();
+        }
+
+        StatusResponse ISessionInternals.SendBeacon(IHttpClientProvider clientProvider)
+        {
+            return beacon.Send(clientProvider);
+        }
+
+        #endregion
 
         public override void Dispose()
         {
@@ -89,7 +107,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} EnterAction({actionName})");
             }
-            if (!IsSessionEnded)
+            if (!ThisSession.IsSessionEnded)
             {
                 var result = new RootAction(logger, this, actionName, beacon);
                 openRootActions.Put(result);
@@ -111,7 +129,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} IdentifyUser({userTag})");
             }
-            if (!IsSessionEnded)
+            if (!ThisSession.IsSessionEnded)
             {
                 beacon.IdentifyUser(userTag);
             }
@@ -128,7 +146,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} ReportCrash({errorName}, {reason}, {stacktrace})");
             }
-            if (!IsSessionEnded)
+            if (!ThisSession.IsSessionEnded)
             {
                 beacon.ReportCrash(errorName, reason, stacktrace);
             }
@@ -150,7 +168,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} TraceWebRequest({url})");
             }
-            if (!IsSessionEnded)
+            if (!ThisSession.IsSessionEnded)
             {
                 return new WebRequestTracer(logger, this, beacon, url);
             }
@@ -174,7 +192,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             // leave all Root-Actions for sanity reasons
             while (!openRootActions.IsEmpty())
             {
-                IAction action = openRootActions.Get();
+                var action = openRootActions.Get();
                 action.LeaveAction();
             }
 
@@ -189,25 +207,12 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
-        // sends the current Beacon state
-        public StatusResponse SendBeacon(IHttpClientProvider clientProvider)
-        {
-            return beacon.Send(clientProvider);
-        }
 
-        /// <summary>
-        /// Clear captured beacon data.
-        /// </summary>
-        internal void ClearCapturedData()
-        {
-            beacon.ClearData();
-        }
+        #region IOpenKitComposite implementation
 
-        #region OpenKitComposite implementation
-
-        internal override void OnChildClosed(IOpenKitObject childObject)
+        private protected override void OnChildClosed(IOpenKitObject childObject)
         {
-            RemoveChildFromList(childObject);
+            ThisComposite.RemoveChildFromList(childObject);
         }
 
         #endregion

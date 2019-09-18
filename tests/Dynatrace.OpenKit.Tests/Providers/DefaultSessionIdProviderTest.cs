@@ -18,10 +18,10 @@ using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class DefaultSessionIDProviderTest
+    public class DefaultSessionIdProviderTest
     {
         [Test]
-        public void DefaultSessionIDProviderReturnsNonNegativeID()
+        public void DefaultSessionIdProviderReturnsNonNegativeId()
         {
             // given
             var provider = new DefaultSessionIdProvider();
@@ -31,40 +31,40 @@ namespace Dynatrace.OpenKit.Providers
         }
 
         [Test]
-        public void DefaultSessionIDProviderReturnsConsecutiveIDs()
+        public void DefaultSessionIdProviderReturnsConsecutiveIds()
         {
             // given
             var provider = new DefaultSessionIdProvider(int.MaxValue / 2);
 
             // when
-            var sessionIDOne = provider.GetNextSessionId();
-            var sessionIDTwo = provider.GetNextSessionId();
+            var sessionIdOne = provider.GetNextSessionId();
+            var sessionIdTwo = provider.GetNextSessionId();
 
             // then
-            Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
+            Assert.That(sessionIdTwo, Is.EqualTo(sessionIdOne + 1));
         }
 
         [Test]
-        public void aProviderInitializedWithMaxIntValueProvidesMinSessionIdValueAtNextCall()
+        public void AProviderInitializedWithMaxIntValueProvidesMinSessionIdValueAtNextCall()
         {
             //given
-            DefaultSessionIdProvider provider = new DefaultSessionIdProvider(int.MaxValue);
+            var provider = new DefaultSessionIdProvider(int.MaxValue);
 
             //when
-            int actual = provider.GetNextSessionId();
+            var actual = provider.GetNextSessionId();
 
             //then
             Assert.That(actual, Is.EqualTo(1));
         }
 
         [Test]
-        public void aProviderInitializedWithZeroProvidesMinSessionIdValueAtNextCall()
+        public void AProviderInitializedWithZeroProvidesMinSessionIdValueAtNextCall()
         {
             //given
-            DefaultSessionIdProvider provider = new DefaultSessionIdProvider(0);
+            var provider = new DefaultSessionIdProvider(0);
 
             //when
-            int actual = provider.GetNextSessionId();
+            var actual = provider.GetNextSessionId();
 
             //then
             Assert.That(actual, Is.EqualTo(1));

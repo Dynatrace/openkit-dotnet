@@ -54,14 +54,14 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // provider
             timingProvider = Substitute.For<ITimingProvider>();
-            timingProvider.ProvideTimestampInMilliseconds().Returns(x => { return ++currentTime; }); // every access is a tick
+            timingProvider.ProvideTimestampInMilliseconds().Returns(x => ++currentTime); // every access is a tick
             httpClientProvider = Substitute.For<IHttpClientProvider>();
             httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(x => httpClient);
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
-            context.HTTPClientProvider.Returns(x => httpClientProvider);
-            context.GetHTTPClient().Returns(x => httpClient);
+            context.HttpClientProvider.Returns(x => httpClientProvider);
+            context.GetHttpClient().Returns(x => httpClient);
             context.IsCaptureOn.Returns(true);
 
             // beacon sender
@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void StateIsNotTerminal()
+        public void ABeaconSendingCaptureOnStateIsNotATerminalState()
         {
             // when
             var target = new BeaconSendingCaptureOnState();
@@ -88,7 +88,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ShutdownStateIsFlushState()
+        public void ABeaconSendingCaptureOnStateHasTerminalStateBeaconSendingFlushSessions()
         {
             // when
             var target = new BeaconSendingCaptureOnState();
@@ -111,7 +111,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void TransitionToCaptureOffStateIsPerformed()
         {
             // given
-            var clientIp = "127.0.0.1";
+            const string clientIp = "127.0.0.1";
             context.IsCaptureOn.Returns(false);
             var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
@@ -198,7 +198,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // verify for first new sessions a new session request has been made
             httpClient.Received(1).SendNewSessionRequest();
 
-            // verify no changes on first & second sesion
+            // verify no changes on first & second session
             Assert.That(sessionOne.CanSendNewSessionRequest, Is.True);
             Assert.That(sessionOne.IsBeaconConfigurationSet, Is.False);
 
@@ -329,12 +329,12 @@ namespace Dynatrace.OpenKit.Core.Communication
             //when calling execute
             target.Execute(context);
 
-            var tmp = context.Received(1).FinishedAndConfiguredSessions;
+            _ = context.Received(1).FinishedAndConfiguredSessions;
             context.Received(0).RemoveSession(finishedSession);
         }
 
         [Test]
-        public void ABeaconSendingCaptureOnStateContinuesWithNextFinishedSessionIfSendingWasUnsuccessfulButBeaconIsEmtpy()
+        public void ABeaconSendingCaptureOnStateContinuesWithNextFinishedSessionIfSendingWasUnsuccessfulButBeaconIsEmpty()
         {
             //given
             var target = new BeaconSendingCaptureOnState();
@@ -343,13 +343,12 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.1"));
             finishedSessions.AddRange(new[] { sessionOne, sessionTwo });
 
-            var statusResponses = new Queue<StatusResponse>();
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
 
             //when calling execute
             target.Execute(context);
 
-            var tmp = context.Received(1).FinishedAndConfiguredSessions;
+            _ = context.Received(1).FinishedAndConfiguredSessions;
             context.Received(1).RemoveSession(sessionOne);
             context.Received(1).RemoveSession(sessionTwo);
         }
@@ -458,22 +457,22 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
         }
 
-        private Session CreateValidSession(string clientIP)
+        private Session CreateValidSession(string clientIp)
         {
             var logger = Substitute.For<ILogger>();
             var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                config, clientIP, Substitute.For<IThreadIdProvider>(), timingProvider));
+                config, clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
 
             return session;
         }
 
-        private Session CreateEmptySession(string clientIP)
+        private Session CreateEmptySession(string clientIp)
         {
             var logger = Substitute.For<ILogger>();
             return new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                config, clientIP, Substitute.For<IThreadIdProvider>(), timingProvider));
+                config, clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
         }
     }
 }

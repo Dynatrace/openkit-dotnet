@@ -15,10 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -29,27 +26,16 @@ namespace Dynatrace.OpenKit.Core.Objects
         private const string RootActionName = "root action";
         private const string ChildActionName = "child action";
 
-        private ITimingProvider mockTimingProvider;
-        private ILogger logger;
-        private Beacon beacon;
-        private Session session;
+        private ILogger mockLogger;
+        private IBeacon mockBeacon;
+        private ISessionInternals mockSession;
 
         [SetUp]
         public void SetUp()
         {
-            mockTimingProvider = Substitute.For<ITimingProvider>();
-            logger = Substitute.For<ILogger>();
-            beacon = new Beacon(logger,
-                                new BeaconCache(logger),
-                                new TestConfiguration(),
-                                "127.0.0.1",
-                                Substitute.For<IThreadIdProvider>(),
-                                mockTimingProvider);
-
-            var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
-            var beaconSender = new BeaconSender(logger, beaconSendingContext);
-
-            session = new Session(logger, beaconSender , beacon);
+            mockLogger = Substitute.For<ILogger>();
+            mockBeacon = Substitute.For<IBeacon>();
+            mockSession = Substitute.For<ISessionInternals>();
         }
 
         [Test]
@@ -78,7 +64,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
+            mockLogger.Received(1).Warn($"{target} EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -94,7 +80,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(childOne, Is.Not.Null.And.TypeOf<NullAction>());
 
             // also verify that warning has been written to log
-            logger.Received(1).Warn("RootAction [sn=1, id=1, name=root action] EnterAction: actionName must not be null or empty");
+            mockLogger.Received(1).Warn($"{target} EnterAction: actionName must not be null or empty");
         }
 
         [Test]
@@ -144,12 +130,13 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             // given
             var target = CreateRootAction();
+            IOpenKitComposite targetComposite = target;
 
             // when
             var obtained = target.EnterAction(ChildActionName);
 
             // then
-            var childObjects = target.GetCopyOfChildObjects();
+            var childObjects = targetComposite.GetCopyOfChildObjects();
             Assert.That(childObjects.Count, Is.EqualTo(1));
             Assert.That(childObjects[0], Is.SameAs(obtained));
         }
@@ -179,22 +166,26 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ToStringReturnsAppropriateResult()
         {
             // given
+            const int sessionNumber = 42;
+            const int id = 73;
+            mockBeacon.SessionNumber.Returns(sessionNumber);
+            mockBeacon.NextId.Returns(id);
             var target = CreateRootAction();
 
             // when
             var obtained = target.ToString();
 
             // then
-            Assert.That(obtained, Is.EqualTo($"{typeof(RootAction).Name} [sn=1, id=1, name={RootActionName}]"));
+            Assert.That(obtained, Is.EqualTo($"{typeof(RootAction).Name} [sn={sessionNumber}, id={id}, name={RootActionName}]"));
         }
 
         private RootAction CreateRootAction()
         {
             return new RootAction(
-                logger,
-                session,
+                mockLogger,
+                mockSession,
                 RootActionName,
-                beacon
+                mockBeacon
                 );
         }
     }

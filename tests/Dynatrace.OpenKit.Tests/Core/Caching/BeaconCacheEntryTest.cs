@@ -125,7 +125,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             var dataThree = new BeaconCacheRecord(1L, "Three");
             var dataFour = new BeaconCacheRecord(1L, "Four");
 
-            
+
             target.AddEventData(dataOne);
             target.AddEventData(dataFour);
             target.AddActionData(dataTwo);
@@ -352,7 +352,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void resetDataMarkedForSendingReturnsIfDataHasNotBeenCopied()
+        public void ResetDataMarkedForSendingReturnsIfDataHasNotBeenCopied()
         {
 
             // given
@@ -515,7 +515,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             Assert.That(obtained, Is.EqualTo(2)); // two were removed
             Assert.That(target.ActionData, Is.EqualTo(new[] { dataOne, dataTwo }));
         }
-        
+
         [Test]
         public void RemoveRecordsOlderThanRemovesRecordsFromEventData()
         {
@@ -679,7 +679,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             Assert.That(target.EventData, Is.Empty);
             Assert.That(target.ActionData, Is.Empty);
         }
-        
+
         [Test]
         public void RemoveRecordsOlderThanDoesNotRemoveAnythingFromEventAndActionsBeingSent()
         {

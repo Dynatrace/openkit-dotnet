@@ -15,13 +15,13 @@
 //
 
 using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -29,31 +29,69 @@ namespace Dynatrace.OpenKit.Protocol
 {
     public class BeaconTest
     {
-        private IThreadIdProvider threadIdProvider;
-        private ITimingProvider timingProvider;
-        private IPrnGenerator randomGenerator;
-        private ILogger logger;
-        private BeaconSender beaconSender;
-        private BeaconConfiguration defaultBeaconConfig;
+        private const string AppId = "appID";
+        private const string AppName = "appName";
+        private const string AppVersion = "1.0";
+        private const int ActionId = 17;
+        private const int ServerId = 123;
+        private const long DeviceId = 456;
+        private const int ThreadId = 1234567;
+
+        private IOpenKitConfiguration mockConfiguration;
+        private IBeaconCache mockBeaconCache;
+        private IThreadIdProvider mockThreadIdProvider;
+        private ITimingProvider mockTimingProvider;
+        private IPrnGenerator mockRandomGenerator;
+        private ILogger mockLogger;
+        private IBeaconConfiguration mockBeaconConfig;
+        private OpenKitComposite mockParent;
 
         [SetUp]
         public void Setup()
         {
-            threadIdProvider = Substitute.For<IThreadIdProvider>();
-            timingProvider = Substitute.For<ITimingProvider>();
-            randomGenerator = Substitute.For<IPrnGenerator>();
-            logger = Substitute.For<ILogger>();
+            mockThreadIdProvider = Substitute.For<IThreadIdProvider>();
+            mockThreadIdProvider.ThreadId.Returns(ThreadId);
 
-            var beaconSendingContext = Substitute.For<IBeaconSendingContext>();
-            beaconSender = new BeaconSender(logger, beaconSendingContext);
-            defaultBeaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
+            mockTimingProvider = Substitute.For<ITimingProvider>();
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(0);
+
+            mockRandomGenerator = Substitute.For<IPrnGenerator>();
+
+            mockLogger = Substitute.For<ILogger>();
+            mockParent = Substitute.For<OpenKitComposite>();
+            mockBeaconCache = Substitute.For<IBeaconCache>();
+
+            var mockDevice = Substitute.For<Device>(string.Empty, string.Empty, string.Empty);
+
+            var mockHttpClientConfig = Substitute.For<IHttpClientConfiguration>();
+            mockHttpClientConfig.ServerId.Returns(ServerId);
+
+            mockBeaconConfig = Substitute.For<IBeaconConfiguration>();
+            mockBeaconConfig.Multiplicity.Returns(BeaconConfiguration.DefaultMultiplicity);
+            mockBeaconConfig.DataCollectionLevel.Returns(BeaconConfiguration.DefaultDataCollectionLevel);
+            mockBeaconConfig.CrashReportingLevel.Returns(BeaconConfiguration.DefaultCrashReportingLevel);
+            mockBeaconConfig.CapturingAllowed.Returns(true);
+
+            mockConfiguration = Substitute.For<IOpenKitConfiguration>();
+            mockConfiguration.ApplicationId.Returns(AppId);
+            mockConfiguration.ApplicationIdPercentEncoded.Returns(AppId);
+            mockConfiguration.ApplicationName.Returns(AppName);
+            mockConfiguration.ApplicationVersion.Returns(AppVersion);
+            mockConfiguration.Device.Returns(mockDevice);
+            mockConfiguration.DeviceId.Returns(DeviceId);
+            mockConfiguration.IsCaptureOn.Returns(true);
+            mockConfiguration.CaptureErrors.Returns(true);
+            mockConfiguration.CaptureCrashes.Returns(true);
+            mockConfiguration.MaxBeaconSize.Returns(30 * 1024); // 30kB
+            mockConfiguration.HttpClientConfig.Returns(mockHttpClientConfig);
+            mockConfiguration.BeaconConfig.Returns(mockBeaconConfig);
         }
 
         [Test]
         public void DefaultBeaconConfigurationDoesNotDisableCapturing()
         {
             // given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var target = CreateBeacon().Build();
 
             // then
             Assert.That(target.CapturingDisabled, Is.False);
@@ -63,408 +101,980 @@ namespace Dynatrace.OpenKit.Protocol
         public void DefaultBeaconConfigurationSetsMultiplicityToOne()
         {
             // given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var target = CreateBeacon().Build();
 
             // then
             Assert.That(target.Multiplicity, Is.EqualTo(1));
         }
 
         [Test]
-        public void CanAddUserIdentifyEvent()
+        public void NextId()
         {
             // given
-            var beacon = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
+            var target = CreateBeacon().Build();
 
-            var userTag = "myTestUser";
+            // when, then
+            for (var i = 1; i <= 3; i++)
+            {
+                var id = target.NextId;
+                Assert.That(id, Is.EqualTo(i));
+            }
+        }
+
+        [Test]
+        public void CurrentTimeStamp()
+        {
+            // given
+            const long expectedTimeStamp = 42;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(expectedTimeStamp);
+
+            var target = CreateBeacon().Build();
+
+            mockTimingProvider.ClearReceivedCalls();
 
             // when
-            beacon.IdentifyUser(userTag);
-            var target = beacon.EventDataList;
+            var obtained = target.CurrentTimestamp;
 
             // then
-            Assert.That(target, Is.EquivalentTo(new[] { $"et=60&na={userTag}&it=0&pa=0&s0=1&t0=0" }));
+            Assert.That(obtained, Is.EqualTo(expectedTimeStamp));
+            mockTimingProvider.Received(1).ProvideTimestampInMilliseconds();
+        }
+
+        [Test]
+        public void NextSequenceNumber()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            for (var i = 1; i <= 3; i++)
+            {
+                var obtained = target.NextSequenceNumber;
+                Assert.That(obtained, Is.EqualTo(i));
+            }
+        }
+
+        [Test]
+        public void CreateTag()
+        {
+            // given
+            const int sequenceNumber = 42;
+            var target = CreateBeacon().Build();
+
+            // when
+            var obtained = target.CreateTag(ActionId, sequenceNumber);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(
+                "MT"                                             // tag prefix
+                + $"_{ProtocolConstants.ProtocolVersion}"        // protocol version
+                + $"_{ServerId}"                                 // server ID
+                + $"_{DeviceId}"                                 // device ID
+                + "_0"                                           // session number
+                + $"_{AppId}"                                    // application ID
+                + $"_{ActionId}"                                 // action ID
+                + $"_{ThreadId}"                                 // thread ID
+                + $"_{sequenceNumber}"                           // sequence number
+                ));
+        }
+
+        [Test]
+        public void CreateWebRequestTagEncodesDeviceIdProperly()
+        {
+            // given
+            const long deviceId = -42;
+            const int sequenceNumber = 1;
+            mockConfiguration.DeviceId.Returns(deviceId);
+            var target = CreateBeacon().Build();
+
+            // when
+            var obtained = target.CreateTag(ActionId, sequenceNumber);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(
+                "MT"                                             // tag prefix
+                + $"_{ProtocolConstants.ProtocolVersion}"        // protocol version
+                + $"_{ServerId}"                                 // server ID
+                + $"_{deviceId}"                                 // device ID
+                +  "_0"                                          // session number
+                + $"_{AppId}"                                    // application ID
+                + $"_{ActionId}"                                 // action ID
+                + $"_{ThreadId}"                                 // thread ID
+                + $"_{sequenceNumber}"                           // sequence number
+                ));
+        }
+
+        [Test]
+        public void AddValidActionEvent()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int parentId = 13;
+            const string actionName = "myAction";
+            var action = Substitute.For<IActionInternals>();
+            action.Id.Returns(ActionId);
+            action.ParentId.Returns(parentId);
+            action.Name.Returns(actionName);
+
+            // when
+            target.AddAction(action);
+
+            // then
+            mockBeaconCache.Received(1).AddActionData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.ACTION.ToInt()}"          // event type
+                + $"&na={actionName}"                     // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&ca={ActionId}"                       // action ID
+                + $"&pa={parentId}"                       // parent action ID
+                +  "&s0=0"                                // action start sequence number
+                +  "&t0=0"                                // action start time
+                +  "&s1=0"                                // action end sequence number
+                +  "&t1=0"                                // action end time
+                );
+        }
+
+        [Test]
+        public void AddEndSessionEvent()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            var session = Substitute.For<ISessionInternals>();
+
+            // when
+            target.EndSession(session);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.SESSION_END.ToInt()}"     // event type
+                + $"&it={ThreadId}"                       // thread ID
+                +  "&pa=0"                                // parent action ID
+                +  "&s0=1"                                // session end sequence number
+                +  "&t0=0"                                // session end time
+                );
+        }
+
+        [Test]
+        public void ReportValidValueInt()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string valueName = "intValue";
+            const int value = 42;
+
+            // when
+            target.ReportValue(ActionId, valueName, value);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.VALUE_INT.ToInt()}"       // event type
+                + $"&na={valueName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                + $"&vl={value}"                          // reported value
+                );
+        }
+
+        [Test]
+        public void ReportValidValueDouble()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string valueName = "doubleValue";
+            const double value = 3.1415;
+
+            // when
+            target.ReportValue(ActionId, valueName, value);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.VALUE_DOUBLE.ToInt()}"    // event type
+                + $"&na={valueName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                + $"&vl={value}"                          // reported value
+                );
+        }
+
+        [Test]
+        public void ReportValidValueString()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string valueName = "stringValue";
+            const string value = "HelloWorld";
+
+            // when
+            target.ReportValue(ActionId, valueName, value);
+
+             // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.VALUE_STRING.ToInt()}"    // event type
+                + $"&na={valueName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                + $"&vl={value}"                          // reported value
+                );
+        }
+
+        [Test]
+        public void ReportValueStringWithValueNull()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string valueName = "stringValue";
+
+            // when
+            target.ReportValue(ActionId, valueName, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.VALUE_STRING.ToInt()}"    // event type
+                + $"&na={valueName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                );
+        }
+
+        [Test]
+        public void ReportValueStringWithValueNullAndNameNull()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, null, null);
+
+             // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.VALUE_STRING.ToInt()}"    // event type
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                );
+        }
+
+        [Test]
+        public void ReportValidEvent()
+        {
+            // given
+            const string eventName = "someEvent";
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportEvent(ActionId, eventName);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.NAMED_EVENT.ToInt()}"     // event type
+                + $"&na={eventName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                );
+        }
+
+        [Test]
+        public void ReportEventWithNameNull()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportEvent(ActionId, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.NAMED_EVENT.ToInt()}"     // event type
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                );
+        }
+
+        [Test]
+        public void ReportError()
+        {
+            // given
+            const string errorName = "someError";
+            const int errorCode = -123;
+            const string reason = "someReason";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, errorCode, reason);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.ERROR.ToInt()}"           // event type
+                + $"&na={errorName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                + $"&ev={errorCode}"                      // reported error code
+                + $"&rs={reason}"                         // error reason
+                );
+        }
+
+        [Test]
+        public void ReportErrorNull()
+        {
+            // given
+            const int errorCode = -123;
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, null, errorCode, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.ERROR.ToInt()}"           // event type
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                + $"&ev={errorCode}"                      // reported error code
+                );
+        }
+
+        [Test]
+        public void ReportValidCrash()
+        {
+            // given
+            const string errorName = "someError";
+            const string reason = "someReason";
+            const string stacktrace = "someStackTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, reason, stacktrace);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.CRASH.ToInt()}"           // event type
+                + $"&na={errorName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                +  "&pa=0"                                // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                + $"&rs={reason}"                         // error reason
+                + $"&st={stacktrace}"                     // reported stacktrace
+                );
+        }
+
+        [Test]
+        public void ReportCrashWithDetailsNull()
+        {
+            // given
+            const string errorName = "someError";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, null, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.CRASH.ToInt()}"           // event type
+                + $"&na={errorName}"                      // action name
+                + $"&it={ThreadId}"                       // thread ID
+                +  "&pa=0"                                // parent action ID
+                +  "&s0=1"                                // event sequence number
+                +  "&t0=0"                                // event timestamp
+                );
+        }
+
+        [Test]
+        public void AddWebRequest()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = 13;
+            const int receivedBytes = 14;
+            const int responseCode = 15;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=0"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=0"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                + $"&bs={sentBytes}"                      // number bytes sent
+                + $"&br={receivedBytes}"                  // number bytes received
+                + $"&rc={responseCode}"                   // number bytes received
+                );
+        }
+
+        [Test]
+        public void AddUserIdentifyEvent()
+        {
+            // given
+            const string userId = "myTestUser";
+
+            var beacon = CreateBeacon().Build();
+
+            // when
+            beacon.IdentifyUser(userId);
+
+            // then
+             mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.IDENTIFY_USER.ToInt()}"   // event type
+                + $"&na={userId}"                         // number bytes received
+                + $"&it={ThreadId}"                       // thread ID
+                +  "&pa=0"                                // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                );
+        }
+
+        [Test]
+        public void AddUserIdentifyWithNullUserIdEvent()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.IdentifyUser(null);
+
+             // then
+             mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.IDENTIFY_USER.ToInt()}"   // event type
+                + $"&it={ThreadId}"                       // thread ID
+                +  "&pa=0"                                // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                );
         }
 
         [Test]
         public void CanAddSentBytesToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
-            var bytesSent = 123;
+            const int sentBytes = 123;
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
-            webRequest.Start().SetBytesSent(bytesSent).Stop(-1); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(sentBytes).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                + $"&bs={sentBytes}"                      // number bytes sent
+                );
         }
 
         [Test]
         public void CanAddSentBytesValueZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
-            var bytesSent = 0;
+            const int sentBytes = 0;
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
-            webRequest.Start().SetBytesSent(bytesSent).Stop(-1); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(sentBytes).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs={bytesSent}" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                + $"&bs={sentBytes}"                      // number bytes sent
+                );
         }
 
         [Test]
         public void CannotAddSentBytesWithInvalidValueSmallerZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
             webRequest.Start().SetBytesSent(-1).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                );
         }
 
         [Test]
         public void CanAddReceivedBytesToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
-            var bytesReceived = 12321;
+            const int receivedBytes = 12321;
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
-            webRequest.Start().SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesReceived(receivedBytes).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                + $"&br={receivedBytes}"                  // number bytes received
+                );
         }
 
         [Test]
         public void CanAddReceivedBytesValueZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
-            var bytesReceived = 0;
+            const int receivedBytes = 0;
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
-            webRequest.Start().SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesReceived(receivedBytes).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&br={bytesReceived}" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                + $"&br={receivedBytes}"                  // number bytes received
+                );
         }
 
         [Test]
         public void CannotAddReceivedBytesWithInvalidValueSmallerZeroToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
             webRequest.Start().SetBytesReceived(-1).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                );
         }
 
         [Test]
         public void CanAddBothSentBytesAndReceivedBytesToWebRequestTracer()
         {
             //given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
-
             const string testUrl = "https://127.0.0.1";
-            var webRequest = CreateWebRequestTracer(target, testUrl);
-            var bytesReceived = 12321;
-            var bytesSent = 123;
+            const int receivedBytes = 12321;
+            const int sentBytes = 123;
+            mockParent.ActionId.Returns(ActionId);
+
+            var target = CreateBeacon().Build();
+
+            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
-            webRequest.Start().SetBytesSent(bytesSent).SetBytesReceived(bytesReceived).Stop(-1); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(sentBytes).SetBytesReceived(receivedBytes).Stop(-1); //stop will add the web request to the beacon
 
             // then
-            Assert.That(target.EventDataList, Is.EquivalentTo(new[] { $"et=30&na={Uri.EscapeDataString(testUrl)}&it=0&pa=1&s0=1&t0=0&s1=2&t1=0&bs=123&br=12321" }));
+            mockBeaconCache.Received(1).AddEventData(
+                0,                                        // beacon ID
+                0,                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
+                + $"&it={ThreadId}"                       // thread ID
+                + $"&pa={ActionId}"                       // parent action ID
+                +  "&s0=1"                                // web request start sequence number
+                +  "&t0=0"                                // web request start timestamp
+                +  "&s1=2"                                // web request end sequence number
+                +  "&t1=0"                                // web request end timestamp
+                + $"&bs={sentBytes}"                      // number bytes sent
+                + $"&br={receivedBytes}"                  // number bytes received
+                );
         }
 
         [Test]
-        public void CanAddRootActionIfCaptureIsOn()
+        public void CanHandleNoDataInBeaconSend()
         {
             // given
-            var configuration = new TestConfiguration();
-            configuration.EnableCapture();
+            var mockHttpClient = Substitute.For<IHttpClient>();
+            var mockHttpClientProvider = Substitute.For<IHttpClientProvider>();
+            mockHttpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(mockHttpClient);
 
-            var target = new Beacon(logger, new BeaconCache(logger), configuration, "127.0.0.1", threadIdProvider, timingProvider)
-            {
-                BeaconConfiguration = defaultBeaconConfig
-            };
+            var target = CreateBeacon().Build();
 
-            const string rootActionName = "TestRootAction";
-
-
-            // when adding the root action
-            var session = new Session(logger, beaconSender, target);
-            var action = new RootAction(logger, session, rootActionName,target); // the action is added to the beacon in the constructor
-            action.LeaveAction();
+            // when
+            var response = target.Send(mockHttpClientProvider);
 
             // then
-            Assert.That(target.ActionDataList, Is.EquivalentTo(new[] { $"et=1&na={rootActionName}&it=0&ca=1&pa=0&s0=2&t0=0&s1=3&t1=0" }));
+            Assert.That(response, Is.Null);
         }
 
         [Test]
-        public void CannotAddRootActionIfCaptureIsOff()
+        public void SendValidData()
         {
             // given
-            var configuration = new TestConfiguration();
-            configuration.DisableCapture();
+            const string ipAddress = "127.0.0.1";
+            const int responseCode = 200;
 
-            var target = new Beacon(logger, new BeaconCache(logger),
-                configuration, "127.0.0.1", threadIdProvider, timingProvider);
+            var target = CreateBeacon().With(new BeaconCache(mockLogger)).WithIpAddress(ipAddress).Build();
 
-            // when adding the root action
-            var session = new Session(logger, beaconSender, target);
-            const string rootActionName = "TestRootAction";
-            target.AddAction(new RootAction(logger, session, rootActionName, target));
+             var httpClient = Substitute.For<IHttpClient>();
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
+                .Returns(new StatusResponse(mockLogger, "", responseCode, new Dictionary<string, List<string>>()));
+
+            var httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
+
+            // when
+            target.ReportCrash("errorName", "errorReason", "stackTrace");
+            var response = target.Send(httpClientProvider);
 
             // then
-            Assert.That(target.ActionDataList, Is.Empty);
+            Assert.That(response, Is.Not.Null);
+            Assert.That(response.ResponseCode, Is.EqualTo(responseCode));
+            httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>());
         }
 
         [Test]
-        public void ClearDataClearsActionAndEventData()
+        public void SendDataAndFakeErrorResponse()
         {
             // given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            const string ipAddress = "127.0.0.1";
+            const int responseCode = 418;
 
-            var session = new Session(logger, beaconSender, target);
-            var rootAction = new RootAction(logger, session, "rootAction", target);
-            var action = new LeafAction(logger, rootAction, "TestAction", target);
-            action.ReportEvent("TestEvent").ReportValue("TheAnswerToLifeTheUniverseAndEverything", 42);
+            var target = CreateBeacon().With(new BeaconCache(mockLogger)).WithIpAddress(ipAddress).Build();
+
+            var httpClient = Substitute.For<IHttpClient>();
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
+                .Returns(new StatusResponse(mockLogger, "", responseCode, new Dictionary<string, List<string>>()));
+
+            var httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
+
+            // when
+            target.ReportCrash("errorName", "errorReason", "stackTrace");
+            var response = target.Send(httpClientProvider);
+
+            // then
+            Assert.That(response, Is.Not.Null);
+            Assert.That(response.ResponseCode, Is.EqualTo(responseCode));
+            httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>());
+        }
+
+        [Test]
+        public void ClearDataFromBeaconCache()
+        {
+            // given
+            var session = Substitute.For<ISessionInternals>();
+            var action = Substitute.For<IActionInternals>();
+            action.Id.Returns(ActionId);
+
+            var beaconCache = new BeaconCache(mockLogger);
+            var target = CreateBeacon().With(beaconCache).Build();
+
             target.AddAction(action);
+            target.ReportValue(ActionId, "IntValue", 42);
+            target.ReportValue(ActionId, "DoubleValue", 3.1415);
+            target.ReportValue(ActionId, "StringValue", "HelloWorld");
+            target.ReportEvent(ActionId, "SomeEvent");
+            target.ReportError(ActionId, "SomeError", -123, "SomeReason");
+            target.ReportCrash("SomeCrash", "SomeReason", "SomeStacktrace");
+            target.EndSession(session);
 
-            // then check data both lists are not empty
-            Assert.That(target.ActionDataList, Is.Not.Empty);
-            Assert.That(target.EventDataList, Is.Not.Empty);
+            Assert.That(beaconCache.GetActions(target.SessionNumber), Is.Not.Empty);
+            Assert.That(beaconCache.GetEvents(target.SessionNumber), Is.Not.Empty);
 
-            // and when clearing the data
+            // when
             target.ClearData();
 
-            // then check data both lists are empty
-            Assert.That(target.ActionDataList, Is.Empty);
-            Assert.That(target.EventDataList, Is.Empty);
+            // then
+            Assert.That(beaconCache.GetActions(target.SessionNumber), Is.Null);
+            Assert.That(beaconCache.GetEvents(target.SessionNumber), Is.Null);
         }
 
         [Test]
         public void NoSessionIsAddedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+            var session = Substitute.For<ISessionInternals>();
 
-            var session = new Session(logger, beaconSender, target); // will
+            var target = CreateBeacon().Build();
 
             // when
             target.EndSession(session);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoActionIsAddedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+            var action = Substitute.For<IActionInternals>();
+            action.Id.Returns(ActionId);
 
-            var session = new Session(logger, beaconSender, target);
-            var rootAction = new RootAction(logger, session, "rootAction", target);
-            var action = new LeafAction(logger, rootAction, "ActionName", target);
+            var target = CreateBeacon().Build();
 
             // when
             target.AddAction(action);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoIntValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            const int actionId = 73;
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+            const int intValue = 42;
 
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            var intValue = 42;
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "intValue", intValue);
+            target.ReportValue(ActionId, "intValue", intValue);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoDoubleValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            const int actionId = 73;
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+            const double doubleValue = Math.E;
 
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            var doubleValue = Math.E;
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "doubleValue", doubleValue);
+            target.ReportValue(ActionId, "doubleValue", doubleValue);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoStringValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            const int actionId = 73;
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+            const string stringValue = "Write once, debug everywhere";
 
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            var stringValue = "Write once, debug everywhere";
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "doubleValue", stringValue);
+            target.ReportValue(ActionId, "doubleValue", stringValue);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoEventIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportEvent(actionId, "Event name");
+            target.ReportEvent(ActionId, "Event name");
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoErrorIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            const int actionId = 73;
+            mockBeaconConfig.CapturingAllowed.Returns(false);
 
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(actionId, "Error name", 123, "The reason for this error");
+            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoCrashIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
 
             // when
             target.ReportCrash("Error name", "The reason for this error", "the stack trace");
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoWebRequestIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
 
-            var webRequestTracer = CreateWebRequestTracer(target, "https://foo.bar");
+            var target = CreateBeacon().Build();
+
+            var webRequestTracer = CreateWebRequestTracer(target).WithUrl("https://foo.bar").Build();
 
             // when
             target.AddWebRequest(17, webRequestTracer);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NoUserIdentificationIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
 
             // when
             target.IdentifyUser("jane.doe@acme.com");
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
 
@@ -472,80 +1082,71 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoWebRequestIsReportedForDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var parent = Substitute.For<OpenKitComposite>();
-            parent.ActionId.Returns(17);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
 
-            var webRequestTracer = Substitute.For<WebRequestTracer>(logger, parent, target);
+            var target = CreateBeacon().Build();
 
             // when
-            target.AddWebRequest(17, webRequestTracer);
-            _ = webRequestTracer.Received(0).BytesReceived;
-            _ = webRequestTracer.Received(0).BytesSent;
-            _ = webRequestTracer.Received(0).ResponseCode;
+            target.AddWebRequest(ActionId, webRequestTracer);
 
             // then ensure nothing has been serialized
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(webRequestTracer.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void WebRequestIsReportedForDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var parent = Substitute.For<OpenKitComposite>();
-            parent.ActionId.Returns(17);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
 
-            var webRequestTracer = Substitute.For<WebRequestTracer>(logger, parent, target);
+            var target = CreateBeacon().Build();
 
             // when
-            target.AddWebRequest(17, webRequestTracer);
+            target.AddWebRequest(ActionId, webRequestTracer);
 
+
+            // then ensure nothing has been serialized
             _ = webRequestTracer.Received(1).BytesReceived;
             _ = webRequestTracer.Received(1).BytesSent;
             _ = webRequestTracer.Received(1).ResponseCode;
-
-            // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
         public void WebRequestIsReportedForDataCollectionLevel2()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var parent = Substitute.For<OpenKitComposite>();
-            parent.ActionId.Returns(17);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
 
-            var webRequestTracer = Substitute.For<WebRequestTracer>(logger, parent, target);
+            var target = CreateBeacon().Build();
+
+            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
 
             // when
-            target.AddWebRequest(17, webRequestTracer);
+            target.AddWebRequest(ActionId, webRequestTracer);
 
+
+            // then ensure nothing has been serialized
             _ = webRequestTracer.Received(1).BytesReceived;
             _ = webRequestTracer.Received(1).BytesSent;
             _ = webRequestTracer.Received(1).ResponseCode;
-
-            // then ensure nothing has been serialized
             Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
         public void CreateTagReturnsEmptyStringForDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            var tagReturned = target.CreateTag(42, 1);
+            var tagReturned = target.CreateTag(ActionId, 1);
 
             // then
             Assert.That(tagReturned, Is.Empty);
@@ -555,26 +1156,27 @@ namespace Dynatrace.OpenKit.Protocol
         public void CreateTagReturnsTagStringForDataCollectionLevel1()
         {
             // given
-            long deviceId = 37;
-            randomGenerator.NextLong(Arg.Any<long>()).Returns(deviceId);
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            const long deviceId = 37;
+            const int sequenceNo = 1;
+            mockRandomGenerator.NextLong(Arg.Any<long>()).Returns(deviceId);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            var obtained = target.CreateTag(42, 1);
+            var obtained = target.CreateTag(ActionId, sequenceNo);
 
             // then
             Assert.That(obtained, Is.EqualTo(
                 "MT" +                    // tag prefix
-                "_3" +                    // protocol version
-                "_-1" +                   // server ID
-                "_" + deviceId +          // device ID
-                "_1" +                    // session number (must always 1 for data collection level performance)
-                "_" +                     // application ID
-                "_42" +                   // parent action ID
-                "_0" +                    // thread ID
-                "_1"                      // sequence number
+                 "_3" +                   // protocol version
+                $"_{ServerId}" +          // server ID
+                $"_{deviceId}" +          // device ID
+                 "_1" +                   // session number (must always 1 for data collection level performance)
+                $"_{AppId}" +             // application ID
+                $"_{ActionId}" +          // parent action ID
+                $"_{ThreadId}" +          // thread ID
+                $"_{sequenceNo}"          // sequence number
             ));
         }
 
@@ -582,109 +1184,138 @@ namespace Dynatrace.OpenKit.Protocol
         public void CreateTagReturnsTagStringForDataCollectionLevel2()
         {
             // given
-            int sessionId = 73;
-            long deviceId = 37;
-            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
-            sessionIdProvider.GetNextSessionId().Returns(sessionId);
+            const int sessionId = 73;
+            const long deviceId = 37;
+            const int sequenceNo = 1;
+            mockConfiguration.DeviceId.Returns(deviceId);
+            mockConfiguration.NextSessionNumber.Returns(sessionId);
 
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(deviceId, beaconConfig, sessionIdProvider);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            var target = CreateBeacon().Build();
 
             // when
-            var obtained = target.CreateTag(42, 1);
+            var obtained = target.CreateTag(ActionId, sequenceNo);
 
             // then
             Assert.That(obtained, Is.EqualTo(
                 "MT" +                    // tag prefix
-                "_3" +                    // protocol version
-                "_-1" +                   // server ID
-                "_" + deviceId +          // device ID
-                "_" + sessionId +         // session number (must always 1 for data collection level performance)
-                "_" +                     // application ID
-                "_42" +                   // parent action ID
-                "_0" +                    // thread ID
-                "_1"                      // sequence number
+                 "_3" +                   // protocol version
+                $"_{ServerId}" +          // server ID
+                $"_{deviceId}" +          // device ID
+                $"_{sessionId}" +         // session number (must always 1 for data collection level performance)
+                $"_{AppId}" +             // application ID
+                $"_{ActionId}" +          // parent action ID
+                $"_{ThreadId}" +          // thread ID
+                $"_{sequenceNo}"          // sequence number
             ));
         }
 
         [Test]
-        public void CreateWebRequestTagEncodesDeviceIdProperly()
+        public void IdentifyUserDoesNotReportOnDataCollectionLevel0()
         {
             // given
-            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
-            sessionIdProvider.GetNextSessionId().Returns(666);
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration("app_ID", -42, beaconConfig, sessionIdProvider);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            var obtained = target.CreateTag(42, 1);
+            target.IdentifyUser("test user");
 
             // then
-            var expectedDeviceID = "MT_3_-1_-42_666_app%5FID_42_0_1";
-            Assert.That(obtained, Is.EqualTo(expectedDeviceID));
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void IdentifyUserDoesNotReportOnDataCollectionLevel1()
+        {
+            // given
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.IdentifyUser("test user");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void IdentifyUserDoesReportOnDataCollectionLevel2()
+        {
+            // given
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.IdentifyUser("test user");
+
+            // then
+            mockBeaconCache.AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
         public void DeviceIdIsRandomizedOnDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(12345, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(0, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
             _ = target.DeviceId;
 
             // then
-            randomGenerator.Received(1).NextLong(long.MaxValue);
+            mockRandomGenerator.Received(1).NextLong(long.MaxValue);
         }
 
         [Test]
         public void DeviceIdIsRandomizedOnDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(12345, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
             _ = target.DeviceId;
 
             // then
-            randomGenerator.Received(1).NextLong(long.MaxValue);
+            mockRandomGenerator.Received(1).NextLong(long.MaxValue);
         }
 
         [Test]
         public void GivenDeviceIdIsUsedOnDataCollectionLevel2()
         {
-            var deviceID = 12345;
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(deviceID, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            const long deviceId = 12345;
+            mockConfiguration.DeviceId.Returns(deviceId);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
             var obtained = target.DeviceId;
 
             // then
-            randomGenerator.Received(0).NextLong(long.MaxValue);
-            Assert.That(obtained, Is.EqualTo(deviceID));
+            Assert.That(mockRandomGenerator.ReceivedCalls(), Is.Empty);
+            Assert.That(obtained, Is.EqualTo(deviceId));
         }
 
         [Test]
         public void RandomDeviceIdCannotBeNegativeOnDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockRandomGenerator.NextLong(Arg.Any<long>()).Returns(-123456789);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
             var deviceId = target.DeviceId;
 
             // then
+            mockRandomGenerator.Received(1).NextLong(Arg.Any<long>());
             Assert.That(deviceId, Is.GreaterThanOrEqualTo(0L));
             Assert.That(deviceId, Is.LessThanOrEqualTo(long.MaxValue));
         }
@@ -693,14 +1324,16 @@ namespace Dynatrace.OpenKit.Protocol
         public void RandomDeviceIdCannotBeNegativeOnDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockRandomGenerator.NextLong(Arg.Any<long>()).Returns(-123456789);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
             var deviceId = target.DeviceId;
 
             // then
+            mockRandomGenerator.Received(1).NextLong(Arg.Any<long>());
             Assert.That(deviceId, Is.GreaterThanOrEqualTo(0L));
             Assert.That(deviceId, Is.LessThanOrEqualTo(long.MaxValue));
         }
@@ -709,9 +1342,9 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionIdIsAlwaysValue1OnDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
             var sessionId = target.SessionNumber;
@@ -724,9 +1357,9 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionIdIsAlwaysValue1OnDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
             var sessionId = target.SessionNumber;
@@ -739,51 +1372,91 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionIdIsValueFromSessionIdProviderOnDataCollectionLevel2()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
-            var config = new TestConfiguration(1, beaconConfig, sessionIdProvider);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            const int sessionId = 73;
+            mockConfiguration.NextSessionNumber.Returns(sessionId);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
-            var sessionId = target.SessionNumber;
+            var obtained = target.SessionNumber;
 
             // then
-            Assert.That(sessionId, Is.EqualTo(target.SessionNumber));
-            sessionIdProvider.Received(1).GetNextSessionId();
+            Assert.That(obtained, Is.EqualTo(target.SessionNumber));
+            _ = mockConfiguration.Received(1).NextSessionNumber;
         }
 
         [Test]
+        public void ReportCrashDoesNotReportOnCrashReportingLevel0()
+        {
+            // given
+            mockBeaconConfig.CrashReportingLevel.Returns(CrashReportingLevel.OFF);
 
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportCrashDoesNotReportOnCrashReportingLevel1()
+        {
+            // given
+            mockBeaconConfig.CrashReportingLevel.Returns(CrashReportingLevel.OPT_OUT_CRASHES);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportCrashDoesReportOnCrashReportingLevel2()
+        {
+            // given
+            mockBeaconConfig.CrashReportingLevel.Returns(CrashReportingLevel.OPT_IN_CRASHES);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+
+            // then
+            Assert.That(target.IsEmpty, Is.False);
+        }
+
+        [Test]
         public void ActionNotReportedForDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+            var action = Substitute.For<IActionInternals>();
 
-            var session = new Session(logger, beaconSender, target);
-            var rootAction = new RootAction(logger, session, "rootAction", target);
-            var action = new LeafAction(logger, rootAction, "TestRootAction", target);
-            target.ClearData();
+            var target = CreateBeacon().Build();
 
             // when
             target.AddAction(action);
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(action.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void ActionReportedForDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+            var action = Substitute.For<IActionInternals>();
+            action.Id.Returns(ActionId);
 
-            var session = new Session(logger, beaconSender, target);
-            var rootAction = new RootAction(logger, session, "rootAction", target);
-            var action = new LeafAction(logger, rootAction, "TestRootAction", target);
+            var target = CreateBeacon().Build();
 
             // when
             target.AddAction(action);
@@ -797,13 +1470,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void ActionReportedForDataCollectionLevel2()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+            var action = Substitute.For<IActionInternals>();
+            action.Id.Returns(ActionId);
 
-            var session = new Session(logger, beaconSender, target);
-            var rootAction = new RootAction(logger, session, "rootAction", target);
-            var action = new LeafAction(logger, rootAction, "TestRootAction", target);
+            var target = CreateBeacon().Build();
 
             // when
             target.AddAction(action);
@@ -816,10 +1487,10 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionNotReportedForDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var session = new Session(logger, beaconSender, target);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+            var session = Substitute.For<ISessionInternals>();
+
+            var target = CreateBeacon().Build();
 
             // when
             target.EndSession(session);
@@ -832,10 +1503,10 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionReportedForDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-            var session = new Session(logger, beaconSender, target);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+            var session = Substitute.For<ISessionInternals>();
+
+            var target = CreateBeacon().Build();
 
             // when
             target.EndSession(session);
@@ -849,11 +1520,10 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionReportedForDataCollectionLevel2()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+            var session = Substitute.For<ISessionInternals>();
 
-            var session = new Session(logger, beaconSender, target);
+            var target = CreateBeacon().Build();
 
             // when
             target.EndSession(session);
@@ -863,77 +1533,30 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void IdentifyUserDoesNotReportOnDataCollectionLevel0()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            // when
-            target.IdentifyUser("test user");
-
-            // then
-            Assert.That(target.IsEmpty, Is.True);
-        }
-
-        [Test]
-        public void IdentifyUserDoesNotReportOnDataCollectionLevel1()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            // when
-            target.IdentifyUser("test user");
-
-            // then
-            Assert.That(target.IsEmpty, Is.True);
-        }
-
-        [Test]
-        public void IdentifyUserDoesReportOnDataCollectionLevel2()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            // when
-            target.IdentifyUser("test user");
-
-            // then
-            Assert.That(target.IsEmpty, Is.False);
-        }
-
-        [Test]
         public void ReportErrorDoesNotReportOnDataCollectionLevel0()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(actionId, "error", 42, "the answer");
+            target.ReportError(ActionId, "error", 42, "the answer");
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void ReportErrorDoesReportOnDataCollectionLevel1()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(actionId, "error", 42, "the answer");
+            target.ReportError(ActionId, "error", 42, "the answer");
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -943,58 +1566,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportErrorDoesReportOnDataCollectionLevel2()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(actionId, "error", 42, "the answer");
-
-            // then
-            Assert.That(target.IsEmpty, Is.False);
-        }
-
-        [Test]
-        public void ReportCrashDoesNotReportOnDataCollectionLevel0()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            // when
-            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
-
-            // then
-            Assert.That(target.IsEmpty, Is.True);
-        }
-
-        [Test]
-        public void ReportCrashDoesNotReportOnDataCollectionLevel1()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OPT_OUT_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            // when
-            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
-
-            // then
-            Assert.That(target.IsEmpty, Is.True);
-        }
-
-        [Test]
-        public void ReportCrashDoesReportOnCrashReportingLevel2()
-        {
-            // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
-
-            // when
-            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+            target.ReportError(ActionId, "error", 42, "the answer");
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -1004,32 +1580,30 @@ namespace Dynatrace.OpenKit.Protocol
         public void IntValueNotReportedForDataCollectionLevel0()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test int value", 13);
+            target.ReportValue(ActionId, "test int value", 13);
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void IntValueNotReportedForDataCollectionLevel1()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test int value", 13);
+            target.ReportValue(ActionId, "test int value", 13);
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
 
@@ -1037,13 +1611,12 @@ namespace Dynatrace.OpenKit.Protocol
         public void IntValueReportedForDataCollectionLevel2()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test int value", 13);
+            target.ReportValue(ActionId, "test int value", 13);
 
             // then
             Assert.That(target.IsEmpty, Is.False);
@@ -1054,32 +1627,30 @@ namespace Dynatrace.OpenKit.Protocol
         public void DoubleValueNotReportedForDataCollectionLevel0()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test double value", 2.71);
+            target.ReportValue(ActionId, "test double value", 2.71);
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void DoubleValueNotReportedForDataCollectionLevel1()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test double value", 2.71);
+            target.ReportValue(ActionId, "test double value", 2.71);
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
 
@@ -1087,16 +1658,15 @@ namespace Dynatrace.OpenKit.Protocol
         public void DoubleValueReportedForDataCollectionLevel2()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test double value", 2.71);
+            target.ReportValue(ActionId, "test double value", 2.71);
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
 
@@ -1104,32 +1674,30 @@ namespace Dynatrace.OpenKit.Protocol
         public void StringValueNotReportedForDataCollectionLevel0()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test string value", "test data");
+            target.ReportValue(ActionId, "test string value", "test data");
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void StringValueNotReportedForDataCollectionLevel1()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test string value", "test data");
+            target.ReportValue(ActionId, "test string value", "test data");
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
 
@@ -1137,16 +1705,15 @@ namespace Dynatrace.OpenKit.Protocol
         public void StringValueReportedForDataCollectionLevel2()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportValue(actionId, "test string value", "test data");
+            target.ReportValue(ActionId, "test string value", "test data");
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
 
@@ -1154,78 +1721,73 @@ namespace Dynatrace.OpenKit.Protocol
         public void NamedEventNotReportedForDataCollectionLevel0()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportEvent(actionId, "test event");
+            target.ReportEvent(ActionId, "test event");
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NamedEventNotReportedForDataCollectionLevel1()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportEvent(actionId, "test event");
+            target.ReportEvent(ActionId, "test event");
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void NamedEventReportedForDataCollectionLevel2()
         {
             // given
-            const int actionId = 73;
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
-            target.ReportEvent(actionId, "test event");
+            target.ReportEvent(ActionId, "test event");
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
         public void SessionStartIsReported()
         {
             // given
-            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            var target = CreateBeacon().Build();
 
             // when
-            // session constructor is calling StartSession implicitly
-            _ = new Session(logger, beaconSender, target);
+            target.StartSession();
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
         public void SessionStartIsReportedForDataCollectionLevel0()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.OFF);
+
+            var target = CreateBeacon().Build();
 
             // when
-            // session constructor is calling StartSession implicitly
-            _ = new Session(logger, beaconSender, target);
+            target.StartSession();
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
 
@@ -1233,16 +1795,15 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionStartIsReportedForDataCollectionLevel1()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
+
+            var target = CreateBeacon().Build();
 
             // when
-            // session constructor is calling StartSession implicitly
-            _ = new Session(logger, beaconSender, target);
+            target.StartSession();
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
 
@@ -1250,53 +1811,49 @@ namespace Dynatrace.OpenKit.Protocol
         public void SessionStartIsReportedForDataCollectionLevel2()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.USER_BEHAVIOR);
+
+            var target = CreateBeacon().Build();
 
             // when
-            // session constructor is calling StartSession implicitly
-            _ = new Session(logger, beaconSender, target);
+            target.StartSession();
 
             // then
-            Assert.That(target.IsEmpty, Is.False);
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
         public void NoSessionStartIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, new BeaconCache(logger), config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            mockBeaconConfig.CapturingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
 
             // when
-            // session constructor is calling StartSession implicitly
-            _ = new Session(logger, beaconSender, target);
+            target.StartSession();
 
             // then
-            Assert.That(target.IsEmpty, Is.True);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
+
 
         [Test]
         public void UseInternalBeaconIdForAccessingBeaconCacheWhenSessionNumberReportingDisallowed()
         {
             // given
-            int beaconId = 73;
-            var beaconCache = Substitute.For<BeaconCache>(logger);
-            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
-            sessionIdProvider.GetNextSessionId().Returns(beaconId);
+            const int beaconId = 73;
+            mockConfiguration.NextSessionNumber.Returns(beaconId);
+            mockBeaconConfig.DataCollectionLevel.Returns(DataCollectionLevel.PERFORMANCE);
 
-            var beaconConfig = new BeaconConfiguration(0, DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OPT_IN_CRASHES);
-            var config = new TestConfiguration(1, beaconConfig);
-            var target = new Beacon(logger, beaconCache, config, "127.0.0.1", threadIdProvider, timingProvider, randomGenerator);
+            var target = CreateBeacon().Build();
 
             // when
             target.ClearData();
 
             // then
             Assert.That(target.SessionNumber, Is.EqualTo(1));
-            beaconCache.Received(1).DeleteCacheEntry(beaconId);
+            mockBeaconCache.Received(1).DeleteCacheEntry(beaconId);
         }
 
         [Test]
@@ -1307,47 +1864,58 @@ namespace Dynatrace.OpenKit.Protocol
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
             httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(httpClient);
 
-            var beaconCache = Substitute.For<BeaconCache>(logger);
-            var configuration = new TestConfiguration();
-
-            var target = new Beacon(logger, beaconCache, configuration, "127.0.0.1", threadIdProvider, timingProvider);
+            var target = CreateBeacon().Build();
 
             // when
             var response = target.Send(httpClientProvider);
 
             // then
             Assert.That(response, Is.Null);
-            beaconCache.Received(1).GetNextBeaconChunk(
+            mockBeaconCache.Received(1).GetNextBeaconChunk(
                 Arg.Any<int>(),
                 $"vv={ProtocolConstants.ProtocolVersion}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
-                $"&ap={configuration.ApplicationId}" +
-                $"&an={configuration.ApplicationName}" +
-                $"&vn={configuration.ApplicationVersion}" +
+                $"&ap={AppId}" +
+                $"&an={AppName}" +
+                $"&vn={AppVersion}" +
                 $"&pt={ProtocolConstants.PlatformTypeOpenKit}" +
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
-                $"&vi={configuration.DeviceId}" +
-                "&sn=1" +
+                $"&vi={DeviceId}" +
+                "&sn=0" +
                 "&ip=127.0.0.1" +
-                $"&os={configuration.Device.OperatingSystem}" +
-                $"&mf={configuration.Device.Manufacturer}" +
-                $"&md={configuration.Device.ModelId}" +
-                $"&dl={(int)configuration.BeaconConfig.DataCollectionLevel}" +
-                $"&cl={(int)configuration.BeaconConfig.CrashReportingLevel}" +
+                $"&os={string.Empty}" +
+                $"&mf={string.Empty}" +
+                $"&md={string.Empty}" +
+                $"&dl={(int)BeaconConfiguration.DefaultCrashReportingLevel}" +
+                $"&cl={(int)BeaconConfiguration.DefaultCrashReportingLevel}" +
                 "&tx=0" +
                 "&tv=0" +
-                $"&mp={configuration.BeaconConfig.Multiplicity}",
+                $"&mp={BeaconConfiguration.DefaultMultiplicity}",
                 Arg.Any<int>(),
                 Arg.Any<char>()
             );
         }
 
-        private WebRequestTracer CreateWebRequestTracer(Beacon beacon, string url)
+        private TestBeaconBuilder CreateBeacon()
         {
-            var parent = Substitute.For<OpenKitComposite>();
-            parent.ActionId.Returns(1);
+            return new TestBeaconBuilder()
+                    .With(mockLogger)
+                    .With(mockBeaconCache)
+                    .With(mockConfiguration)
+                    .WithIpAddress("127.0.0.1")
+                    .With(mockThreadIdProvider)
+                    .With(mockTimingProvider)
+                    .With(mockRandomGenerator)
+                ;
+        }
 
-            return new WebRequestTracer(logger, parent, beacon, url);
+        private TestWebRequestTracerBuilder CreateWebRequestTracer(IBeacon beacon)
+        {
+            return new TestWebRequestTracerBuilder()
+                    .With(beacon)
+                    .With(mockLogger)
+                    .With(mockParent)
+                ;
         }
     }
 }

@@ -14,15 +14,15 @@
 // limitations under the License.
 //
 
-using NUnit.Framework;
 using System.Threading;
+using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class DefaultThreadIDProviderTest
+    public class DefaultThreadIdProviderTest
     {
         [Test]
-        public void CurrentThreadIDIsReturned()
+        public void CurrentThreadIdIsReturned()
         {
             // given
             var provider = new DefaultThreadIdProvider();

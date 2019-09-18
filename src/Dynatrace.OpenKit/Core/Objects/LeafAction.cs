@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 
@@ -38,7 +37,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <param name="parentAction">the root action to which this leaf action belongs to</param>
         /// <param name="name">the name of the action</param>
         /// <param name="beacon">the beacon for retrieving certain data and for sending data</param>
-        internal LeafAction(ILogger logger, RootAction parentAction, string name, Beacon beacon)
+        internal LeafAction(ILogger logger, IRootActionInternals parentAction, string name, IBeacon beacon)
             : base(logger, parentAction, name, beacon)
         {
             ParentAction = parentAction;

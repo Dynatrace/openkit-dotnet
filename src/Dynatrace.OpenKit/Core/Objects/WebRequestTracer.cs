@@ -16,7 +16,6 @@
 
 using System;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 
@@ -26,7 +25,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Standard implementation of the IWebRequestTracer interface.
     /// </summary>
-    public class WebRequestTracer : IWebRequestTracer, IOpenKitObject
+    public class WebRequestTracer : IWebRequestTracerInternals, IOpenKitObject
     {
         private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", RegexOptions.IgnoreCase);
 
@@ -43,7 +42,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// Parent object of this web request tracer
         /// </summary>
-        private OpenKitComposite parent;
+        private IOpenKitComposite parent;
 
         /// <summary>
         /// Dynatrace tag that has to be used for tracing the web request
@@ -53,7 +52,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// Beacon and Action references
         /// </summary>
-        private readonly Beacon beacon;
+        private readonly IBeacon beacon;
 
         /// <summary>
         /// action ID of the parent
@@ -68,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <param name="logger">the logger used to log information.</param>
         /// <param name="parent">the parent object to which this web request tracer belongs to</param>
         /// <param name="beacon">the <see cref="Dynatrace.OpenKit.Protocol.Beacon"/> for sending data and tag creation</param>
-        internal WebRequestTracer(ILogger logger, OpenKitComposite parent, Beacon beacon)
+        internal WebRequestTracer(ILogger logger, IOpenKitComposite parent, IBeacon beacon)
         {
             this.logger = logger;
             this.beacon = beacon;
@@ -85,9 +84,10 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         /// <summary>
         ///  This constructor can be used for tracing and timing of a web request handled by any 3rd party HTTP Client.
-        ///  Setting the Dynatrace tag to the OpenKit.WEBREQUEST_TAG_HEADER HTTP header has to be done manually by the user.
+        ///  Setting the Dynatrace tag to the <see cref="OpenKitConstants.WEBREQUEST_TAG_HEADER"/> HTTP header has to
+        /// be done manually by the user.
         /// </summary>
-        public WebRequestTracer(ILogger logger, OpenKitComposite parent, Beacon beacon, string url)
+        internal WebRequestTracer(ILogger logger, IOpenKitComposite parent, IBeacon beacon, string url)
             : this(logger, parent, beacon)
         {
             if (IsValidUrlScheme(url))
@@ -97,6 +97,8 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         #endregion
+
+        private IWebRequestTracerInternals ThisTracer => this;
 
         /// <summary>
         /// Checks whether the given URL is valid or not
@@ -108,47 +110,27 @@ namespace Dynatrace.OpenKit.Core.Objects
             return url != null && SchemaValidationPattern.Match(url).Success;
         }
 
-        /// <summary>
-        /// Returns the URL to be traced (excluding query arguments)
-        /// </summary>
+        #region IWebRequestTracerInternals impementation
+
         public string Url { get; } = "<unknown>";
 
-        /// <summary>
-        /// Start time of the web request
-        /// </summary>
         public long StartTime { get; private set; }
 
-        /// <summary>
-        /// End time of the web request
-        /// </summary>
         public long EndTime { get; private set; } = -1;
 
-        /// <summary>
-        /// Sequence number when the web request started
-        /// </summary>
         public int StartSequenceNo { get; }
 
-        /// <summary>
-        /// Sequence number when the web request ended
-        /// </summary>
         public int EndSequenceNo { get; private set; } = -1;
 
-        /// <summary>
-        /// The response code of the web request
-        /// </summary>
         public int ResponseCode { get; private set; } = -1;
 
-        /// <summary>
-        /// The number of bytes sent
-        /// </summary>
         public int BytesSent { get; private set; } = -1;
 
-        /// <summary>
-        /// The number of received bytes
-        /// </summary>
         public int BytesReceived { get; private set; } = -1;
 
-        internal bool IsStopped => EndTime != -1;
+        bool IWebRequestTracerInternals.IsStopped => EndTime != -1;
+
+        #endregion
 
         public void Dispose()
         {
@@ -178,7 +160,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (lockObject)
             {
-                if (!IsStopped)
+                if (!ThisTracer.IsStopped)
                 {
                     StartTime = beacon.CurrentTimestamp;
                 }
@@ -202,7 +184,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (lockObject)
             {
-                if (IsStopped)
+                if (ThisTracer.IsStopped)
                 {
                     // stop was already previously called
                     return;
@@ -227,7 +209,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             lock (lockObject)
             {
-                if (!IsStopped)
+                if (!ThisTracer.IsStopped)
                 {
                     ResponseCode = responseCode;
                 }
@@ -240,7 +222,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             lock (lockObject)
             {
-                if (!IsStopped)
+                if (!ThisTracer.IsStopped)
                 {
                     BytesSent = bytesSent;
                 }
@@ -253,7 +235,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             lock (lockObject)
             {
-                if (!IsStopped)
+                if (!ThisTracer.IsStopped)
                 {
                     BytesReceived = bytesReceived;
                 }

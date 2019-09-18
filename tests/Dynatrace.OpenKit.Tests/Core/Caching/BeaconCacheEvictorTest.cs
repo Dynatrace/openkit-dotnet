@@ -14,13 +14,11 @@
 // limitations under the License.
 //
 
+using System;
+using System.Threading;
 using Dynatrace.OpenKit.API;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -52,10 +50,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         [TearDown]
         public void TearDown()
         {
-            if (evictor != null)
-            {
-                evictor.Stop();
-            }
+            evictor?.Stop();
         }
 
         [Test]
@@ -140,7 +135,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             evictor.Start();
             resetEvent.WaitOne(); // wait until the evictor thread subscribed
 
-            for (int i = 0; i < 10; i++)
+            for (var i = 0; i < 10; i++)
             {
                 mockBeaconCache.RecordAdded += Raise.Event();
                 resetEvent.WaitOne();

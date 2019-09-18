@@ -16,11 +16,9 @@
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class TestSessionIDProvider : ISessionIdProvider
+    public class TestSessionIdProvider : ISessionIdProvider
     {
         private int initialIntegerOffset = 0;
-
-        private static readonly object syncLock = new object();
 
         public int GetNextSessionId()
         {

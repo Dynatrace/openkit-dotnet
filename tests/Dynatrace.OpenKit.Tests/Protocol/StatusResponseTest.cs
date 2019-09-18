@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -377,7 +377,7 @@ namespace Dynatrace.OpenKit.Protocol
             // and when it's a negative number, then
             Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=-5", 200, new Dictionary<string, List<string>>()).Multiplicity, Is.EqualTo(-5));
         }
-        
+
         [Test]
         public void ParsingInvalidNumericValueForMultiplicityThrowsException()
         {

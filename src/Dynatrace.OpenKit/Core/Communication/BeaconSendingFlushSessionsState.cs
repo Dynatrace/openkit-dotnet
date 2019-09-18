@@ -29,8 +29,6 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal class BeaconSendingFlushSessionsState : AbstractBeaconSendingState
     {
-        public const int BEACON_SEND_RETRY_ATTEMPTS = 0; // do not retry beacon sending on error
-
         public BeaconSendingFlushSessionsState() : base(false) { }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingTerminalState();
@@ -57,7 +55,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 if (!tooManyRequestsReceived && finishedSession.IsDataSendingAllowed)
                 {
-                    var statusResponse = finishedSession.SendBeacon(context.HTTPClientProvider);
+                    var statusResponse = finishedSession.SendBeacon(context.HttpClientProvider);
                     if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
                     {
                         tooManyRequestsReceived = true;

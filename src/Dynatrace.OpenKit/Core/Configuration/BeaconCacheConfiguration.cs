@@ -22,11 +22,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// <summary>
     /// Configuration for <see cref="BeaconCache"/>
     /// </summary>
-    public class BeaconCacheConfiguration
+    public class BeaconCacheConfiguration : IBeaconCacheConfiguration
     {
-        public static readonly long DEFAULT_MAX_RECORD_AGE_IN_MILLIS = (long)TimeSpan.FromMinutes(105).TotalMilliseconds; // 1 hour and 45 minutes
-        public const long DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES = 100 * 1024 * 1024;
-        public const long DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES = 80 * 1024 * 1024;
+        public static readonly long DefaultMaxRecordAgeInMillis = (long)TimeSpan.FromMinutes(105).TotalMilliseconds; // 1 hour and 45 minutes
+        public const long DefaultUpperMemoryBoundaryInBytes = 100 * 1024 * 1024;
+        public const long DefaultLowerMemoryBoundaryInBytes = 80 * 1024 * 1024;
 
         /// <summary>
         /// Constructor

@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Protocol
         NAMED_EVENT = 10,               // named event
         SESSION_START = 18,             // session start
         SESSION_END = 19,               // session end
-        WEBREQUEST = 30,                // tagged web request
+        WEB_REQUEST = 30,               // tagged web request
         ERROR = 40,                     // error
         CRASH = 50,                     // crash
         IDENTIFY_USER = 60              // identify user

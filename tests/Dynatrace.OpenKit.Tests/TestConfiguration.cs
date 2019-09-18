@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol.SSL;
 using Dynatrace.OpenKit.Providers;
 
@@ -23,31 +24,33 @@ namespace Dynatrace.OpenKit
     public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : this(0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new TestSessionIDProvider())
+            : this(0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new TestSessionIdProvider())
         {
         }
 
-        internal TestConfiguration(long deviceID, BeaconConfiguration beaconConfig)
-            : this(deviceID, beaconConfig, new DefaultSessionIdProvider())
+        internal TestConfiguration(long deviceId, IBeaconConfiguration beaconConfig)
+            : this(deviceId, beaconConfig, new DefaultSessionIdProvider())
         {
 
         }
 
-        internal TestConfiguration(long deviceID, BeaconConfiguration beaconConfig, ISessionIdProvider sessionIDProvider)
-            : this("", deviceID, beaconConfig, sessionIDProvider)
+        internal TestConfiguration(long deviceId, IBeaconConfiguration beaconConfig, ISessionIdProvider sessionIdProvider)
+            : this("", deviceId, beaconConfig, sessionIdProvider)
         {
         }
 
-        internal TestConfiguration(string appID, long deviceID, BeaconConfiguration beaconConfig, ISessionIdProvider sessionIDProvider)
-            : base(OpenKitType.Dynatrace, "", appID, deviceID, deviceID.ToString(), "", sessionIDProvider,
-          new SSLStrictTrustManager(), new Core.Objects.Device("", "", ""), "",
+        internal TestConfiguration(string appId, long deviceId, IBeaconConfiguration beaconConfig, ISessionIdProvider sessionIdProvider)
+            : base(OpenKitType.Dynatrace, "", appId, deviceId, deviceId.ToString(), "", sessionIdProvider,
+          new SSLStrictTrustManager(), new Device("", "", ""), "",
           new BeaconCacheConfiguration(
-            BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
-            BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,
-            BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES),
+            BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis,
+            BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes,
+            BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes),
           beaconConfig)
         {
-            EnableCapture();
+            ThisConfig.EnableCapture();
         }
+
+        private IOpenKitConfiguration ThisConfig => this;
     }
 }

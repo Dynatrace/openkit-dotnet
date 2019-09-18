@@ -24,9 +24,9 @@ namespace Dynatrace.OpenKit.Protocol
 
     public class HttpClientHttpClient : HttpClient
     {
-        private readonly HttpClientConfiguration configuration;
+        private readonly IHttpClientConfiguration configuration;
 
-        public HttpClientHttpClient(ILogger logger, HttpClientConfiguration configuration) : base(logger, configuration)
+        public HttpClientHttpClient(ILogger logger, IHttpClientConfiguration configuration) : base(logger, configuration)
         {
             this.configuration = configuration;
         }

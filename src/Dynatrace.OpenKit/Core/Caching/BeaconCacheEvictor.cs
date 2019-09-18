@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Caching
     /// </summary>
     public class BeaconCacheEvictor
     {
-        public static readonly int EVICTION_THREAD_JOIN_TIMEOUT = 2 * 1000; // 2seconds in milliseconds
+        public static readonly int EvictionThreadJoinTimeout = 2 * 1000; // 2seconds in milliseconds
 
         private readonly ILogger logger;
         private readonly IBeaconCache beaconCache;
@@ -52,7 +52,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <param name="beaconCache">The Beacon cache to check if entries need to be evicted</param>
         /// <param name="configuration">Beacon cache configuration</param>
         /// <param name="timingProvider">Timing provider required for time retrieval</param>
-        public BeaconCacheEvictor(ILogger logger, IBeaconCache beaconCache, BeaconCacheConfiguration configuration, ITimingProvider timingProvider) :
+        internal BeaconCacheEvictor(ILogger logger, IBeaconCache beaconCache, IBeaconCacheConfiguration configuration, ITimingProvider timingProvider) :
             this(logger, beaconCache)
         {
             strategies = new IBeaconCacheEvictionStrategy[]
@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 #else
             evictionThread = new Thread(RunEvictionThread)
             {
-                Name = this.GetType().Name,
+                Name = GetType().Name,
                 IsBackground = true
             };
 #endif
@@ -149,7 +149,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// Stops the eviction thread if the thread is alive and joins the thread.
         /// </summary>
         /// <remarks>
-        /// This method calls <see cref="Stop(int)"/> with default join timeout <see cref="BeaconCacheEvictor.EVICTION_THREAD_JOIN_TIMEOUT"/>.
+        /// This method calls <see cref="Stop(int)"/> with default join timeout <see cref="EvictionThreadJoinTimeout"/>.
         /// </remarks>
         /// <returns>
         /// <code>true</code> if stopping was successful,
@@ -157,7 +157,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </returns>
         public bool Stop()
         {
-            return Stop(EVICTION_THREAD_JOIN_TIMEOUT);
+            return Stop(EvictionThreadJoinTimeout);
         }
 
         /// <summary>

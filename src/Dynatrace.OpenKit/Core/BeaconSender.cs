@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Core
     /// <remarks>
     /// The <code>BeaconSender</code> manages the thread running OpenKit communication in the background.
     /// </remarks>
-    public class BeaconSender
+    public class BeaconSender : IBeaconSender
     {
         private const int SHUTDOWN_TIMEOUT = 10 * 1000;                  // wait max 10s (in ms) for beacon sender to complete data sending during shutdown
 
@@ -44,7 +44,7 @@ namespace Dynatrace.OpenKit.Core
         // sending state context
         private readonly IBeaconSendingContext context;
 
-        public BeaconSender(ILogger logger, OpenKitConfiguration configuration, IHttpClientProvider clientProvider, ITimingProvider provider)
+        internal BeaconSender(ILogger logger, IOpenKitConfiguration configuration, IHttpClientProvider clientProvider, ITimingProvider provider)
             : this(logger, new BeaconSendingContext(logger, configuration, clientProvider, provider))
         {
         }
@@ -121,7 +121,7 @@ namespace Dynatrace.OpenKit.Core
         }
 
         // when starting a new Session, put it into open Sessions
-        public void StartSession(Session session)
+        void IBeaconSender.StartSession(ISessionInternals session)
         {
             if (logger.IsDebugEnabled)
             {
@@ -131,7 +131,7 @@ namespace Dynatrace.OpenKit.Core
         }
 
         // when finishing a Session, remove it from open Sessions and put it into finished Sessions
-        public void FinishSession(Session session)
+        void IBeaconSender.FinishSession(ISessionInternals session)
         {
             if (logger.IsDebugEnabled)
             {

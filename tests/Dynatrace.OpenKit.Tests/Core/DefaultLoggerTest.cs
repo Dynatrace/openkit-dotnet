@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Dynatrace.OpenKit.API;
+using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core
 {

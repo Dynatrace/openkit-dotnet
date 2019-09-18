@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // when passing null as argument, then
             Assert.That(new BeaconCacheRecord(0L, null).Data, Is.Null);
 
-            // when passing an emtpy string as argument, then
+            // when passing an empty string as argument, then
             Assert.That(new BeaconCacheRecord(0L, string.Empty).Data, Is.EqualTo(string.Empty));
 
             // when passing non-null and non-empty string as argument, then
@@ -136,7 +136,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCacheRecord(1234L, "abc");
-            BeaconCacheRecord other = new BeaconCacheRecord(4321L, "abc");
+            var other = new BeaconCacheRecord(4321L, "abc");
 
             // then
             Assert.That(target.Equals(other), Is.False);

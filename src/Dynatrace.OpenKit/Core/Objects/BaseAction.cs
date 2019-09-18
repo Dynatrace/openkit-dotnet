@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Abstract base class implementing the <see cref="IAction"/> interface
     /// </summary>
-    public abstract class BaseAction : OpenKitComposite, IAction
+    public abstract class BaseAction : OpenKitComposite, IActionInternals
     {
         /// <summary>
         /// The web request tracer being returned once this action was closed.
@@ -33,7 +33,9 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// the parent object of this <see cref="IAction"/>
         /// </summary>
-        private readonly OpenKitComposite parent;
+        private readonly IOpenKitComposite parent;
+
+        #region Constructor
 
         /// <summary>
         /// object for synchronization
@@ -41,9 +43,9 @@ namespace Dynatrace.OpenKit.Core.Objects
         protected readonly object LockObject = new object();
 
         internal BaseAction(ILogger logger,
-            OpenKitComposite parent,
+            IOpenKitComposite parent,
             string name,
-            Beacon beacon)
+            IBeacon beacon)
         {
             Logger = logger;
             this.parent = parent;
@@ -56,6 +58,15 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             Beacon = beacon;
         }
+
+        #endregion
+
+        /// <summary>
+        /// Accessor for simplified explicit access to internal <see cref="IOpenKitComposite"/>.
+        /// </summary>
+        private IOpenKitComposite ThisComposite => this;
+
+        #region IActionInternals implementation
 
         /// <summary>
         /// Unique identifier of this <see cref="IAction"/>.
@@ -92,6 +103,8 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         public int EndSequenceNo { get; private set; } = -1;
 
+        #endregion
+
         /// <summary>
         /// Indicates if this action was <see cref="LeaveAction">left</see>
         /// </summary>
@@ -100,7 +113,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// Beacon for sending the data
         /// </summary>
-        protected Beacon Beacon { get; }
+        private protected IBeacon Beacon { get; }
 
         /// <summary>
         /// Logger for tracing log messages
@@ -253,7 +266,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 if (!IsActionLeft)
                 {
                     var tracer = new WebRequestTracer(Logger, this, Beacon, url);
-                    StoreChildInList(tracer);
+                    ThisComposite.StoreChildInList(tracer);
 
                     return tracer;
                 }
@@ -283,7 +296,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 Beacon.AddAction(this);
             }
 
-            var childObjects = GetCopyOfChildObjects();
+            var childObjects = ThisComposite.GetCopyOfChildObjects();
             foreach (var childObject in childObjects)
             {
                 childObject.Dispose();
@@ -301,11 +314,11 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public override int ActionId => Id;
 
-        internal override void OnChildClosed(IOpenKitObject childObject)
+        private protected override void OnChildClosed(IOpenKitObject childObject)
         {
             lock (LockObject)
             {
-                RemoveChildFromList(childObject);
+                ThisComposite.RemoveChildFromList(childObject);
             }
         }
 

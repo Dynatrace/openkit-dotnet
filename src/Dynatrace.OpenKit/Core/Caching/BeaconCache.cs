@@ -299,14 +299,14 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        /// Get cached <see cref="BeaconCacheEntry"/> or insert new one if nothing exists for given <paramref name="beaconID"/>.
+        /// Get cached <see cref="BeaconCacheEntry"/> or insert new one if nothing exists for given <paramref name="beaconId"/>.
         /// </summary>
-        /// <param name="beaconID">The beacon id to search for.</param>
+        /// <param name="beaconId">The beacon id to search for.</param>
         /// <returns>The already cached entry or newly created one.</returns>
-        private BeaconCacheEntry GetCachedEntryOrInsert(int beaconID)
+        private BeaconCacheEntry GetCachedEntryOrInsert(int beaconId)
         {
             // get the appropriate cache entry
-            var entry = GetCachedEntry(beaconID);
+            var entry = GetCachedEntry(beaconId);
 
             if (entry == null)
             {
@@ -314,15 +314,15 @@ namespace Dynatrace.OpenKit.Core.Caching
                 {
                     // does not exist, and needs to be inserted
                     globalCacheLock.EnterWriteLock();
-                    if (!beacons.ContainsKey(beaconID))
+                    if (!beacons.ContainsKey(beaconId))
                     {
                         // double check since this could have been added in the mean time
                         entry = new BeaconCacheEntry();
-                        beacons.Add(beaconID, entry);
+                        beacons.Add(beaconId, entry);
                     }
                     else
                     {
-                        entry = beacons[beaconID];
+                        entry = beacons[beaconId];
                     }
                 }
                 finally
@@ -335,19 +335,19 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        /// Get cached <see cref="BeaconCacheEntry"/> or <code>null</code> if nothing exists for given <paramref name="beaconID"/>.
+        /// Get cached <see cref="BeaconCacheEntry"/> or <code>null</code> if nothing exists for given <paramref name="beaconId"/>.
         /// </summary>
-        /// <param name="beaconID">The beacon id to search for.</param>
+        /// <param name="beaconId">The beacon id to search for.</param>
         /// <returns>The cached entry or <code>null</code>.</returns>
-        private BeaconCacheEntry GetCachedEntry(int beaconID)
+        private BeaconCacheEntry GetCachedEntry(int beaconId)
         {
             BeaconCacheEntry entry = null;
 
-            // acquuire read lock and get the entry
+            // acquire read lock and get the entry
             try
             {
                 globalCacheLock.EnterReadLock();
-                if (beacons.TryGetValue(beaconID, out BeaconCacheEntry result))
+                if (beacons.TryGetValue(beaconId, out BeaconCacheEntry result))
                 {
                     entry = result;
                 }

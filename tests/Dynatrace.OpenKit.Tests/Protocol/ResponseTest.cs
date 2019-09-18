@@ -14,10 +14,10 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -139,7 +139,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         private sealed class TestResponse : Response
         {

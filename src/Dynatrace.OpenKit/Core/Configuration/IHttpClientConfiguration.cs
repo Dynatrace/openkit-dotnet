@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,33 +19,30 @@ using Dynatrace.OpenKit.API;
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     /// <summary>
-    /// The HttpClientConfiguration holds all http client related settings
+    /// This interface holds all HTTP client related settings.
     /// </summary>
-    public class HttpClientConfiguration : IHttpClientConfiguration
+    public interface IHttpClientConfiguration
     {
-        public HttpClientConfiguration(string baseUrl, int serverId, string applicationId, ISSLTrustManager sslTrustManager)
-        {
-            BaseUrl = baseUrl;
-            ServerId = serverId;
-            ApplicationId = applicationId;
-            SslTrustManager = sslTrustManager;
-        }
+        /// <summary>
+        /// Returns the base URL for the <see cref="Dynatrace.OpenKit.Protocol.IHttpClient"/>.
+        /// </summary>
+        string BaseUrl { get; }
 
         /// <summary>
-        /// The base URL for the http client
+        /// Returns the server ID used for communication by the <see cref="Dynatrace.OpenKit.Protocol.IHttpClient"/>.
         /// </summary>
-        public string BaseUrl { get; }
+        int ServerId { get; }
 
         /// <summary>
-        /// The server id to be used for the http client
+        /// Returns the application used when communicating with the server via the
+        /// <see cref="Dynatrace.OpenKit.Protocol.IHttpClient"/>.
         /// </summary>
-        public int ServerId { get; }
+        string ApplicationId { get; }
 
         /// <summary>
-        /// The application id for the http client
+        /// Returns the <see cref="ISSLTrustManager">trust manager</see> used to encrypt the communication with the
+        /// server.
         /// </summary>
-        public string ApplicationId { get; }
-
-        public ISSLTrustManager SslTrustManager { get; }
+        ISSLTrustManager SslTrustManager { get; }
     }
 }

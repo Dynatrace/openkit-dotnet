@@ -52,8 +52,8 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // context
             context = Substitute.For<IBeaconSendingContext>();
-            context.GetHTTPClient().Returns(httpClient);
-            context.HTTPClientProvider.Returns(httpClientProvider);
+            context.GetHttpClient().Returns(httpClient);
+            context.HttpClientProvider.Returns(httpClientProvider);
 
             // beacon sender
             var logger = Substitute.For<ILogger>();
@@ -109,7 +109,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ABeaconSendingFlushSessionsStateConfiguresAllUnconfiguredSessions()
+        public void ABeaconSendingFlushSessionsStateConfiguresAllNotConfiguredSessions()
         {
             // given
             var target = new BeaconSendingFlushSessionsState();
@@ -154,11 +154,11 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.Received(1).FinishSession(sessionTwo.Session);
         }
 
-        private Session CreateValidSession(string clientIP)
+        private Session CreateValidSession(string clientIp)
         {
             var logger = Substitute.For<ILogger>();
             var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                new TestConfiguration(), clientIP, Substitute.For<IThreadIdProvider>(), timingProvider));
+                new TestConfiguration(), clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
 

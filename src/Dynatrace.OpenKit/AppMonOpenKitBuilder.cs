@@ -60,7 +60,7 @@ namespace Dynatrace.OpenKit
             var beaconCacheConfig = new BeaconCacheConfiguration(
                 BeaconCacheMaxBeaconAge, BeaconCacheLowerMemoryBoundary, BeaconCacheUpperMemoryBoundary);
 
-            var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DEFAULT_MULITPLICITY, DataCollectionLevel, CrashReportingLevel);
+            var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DefaultMultiplicity, DataCollectionLevel, CrashReportingLevel);
 
             return new OpenKitConfiguration(
                 OpenKitType.AppMon,

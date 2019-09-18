@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using NSubstitute;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Util
@@ -28,7 +27,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122.133.55.22";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
@@ -38,7 +37,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "0.0.0.0";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
@@ -48,7 +47,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "8.8.8.8";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
@@ -58,7 +57,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "255.255.255.255";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.True);
         }
 
@@ -68,7 +67,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "255.255.255.256";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -78,7 +77,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "255:255:255:255";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -88,7 +87,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122x.133.55.22";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -98,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122.133x.55.22";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -108,7 +107,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122.133.55x.22";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -118,7 +117,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122.133.55.22x";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -128,7 +127,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122.133.256.22";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -138,7 +137,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv4TestString = "122.133.256.-22";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv4TestString), Is.False);
         }
 
@@ -148,7 +147,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "23fe:33af:1232:5522:abcd:2532:1a2b:1";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -158,7 +157,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "23fec:33af:1232:5522:abcd:2532:1a2b:1";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -168,7 +167,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "23fl:33af:1232:5522:abcd:2532:1a2b:1";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -178,7 +177,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "23fl:33af:1232:5522:abcd:2532:1a2b:1:2:3";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -188,7 +187,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001:db:85:b::1A";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -198,7 +197,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001:db:85::b:1A";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -208,7 +207,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001:db::85:b:1A";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -218,7 +217,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001::db:85:b:1A";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -228,7 +227,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001::b1A";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -238,7 +237,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001::db:85::b1A";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -248,7 +247,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = ":4::5:6";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -258,7 +257,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6MixedTestString = "0:0:0:0:0:0:172.12.55.18";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
         }
 
@@ -268,7 +267,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6MixedTestString = "::172.12.55.18";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
         }
 
@@ -278,7 +277,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6MixedTestString = "1:2:3:4:5:6:172.12.55.18";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
         }
 
@@ -288,7 +287,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6MixedTestString = "2018:f::172.12.55.18";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6MixedTestString), Is.True);
         }
 
@@ -298,7 +297,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "0::FF:FF:172.12.55";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -308,7 +307,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "0::FF::FF:172.12.55.34";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -318,7 +317,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "0::FF:FF:FF:172.12.55.34";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -328,7 +327,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "::FF:FF:172.12.55.43";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -338,7 +337,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "123:::172.12.55.43";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.False);
         }
 
@@ -348,7 +347,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestStringLinkLocal = "fe80::208:74ff:feda:625c%5";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.True);
         }
 
@@ -358,7 +357,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestStringLinkLocal = "fe80::625c%5";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.True);
         }
 
@@ -368,7 +367,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestStringLinkLocal = "fe80:34:208:74ff:feda:dada:625c:8976:abcd%5";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
         }
 
@@ -378,7 +377,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestStringLinkLocal = "fe80::208t:74ff:feda:dada:625c%5";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
         }
 
@@ -388,7 +387,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestStringLinkLocal = "fe80::208:74ff::dada:625c%5";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
         }
 
@@ -398,7 +397,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestStringLinkLocal = "fedd::208:74ff::dada:625c%5";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestStringLinkLocal), Is.False);
         }
 
@@ -410,7 +409,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001:0db8::0001";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -420,7 +419,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001:db8::0:1";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -430,7 +429,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "2001:db8::1:0:0:1";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -440,7 +439,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "20ae:db8::1f:4edd:344f:1abc";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -450,7 +449,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "20aE:Db8::1f:4EDd:344f:1aBc";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
 
@@ -460,7 +459,7 @@ namespace Dynatrace.OpenKit.Core.Util
             //given
             var ipv6TestString = "20AE:DB8::1F:4EDD:344F:1ABC";
 
-            //then 
+            //then
             Assert.That(InetAddressValidator.IsValidIP(ipv6TestString), Is.True);
         }
     }

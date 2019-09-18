@@ -27,7 +27,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class SessionWrapperTest
     {
-        private Session wrappedSession;
+        private ISessionInternals wrappedSession;
 
         [SetUp]
         public void SetUp()

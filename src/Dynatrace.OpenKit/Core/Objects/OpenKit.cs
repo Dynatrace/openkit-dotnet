@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         private static readonly ISession NullSession = new NullSession();
 
         // Configuration reference
-        private readonly OpenKitConfiguration configuration;
+        private readonly IOpenKitConfiguration configuration;
         private readonly ITimingProvider timingProvider;
         private readonly BeaconSender beaconSender;
         private readonly IThreadIdProvider threadIdProvider;
@@ -47,13 +47,13 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #region constructors
 
-        public OpenKit(ILogger logger, OpenKitConfiguration configuration)
+        internal OpenKit(ILogger logger, IOpenKitConfiguration configuration)
             : this(logger, configuration, new DefaultHttpClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIdProvider())
         {
         }
 
-        protected OpenKit(ILogger logger,
-            OpenKitConfiguration configuration,
+        internal OpenKit(ILogger logger,
+            IOpenKitConfiguration configuration,
             IHttpClientProvider httpClientProvider,
             ITimingProvider timingProvider,
             IThreadIdProvider threadIdProvider)

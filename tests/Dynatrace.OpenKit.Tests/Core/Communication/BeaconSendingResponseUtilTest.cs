@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {

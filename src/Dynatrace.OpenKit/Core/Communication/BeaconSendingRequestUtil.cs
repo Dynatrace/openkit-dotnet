@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             while (true)
             {
-                statusResponse = context.GetHTTPClient().SendStatusRequest();
+                statusResponse = context.GetHttpClient().SendStatusRequest();
                 if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse)
                       || BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse) // is handled by the states
                       || retry >= numRetries

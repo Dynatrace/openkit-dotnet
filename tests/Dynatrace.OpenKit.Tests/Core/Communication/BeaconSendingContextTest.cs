@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingContextTest
     {
-        private OpenKitConfiguration config;
+        private IOpenKitConfiguration config;
         private IHttpClientProvider clientProvider;
         private ITimingProvider timingProvider;
         private AbstractBeaconSendingState nonTerminalStateMock;
@@ -209,7 +209,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
-            var actual = target.GetHTTPClient();
+            var actual = target.GetHttpClient();
 
             Assert.NotNull(actual);
             Assert.AreSame(expected, actual);
@@ -225,7 +225,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
-            var actual = target.GetHTTPClient();
+            var actual = target.GetHttpClient();
 
             clientProvider.Received(1).CreateClient(config.HttpClientConfig);
         }
@@ -251,7 +251,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             target.Sleep();
 
-            timingProvider.Received(1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+            timingProvider.Received(1).Sleep(BeaconSendingContext.DefaultSleepTimeMilliseconds);
         }
 
         [Test]
@@ -333,7 +333,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
             // when starting the first session
-            // Caution: Session CTOR implicityly starts itself!!!
+            // Caution: Session CTOR implicitly starts itself!!!
             var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
@@ -343,7 +343,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
 
             // when starting the second session
-            // Caution: Session CTOR implicityly starts itself!!!
+            // Caution: Session CTOR implicitly starts itself!!!
             var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
@@ -432,7 +432,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // when both session are added
-            // Caution: Session CTOR implicityly starts itself!!!
+            // Caution: Session CTOR implicitly starts itself!!!
             target.FinishSession(sessionOne);
             target.FinishSession(sessionTwo);
 

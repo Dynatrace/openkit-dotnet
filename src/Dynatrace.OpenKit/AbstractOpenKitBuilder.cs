@@ -79,15 +79,21 @@ namespace Dynatrace.OpenKit
         protected string EndpointUrl { get; }
         protected long DeviceId { get; }
         protected string OrigDeviceId { get; }
-        protected long BeaconCacheMaxBeaconAge { get; private set; } = BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS;
 
-        protected long BeaconCacheLowerMemoryBoundary { get; private set; } = BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES;
+        protected long BeaconCacheMaxBeaconAge { get; private set; } =
+            BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis;
 
-        protected long BeaconCacheUpperMemoryBoundary { get; private set; } = BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES;
+        protected long BeaconCacheLowerMemoryBoundary { get; private set; } =
+            BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes;
 
-        protected DataCollectionLevel DataCollectionLevel { get; private set; } = BeaconConfiguration.DEFAULT_DATA_COLLECTION_LEVEL;
+        protected long BeaconCacheUpperMemoryBoundary { get; private set; } =
+            BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes;
 
-        protected CrashReportingLevel CrashReportingLevel { get; private set; } = BeaconConfiguration.DEFAULT_CRASH_REPORTING_LEVEL;
+        protected DataCollectionLevel DataCollectionLevel { get; private set; } =
+            BeaconConfiguration.DefaultDataCollectionLevel;
+
+        protected CrashReportingLevel CrashReportingLevel { get; private set; } =
+            BeaconConfiguration.DefaultCrashReportingLevel;
 
         /// <summary>
         /// Enables verbose mode. Verbose mode is only enabled if the the default logger is used.

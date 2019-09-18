@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,25 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Core.Objects;
 
-namespace Dynatrace.OpenKit.Providers
+namespace Dynatrace.OpenKit.Core
 {
-    /// <summary>
-    /// Interface providing a method to create a new http client
-    /// </summary>
-    public interface IHttpClientProvider
+    internal interface IBeaconSender
     {
-        /// <summary>
-        /// Returns an HTTPClient based on the provided configuration
-        /// </summary>
-        /// <param name="configuration">the configuration used for creating the HTTP client</param>
-        /// <returns></returns>
-        IHttpClient CreateClient(IHttpClientConfiguration configuration);
+
+        bool IsInitialized { get; }
+
+        void Initialize();
+
+        bool WaitForInitCompletion();
+
+        bool WaitForInitCompletion(int timeoutMillis);
+
+        void Shutdown();
+
+        void StartSession(ISessionInternals session);
+
+        void FinishSession(ISessionInternals session);
     }
 }

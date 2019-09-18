@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.API;
 
-namespace Dynatrace.OpenKit.Providers
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
-    /// Interface providing a method to create a new http client
+    /// Aggregation interface for a <see cref="RootAction"/>
     /// </summary>
-    public interface IHttpClientProvider
+    internal interface IRootActionInternals : IRootAction, IOpenKitComposite
     {
-        /// <summary>
-        /// Returns an HTTPClient based on the provided configuration
-        /// </summary>
-        /// <param name="configuration">the configuration used for creating the HTTP client</param>
-        /// <returns></returns>
-        IHttpClient CreateClient(IHttpClientConfiguration configuration);
     }
 }

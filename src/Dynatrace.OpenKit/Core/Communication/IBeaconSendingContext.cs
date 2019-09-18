@@ -30,12 +30,12 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Returns the configuration
         /// </summary>
-        OpenKitConfiguration Configuration { get; }
+        IOpenKitConfiguration Configuration { get; }
 
         /// <summary>
         /// Returns the HTTP client provider
         /// </summary>
-        IHttpClientProvider HTTPClientProvider { get; }
+        IHttpClientProvider HttpClientProvider { get; }
 
         /// <summary>
         /// Returns the timing provider
@@ -141,7 +141,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Returns an instance of HTTPClient using the current configuration
         /// </summary>
         /// <returns></returns>
-        IHttpClient GetHTTPClient();
+        IHttpClient GetHttpClient();
 
         /// <summary>
         /// Sleeps <code>DEFAULT_SLEEP_TIME_MILLISECONDS</code> millis
@@ -169,14 +169,14 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Adds the provided session to the list of open sessions
         /// </summary>
         /// <param name="session"></param>
-        void StartSession(Session session);
+        void StartSession(ISessionInternals session);
 
         /// <summary>
         /// Removes the provided session from the list of open sessions and adds it to the list of finished sessions
         /// </summary>
         /// <remarks>If the provided session is not contained in the list of open sessions, it is nod added to the finished sessions</remarks>
         /// <param name="session"></param>
-        void FinishSession(Session session);
+        void FinishSession(ISessionInternals session);
 
         /// <summary>
         /// Remove <paramref name="sessionWrapper"/> from internal list of sessions.

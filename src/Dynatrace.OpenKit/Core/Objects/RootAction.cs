@@ -22,7 +22,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     /// Actual implementation of the RootAction interface.
     /// </summary>
-    public class RootAction : BaseAction, IRootAction
+    internal class RootAction : BaseAction, IRootActionInternals
     {
         #region constructors
 
@@ -35,14 +35,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <param name="beacon">the beacon for retrieving certain data and for sending data</param>
         public RootAction(
             ILogger logger,
-            Session parentSession,
+            ISessionInternals parentSession,
             string name,
-            Beacon beacon)
+            IBeacon beacon)
             : base(logger, parentSession, name, beacon)
         {
         }
 
         #endregion
+
+        /// <summary>
+        /// Accessor for simplified explicit access to internal <see cref="IOpenKitComposite"/>.
+        /// </summary>
+        private IOpenKitComposite ThisComposite => this;
 
         #region IRootAction interface implementations
 
@@ -63,7 +68,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 if (!IsActionLeft)
                 {
                     var childAction = new LeafAction(Logger, this, actionName, Beacon);
-                    StoreChildInList(childAction);
+                    ThisComposite.StoreChildInList(childAction);
 
                     return childAction;
                 }

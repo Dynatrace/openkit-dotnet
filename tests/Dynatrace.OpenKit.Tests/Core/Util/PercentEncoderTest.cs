@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-using NUnit.Framework;
 using System.Text;
+using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Util
 {
@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Util
         /// All unreserved characters based on RFC-3986
         /// </summary>
         private const string UnreservedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-        
+
         [Test]
         public void RFC3986UnreservedCharactersAreNotEncoded()
         {

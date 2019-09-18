@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Constructor taking the wrapped <see cref="Session"/>.
         /// </summary>
         /// <param name="session">The wrapped session.</param>
-        internal SessionWrapper(Session session)
+        internal SessionWrapper(ISessionInternals session)
         {
             Session = session;
             NumNewSessionRequestsLeft = MaxNewSessionRequests;
@@ -48,7 +48,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Get the wrapped session.
         /// </summary>
-        internal Session Session { get; }
+        internal ISessionInternals Session { get; }
 
         /// <summary>
         /// Get a boolean flag indicating whether <see cref="UpdateBeaconConfiguration(Configuration.BeaconConfiguration)"/>
@@ -59,7 +59,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Get Session's BeaconConfiguration.
         /// </summary>
-        internal BeaconConfiguration BeaconConfiguration => Session.BeaconConfiguration;
+        internal IBeaconConfiguration BeaconConfiguration => Session.BeaconConfiguration;
 
         /// <summary>
         /// Get a boolean flag indicating whether this session is finished or not.

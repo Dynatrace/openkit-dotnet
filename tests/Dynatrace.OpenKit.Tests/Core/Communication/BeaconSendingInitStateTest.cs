@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -35,7 +35,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             logger = Substitute.For<ILogger>();
             httpClient = Substitute.For<IHttpClient>();
             context = Substitute.For<IBeaconSendingContext>();
-            context.GetHTTPClient().Returns(httpClient);
+            context.GetHttpClient().Returns(httpClient);
             httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
         }
 
@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         [Test]
         public void InitCompleteIsCalledOnInterrupt()
         {
-            // when 
+            // when
             var target = new BeaconSendingInitState();
             target.OnInterrupted(context);
 
@@ -132,7 +132,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var count = 0;
             var erroneousResponse = new StatusResponse(logger, string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
             httpClient.SendStatusRequest().Returns(erroneousResponse); // always return erroneous response
-            context.IsShutdownRequested.Returns(_ => { return count++ > 40; });
+            context.IsShutdownRequested.Returns(_ => count++ > 40);
 
             var target = new BeaconSendingInitState();
 
@@ -288,7 +288,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.IsShutdownRequested.Returns(false, true);
 
             var target = new BeaconSendingInitState();
-        
+
             // when
             target.Execute(context);
 

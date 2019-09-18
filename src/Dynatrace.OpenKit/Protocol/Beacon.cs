@@ -14,8 +14,6 @@
 // limitations under the License.
 //
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
@@ -31,12 +29,8 @@ namespace Dynatrace.OpenKit.Protocol
     /// <summary>
     ///  The Beacon class holds all the beacon data and the beacon protocol implementation.
     /// </summary>
-    public class Beacon
+    internal class Beacon : IBeacon
     {
-        // Initial time to sleep after the first failed beacon send attempt.
-        private const int InitialRetrySleepTimeMilliseconds = 1000;
-
-
         // basic data constants
         private const string BeaconKeyProtocolVersion = "vv";
         private const string BeaconKeyOpenKitVersion = "va";
@@ -93,8 +87,8 @@ namespace Dynatrace.OpenKit.Protocol
         private const char BeaconDataDelimiter = '&';
 
         // next ID and sequence number
-        private int nextId = 0;
-        private int nextSequenceNumber = 0;
+        private int nextId;
+        private int nextSequenceNumber;
 
         // session number & start time
         private readonly long sessionStartTime;
@@ -107,20 +101,20 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly ITimingProvider timingProvider;
 
         // configuration
-        private readonly HttpClientConfiguration httpConfiguration;
+        private readonly IHttpClientConfiguration httpConfiguration;
 
         // basic beacon protocol data
         private readonly string basicBeaconData;
 
         // Configuration reference
-        private readonly OpenKitConfiguration configuration;
+        private readonly IOpenKitConfiguration configuration;
 
         // Beacon configuration
-        private volatile BeaconConfiguration beaconConfiguration;
+        private volatile IBeaconConfiguration beaconConfiguration;
 
         private readonly ILogger logger;
 
-        private readonly BeaconCache beaconCache;
+        private readonly IBeaconCache beaconCache;
         private readonly int beaconId;
 
         #region constructors
@@ -134,7 +128,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="clientIpAddress">The client's IP address</param>
         /// <param name="threadIdProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
-        public Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIpAddress,
+        internal Beacon(ILogger logger, BeaconCache beaconCache, IOpenKitConfiguration configuration, string clientIpAddress,
             IThreadIdProvider threadIdProvider, ITimingProvider timingProvider)
             : this(logger, beaconCache, configuration, clientIpAddress, threadIdProvider, timingProvider, new DefaultPrnGenerator())
         {
@@ -150,12 +144,12 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="threadIdProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
         /// <param name="randomNumberGenerator">Random number generator</param>
-        internal Beacon(ILogger logger, BeaconCache beaconCache, OpenKitConfiguration configuration, string clientIpAddress,
+        internal Beacon(ILogger logger, IBeaconCache beaconCache, IOpenKitConfiguration configuration, string clientIpAddress,
             IThreadIdProvider threadIdProvider, ITimingProvider timingProvider, IPrnGenerator randomNumberGenerator)
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
-            BeaconConfiguration = configuration.BeaconConfig;
+            ThisBeacon.BeaconConfiguration = configuration.BeaconConfig;
 
             beaconId = configuration.NextSessionNumber;
             if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
@@ -166,7 +160,7 @@ namespace Dynatrace.OpenKit.Protocol
             else
             {
                 SessionNumber = 1;
-                DeviceId = randomNumberGenerator.NextLong(long.MaxValue);
+                DeviceId = NextRandomPositiveLong(randomNumberGenerator);
             }
 
             this.timingProvider = timingProvider;
@@ -181,10 +175,16 @@ namespace Dynatrace.OpenKit.Protocol
             basicBeaconData = CreateBasicBeaconData();
         }
 
+        private static long NextRandomPositiveLong(IPrnGenerator randomGenerator)
+        {
+            return randomGenerator.NextLong(long.MaxValue) & 0x7fffffffffffffffL;
+        }
+
         #endregion
 
-        #region public properties
+        private IBeacon ThisBeacon => this;
 
+        #region IBeacon implementation
         public int SessionNumber { get; }
 
         public long DeviceId { get; }
@@ -206,11 +206,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
 
-        #endregion
-
-        #region internal properties
-
-        internal BeaconConfiguration BeaconConfiguration
+        IBeaconConfiguration IBeacon.BeaconConfiguration
         {
             set
             {
@@ -222,63 +218,17 @@ namespace Dynatrace.OpenKit.Protocol
             get => beaconConfiguration;
         }
 
-        internal int Multiplicity => BeaconConfiguration.Multiplicity;
+        int IBeacon.Multiplicity => ThisBeacon.BeaconConfiguration.Multiplicity;
 
-        internal bool CapturingDisabled => !BeaconConfiguration.CapturingAllowed;
-
-        /// <summary>
-        /// Returns an immutable list of the event data
-        /// </summary>
-        /// <remarks>
-        /// Used for testing
-        /// </remarks>
-        internal List<string> EventDataList
-        {
-            get
-            {
-                var events = beaconCache.GetEvents(beaconId);
-                if (events == null)
-                {
-                    return new List<string>();
-                }
-
-                return events.Select(x => x.Data).ToList();
-            }
-        }
-
-        /// <summary>
-        /// Returns an immutable list of the action data
-        /// </summary>
-        /// <remarks>
-        /// Used for testing
-        /// </remarks>
-        internal List<string> ActionDataList
-        {
-            get
-            {
-                var actions = beaconCache.GetActions(beaconId);
-                if (actions == null)
-                {
-                    return new List<string>();
-                }
-
-                return actions.Select(x => x.Data).ToList();
-            }
-        }
+        bool IBeacon.CapturingDisabled => !ThisBeacon.BeaconConfiguration.CapturingAllowed;
 
         #endregion
 
-        #region public methods
+        #region internal methods
 
-        /// <summary>
-        /// create web request tag
-        /// </summary>
-        /// <param name="parentActionId"></param>
-        /// <param name="sequenceNo"></param>
-        /// <returns></returns>
-        public string CreateTag(int parentActionId, int sequenceNo)
+        string IBeacon.CreateTag(int parentActionId, int sequenceNo)
         {
-            if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (ThisBeacon.BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return string.Empty;
             }
@@ -294,17 +244,9 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"{sequenceNo}";
         }
 
-        /// <summary>
-        /// Adds an <see cref="BaseAction">action</see> to this beacon.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>
-        /// </para>
-        /// </summary>
-        /// <param name="action">the action to add</param>
-        public void AddAction(BaseAction action)
+        void IBeacon.AddAction(IActionInternals action)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -328,12 +270,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddActionData(action.StartTime, actionBuilder);
         }
 
-        /// <summary>
-        /// start the session
-        /// </summary>
-        public void StartSession()
+        void IBeacon.StartSession()
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -349,13 +288,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(sessionStartTime, eventBuilder);
         }
 
-        /// <summary>
-        /// end Session on this Beacon
-        /// </summary>
-        /// <param name="session"></param>
-        public void EndSession(Session session)
+        void IBeacon.EndSession(ISessionInternals session)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -376,20 +311,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(session.EndTime, eventBuilder);
         }
 
-
-        /// <summary>
-        /// Reports the given integer value on the action belonging to the given ID.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
-        /// <param name="valueName">the name of the reported value.</param>
-        /// <param name="value">the reported integer value.</param>
-        public void ReportValue(int actionId, string valueName, int value)
+        void IBeacon.ReportValue(int actionId, string valueName, int value)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -407,19 +331,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(eventTimestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// Reports the given double value on the action belonging to the given ID.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
-        /// <param name="valueName">the name of the reported value.</param>
-        /// <param name="value">the reported double value.</param>
-        public void ReportValue(int actionId, string valueName, double value)
+        void IBeacon.ReportValue(int actionId, string valueName, double value)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -437,19 +351,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(eventTimestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// Reports the given string value on the action belonging to the given ID.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
-        /// <param name="valueName">the name of the reported value.</param>
-        /// <param name="value">the reported string value.</param>
-        public void ReportValue(int actionId, string valueName, string value)
+        void IBeacon.ReportValue(int actionId, string valueName, string value)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -467,18 +371,9 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(eventTimestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// Reports the given named event on the action belonging to the given ID.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the event was reported.</param>
-        /// <param name="eventName">the name of the reported event.</param>
-        public void ReportEvent(int actionId, string eventName)
+        void IBeacon.ReportEvent(int actionId, string eventName)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -495,21 +390,10 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(eventTimestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// Reports the given error code on the action belonging to the given ID.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the error code was reported.</param>
-        /// <param name="errorName">the name of the reported error.</param>
-        /// <param name="errorCode">the reported error code.</param>
-        /// <param name="reason">the reported reason of the error.</param>
-        public void ReportError(int actionId, string errorName, int errorCode, string reason)
+        void IBeacon.ReportError(int actionId, string errorName, int errorCode, string reason)
         {
             // if capture errors is off -> do nothing
-            if (CapturingDisabled || !configuration.CaptureErrors)
+            if (ThisBeacon.CapturingDisabled || !configuration.CaptureErrors)
             {
                 return;
             }
@@ -533,20 +417,10 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// Reports the given crash by adding it to the beacon.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="errorName">the name of the reported crash.</param>
-        /// <param name="reason">the reason of the crash.</param>
-        /// <param name="stacktrace">the stacktrace of the crash.</param>
-        public void ReportCrash(string errorName, string reason, string stacktrace)
+        void IBeacon.ReportCrash(string errorName, string reason, string stacktrace)
         {
             // if capture crashes is off -> do nothing
-            if (CapturingDisabled || !configuration.CaptureCrashes)
+            if (ThisBeacon.CapturingDisabled || !configuration.CaptureCrashes)
             {
                 return;
             }
@@ -570,63 +444,38 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// Adds the given traced web request on the action belonging to the given ID.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="parentActionId">the identifier of the <see cref="IAction"/> in which the web request was traced.</param>
-        /// <param name="webRequestTracer">the traced web request.</param>
-        public void AddWebRequest(int parentActionId, WebRequestTracer webRequestTracer)
+        void IBeacon.AddWebRequest(int parentActionId, IWebRequestTracerInternals webRequestTracer)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
 
-            if (BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (ThisBeacon.BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
             {
                 return;
             }
 
             var eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.WEBREQUEST, webRequestTracer.Url);
+            BuildBasicEventData(eventBuilder, EventType.WEB_REQUEST, webRequestTracer.Url);
 
             AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, parentActionId);
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, webRequestTracer.StartSequenceNo);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(webRequestTracer.StartTime));
             AddKeyValuePair(eventBuilder, BeaconKeyEndSequenceNumber, webRequestTracer.EndSequenceNo);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeOne, webRequestTracer.EndTime - webRequestTracer.StartTime);
-            if (webRequestTracer.ResponseCode != -1)
-            {
-                AddKeyValuePair(eventBuilder, BeaconKeyWebRequestResponseCode, webRequestTracer.ResponseCode);
-            }
-            if (webRequestTracer.BytesSent > -1)
-            {
-                AddKeyValuePair(eventBuilder, BeaconKeyWebRequestBytesSent, webRequestTracer.BytesSent);
-            }
-            if (webRequestTracer.BytesReceived > -1)
-            {
-                AddKeyValuePair(eventBuilder, BeaconKeyWebRequestBytesReceived, webRequestTracer.BytesReceived);
-            }
+
+            AddKeyValuePairIfNotNegative(eventBuilder, BeaconKeyWebRequestBytesSent, webRequestTracer.BytesSent);
+            AddKeyValuePairIfNotNegative(eventBuilder, BeaconKeyWebRequestBytesReceived, webRequestTracer.BytesReceived);
+            AddKeyValuePairIfNotNegative(eventBuilder, BeaconKeyWebRequestResponseCode, webRequestTracer.ResponseCode);
 
             AddEventData(webRequestTracer.StartTime, eventBuilder);
         }
 
-        /// <summary>
-        /// Reports a user identification event.
-        ///
-        /// <para>
-        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
-        /// </para>
-        /// </summary>
-        /// <param name="userTag">the name/tag of the user</param>
-        public void IdentifyUser(string userTag)
+        void IBeacon.IdentifyUser(string userTag)
         {
-            if (CapturingDisabled)
+            if (ThisBeacon.CapturingDisabled)
             {
                 return;
             }
@@ -648,12 +497,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        /// <summary>
-        /// send current state of Beacon
-        /// </summary>
-        /// <param name="httpClientProvider"></param>
-        /// <returns></returns>
-        public StatusResponse Send(IHttpClientProvider httpClientProvider)
+        StatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider)
         {
             var httpClient = httpClientProvider.CreateClient(httpConfiguration);
             StatusResponse response = null;
@@ -691,11 +535,7 @@ namespace Dynatrace.OpenKit.Protocol
             return response;
         }
 
-        #endregion
-
-        #region internal methods
-
-        internal void ClearData()
+        void IBeacon.ClearData()
         {
             // remove all cached data for this Beacon from the cache
             beaconCache.DeleteCacheEntry(beaconId);
@@ -825,7 +665,7 @@ namespace Dynatrace.OpenKit.Protocol
             var builder = new StringBuilder();
 
             // multiplicity information
-            AddKeyValuePair(builder, BeaconKeyMultiplicity, Multiplicity);
+            AddKeyValuePair(builder, BeaconKeyMultiplicity, ThisBeacon.Multiplicity);
 
             return builder.ToString();
         }
@@ -859,6 +699,24 @@ namespace Dynatrace.OpenKit.Protocol
         {
             AppendKey(builder, key);
             builder.Append(intValue);
+        }
+
+        /// <summary>
+        /// Serialization helper method for adding key/value pairs with int values.
+        ///
+        /// <para>
+        /// The key value pair is only added if the given <paramref name="intValue"/> is not negative.
+        /// </para>
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="key"></param>
+        /// <param name="intValue"></param>
+        private static void AddKeyValuePairIfNotNegative(StringBuilder builder, string key, int intValue)
+        {
+            if (intValue >= 0)
+            {
+                AddKeyValuePair(builder, key, intValue);
+            }
         }
 
         // helper method for adding key/value pairs with double values

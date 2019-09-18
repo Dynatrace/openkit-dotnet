@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private static bool _remoteCertificateValidationCallbackInitialized = false;
 
-        public HttpClientWebClient(ILogger logger, HttpClientConfiguration configuration) : base(logger, configuration)
+        public HttpClientWebClient(ILogger logger, IHttpClientConfiguration configuration) : base(logger, configuration)
         {
             if (!_remoteCertificateValidationCallbackInitialized)
             {

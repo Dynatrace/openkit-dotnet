@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Communication;
 using NSubstitute;
 using NUnit.Framework;
 

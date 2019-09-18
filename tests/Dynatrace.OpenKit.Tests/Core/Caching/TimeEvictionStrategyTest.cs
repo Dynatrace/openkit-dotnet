@@ -14,17 +14,17 @@
 // limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
-    public class TimeEvicitionStrategyTest
+    public class TimeEvictionStrategyTest
     {
         private ILogger mockLogger;
         private IBeaconCache mockBeaconCache;
@@ -74,7 +74,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void TheStrategyIsNotDisabledIFMaxRecordAgeIsGreaterThanZero()
+        public void TheStrategyIsNotDisabledIfMaxRecordAgeIsGreaterThanZero()
         {
             // given
             var configuration = new BeaconCacheConfiguration(1L, 1000L, 2000L);
@@ -142,7 +142,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockLogger.Received(1).IsInfoEnabled;
+            _ = mockLogger.Received(1).IsInfoEnabled;
             mockLogger.ReceivedWithAnyArgs(1).Info(string.Empty);
             mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
 
@@ -151,11 +151,11 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            tmp = mockLogger.DidNotReceive().IsInfoEnabled;
+            _ = mockLogger.DidNotReceive().IsInfoEnabled;
             mockLogger.DidNotReceiveWithAnyArgs().Info(string.Empty);
             mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
         }
-        
+
         [Test]
         public void ExecuteEvictionDoesNotLogIfStrategyIsDisabledAndInfoIsDisabledInLogger()
         {
@@ -169,7 +169,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockLogger.Received(1).IsInfoEnabled;
+            _ = mockLogger.Received(1).IsInfoEnabled;
             mockLogger.DidNotReceiveWithAnyArgs().Info(string.Empty);
             mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
 
@@ -177,7 +177,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            tmp = mockLogger.Received(2).IsInfoEnabled;
+            _ = mockLogger.Received(2).IsInfoEnabled;
             mockLogger.DidNotReceiveWithAnyArgs().Info(string.Empty);
             mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
         }
@@ -220,7 +220,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then verify interactions
-            var tmp = mockBeaconCache.Received(1).BeaconIDs;
+            _ = mockBeaconCache.Received(1).BeaconIDs;
             mockTimingProvider.Received(3).ProvideTimestampInMilliseconds();
             mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
 
@@ -238,12 +238,12 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
             mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 1, 42 });
-           
+
             // when
             target.Execute();
 
             // then verify interactions
-            var tmp = mockBeaconCache.Received(1).BeaconIDs;
+            _ = mockBeaconCache.Received(1).BeaconIDs;
             mockBeaconCache.Received(1).EvictRecordsByAge(1, 2099L - configuration.MaxRecordAge);
             mockBeaconCache.Received(1).EvictRecordsByAge(42, 2099L - configuration.MaxRecordAge);
             mockTimingProvider.Received(3).ProvideTimestampInMilliseconds();
@@ -271,7 +271,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then verify that the logger was invoked
-            var tmp = mockLogger.Received(2).IsDebugEnabled;
+            _ = mockLogger.Received(2).IsDebugEnabled;
             mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 2 records from Beacon with ID 1");
             mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 5 records from Beacon with ID 42");
         }
@@ -298,7 +298,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then verify interactions
-            var tmp = mockBeaconCache.Received(1).BeaconIDs;
+            _ = mockBeaconCache.Received(1).BeaconIDs;
             mockBeaconCache.Received(1).EvictRecordsByAge(Arg.Any<int>(), 2099L - configuration.MaxRecordAge);
         }
     }

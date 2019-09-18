@@ -14,12 +14,14 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Protocol.SSL;
+using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -123,17 +125,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void ConsecutiveCallsToNextSessionNumberIncrementTheSessionID()
+        public void ConsecutiveCallsToNextSessionNumberIncrementTheSessionId()
         {
             //given
             var target = CreateDefaultConfig();
 
             // when retrieving two sessionIDs
-            var sessionIDOne = target.NextSessionNumber;
-            var sessionIDTwo = target.NextSessionNumber;
+            var sessionIdOne = target.NextSessionNumber;
+            var sessionIdTwo = target.NextSessionNumber;
 
             //then
-            Assert.That(sessionIDTwo, Is.EqualTo(sessionIDOne + 1));
+            Assert.That(sessionIdTwo, Is.EqualTo(sessionIdOne + 1));
         }
 
         [Test]
@@ -176,7 +178,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void GetApplicationID()
+        public void GetApplicationId()
         {
             // given
             var target = CreateDefaultConfig();
@@ -186,7 +188,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void GetApplicationIDPercentEncodedDoesProperEncoding()
+        public void GetApplicationIdPercentEncodedDoesProperEncoding()
         {
             // given
             var target = CreateDefaultConfig();
@@ -195,17 +197,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(target.ApplicationIdPercentEncoded, Is.EqualTo("%2FApp%5FID%25"));
         }
 
-        private static OpenKitConfiguration CreateDefaultConfig()
+        private static IOpenKitConfiguration CreateDefaultConfig()
         {
             var defaultCacheConfig = new BeaconCacheConfiguration(
-                BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,
-                BeaconCacheConfiguration.DEFAULT_LOWER_MEMORY_BOUNDARY_IN_BYTES,
-                BeaconCacheConfiguration.DEFAULT_UPPER_MEMORY_BOUNDARY_IN_BYTES);
+                BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis,
+                BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes,
+                BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes);
 
             var defaultBeaconConfig = new BeaconConfiguration();
 
-            return new OpenKitConfiguration(OpenKitType.Dynatrace, "", "/App_ID%", 0, "0", "", new Providers.TestSessionIDProvider(),
-                  new SSLStrictTrustManager(), new Core.Objects.Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
+            return new OpenKitConfiguration(OpenKitType.Dynatrace, "", "/App_ID%", 0, "0", "", new TestSessionIdProvider(),
+                  new SSLStrictTrustManager(), new Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
         }
     }
 }

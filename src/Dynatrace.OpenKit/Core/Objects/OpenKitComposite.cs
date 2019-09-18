@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     ///     The container is not thread thus, synchronization must be taken care of by the implementing class.
     /// </para>
     /// </summary>
-    public abstract class OpenKitComposite : IOpenKitObject
+    public abstract class OpenKitComposite : IOpenKitObject, IOpenKitComposite
     {
         /// <summary>
         /// action ID default value
@@ -38,35 +38,17 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private readonly IList<IOpenKitObject> children = new List<IOpenKitObject>();
 
-        /// <summary>
-        /// Adds a child object to the list of children.
-        /// </summary>
-        ///
-        /// <param name="childObject">the child object to add.</param>
-        internal void StoreChildInList(IOpenKitObject childObject)
+        void IOpenKitComposite.StoreChildInList(IOpenKitObject childObject)
         {
             children.Add(childObject);
         }
 
-        /// <summary>
-        /// Remove a child object from the list of children.
-        /// </summary>
-        ///
-        /// <param name="childObject">the child object to remove.</param>
-        ///
-        /// <returns><code>true</code> if the given <code>childObject</code> was successfully removed, <code>false</code>
-        /// otherwise.
-        /// </returns>
-        internal bool RemoveChildFromList(IOpenKitObject childObject)
+        bool IOpenKitComposite.RemoveChildFromList(IOpenKitObject childObject)
         {
             return children.Remove(childObject);
         }
 
-        /// <summary>
-        /// Returns a shallow copy of the <see cref="IOpenKitObject"/> child objects
-        /// </summary>
-        /// <returns>shallow copy of the child objects</returns>
-        internal IList<IOpenKitObject> GetCopyOfChildObjects()
+        IList<IOpenKitObject> IOpenKitComposite.GetCopyOfChildObjects()
         {
             return new List<IOpenKitObject>(children);
         }
@@ -76,20 +58,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         ///
         /// <para>
         ///     The implementing class is fully responsible to handle the implementation.
-        ///     In most cases removing the child from the container <see cref="RemoveChildFromList"/> is sufficient.
+        ///     In most cases removing the child from the container <see cref="IOpenKitComposite.RemoveChildFromList"/>
+        ///     is sufficient.
         /// </para>
         /// </summary>
         /// <param name="childObject"></param>
-        internal abstract void OnChildClosed(IOpenKitObject childObject);
+        private protected abstract void OnChildClosed(IOpenKitObject childObject);
 
-        /// <summary>
-        /// Returns the action ID of this composite or <code>0</code> if the composite is not an action.
-        ///
-        /// <para>
-        ///     The default implementation returns <code>0</code>.
-        ///     Action related composites need to override this method and return the appropriate value.
-        /// </para>
-        /// </summary>
+        void IOpenKitComposite.OnChildClosed(IOpenKitObject childObject)
+        {
+            OnChildClosed(childObject);
+        }
+
+
         public virtual int ActionId => DefaultActionId;
 
 

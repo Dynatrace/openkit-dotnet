@@ -14,12 +14,12 @@
 // limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -144,7 +144,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockLogger.Received(1).IsInfoEnabled;
+            _ = mockLogger.Received(1).IsInfoEnabled;
             mockLogger.Received(1).Info(Arg.Any<string>());
 
             // and when executing a second time
@@ -152,7 +152,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            tmp = mockLogger.DidNotReceive().IsInfoEnabled;
+            _ = mockLogger.DidNotReceive().IsInfoEnabled;
             mockLogger.DidNotReceive().Info(Arg.Any<string>());
         }
 
@@ -169,14 +169,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockLogger.Received(1).IsInfoEnabled;
+            _ = mockLogger.Received(1).IsInfoEnabled;
             mockLogger.DidNotReceive().Info(Arg.Any<string>());
 
             // and when executing a second time
             target.Execute();
 
             // then
-            tmp = mockLogger.Received(2).IsInfoEnabled;
+            _ = mockLogger.Received(2).IsInfoEnabled;
             mockLogger.DidNotReceive().Info(Arg.Any<string>());
         }
 
@@ -193,12 +193,12 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeUpperBound + 1,
                 0L);
             mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
-            
+
             // when executing the first time
             target.Execute();
 
             // then
-            var tmp = mockBeaconCache.Received(5).NumBytesInCache;
+            _ = mockBeaconCache.Received(5).NumBytesInCache;
             mockBeaconCache.Received(1).EvictRecordsByNumber(1, 1);
             mockBeaconCache.Received(1).EvictRecordsByNumber(42, 1);
         }
@@ -225,7 +225,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockLogger.Received(3).IsDebugEnabled;
+            _ = mockLogger.Received(3).IsDebugEnabled;
             mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 5 records from Beacon with ID 1");
             mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 1 records from Beacon with ID 42");
         }
@@ -252,7 +252,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockLogger.Received(3).IsDebugEnabled;
+            _ = mockLogger.Received(3).IsDebugEnabled;
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -262,7 +262,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // given
             var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
             var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
-            
+
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,  //should run method
                 configuration.CacheSizeUpperBound, // first iteration
                 configuration.CacheSizeUpperBound, // first iteration
@@ -280,13 +280,13 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockBeaconCache.Received(8).NumBytesInCache;
+            _ = mockBeaconCache.Received(8).NumBytesInCache;
             mockBeaconCache.Received(2).EvictRecordsByNumber(1, 1);
             mockBeaconCache.Received(2).EvictRecordsByNumber(42, 1);
         }
 
         [Test]
-        public void ÉxecuteEvictionStopsIfThreadGetsInterruptedBetweenTwoBeacons()
+        public void ExecuteEvictionStopsIfThreadGetsInterruptedBetweenTwoBeacons()
         {
 
             // given
@@ -315,7 +315,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockBeaconCache.Received(3).NumBytesInCache;
+            _ = mockBeaconCache.Received(3).NumBytesInCache;
             mockBeaconCache.Received(1).EvictRecordsByNumber(Arg.Any<int>(), 1);
         }
 
@@ -341,7 +341,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then
-            var tmp = mockBeaconCache.Received(8).NumBytesInCache;
+            _ = mockBeaconCache.Received(8).NumBytesInCache;
             mockBeaconCache.Received(3).EvictRecordsByNumber(Arg.Any<int>(), 1);
         }
     }

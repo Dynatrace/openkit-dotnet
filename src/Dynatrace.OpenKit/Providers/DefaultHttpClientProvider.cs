@@ -20,7 +20,7 @@ using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class DefaultHttpClientProvider : IHttpClientProvider
+    internal class DefaultHttpClientProvider : IHttpClientProvider
     {
         private readonly ILogger logger;
 
@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Providers
             this.logger = logger;
         }
 
-        public IHttpClient CreateClient(HttpClientConfiguration configuration)
+        public IHttpClient CreateClient(IHttpClientConfiguration configuration)
         {
 #if NET40 || NET35
             return new HttpClientWebClient(logger, configuration); // HttpClient is not available in .NET 3.5 and 4.0

@@ -14,15 +14,15 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
-    class BeaconSendingRequestUtilTest
+    public class BeaconSendingRequestUtilTest
     {
         private IBeaconSendingContext context;
         private IHttpClient httpClient;
@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             httpClient = Substitute.For<IHttpClient>();
             context = Substitute.For<IBeaconSendingContext>();
-            context.GetHTTPClient().Returns(httpClient);
+            context.GetHttpClient().Returns(httpClient);
             statusResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, 200, new Dictionary<string, List<string>>());
             httpClient.SendStatusRequest().Returns(statusResponse);
         }
@@ -52,7 +52,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.SameAs(erroneousResponse));
 
-            context.Received(1).GetHTTPClient();
+            context.Received(1).GetHttpClient();
             context.ReceivedWithAnyArgs(0).Sleep(0);
 
             httpClient.Received(1).SendStatusRequest();
@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.SameAs(erroneousResponse));
 
-            context.Received(4).GetHTTPClient();
+            context.Received(4).GetHttpClient();
             context.ReceivedWithAnyArgs(3).Sleep(0);
 
             httpClient.Received(4).SendStatusRequest();
@@ -91,7 +91,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.SameAs(statusResponse));
 
-            context.Received(1).GetHTTPClient();
+            context.Received(1).GetHttpClient();
             context.ReceivedWithAnyArgs(0).Sleep(0);
 
             httpClient.Received(1).SendStatusRequest();
@@ -111,7 +111,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.SameAs(erroneousResponse));
 
-            context.Received(6).GetHTTPClient();
+            context.Received(6).GetHttpClient();
             httpClient.Received(6).SendStatusRequest();
 
             Received.InOrder(() =>
@@ -137,9 +137,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.Null);
 
-            context.Received(4).GetHTTPClient();
+            context.Received(4).GetHttpClient();
             context.ReceivedWithAnyArgs(3).Sleep(0);
-            httpClient.Received(4).SendStatusRequest();    
+            httpClient.Received(4).SendStatusRequest();
         }
 
         [Test]
@@ -156,7 +156,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.SameAs(tooManyRequestsResponse));
 
-            context.Received(1).GetHTTPClient();
+            context.Received(1).GetHttpClient();
             context.DidNotReceiveWithAnyArgs().Sleep(0);
             httpClient.Received(1).SendStatusRequest();
         }

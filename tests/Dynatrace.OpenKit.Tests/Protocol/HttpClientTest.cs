@@ -14,15 +14,16 @@
 // limitations under the License.
 //
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Util;
 using NSubstitute;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -438,7 +439,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("175.45.176.1", System.Text.Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"));
+            var obtained = target.SendBeaconRequest("175.45.176.1", Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"));
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -446,7 +447,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             spyClient.Received(1).DoPostRequest(Arg.Is<string>(x => !string.IsNullOrEmpty(x)),
                                                 Arg.Is<string>(x => !string.IsNullOrEmpty(x)),
-                                                Arg.Is<byte[]>(x => System.Text.Encoding.UTF8.GetString(Unzip(x)) == "The quick brown fox jumps over the lazy dog"));
+                                                Arg.Is<byte[]>(x => Encoding.UTF8.GetString(Unzip(x)) == "The quick brown fox jumps over the lazy dog"));
         }
 
         [Test]

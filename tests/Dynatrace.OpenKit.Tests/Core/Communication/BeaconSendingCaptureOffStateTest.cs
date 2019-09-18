@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -41,15 +41,15 @@ namespace Dynatrace.OpenKit.Core.Communication
             logger = Substitute.For<ILogger>();
             httpClient = Substitute.For<IHttpClient>();
             context = Substitute.For<IBeaconSendingContext>();
-            context.GetHTTPClient().Returns(httpClient);
+            context.GetHttpClient().Returns(httpClient);
 
             // default return success
             httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
 
             // current time getter
-            context.CurrentTimestamp.Returns(x => { return ++currentTime; });
+            context.CurrentTimestamp.Returns(x => ++currentTime);
 
-            // last time sycn getter + setter
+            // last time sync getter + setter
             context.LastStatusCheckTime = Arg.Do<long>(x => lastStatusCheckTime = x);
             context.LastStatusCheckTime = lastStatusCheckTime; // init with -1
         }
@@ -189,7 +189,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             AbstractBeaconSendingState capturedState = null;
             context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
-            
+
             // when calling execute
             target.Execute(context);
 

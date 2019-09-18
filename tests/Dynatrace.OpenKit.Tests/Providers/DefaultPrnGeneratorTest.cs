@@ -18,10 +18,10 @@ using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class DefaultSessionPRNGeneratorTest
+    public class DefaultSessionPrnGeneratorTest
     {
         [Test]
-        public void DefaultPRNGeneratorProvidesPositiveInt()
+        public void DefaultPrnGeneratorProvidesPositiveInt()
         {
             // given
             var randomGenerator = new DefaultPrnGenerator();
@@ -35,7 +35,7 @@ namespace Dynatrace.OpenKit.Providers
         }
 
         [Test]
-        public void DefaultPRNGeneratorProvidesPositiveLong()
+        public void DefaultPrnGeneratorProvidesPositiveLong()
         {
             // given
             var randomGenerator = new DefaultPrnGenerator();

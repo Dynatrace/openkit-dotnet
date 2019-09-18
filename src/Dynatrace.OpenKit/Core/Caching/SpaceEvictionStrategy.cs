@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Core.Caching
     {
         private readonly ILogger logger;
         private readonly IBeaconCache beaconCache;
-        private readonly BeaconCacheConfiguration configuration;
+        private readonly IBeaconCacheConfiguration configuration;
         private readonly Func<bool> isShutdownFunc;
 
         private bool infoShown;
@@ -43,7 +43,11 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <param name="logger">instance implementing the <see cref="ILogger"/> interface for writing some useful debug messages.</param>
         /// <param name="beaconCache">The beacon cache to evict if necessary.</param>
         /// <param name="configuration"></param>
-        internal SpaceEvictionStrategy(ILogger logger, IBeaconCache beaconCache, BeaconCacheConfiguration configuration, Func<bool> isShutdownFunc)
+        /// <param name="isShutdownFunc">a callback function deciding if the eviction strategy should stop execution or not.</param>
+        internal SpaceEvictionStrategy(ILogger logger,
+            IBeaconCache beaconCache,
+            IBeaconCacheConfiguration configuration,
+            Func<bool> isShutdownFunc)
         {
             this.logger = logger;
             this.beaconCache = beaconCache;

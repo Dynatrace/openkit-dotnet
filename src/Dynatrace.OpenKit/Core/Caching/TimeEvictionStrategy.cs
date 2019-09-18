@@ -26,13 +26,13 @@ namespace Dynatrace.OpenKit.Core.Caching
     {
         private readonly ILogger logger;
         private readonly IBeaconCache beaconCache;
-        private readonly BeaconCacheConfiguration configuration;
+        private readonly IBeaconCacheConfiguration configuration;
         private readonly ITimingProvider timingProvider;
         private readonly Func<bool> isShutdownFunc;
 
         private bool infoShown;
 
-        internal TimeEvictionStrategy(ILogger logger, IBeaconCache beaconCache, BeaconCacheConfiguration configuration, ITimingProvider timingProvider, Func<bool> isShutdownFunc)
+        internal TimeEvictionStrategy(ILogger logger, IBeaconCache beaconCache, IBeaconCacheConfiguration configuration, ITimingProvider timingProvider, Func<bool> isShutdownFunc)
         {
             this.logger = logger;
             this.beaconCache = beaconCache;

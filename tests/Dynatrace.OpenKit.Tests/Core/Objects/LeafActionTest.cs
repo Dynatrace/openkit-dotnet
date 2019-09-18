@@ -15,11 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.Core.Communication;
-using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -30,58 +26,62 @@ namespace Dynatrace.OpenKit.Core.Objects
         private const string ActionName = "TestAction";
         private const int SessionId = 73;
 
-        private ILogger logger;
-        private RootAction rootAction;
-        private Beacon beacon;
+        private ILogger mockLogger;
+        private IBeacon mockBeacon;
+        private IRootActionInternals mockRootAction;
 
         [SetUp]
         public void SetUp()
         {
-            logger = Substitute.For<ILogger>();
+            mockLogger = Substitute.For<ILogger>();
+            mockLogger.IsInfoEnabled.Returns(true);
+            mockLogger.IsDebugEnabled.Returns(true);
 
-            var threadIdProvider = Substitute.For<IThreadIdProvider>();
-            var timingProvider = Substitute.For<ITimingProvider>();
-
-            var sessionIdProvider = Substitute.For<ISessionIdProvider>();
-            sessionIdProvider.GetNextSessionId().Returns(SessionId);
-
-            var configuration = new TestConfiguration(42, new BeaconConfiguration(), sessionIdProvider);
-
-            beacon = new Beacon(logger, new BeaconCache(logger), configuration, "127.0.0.1", threadIdProvider, timingProvider);
-
-            var context = Substitute.For<IBeaconSendingContext>();
-            var beaconSender = new BeaconSender(logger, context);
-
-            var session = new Session(logger, beaconSender, beacon);
-
-            rootAction = new RootAction(logger, session, "Root action", beacon);
+            mockBeacon = Substitute.For<IBeacon>();
+            mockRootAction = Substitute.For<IRootActionInternals>();
         }
 
         [Test]
         public void ParentActionReturnsValuePassedInConstructor()
         {
             // given
-            var target = new LeafAction(logger, rootAction, ActionName, beacon);
+            var target = CreateLeafAction();
 
             // when
             var obtained = target.ParentAction;
 
             // then
             Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained, Is.SameAs(rootAction));
+            Assert.That(obtained, Is.SameAs(mockRootAction));
         }
 
         [Test]
         public void ToStringReturnsAppropriateResult()
         {
             // given
-            var target = new LeafAction(logger, rootAction, ActionName, beacon);
+            const int id = 42;
+            const int parentId = 37;
+            mockBeacon.NextId.Returns(id);
+            mockBeacon.SessionNumber.Returns(SessionId);
+            mockRootAction.ActionId.Returns(parentId);
+
+            var target = CreateLeafAction();
 
             // when
             var obtained = target.ToString();
 
             // then
-            Assert.That(obtained, Is.EqualTo($"{typeof(LeafAction).Name} [sn={SessionId}, id=2, name={ActionName}, pa=1]"));
+            Assert.That(obtained, Is.EqualTo($"{typeof(LeafAction).Name} [sn={SessionId}, id={id}, name={ActionName}, pa={parentId}]"));
+        }
+
+        private LeafAction CreateLeafAction()
+        {
+            return new LeafAction(
+                mockLogger,
+                mockRootAction,
+                ActionName,
+                mockBeacon
+                );
         }
     }
 }

@@ -15,44 +15,34 @@
 //
 
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.Core.Communication;
-using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
-using System;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
     public class SessionTest
     {
-        private ITimingProvider mockTimingProvider;
-        private IBeaconSendingContext beaconSendingContext;
-        private ILogger logger;
-        private Beacon beacon;
-        private BeaconSender beaconSender;
+        private ILogger mockLogger;
+        private IBeacon mockBeacon;
+        private IBeaconSender mockBeaconSender;
 
         [SetUp]
         public void SetUp()
         {
-            logger = Substitute.For<ILogger>();
-            logger.IsDebugEnabled.Returns(true);
+            mockLogger = Substitute.For<ILogger>();
+            mockLogger.IsDebugEnabled.Returns(true);
+            mockLogger.IsDebugEnabled.Returns(true);
 
-            beaconSendingContext = Substitute.For<IBeaconSendingContext>();
-            beaconSender = new BeaconSender(logger, beaconSendingContext);
-
-            mockTimingProvider = Substitute.For<ITimingProvider>();
-            var configuration = new TestConfiguration();
-            beacon = new Beacon(logger, new Caching.BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIdProvider>(), mockTimingProvider);
+            mockBeacon = Substitute.For<IBeacon>();
+            mockBeaconSender = Substitute.For<IBeaconSender>();
         }
 
         [Test]
         public void ANewlyCreatedSessionIsNotEnded()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
 
             // then
             Assert.That(target.EndTime, Is.EqualTo(-1L));
@@ -63,7 +53,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void AfterCallingEndASessionIsEnded()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
 
             // when
             target.End();
@@ -76,7 +66,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void EnterActionGivesNewRootAction()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
 
             // when
             var obtained = target.EnterAction("action name");
@@ -89,7 +79,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void EnterActionGivesNullActionIfSessionIsAlreadyEnded()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
             target.End();
 
             // when
@@ -104,158 +94,152 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void EnterActionGivesNullActionIfActionNameIsNull()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
+            mockBeacon.ClearReceivedCalls();
 
             // when
             var obtained = target.EnterAction(null);
 
             // then
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] EnterAction: actionName must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0] EnterAction: actionName must not be null or empty");
         }
 
         [Test]
         public void EnterActionGivesNullActionIfActionNameIsEmptyString()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
 
             // when
             var obtained = target.EnterAction(string.Empty);
 
             // then
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] EnterAction: actionName must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0] EnterAction: actionName must not be null or empty");
         }
 
         [Test]
         public void IdentifyUser()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            const string userTag = "john.doe@acme.com";
+            var target = CreateSession().Build();
 
             // when
-            target.IdentifyUser("john.doe@acme.com");
+            target.IdentifyUser(userTag);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.False);
+            mockBeacon.Received(1).IdentifyUser(userTag);
         }
 
         [Test]
         public void IdentifyUserDoesNothingIfSessionIsEnded()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
             target.End();
-            beacon.ClearData();
 
             // when
             target.IdentifyUser("john.doe@acme.com");
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
+            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
         }
 
         [Test]
         public void IdentifyUserDoesNothingIfUserTagIsNull()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            var target = CreateSession().Build();
 
             // when
             target.IdentifyUser(null);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] IdentifyUser: userTag must not be null or empty");
+            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
+            mockLogger.Received(1).Warn("Session [sn=0] IdentifyUser: userTag must not be null or empty");
         }
 
         [Test]
         public void IdentifyUserDoesNothingIfUserTagIsAnEmptyString()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            var target = CreateSession().Build();
 
             // when
             target.IdentifyUser(string.Empty);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] IdentifyUser: userTag must not be null or empty");
+            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
+            mockLogger.Received(1).Warn("Session [sn=0] IdentifyUser: userTag must not be null or empty");
         }
 
         [Test]
         public void ReportCrash()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            const string errorName = "crash";
+            const string errorReason = "reason for crash";
+            const string stacktrace = "the stacktrace";
+            var target = CreateSession().Build();
 
             // when
-            target.ReportCrash("crash", "reason for crash", "the stacktrace");
+            target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.False);
+            mockBeacon.Received(1).ReportCrash(errorName, errorReason, stacktrace);
         }
 
         [Test]
         public void ReportCrashDoesNothingIfSessionIsEnded()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            const string errorName = "crash";
+            const string errorReason = "reason for crash";
+            const string stacktrace = "stacktrace";
+            var target = CreateSession().Build();
             target.End();
-            beacon.ClearData();
 
             // when
-            target.ReportCrash("crash", "reason for crash", "the stacktrace");
+            target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
+            mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
         }
 
         [Test]
         public void ReportCrashDoesNothingIfErrorNameIsNull()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            const string errorName = null;
+            const string errorReason = "reason for crash";
+            const string stacktrace = "the stacktrace";
+            var target = CreateSession().Build();
 
             // when
-            target.ReportCrash(null, "reason for crash", "the stacktrace");
+            target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] ReportCrash: errorName must not be null or empty");
+            mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+            mockLogger.Received(1).Warn("Session [sn=0] ReportCrash: errorName must not be null or empty");
         }
 
         [Test]
         public void ReportCrashDoesNothingIfErrorNameIsAnEmptyString()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            var errorName = string.Empty;
+            const string errorReason = "reason for crash";
+            const string stacktrace = "the stacktrace";
+            var target = CreateSession().Build();
 
             // when
-            target.ReportCrash(string.Empty, "reason for crash", "the stacktrace");
+            target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] ReportCrash: errorName must not be null or empty");
+           mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+           mockLogger.Received(1).Warn("Session [sn=0] ReportCrash: errorName must not be null or empty");
         }
 
         [Test]
@@ -263,13 +247,9 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             // given
             int timestamp = 100;
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(x =>
-            {
-                timestamp++;
-                return timestamp;
-            });
+            mockBeacon.CurrentTimestamp.Returns(_ => timestamp++);
 
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
             var rootActionOne = target.EnterAction("Root Action One");
             var rootActionTwo = target.EnterAction("Root Action Two");
 
@@ -287,89 +267,77 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void EndingASessionFinishesSessionContext()
         {
             // given
-            int timestamp = 100;
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(x =>
-            {
-                timestamp++;
-                return timestamp;
-            });
+            const long timestamp = 4321;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
 
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
 
             // when
             target.End();
 
             // then
-            beaconSendingContext.Received(1).FinishSession(target);
+            Assert.That(target.EndTime, Is.EqualTo(timestamp));
+            mockBeacon.Received(1).EndSession(target);
+            mockBeaconSender.Received(1).FinishSession(target);
         }
 
         [Test]
         public void DisposingASessionEndsTheSession()
         {
             // given
-            int timestamp = 100;
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(x =>
-            {
-                timestamp++;
-                return timestamp;
-            });
+            const long timestamp = 4321;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
 
-            IDisposable target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
 
             // when
             target.Dispose();
 
             // then
-            beaconSendingContext.Received(1).FinishSession((Session)target);
+            Assert.That(target.EndTime, Is.EqualTo(timestamp));
+            mockBeacon.Received(1).EndSession(target);
+            mockBeaconSender.Received(1).FinishSession(target);
         }
 
         [Test]
         public void EndingASessionReturnsImmediatelyIfEndedBefore()
         {
             // given
-            int timestamp = 100;
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(x =>
-            {
-                timestamp++;
-                return timestamp;
-            });
-
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
             target.End();
 
-            beacon.ClearData();
+            mockBeacon.ClearReceivedCalls();
+            mockBeaconSender.ClearReceivedCalls();
 
-            // when ending an already ended session
+            // when
             target.End();
 
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
-            beaconSendingContext.Received(1).FinishSession(target);
+            _ = mockBeacon.Received(1).CurrentTimestamp;     // session end check
+            mockBeacon.Received(0).EndSession(Arg.Any<ISessionInternals>());
+            Assert.That(mockBeaconSender.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void TraceWebRequestGivesValidWebRequestTracer()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            var target = CreateSession().Build();
 
             // when
             var obtained = target.TraceWebRequest("http://example.com/pages/");
 
             // then
-            Assert.That(obtained, Is.Not.Null);
-            Assert.That(obtained, Is.InstanceOf<WebRequestTracer>());
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<WebRequestTracer>());
         }
 
         [Test]
         public void TraceWebRequestGivesNullWebRequestTracerIfSessionIsAlreadyEnded()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
+            var target = CreateSession().Build();
             target.End();
-            beacon.ClearData();
 
             // when
             var obtained = target.TraceWebRequest("http://example.com/pages/");
@@ -382,54 +350,51 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsNull()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            var target = CreateSession().Build();
 
             // when
             var obtained = target.TraceWebRequest(null);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] TraceWebRequest(String): url must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0] TraceWebRequest(String): url must not be null or empty");
         }
 
         [Test]
         public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsAnEmptyString()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            var target = CreateSession().Build();
 
             // when
             var obtained = target.TraceWebRequest(string.Empty);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
-
-            // also verify that warning has been written to log
-            logger.Received(1).Warn("Session [sn=1] TraceWebRequest(String): url must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0] TraceWebRequest(String): url must not be null or empty");
         }
 
         [Test]
         public void TraceWebRequestGivesNullWebRequestTracerIfUrlHasAnInvalidScheme()
         {
             // given
-            var target = new Session(logger, beaconSender, beacon);
-            beacon.ClearData();
+            const string url = "foo:bar://test.com";
+            var target = CreateSession().Build();
 
             // when
-            var obtained = target.TraceWebRequest("foo:bar://test.com");
+            var obtained = target.TraceWebRequest(url);
 
             // then
-            Assert.That(beacon.IsEmpty, Is.True);
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
+            mockLogger.Received(1).Warn($"Session [sn=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
+        }
 
-            // also verify that warning has been written to log
-            logger.Received(1).Warn($"Session [sn=1] TraceWebRequest(String): url \"foo:bar://test.com\" does not have a valid scheme");
+        private TestSessionBuilder CreateSession()
+        {
+            return new TestSessionBuilder()
+                .With(mockLogger)
+                .With(mockBeacon)
+                .With(mockBeaconSender);
         }
     }
 }

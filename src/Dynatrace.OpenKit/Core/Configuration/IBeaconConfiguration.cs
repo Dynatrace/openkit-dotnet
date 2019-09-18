@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,38 +14,33 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     /// <summary>
-    /// The HttpClientConfiguration holds all http client related settings
+    /// This interface holds the relevant configuration for the <see cref="IBeacon"/>.
     /// </summary>
-    public class HttpClientConfiguration : IHttpClientConfiguration
+    internal interface IBeaconConfiguration
     {
-        public HttpClientConfiguration(string baseUrl, int serverId, string applicationId, ISSLTrustManager sslTrustManager)
-        {
-            BaseUrl = baseUrl;
-            ServerId = serverId;
-            ApplicationId = applicationId;
-            SslTrustManager = sslTrustManager;
-        }
+        /// <summary>
+        /// Returns the configured <see cref="DataCollectionLevel"/>
+        /// </summary>
+        DataCollectionLevel DataCollectionLevel { get; }
 
         /// <summary>
-        /// The base URL for the http client
+        /// Returns the configured <see cref="CrashReportingLevel"/>
         /// </summary>
-        public string BaseUrl { get; }
+        CrashReportingLevel CrashReportingLevel { get; }
 
         /// <summary>
-        /// The server id to be used for the http client
+        /// Returns the configured multiplicity
         /// </summary>
-        public int ServerId { get; }
+        int Multiplicity { get; }
 
         /// <summary>
-        /// The application id for the http client
+        /// Indicates whether capturing is currently allowed or not.
         /// </summary>
-        public string ApplicationId { get; }
-
-        public ISSLTrustManager SslTrustManager { get; }
+        bool CapturingAllowed { get; }
     }
 }

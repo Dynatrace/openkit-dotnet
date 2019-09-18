@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,38 +14,29 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Caching;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     /// <summary>
-    /// The HttpClientConfiguration holds all http client related settings
+    /// This interface provides the relevant configuration for the <see cref="IBeaconCache"/>
     /// </summary>
-    public class HttpClientConfiguration : IHttpClientConfiguration
+    internal interface IBeaconCacheConfiguration
     {
-        public HttpClientConfiguration(string baseUrl, int serverId, string applicationId, ISSLTrustManager sslTrustManager)
-        {
-            BaseUrl = baseUrl;
-            ServerId = serverId;
-            ApplicationId = applicationId;
-            SslTrustManager = sslTrustManager;
-        }
+        /// <summary>
+        /// Returns the maximum age (in milliseconds) which a record is allowed to have before it gets evicted.
+        /// </summary>
+        long MaxRecordAge { get; }
 
         /// <summary>
-        /// The base URL for the http client
+        /// Returns the lower cache size (in bytes) until which records will be evicted, once the
+        /// <see cref="CacheSizeUpperBound">upper limit</see> was exceeded.
         /// </summary>
-        public string BaseUrl { get; }
+        long CacheSizeLowerBound { get; }
 
         /// <summary>
-        /// The server id to be used for the http client
+        /// Returns the upper cache size which upon exceeding will start the space eviction strategy.
         /// </summary>
-        public int ServerId { get; }
-
-        /// <summary>
-        /// The application id for the http client
-        /// </summary>
-        public string ApplicationId { get; }
-
-        public ISSLTrustManager SslTrustManager { get; }
+        long CacheSizeUpperBound { get; }
     }
 }

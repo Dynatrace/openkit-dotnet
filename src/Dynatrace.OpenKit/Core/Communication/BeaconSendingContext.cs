@@ -34,7 +34,9 @@ namespace Dynatrace.OpenKit.Core.Communication
     {
         private readonly ILogger logger;
 
-        public const int DEFAULT_SLEEP_TIME_MILLISECONDS = 1000;
+        public const int DefaultSleepTimeMilliseconds = 1000;
+
+        private readonly IOpenKitConfiguration configuration;
 
         // container storing all sessions
         private readonly SynchronizedQueue<SessionWrapper> sessions = new SynchronizedQueue<SessionWrapper>();
@@ -43,10 +45,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         private readonly ManualResetEvent resetEvent = new ManualResetEvent(false);
 
         // boolean indicating whether shutdown was requested or not (accessed by multiple threads)
-        private volatile bool isShutdownRequested = false;
+        private volatile bool isShutdownRequested;
 
         // boolean indicating whether init was successful or not (accessed by multiple threads)
-        private volatile bool initSucceeded = false;
+        private volatile bool initSucceeded;
 
         /// <summary>
         /// Constructor
@@ -55,22 +57,23 @@ namespace Dynatrace.OpenKit.Core.Communication
         ///
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="configuration"></param>
+        /// <param name="config"></param>
         /// <param name="httpClientProvider"></param>
         /// <param name="timingProvider"></param>
-        public BeaconSendingContext(ILogger logger, OpenKitConfiguration configuration, IHttpClientProvider httpClientProvider, ITimingProvider timingProvider)
+        internal BeaconSendingContext(ILogger logger, IOpenKitConfiguration config, IHttpClientProvider httpClientProvider, ITimingProvider timingProvider)
         {
             this.logger = logger;
-            Configuration = configuration;
-            HTTPClientProvider = httpClientProvider;
+            configuration = config;
+            HttpClientProvider = httpClientProvider;
             TimingProvider = timingProvider;
 
             // set current state to init state
             CurrentState = new BeaconSendingInitState();
         }
 
-        public OpenKitConfiguration Configuration { get; }
-        public IHttpClientProvider HTTPClientProvider { get; }
+        IOpenKitConfiguration IBeaconSendingContext.Configuration => configuration;
+
+        public IHttpClientProvider HttpClientProvider { get; }
         public ITimingProvider TimingProvider { get; }
 
         public AbstractBeaconSendingState CurrentState { get; internal set; }
@@ -86,10 +89,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             private set => isShutdownRequested = value;
         }
 
-        public long CurrentTimestamp { get { return TimingProvider.ProvideTimestampInMilliseconds(); } }
-        public int SendInterval { get { return Configuration.SendInterval; } }
-        public bool IsCaptureOn { get { return Configuration.IsCaptureOn; } }
-        public bool IsInTerminalState { get { return CurrentState.IsTerminalState; } }
+        public long CurrentTimestamp => TimingProvider.ProvideTimestampInMilliseconds();
+        public int SendInterval => configuration.SendInterval;
+        public bool IsCaptureOn => configuration.IsCaptureOn;
+        public bool IsInTerminalState => CurrentState.IsTerminalState;
 
         public void ExecuteCurrentState()
         {
@@ -129,14 +132,14 @@ namespace Dynatrace.OpenKit.Core.Communication
             resetEvent.Set();
         }
 
-        public IHttpClient GetHTTPClient()
+        public IHttpClient GetHttpClient()
         {
-            return HTTPClientProvider.CreateClient(Configuration.HttpClientConfig);
+            return HttpClientProvider.CreateClient(configuration.HttpClientConfig);
         }
 
         public void Sleep()
         {
-            Sleep(DEFAULT_SLEEP_TIME_MILLISECONDS);
+            Sleep(DefaultSleepTimeMilliseconds);
         }
 
         public void Sleep(int millis)
@@ -160,13 +163,13 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public void DisableCapture()
         {
-            Configuration.DisableCapture();
+            configuration.DisableCapture();
             ClearAllSessionData();
         }
 
         public void HandleStatusResponse(StatusResponse statusResponse)
         {
-            Configuration.UpdateSettings(statusResponse);
+            configuration.UpdateSettings(statusResponse);
 
             if (!IsCaptureOn)
             {
@@ -191,17 +194,17 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         /// <summary>
-        /// <seealso cref="IBeaconSendingContext.StartSession(Session)"/>
+        /// <seealso cref="IBeaconSendingContext.StartSession(ISessionInternals)"/>
         /// </summary>
-        public void StartSession(Session session)
+        public void StartSession(ISessionInternals session)
         {
             sessions.Put(new SessionWrapper(session));
         }
 
         /// <summary>
-        /// <seealso cref="IBeaconSendingContext.FinishSession(Session)"/>
+        /// <seealso cref="IBeaconSendingContext.FinishSession(ISessionInternals)"/>
         /// </summary>
-        public void FinishSession(Session session)
+        public void FinishSession(ISessionInternals session)
         {
             var wrappedSession = sessions.ToList().FirstOrDefault(wrapper => wrapper.Session == session);
             if (wrappedSession != null)

@@ -14,10 +14,10 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using NUnit.Framework;
-using NSubstitute;
 using System.Collections.Generic;
+using Dynatrace.OpenKit.API;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -54,7 +54,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
             Assert.That(target.GetEvents(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
-            
+
             // and when adding beacon with id 2
             target.AddEventData(2, 1100L, "b");
 
@@ -97,16 +97,17 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddEventData(1, 1000L, "iii");
 
             // then
-            Assert.That(target.NumBytesInCache, Is.EqualTo(new BeaconCacheRecord(1000L, "a").DataSizeInBytes 
+            Assert.That(target.NumBytesInCache, Is.EqualTo(new BeaconCacheRecord(1000L, "a").DataSizeInBytes
                                                             + new BeaconCacheRecord(1000L, "z").DataSizeInBytes
                                                             + new BeaconCacheRecord(1000L, "iii").DataSizeInBytes));
         }
 
+        [Test]
         public void AddEventDataRaisesEvent()
         {
             // given
             var target = new BeaconCache(logger);
-            
+
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
 
@@ -267,7 +268,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void DeleteCacheEntriesDoesNothingIfGivenBeaconIDIsNotInCache()
+        public void DeleteCacheEntriesDoesNothingIfGivenBeaconIdIsNotInCache()
         {
             // given
             var target = new BeaconCache(logger);
@@ -290,7 +291,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void GetNextBeaconChunkReturnsNullIfGivenBeaconIDDoesNotExist()
+        public void GetNextBeaconChunkReturnsNullIfGivenBeaconIdDoesNotExist()
         {
             // given
             var target = new BeaconCache(logger);
@@ -347,7 +348,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void getNextBeaconChunkRetrievesNextChunk()
+        public void GetNextBeaconChunkRetrievesNextChunk()
         {
             // given
             var target = new BeaconCache(logger);
@@ -406,7 +407,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void RemoveChunkedDataDoesNothingIfCalledWithNonExistingBeaconID()
+        public void RemoveChunkedDataDoesNothingIfCalledWithNonExistingBeaconId()
         {
             // given
             var target = new BeaconCache(logger);
@@ -423,7 +424,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             Assert.That(target.GetActionsBeingSent(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
             var expectedEventRecords = new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") };
-            foreach (BeaconCacheRecord record in expectedEventRecords)
+            foreach (var record in expectedEventRecords)
             {
                 record.MarkForSending();
             }
@@ -537,7 +538,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void EvictRecordsByAgeDoesNothingAndReturnsZeroIfBeaconIDDoesNotExist()
+        public void EvictRecordsByAgeDoesNothingAndReturnsZeroIfBeaconIdDoesNotExist()
         {
 
             // given
@@ -572,7 +573,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void EvictRecordsByNumberDoesNothingAndReturnsZeroIfBeaconIDDoesNotExist()
+        public void EvictRecordsByNumberDoesNothingAndReturnsZeroIfBeaconIdDoesNotExist()
         {
             // given
             var target = new BeaconCache(logger);
@@ -600,7 +601,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddEventData(1, 1001L, "jjj");
 
             // when
-            int obtained = target.EvictRecordsByNumber(1, 2);
+            var obtained = target.EvictRecordsByNumber(1, 2);
 
             // then
             Assert.That(obtained, Is.EqualTo(2));

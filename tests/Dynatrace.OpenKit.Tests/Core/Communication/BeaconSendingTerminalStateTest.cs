@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -22,13 +21,11 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingTerminalStateTest
     {
-        private IHttpClient httpClient;
         private IBeaconSendingContext context;
 
         [SetUp]
         public void Setup()
         {
-            httpClient = Substitute.For<IHttpClient>();
             context = Substitute.For<IBeaconSendingContext>();
         }
 
