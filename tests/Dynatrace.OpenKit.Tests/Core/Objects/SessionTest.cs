@@ -120,6 +120,41 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void EnterActionAlwaysGivesANewInstance()
+        {
+            // given
+            const string actionName = "some action";
+            var target = CreateSession().Build();
+
+            // when
+            var obtainedOne = target.EnterAction(actionName);
+            var obtainedTwo = target.EnterAction(actionName);
+
+            // then
+            Assert.That(obtainedOne, Is.Not.Null);
+            Assert.That(obtainedOne, Is.Not.Null);
+            Assert.That(obtainedOne, Is.Not.SameAs(obtainedTwo));
+        }
+
+        [Test]
+        public void EnterActionAddsNewlyCreatedActionToTheListOfChildObjects()
+        {
+            // given
+            const string actionName = "some action";
+            var target = CreateSession().Build();
+
+            // when
+            var obtainedOne = target.EnterAction(actionName);
+            var obtainedTwo = target.EnterAction(actionName);
+
+            // then
+            var childObjects = target.GetCopyOfChildObjects();
+            Assert.That(childObjects.Count, Is.EqualTo(2));
+            Assert.That(childObjects[0], Is.SameAs(obtainedOne));
+            Assert.That(childObjects[1], Is.SameAs(obtainedTwo));
+        }
+
+        [Test]
         public void IdentifyUser()
         {
             // given
@@ -257,10 +292,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.End();
 
             // then
-            Assert.That(((RootAction)rootActionOne).IsActionLeft, Is.True);
-            Assert.That(((RootAction)rootActionTwo).IsActionLeft, Is.True);
-            Assert.That(((RootAction)rootActionOne).EndTime, Is.LessThan(((RootAction)rootActionTwo).EndTime));
-            Assert.That(((RootAction)rootActionTwo).EndTime, Is.LessThan(target.EndTime));
+            Assert.That(((IActionInternals)rootActionOne).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals)rootActionTwo).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals)rootActionOne).EndTime, Is.LessThan(((IActionInternals)rootActionTwo).EndTime));
+            Assert.That(((IActionInternals)rootActionTwo).EndTime, Is.LessThan(target.EndTime));
         }
 
         [Test]
@@ -314,9 +349,28 @@ namespace Dynatrace.OpenKit.Core.Objects
 
 
             // then
-            _ = mockBeacon.Received(1).CurrentTimestamp;     // session end check
             mockBeacon.Received(0).EndSession(Arg.Any<ISessionInternals>());
             Assert.That(mockBeaconSender.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void EndingASessionImplicitlyClosesAllOpenChildObjects()
+        {
+            // given
+            var childObjectOne = Substitute.For<IOpenKitObject>();
+            var childObjectTwo = Substitute.For<IOpenKitObject>();
+
+            var target = CreateSession().Build();
+
+            target.StoreChildInList(childObjectOne);
+            target.StoreChildInList(childObjectTwo);
+
+            // when
+            target.End();
+
+            // then
+            childObjectOne.Received(1).Dispose();
+            childObjectTwo.Received(1).Dispose();
         }
 
         [Test]
@@ -330,6 +384,22 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<WebRequestTracer>());
+        }
+
+        [Test]
+        public void TraceWebRequestAddsTracerToListOfChildren()
+        {
+            // given
+            const string url = "https://www.google.com";
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.TraceWebRequest(url);
+
+            // then
+            var childObjects = target.GetCopyOfChildObjects();
+            Assert.That(childObjects.Count, Is.EqualTo(1));
+            Assert.That(childObjects[0], Is.SameAs(obtained));
         }
 
         [Test]
@@ -387,6 +457,37 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
             mockLogger.Received(1).Warn($"Session [sn=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
+        }
+
+        [Test]
+        public void OnChildClosedRemovesChildFromList()
+        {
+            // given
+            var childObject = Substitute.For<IOpenKitObject>();
+            var target = CreateSession().Build();
+            target.StoreChildInList(childObject);
+
+            // when
+            target.OnChildClosed(childObject);
+
+            // then
+            Assert.That(target.GetCopyOfChildObjects(), Is.Empty);
+        }
+
+        [Test]
+        public void ToStringReturnsAppropriateResult()
+        {
+            // given
+            const int sessionNumber = 42;
+            mockBeacon.SessionNumber.Returns(sessionNumber);
+
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.ToString();
+
+            // then
+            Assert.That(obtained, Is.EqualTo($"Session [sn={sessionNumber}]"));
         }
 
         private TestSessionBuilder CreateSession()

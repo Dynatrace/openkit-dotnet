@@ -31,6 +31,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
         /// <summary>
+        /// Indicates whether this action was already <see cref="LeaveAction">left</see> or not.
+        /// </summary>
+        private bool isActionLeft;
+
+        /// <summary>
         /// the parent object of this <see cref="IAction"/>
         /// </summary>
         private readonly IOpenKitComposite parent;
@@ -64,7 +69,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// Accessor for simplified explicit access to internal <see cref="IOpenKitComposite"/>.
         /// </summary>
-        private IOpenKitComposite ThisComposite => this;
+        private protected IOpenKitComposite ThisComposite => this;
+
+        /// <summary>
+        /// Accessor for simplified explicit access to internal <see cref="IActionInternals"/>.
+        /// </summary>
+        private protected IActionInternals ThisAction => this;
 
         #region IActionInternals implementation
 
@@ -103,12 +113,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         public int EndSequenceNo { get; private set; } = -1;
 
-        #endregion
 
         /// <summary>
         /// Indicates if this action was <see cref="LeaveAction">left</see>
         /// </summary>
-        internal bool IsActionLeft => EndTime != -1L;
+        bool IActionInternals.IsActionLeft => isActionLeft;
+
+        IAction IActionInternals.ParentAction => ParentAction;
+
+        #endregion
+
+        /// <summary>
+        /// Returns the parent <see cref="IAction"/> which might be <code>null</code> in case the parent is not an
+        /// implementor of the <see cref="IAction"/> interface.
+        /// </summary>
+        internal abstract IAction ParentAction { get; }
 
         /// <summary>
         /// Beacon for sending the data
@@ -120,11 +139,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         protected ILogger Logger { get; }
 
-        /// <summary>
-        /// Returns the parent <see cref="IAction"/> which might be <code>null</code> in case the parent is not an
-        /// implementor of the <see cref="IAction"/> interface.
-        /// </summary>
-        internal abstract IAction ParentAction { get; }
 
         #region IAction implementation
 
@@ -142,7 +156,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     Beacon.ReportEvent(Id, eventName);
                 }
@@ -166,7 +180,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     Beacon.ReportValue(Id, valueName, value);
                 }
@@ -189,7 +203,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     Beacon.ReportValue(Id, valueName, value);
                 }
@@ -212,7 +226,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     Beacon.ReportValue(Id, valueName, value);
                 }
@@ -235,7 +249,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     Beacon.ReportError(Id, errorName, errorCode, reason);
                 }
@@ -263,7 +277,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     var tracer = new WebRequestTracer(Logger, this, Beacon, url);
                     ThisComposite.StoreChildInList(tracer);
@@ -284,16 +298,14 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (IsActionLeft)
+                if (ThisAction.IsActionLeft)
                 {
                     // LeaveAction was previously called
                     return ParentAction;
                 }
 
-                EndTime = Beacon.CurrentTimestamp;
-                EndSequenceNo = Beacon.NextSequenceNumber;
+                isActionLeft = true;
 
-                Beacon.AddAction(this);
             }
 
             var childObjects = ThisComposite.GetCopyOfChildObjects();
@@ -301,6 +313,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 childObject.Dispose();
             }
+
+            EndTime = Beacon.CurrentTimestamp;
+            EndSequenceNo = Beacon.NextSequenceNumber;
+
+            Beacon.AddAction(this);
 
             // detach from parent
             parent.OnChildClosed(this);

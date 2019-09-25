@@ -42,7 +42,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var beacon = new Beacon(logger,
                 new BeaconCache(logger), configuration, "127.0.0.1", Substitute.For<IThreadIdProvider>(), Substitute.For<ITimingProvider>());
 
-            wrappedSession = new Session(logger, beaconSender, beacon);
+            var mockParent = Substitute.For<IOpenKitComposite>();
+
+            wrappedSession = new Session(logger, mockParent, beaconSender, beacon);
         }
 
         [Test]

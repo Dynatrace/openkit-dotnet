@@ -41,6 +41,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         private BeaconSender beaconSender;
         private IHttpClientProvider httpClientProvider;
 
+        private IOpenKitComposite mockParent;
+
         [SetUp]
         public void Setup()
         {
@@ -75,6 +77,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.NewSessions.Returns(newSessions);
             context.OpenAndConfiguredSessions.Returns(openSessions);
             context.FinishedAndConfiguredSessions.Returns(finishedSessions);
+
+            mockParent = Substitute.For<IOpenKitComposite>();
         }
 
         [Test]
@@ -460,7 +464,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private Session CreateValidSession(string clientIp)
         {
             var logger = Substitute.For<ILogger>();
-            var session = new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
+            var session = new Session(logger, mockParent, beaconSender, new Beacon(logger, new BeaconCache(logger),
                 config, clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
 
             session.EnterAction("Foo").LeaveAction();
@@ -471,7 +475,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private Session CreateEmptySession(string clientIp)
         {
             var logger = Substitute.For<ILogger>();
-            return new Session(logger, beaconSender, new Beacon(logger, new BeaconCache(logger),
+            return new Session(logger, mockParent,beaconSender, new Beacon(logger, new BeaconCache(logger),
                 config, clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
         }
     }

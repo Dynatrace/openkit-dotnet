@@ -20,7 +20,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     /// Aggregation interface for a <see cref="RootAction"/>
     /// </summary>
-    internal interface IRootActionInternals : IRootAction, IOpenKitComposite
+    internal interface IRootActionInternals : IRootAction, IActionInternals
     {
     }
 }

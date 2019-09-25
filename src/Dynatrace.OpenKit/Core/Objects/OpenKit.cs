@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Actual implementation of the IOpenKit interface.
     /// </summary>
-    public class OpenKit : IOpenKit
+    public class OpenKit : OpenKitComposite, IOpenKit
     {
         private static readonly ISession NullSession = new NullSession();
 
@@ -97,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             beaconSender.Initialize();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Shutdown();
         }
@@ -134,7 +134,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             // create beacon for session
             var beacon = new Beacon(logger, beaconCache, configuration, clientIpAddress, threadIdProvider, timingProvider);
             // create session
-            return new Session(logger, beaconSender, beacon);
+            return new Session(logger, this, beaconSender, beacon);
         }
 
         public void Shutdown()
@@ -146,6 +146,15 @@ namespace Dynatrace.OpenKit.Core.Objects
             isShutdown = true;
             beaconCacheEvictor.Stop();
             beaconSender.Shutdown();
+        }
+
+        #endregion
+
+        #region IOpenkitComposite implementation
+
+        private protected override void OnChildClosed(IOpenKitObject childObject)
+        {
+            // intentionally empty for now
         }
 
         #endregion

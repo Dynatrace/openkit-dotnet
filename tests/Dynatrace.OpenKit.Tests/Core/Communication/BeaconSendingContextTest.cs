@@ -34,6 +34,8 @@ namespace Dynatrace.OpenKit.Core.Communication
         private AbstractBeaconSendingState nonTerminalStateMock;
         private ILogger logger = new DefaultLogger(LogLevel.DEBUG);
 
+        private IOpenKitComposite mockParent;
+
         [SetUp]
         public void Setup()
         {
@@ -41,6 +43,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             clientProvider = Substitute.For<IHttpClientProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
             nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
+
+            mockParent = Substitute.For<IOpenKitComposite>();
         }
 
         [Test]
@@ -334,7 +338,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // when starting the first session
             // Caution: Session CTOR implicitly starts itself!!!
-            var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var sessionOne = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // then
@@ -344,7 +348,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // when starting the second session
             // Caution: Session CTOR implicitly starts itself!!!
-            var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var sessionTwo = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // then
@@ -373,7 +377,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
-            var session = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var session = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // then
@@ -398,9 +402,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
             // when both session are added
-            var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var sessionOne = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
-            var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var sessionTwo = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // and configuring the first one
@@ -426,9 +430,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
 
-            var sessionOne = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var sessionOne = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
-            var sessionTwo = new Session(logger, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
+            var sessionTwo = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // when both session are added

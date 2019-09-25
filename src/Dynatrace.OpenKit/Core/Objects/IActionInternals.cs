@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// easily testable.
     /// </para>
     /// </summary>
-    internal interface IActionInternals : IAction
+    internal interface IActionInternals : IAction, IOpenKitComposite
     {
         /// <summary>
         /// Unique identifier of this <see cref="IActionInternals"/>.
@@ -61,5 +61,16 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// Returns the end sequence number of this <see cref="IActionInternals"/>.
         /// </summary>
         int EndSequenceNo { get; }
+
+        /// <summary>
+        /// Indicates if this action was left.
+        /// </summary>
+        bool IsActionLeft { get; }
+
+        /// <summary>
+        /// Returns the parent <see cref="IAction"/> which might be <code>null</code> in case the parent is not an
+        /// implementor of the <see cref="IAction"/> interface.
+        /// </summary>
+        IAction ParentAction { get; }
     }
 }

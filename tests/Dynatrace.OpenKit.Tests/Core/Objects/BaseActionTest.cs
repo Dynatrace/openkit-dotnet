@@ -364,6 +364,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void OnChildClosedRemovesChildFromList()
+        {
+            // given
+            IOpenKitComposite target = CreateStubAction();
+            var childObject = Substitute.For<IOpenKitObject>();
+            target.StoreChildInList(childObject);
+
+            // when
+            target.OnChildClosed(childObject);
+
+            // then
+            Assert.That(target.GetCopyOfChildObjects(), Is.Empty);
+        }
+
+        [Test]
         public void TracingANullStringWebRequestIsNotAllowed()
         {
             // given
@@ -507,7 +522,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ANewlyCreatedActionIsNotLeft()
         {
             // given
-            var target = CreateStubAction();
+            IActionInternals target = CreateStubAction();
 
             // then
             Assert.That(target.IsActionLeft, Is.False);
@@ -517,7 +532,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void AfterLeavingAnActionItIsLeft()
         {
             // given
-            var target = CreateStubAction();
+            IActionInternals target = CreateStubAction();
 
             // when
             target.LeaveAction();

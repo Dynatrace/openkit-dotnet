@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
@@ -31,22 +30,42 @@ namespace Dynatrace.OpenKit.Core.Objects
         private static readonly NullRootAction NullRootAction = new NullRootAction();
         private static readonly NullWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
 
+        /// <summary>
+        /// <see cref="ILogger"/> for tracing log messages.
+        /// </summary>
         private readonly ILogger logger;
+
+        /// <summary>
+        /// Object for synchronization.
+        /// </summary>
+        private readonly object lockObject = new object();
+
+        /// <summary>
+        /// Parent object of this session.
+        /// </summary>
+        private readonly IOpenKitComposite parent;
 
         // end time of this Session
         private long endTime = -1;
+
+        /// <summary>
+        /// Indicates whether this session has already been ended or not.
+        /// </summary>
+        private bool isSessionEnded;
 
         // Configuration and Beacon reference
         private readonly IBeaconSender beaconSender;
         private readonly IBeacon beacon;
 
-        // used for taking care to really leave all Actions at the end of this Session
-        private readonly SynchronizedQueue<IAction> openRootActions = new SynchronizedQueue<IAction>();
-
-
-        internal Session(ILogger logger, IBeaconSender beaconSender, IBeacon beacon)
+        internal Session(
+            ILogger logger,
+            IOpenKitComposite parent,
+            IBeaconSender beaconSender,
+            IBeacon beacon
+            )
         {
             this.logger = logger;
+            this.parent = parent;
             this.beaconSender = beaconSender;
             this.beacon = beacon;
 
@@ -67,7 +86,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         #region ISessionInternals implementation
         bool ISessionInternals.IsEmpty => beacon.IsEmpty;
 
-        long ISessionInternals.EndTime => Interlocked.Read(ref endTime);
+        long ISessionInternals.EndTime => endTime;
 
         IBeaconConfiguration ISessionInternals.BeaconConfiguration
         {
@@ -75,7 +94,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             set => beacon.BeaconConfiguration = value;
         }
 
-        bool ISessionInternals.IsSessionEnded => ThisSession.EndTime != -1;
+        bool ISessionInternals.IsSessionEnded => isSessionEnded;
 
         void ISessionInternals.ClearCapturedData()
         {
@@ -107,12 +126,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} EnterAction({actionName})");
             }
-            if (!ThisSession.IsSessionEnded)
-            {
-                var result = new RootAction(logger, this, actionName, beacon);
-                openRootActions.Put(result);
 
-                return result;
+            lock (lockObject)
+            {
+                if (!ThisSession.IsSessionEnded)
+                {
+                    var result = new RootAction(logger, this, actionName, beacon);
+                    ThisComposite.StoreChildInList(result);
+
+                    return result;
+                }
             }
 
             return NullRootAction;
@@ -129,9 +152,13 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} IdentifyUser({userTag})");
             }
-            if (!ThisSession.IsSessionEnded)
+
+            lock (lockObject)
             {
-                beacon.IdentifyUser(userTag);
+                if (!ThisSession.IsSessionEnded)
+                {
+                    beacon.IdentifyUser(userTag);
+                }
             }
         }
 
@@ -146,9 +173,13 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} ReportCrash({errorName}, {reason}, {stacktrace})");
             }
-            if (!ThisSession.IsSessionEnded)
+
+            lock (lockObject)
             {
-                beacon.ReportCrash(errorName, reason, stacktrace);
+                if (!ThisSession.IsSessionEnded)
+                {
+                    beacon.ReportCrash(errorName, reason, stacktrace);
+                }
             }
         }
 
@@ -168,9 +199,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 logger.Debug($"{this} TraceWebRequest({url})");
             }
-            if (!ThisSession.IsSessionEnded)
+
+            lock (lockObject)
             {
-                return new WebRequestTracer(logger, this, beacon, url);
+                if (!ThisSession.IsSessionEnded)
+                {
+                    var webRequestTracer = new WebRequestTracer(logger, this, beacon, url);
+                    ThisComposite.StoreChildInList(webRequestTracer);
+
+                    return webRequestTracer;
+                }
             }
 
             return NullWebRequestTracer;
@@ -183,17 +221,24 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} End()");
             }
 
-            // check if end() was already called before by looking at endTime
-            if (Interlocked.CompareExchange(ref endTime, beacon.CurrentTimestamp, -1L) != -1L)
+            lock (lockObject)
             {
-                return;
+                // check if end() was already called before by looking at endTime
+                if (ThisSession.IsSessionEnded)
+                {
+                    return;
+                }
+
+                isSessionEnded = true;
             }
 
-            // leave all Root-Actions for sanity reasons
-            while (!openRootActions.IsEmpty())
+            // forcefully leave all child elements
+            // Since the end time was set, no further child objects are added to the internal list so the following
+            // operations are safe outside the lock block.
+            var childObjects = ThisComposite.GetCopyOfChildObjects();
+            foreach (var childObject in childObjects)
             {
-                var action = openRootActions.Get();
-                action.LeaveAction();
+                childObject.Dispose();
             }
 
             endTime = beacon.CurrentTimestamp;
@@ -203,6 +248,8 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // finish session on configuration and stop managing it
             beaconSender.FinishSession(this);
+
+             parent.OnChildClosed(this);
         }
 
         #endregion
@@ -212,7 +259,10 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private protected override void OnChildClosed(IOpenKitObject childObject)
         {
-            ThisComposite.RemoveChildFromList(childObject);
+            lock (lockObject)
+            {
+                ThisComposite.RemoveChildFromList(childObject);
+            }
         }
 
         #endregion

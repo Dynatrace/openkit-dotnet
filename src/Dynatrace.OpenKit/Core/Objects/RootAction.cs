@@ -44,11 +44,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
-        /// <summary>
-        /// Accessor for simplified explicit access to internal <see cref="IOpenKitComposite"/>.
-        /// </summary>
-        private IOpenKitComposite ThisComposite => this;
-
         #region IRootAction interface implementations
 
         public IAction EnterAction(string actionName)
@@ -65,7 +60,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             lock (LockObject)
             {
-                if (!IsActionLeft)
+                if (!ThisAction.IsActionLeft)
                 {
                     var childAction = new LeafAction(Logger, this, actionName, Beacon);
                     ThisComposite.StoreChildInList(childAction);

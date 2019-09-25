@@ -163,6 +163,27 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void LeavingARootActionEndsOpenChildActionsFirst()
+        {
+            // given
+            int timestamp = 100;
+            mockBeacon.CurrentTimestamp.Returns(_ => timestamp++);
+
+            var target = CreateRootAction();
+            var actionOne = target.EnterAction("Root Action One");
+            var actionTwo = target.EnterAction("Root Action Two");
+
+            // when
+            target.LeaveAction();
+
+            // then
+            Assert.That(((IActionInternals)actionOne).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals)actionTwo).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals)actionOne).EndTime, Is.LessThan(((IActionInternals)actionTwo).EndTime));
+            Assert.That(((IActionInternals)actionTwo).EndTime, Is.LessThan(target.EndTime));
+        }
+
+        [Test]
         public void ToStringReturnsAppropriateResult()
         {
             // given
@@ -179,7 +200,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.EqualTo($"{typeof(RootAction).Name} [sn={sessionNumber}, id={id}, name={RootActionName}]"));
         }
 
-        private RootAction CreateRootAction()
+        private IRootActionInternals CreateRootAction()
         {
             return new RootAction(
                 mockLogger,
