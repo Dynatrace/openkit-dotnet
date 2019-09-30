@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Core.Caching
     /// <summary>
     /// Class responsible for handling an eviction thread, to ensure BeaconCache stays in configured boundaries.
     /// </summary>
-    public class BeaconCacheEvictor
+    public class BeaconCacheEvictor : IBeaconCacheEvictor
     {
         public static readonly int EvictionThreadJoinTimeout = 2 * 1000; // 2seconds in milliseconds
 

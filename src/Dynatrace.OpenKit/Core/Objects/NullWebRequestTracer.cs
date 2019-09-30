@@ -25,6 +25,18 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     public class NullWebRequestTracer : IWebRequestTracer
     {
+        /// <summary>
+        /// Singleton null web request tracer instance
+        /// </summary>
+        public static readonly NullWebRequestTracer Instance = new NullWebRequestTracer();
+
+        /// <summary>
+        /// Private constructor only instantiated by <see cref="Instance">singleton instance</see>
+        /// </summary>
+        private NullWebRequestTracer()
+        {
+        }
+
         public string Tag => "";
 
         public IWebRequestTracer SetBytesReceived(int bytesReceived)

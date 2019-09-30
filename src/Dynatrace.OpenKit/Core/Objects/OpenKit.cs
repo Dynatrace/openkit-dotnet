@@ -28,61 +28,124 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     public class OpenKit : OpenKitComposite, IOpenKit
     {
-        private static readonly ISession NullSession = new NullSession();
+        /// <summary>
+        /// Cache instance used for storing serialized <see cref="IBeacon">beacon</see> data.
+        /// </summary>
+        private readonly IBeaconCache beaconCache;
 
-        // Configuration reference
+        /// <summary>
+        /// <see cref="IBeaconCache"/> eviction thread
+        /// </summary>
+        private readonly IBeaconCacheEvictor beaconCacheEvictor;
+
+        /// <summary>
+        /// Thread for sending <see cref="IBeacon">beacons</see>
+        /// </summary>
+        private readonly IBeaconSender beaconSender;
+
+        /// <summary>
+        /// Container for storing the configuration set by the <see cref="AbstractOpenKitBuilder">OpenKit builder</see>.
+        /// </summary>
         private readonly IOpenKitConfiguration configuration;
-        private readonly ITimingProvider timingProvider;
-        private readonly BeaconSender beaconSender;
+
+        /// <summary>
+        /// Provider of the thread identifier.
+        /// </summary>
         private readonly IThreadIdProvider threadIdProvider;
-        private readonly BeaconCache beaconCache;
 
-        // Cache eviction thread
-        private readonly BeaconCacheEvictor beaconCacheEvictor;
+        /// <summary>
+        /// Provider for the current time.
+        /// </summary>
+        private readonly ITimingProvider timingProvider;
 
-        // logging context
+        /// <summary>
+        /// <see cref="ILogger"/> for tracing log messages.
+        /// </summary>
         private readonly ILogger logger;
 
-        private volatile bool isShutdown = false;
+        /// <summary>
+        /// Indicator whether this <see cref="OpenKit"/> instance is shutdown or not.
+        /// </summary>
+        private volatile bool isShutdown;
+
+        private readonly object lockObject = new object();
 
         #region constructors
 
         internal OpenKit(ILogger logger, IOpenKitConfiguration configuration)
-            : this(logger, configuration, new DefaultHttpClientProvider(logger), new DefaultTimingProvider(), new DefaultThreadIdProvider())
         {
+            this.logger = logger;
+            this.configuration = configuration;
+            timingProvider = new DefaultTimingProvider();
+            threadIdProvider = new DefaultThreadIdProvider();
+            beaconCache = new BeaconCache(logger);
+            beaconSender = new BeaconSender(logger, configuration, new DefaultHttpClientProvider(logger),
+                timingProvider);
+            beaconCacheEvictor = new BeaconCacheEvictor(logger, beaconCache, configuration.BeaconCacheConfig,
+                timingProvider);
         }
 
-        internal OpenKit(ILogger logger,
+        /// <summary>
+        /// Constructor intended to be used for testing only.
+        /// </summary>
+        /// <param name="logger">Logger for logging messages.</param>
+        /// <param name="configuration">the configuration for this OpenKit instance.</param>
+        /// <param name="timingProvider">provider for retrieving timing information.</param>
+        /// <param name="threadIdProvider">provider for retrieving the ID of the current thread.</param>
+        /// <param name="beaconCache">the cache where the beacon data is stored.</param>
+        /// <param name="beaconSender">instance that is responsible for sending beacon related data.</param>
+        /// <param name="beaconCacheEvictor">cache evictor to prevent memory over-consumption.</param>
+        internal OpenKit(
+            ILogger logger,
             IOpenKitConfiguration configuration,
-            IHttpClientProvider httpClientProvider,
             ITimingProvider timingProvider,
-            IThreadIdProvider threadIdProvider)
+            IThreadIdProvider threadIdProvider,
+            IBeaconCache beaconCache,
+            IBeaconSender beaconSender,
+            IBeaconCacheEvictor beaconCacheEvictor
+            )
+        {
+            LogOpenKitInstanceCreation(logger, configuration);
+
+            this.logger = logger;
+            this.configuration = configuration;
+            this.threadIdProvider = threadIdProvider;
+            this.timingProvider = timingProvider;
+            this.beaconCache = beaconCache;
+            this.beaconSender = beaconSender;
+            this.beaconCacheEvictor = beaconCacheEvictor;
+        }
+
+        /// <summary>
+        /// Helper method for logging instance creation.
+        /// </summary>
+        /// <param name="logger">the logger to which the log message is written to</param>
+        /// <param name="configuration">the OpenKit related configuration</param>
+        private static void LogOpenKitInstanceCreation(ILogger logger, IOpenKitConfiguration configuration)
         {
             if (logger.IsInfoEnabled)
             {
-                //TODO: Use proper version information (incl. the build number)
-                logger.Info(configuration.OpenKitType + " " + GetType().Name + " " + OpenKitConstants.DefaultApplicationVersion + " instantiated");
+                logger.Info($"{typeof(OpenKit).Name} - {configuration.OpenKitType} " +
+                    $"OpenKit {OpenKitConstants.DefaultApplicationVersion} instantiated");
             }
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"applicationName={configuration.ApplicationName}"
+                logger.Debug($"{typeof(OpenKit).Name} "
+                  + $"- applicationName={configuration.ApplicationName}"
                   + $", applicationID={configuration.ApplicationId}"
                   + $", deviceID={configuration.DeviceId}"
                   + $", origDeviceID={configuration.OrigDeviceId}"
                   + $", endpointURL={configuration.EndpointUrl}"
                 );
             }
-            this.configuration = configuration;
-            this.logger = logger;
-            this.timingProvider = timingProvider;
-            this.threadIdProvider = threadIdProvider;
-
-            beaconCache = new BeaconCache(logger);
-            beaconSender = new BeaconSender(logger, configuration, httpClientProvider, timingProvider);
-            beaconCacheEvictor = new BeaconCacheEvictor(logger, beaconCache, configuration.BeaconCacheConfig, timingProvider);
         }
 
         #endregion
+
+        /// <summary>
+        ///
+        /// </summary>
+        private IOpenKitComposite ThisComposite => this;
 
         /// <summary>
         /// Initialize this OpenKit instance.
@@ -125,25 +188,50 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " CreateSession(" + clientIpAddress + ")");
+                logger.Debug($"{GetType().Name} CreateSession({clientIpAddress})");
             }
-            if (isShutdown)
+
+            lock (lockObject)
             {
-                return NullSession;
+                if (isShutdown)
+                {
+                    return NullSession.Instance;
+                }
+
+                // create beacon for session
+                var beacon = new Beacon(logger, beaconCache, configuration, clientIpAddress, threadIdProvider,
+                    timingProvider);
+
+                var session = new Session(logger, this, beaconSender, beacon);
+                ThisComposite.StoreChildInList(session);
+
+                return session;
             }
-            // create beacon for session
-            var beacon = new Beacon(logger, beaconCache, configuration, clientIpAddress, threadIdProvider, timingProvider);
-            // create session
-            return new Session(logger, this, beaconSender, beacon);
         }
 
         public void Shutdown()
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " shutdown requested");
+                logger.Debug($"{GetType().Name} shutdown requested");
             }
-            isShutdown = true;
+
+            lock (lockObject)
+            {
+                if (isShutdown)
+                {
+                    return;
+                }
+                isShutdown = true;
+            }
+
+            // close all open children
+            var childObjects = ThisComposite.GetCopyOfChildObjects();
+            foreach(var childObject in childObjects)
+            {
+                childObject.Dispose();
+            }
+
             beaconCacheEvictor.Stop();
             beaconSender.Shutdown();
         }
@@ -154,7 +242,10 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private protected override void OnChildClosed(IOpenKitObject childObject)
         {
-            // intentionally empty for now
+            lock (lockObject)
+            {
+                ThisComposite.RemoveChildFromList(childObject);
+            }
         }
 
         #endregion

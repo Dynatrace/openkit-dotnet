@@ -128,7 +128,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="clientIpAddress">The client's IP address</param>
         /// <param name="threadIdProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
-        internal Beacon(ILogger logger, BeaconCache beaconCache, IOpenKitConfiguration configuration, string clientIpAddress,
+        internal Beacon(ILogger logger, IBeaconCache beaconCache, IOpenKitConfiguration configuration, string clientIpAddress,
             IThreadIdProvider threadIdProvider, ITimingProvider timingProvider)
             : this(logger, beaconCache, configuration, clientIpAddress, threadIdProvider, timingProvider, new DefaultPrnGenerator())
         {

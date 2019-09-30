@@ -25,6 +25,18 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     public class NullRootAction : NullAction, IRootAction
     {
+        /// <summary>
+        /// Singleton null root action instance
+        /// </summary>
+        public static readonly  NullRootAction Instance = new NullRootAction();
+
+        /// <summary>
+        /// Private constructor only instantiated by <see cref="Instance">singleton instance</see>
+        /// </summary>
+        private NullRootAction()
+        {
+        }
+
         public IAction EnterAction(string actionName)
         {
             return new NullAction(this);

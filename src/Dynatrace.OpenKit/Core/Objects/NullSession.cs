@@ -20,8 +20,17 @@ namespace Dynatrace.OpenKit.Core.Objects
 {
     public class NullSession : ISession
     {
-        private static readonly IRootAction NullRootAction = new NullRootAction();
-        private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
+        /// <summary>
+        /// Singleton null session instance.
+        /// </summary>
+        public static readonly NullSession Instance = new NullSession();
+
+        /// <summary>
+        /// Private constructor only instantiated by <see cref="Instance">singleton instance</see>
+        /// </summary>
+        private NullSession()
+        {
+        }
 
         public void Dispose()
         {
@@ -35,7 +44,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public IRootAction EnterAction(string actionName)
         {
-            return NullRootAction;
+            return NullRootAction.Instance;
         }
 
         public void IdentifyUser(string userTag)
@@ -50,7 +59,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public IWebRequestTracer TraceWebRequest(string url)
         {
-            return NullWebRequestTracer;
+            return NullWebRequestTracer.Instance;
         }
     }
 }

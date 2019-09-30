@@ -27,9 +27,6 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     internal class Session : OpenKitComposite, ISessionInternals
     {
-        private static readonly NullRootAction NullRootAction = new NullRootAction();
-        private static readonly NullWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
-
         /// <summary>
         /// <see cref="ILogger"/> for tracing log messages.
         /// </summary>
@@ -120,7 +117,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             if (string.IsNullOrEmpty(actionName))
             {
                 logger.Warn($"{this} EnterAction: actionName must not be null or empty");
-                return NullRootAction;
+                return NullRootAction.Instance;
             }
             if (logger.IsDebugEnabled)
             {
@@ -138,7 +135,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
             }
 
-            return NullRootAction;
+            return NullRootAction.Instance;
         }
 
         public void IdentifyUser(string userTag)
@@ -188,12 +185,12 @@ namespace Dynatrace.OpenKit.Core.Objects
             if (string.IsNullOrEmpty(url))
             {
                 logger.Warn($"{this} TraceWebRequest(String): url must not be null or empty");
-                return NullWebRequestTracer;
+                return NullWebRequestTracer.Instance;
             }
             if (!WebRequestTracer.IsValidUrlScheme(url))
             {
                 logger.Warn($"{this} TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
-                return NullWebRequestTracer;
+                return NullWebRequestTracer.Instance;
             }
             if (logger.IsDebugEnabled)
             {
@@ -211,7 +208,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
             }
 
-            return NullWebRequestTracer;
+            return NullWebRequestTracer.Instance;
         }
 
         public void End()

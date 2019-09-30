@@ -24,8 +24,6 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     public class NullAction : IAction
     {
-        private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
-
         private readonly IAction parentAction;
 
         internal NullAction() : this(null)
@@ -74,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public IWebRequestTracer TraceWebRequest(string url)
         {
-            return NullWebRequestTracer;
+            return NullWebRequestTracer.Instance;
         }
     }
 }

@@ -26,11 +26,6 @@ namespace Dynatrace.OpenKit.Core.Objects
     public abstract class BaseAction : OpenKitComposite, IActionInternals
     {
         /// <summary>
-        /// The web request tracer being returned once this action was closed.
-        /// </summary>
-        private static readonly IWebRequestTracer NullWebRequestTracer = new NullWebRequestTracer();
-
-        /// <summary>
         /// Indicates whether this action was already <see cref="LeaveAction">left</see> or not.
         /// </summary>
         private bool isActionLeft;
@@ -263,12 +258,12 @@ namespace Dynatrace.OpenKit.Core.Objects
             if (string.IsNullOrEmpty(url))
             {
                 Logger.Warn($"{this} TraceWebRequest (String): url must not be null or empty");
-                return NullWebRequestTracer;
+                return NullWebRequestTracer.Instance;
             }
             if (!WebRequestTracer.IsValidUrlScheme(url))
             {
                 Logger.Warn($"{this} TraceWebRequest (String): url \"{url}\" does not have a valid scheme");
-                return NullWebRequestTracer;
+                return NullWebRequestTracer.Instance;
             }
             if (Logger.IsDebugEnabled)
             {
@@ -286,7 +281,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
             }
 
-            return NullWebRequestTracer;
+            return NullWebRequestTracer.Instance;
         }
 
         public IAction LeaveAction()
