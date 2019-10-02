@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Protocol
     /// <summary>
     ///  Implements a status response which is sent for the request types status check & beacon send.
     /// </summary>
-    public class StatusResponse : Response
+    public class StatusResponse : Response, IStatusResponse
     {
         private static readonly char[] PartsSeparator = { '&' };
 
