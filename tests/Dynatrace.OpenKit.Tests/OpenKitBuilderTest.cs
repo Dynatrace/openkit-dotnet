@@ -174,8 +174,8 @@ namespace Dynatrace.OpenKit
             Assert.That(configuration.BeaconCacheConfig.MaxRecordAge, Is.EqualTo(BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis));
             Assert.That(configuration.BeaconCacheConfig.CacheSizeUpperBound, Is.EqualTo(BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes));
             Assert.That(configuration.BeaconCacheConfig.CacheSizeLowerBound, Is.EqualTo(BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes));
-            Assert.That(configuration.BeaconConfig.DataCollectionLevel, Is.EqualTo(BeaconConfiguration.DefaultDataCollectionLevel));
-            Assert.That(configuration.BeaconConfig.CrashReportingLevel, Is.EqualTo(BeaconConfiguration.DefaultCrashReportingLevel));
+            Assert.That(configuration.PrivacyConfig.DataCollectionLevel, Is.EqualTo(PrivacyConfiguration.DefaultDataCollectionLevel));
+            Assert.That(configuration.PrivacyConfig.CrashReportingLevel, Is.EqualTo(PrivacyConfiguration.DefaultCrashReportingLevel));
         }
 
         [Test]
@@ -506,7 +506,7 @@ namespace Dynatrace.OpenKit
             var level = DataCollectionLevel.USER_BEHAVIOR;
             var obtained = target.WithDataCollectionLevel(level);
             IOpenKitConfiguration openKitConfig = target.BuildConfiguration();
-            var config = openKitConfig.BeaconConfig;
+            var config = openKitConfig.PrivacyConfig;
 
             // then
             Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
@@ -524,7 +524,7 @@ namespace Dynatrace.OpenKit
             var level = DataCollectionLevel.USER_BEHAVIOR;
             var obtained = target.WithDataCollectionLevel(level);
             IOpenKitConfiguration openKitConfig = target.BuildConfiguration();
-            var config = openKitConfig.BeaconConfig;
+            var config = openKitConfig.PrivacyConfig;
 
             // then
             Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());
@@ -542,7 +542,7 @@ namespace Dynatrace.OpenKit
             var level = CrashReportingLevel.OPT_IN_CRASHES;
             var obtained = target.WithCrashReportingLevel(level);
             IOpenKitConfiguration openKitConfig = target.BuildConfiguration();
-            var config = openKitConfig.BeaconConfig;
+            var config = openKitConfig.PrivacyConfig;
 
             // then
             Assert.That(obtained, Is.InstanceOf<DynatraceOpenKitBuilder>());
@@ -560,7 +560,7 @@ namespace Dynatrace.OpenKit
             var level = CrashReportingLevel.OPT_IN_CRASHES;
             var obtained = target.WithCrashReportingLevel(level);
             IOpenKitConfiguration openKitConfig = target.BuildConfiguration();
-            var config = openKitConfig.BeaconConfig;
+            var config = openKitConfig.PrivacyConfig;
 
             // then
             Assert.That(obtained, Is.InstanceOf<AppMonOpenKitBuilder>());

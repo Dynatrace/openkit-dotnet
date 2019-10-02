@@ -112,6 +112,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         IBeaconCacheConfiguration BeaconCacheConfig { get; }
 
         /// <summary>
+        /// Returns the <see cref="IPrivacyConfiguration">privacy configuration</see> used to determine which data is
+        /// allowed to be sent.
+        /// </summary>
+        IPrivacyConfiguration PrivacyConfig { get; }
+
+        /// <summary>
         /// Returns the <see cref="IHttpClientConfiguration">configuration</see> for communication via HTTP.
         /// </summary>
         IHttpClientConfiguration HttpClientConfig { get; }

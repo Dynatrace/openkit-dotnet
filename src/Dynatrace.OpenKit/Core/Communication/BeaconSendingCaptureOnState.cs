@@ -96,9 +96,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 if (!newSession.CanSendNewSessionRequest)
                 {
                     // already exceeded the maximum number of session requests, disable any further data collecting
-                    var currentConfiguration = newSession.BeaconConfiguration;
-                    var newConfiguration = new BeaconConfiguration(0,
-                        currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel);
+                    var newConfiguration = new BeaconConfiguration(0);
                     newSession.UpdateBeaconConfiguration(newConfiguration);
                     continue;
                 }
@@ -106,9 +104,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 statusResponse = context.GetHttpClient().SendNewSessionRequest();
                 if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
-                    var currentConfiguration = newSession.BeaconConfiguration;
-                    var newConfiguration = new BeaconConfiguration(statusResponse.Multiplicity,
-                        currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel);
+                    var newConfiguration = new BeaconConfiguration(statusResponse.Multiplicity);
                     newSession.UpdateBeaconConfiguration(newConfiguration);
                 }
                 else if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))

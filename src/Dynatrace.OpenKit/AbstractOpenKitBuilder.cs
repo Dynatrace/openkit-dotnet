@@ -90,10 +90,10 @@ namespace Dynatrace.OpenKit
             BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes;
 
         protected DataCollectionLevel DataCollectionLevel { get; private set; } =
-            BeaconConfiguration.DefaultDataCollectionLevel;
+            PrivacyConfiguration.DefaultDataCollectionLevel;
 
         protected CrashReportingLevel CrashReportingLevel { get; private set; } =
-            BeaconConfiguration.DefaultCrashReportingLevel;
+            PrivacyConfiguration.DefaultCrashReportingLevel;
 
         /// <summary>
         /// Enables verbose mode. Verbose mode is only enabled if the the default logger is used.

@@ -62,7 +62,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var target = new SessionWrapper(wrappedSession);
-            var newConfiguration = new BeaconConfiguration(42, DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var newConfiguration = new BeaconConfiguration(42);
 
             // when updating
             target.UpdateBeaconConfiguration(newConfiguration);
@@ -223,7 +223,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new SessionWrapper(wrappedSession);
 
             // when
-            target.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.UpdateBeaconConfiguration(new BeaconConfiguration(1));
 
             // then
             Assert.That(target.IsDataSendingAllowed, Is.True);
@@ -236,7 +236,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new SessionWrapper(wrappedSession);
 
             // when
-            target.UpdateBeaconConfiguration(new BeaconConfiguration(0, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.UpdateBeaconConfiguration(new BeaconConfiguration(0));
 
             // then
             Assert.That(target.IsDataSendingAllowed, Is.False);
@@ -249,7 +249,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new SessionWrapper(wrappedSession);
 
             // when
-            target.UpdateBeaconConfiguration(new BeaconConfiguration(-1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.UpdateBeaconConfiguration(new BeaconConfiguration(-1));
 
             // then
             Assert.That(target.IsDataSendingAllowed, Is.False);

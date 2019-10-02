@@ -144,9 +144,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingFlushSessionsState();
 
             var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            sessionOne.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            sessionOne.UpdateBeaconConfiguration(new BeaconConfiguration(1));
             var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
-            sessionTwo.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            sessionTwo.UpdateBeaconConfiguration(new BeaconConfiguration(1));
 
             openSessions.AddRange(new[] { sessionOne, sessionTwo });
 

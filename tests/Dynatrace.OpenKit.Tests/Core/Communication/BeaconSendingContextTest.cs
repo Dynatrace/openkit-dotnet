@@ -408,7 +408,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
 
             // and configuring the first one
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
 
             // then
             Assert.That(target.NewSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionTwo }));
@@ -416,7 +416,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
 
             // and when configuring the second open session
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
 
             // then
             Assert.That(target.NewSessions, Is.Empty);
@@ -441,7 +441,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.FinishSession(sessionTwo);
 
             // and configuring the first one
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
 
             // then
             Assert.That(target.NewSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionTwo }));
@@ -449,7 +449,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.FinishedAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne }));
 
             // and when configuring the second open session
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
 
             // then
             Assert.That(target.NewSessions, Is.Empty);

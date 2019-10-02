@@ -60,7 +60,8 @@ namespace Dynatrace.OpenKit
             var beaconCacheConfig = new BeaconCacheConfiguration(
                 BeaconCacheMaxBeaconAge, BeaconCacheLowerMemoryBoundary, BeaconCacheUpperMemoryBoundary);
 
-            var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DefaultMultiplicity, DataCollectionLevel, CrashReportingLevel);
+            var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DefaultMultiplicity);
+            var privacyConfig = new PrivacyConfiguration(DataCollectionLevel, CrashReportingLevel);
 
             return new OpenKitConfiguration(
                 OpenKitType.AppMon,
@@ -74,7 +75,9 @@ namespace Dynatrace.OpenKit
                 device,
                 ApplicationVersion,
                 beaconCacheConfig,
-                beaconConfig);
+                beaconConfig,
+                privacyConfig
+                );
         }
     }
 }

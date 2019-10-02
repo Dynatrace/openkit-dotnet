@@ -139,32 +139,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void ADefaultConstructedConfigurationDisablesDataCollection()
-        {
-            // given
-            var target = CreateDefaultConfig();
-
-            //when retrieving data collection level
-            var dataCollectionLevel = target.BeaconConfig.DataCollectionLevel;
-
-            //then
-            Assert.That(dataCollectionLevel, Is.EqualTo(DataCollectionLevel.USER_BEHAVIOR));
-        }
-
-        [Test]
-        public void ADefaultConstructedConfigurationDisablesCrashReporting()
-        {
-            // given
-            var target = CreateDefaultConfig();
-
-            //when retrieving data collection level
-            var crashReportingLevel = target.BeaconConfig.CrashReportingLevel;
-
-            //then
-            Assert.That(crashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_IN_CRASHES));
-        }
-
-        [Test]
         public void ADefaultConstructedConfigurationUsesStrictTrustManager()
         {
             // given
@@ -203,11 +177,28 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis,
                 BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes,
                 BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes);
+            var defaultPrivacyConfig = new PrivacyConfiguration(
+                PrivacyConfiguration.DefaultDataCollectionLevel,
+                PrivacyConfiguration.DefaultCrashReportingLevel
+                );
 
             var defaultBeaconConfig = new BeaconConfiguration();
 
-            return new OpenKitConfiguration(OpenKitType.Dynatrace, "", "/App_ID%", 0, "0", "", new TestSessionIdProvider(),
-                  new SSLStrictTrustManager(), new Device("", "", ""), "", defaultCacheConfig, defaultBeaconConfig);
+            return new OpenKitConfiguration(
+                OpenKitType.Dynatrace,
+                "",
+                "/App_ID%",
+                0,
+                "0",
+                "",
+                new TestSessionIdProvider(),
+                  new SSLStrictTrustManager(),
+                new Device("", "", ""),
+                "",
+                defaultCacheConfig,
+                defaultBeaconConfig,
+                defaultPrivacyConfig
+                );
         }
     }
 }

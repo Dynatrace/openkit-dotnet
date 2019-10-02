@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit
     public class TestConfiguration : OpenKitConfiguration
     {
         public TestConfiguration()
-            : this(0, new BeaconConfiguration(1, DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OPT_IN_CRASHES), new TestSessionIdProvider())
+            : this(0, new BeaconConfiguration(1), new TestSessionIdProvider())
         {
         }
 
@@ -40,13 +40,26 @@ namespace Dynatrace.OpenKit
         }
 
         internal TestConfiguration(string appId, long deviceId, IBeaconConfiguration beaconConfig, ISessionIdProvider sessionIdProvider)
-            : base(OpenKitType.Dynatrace, "", appId, deviceId, deviceId.ToString(), "", sessionIdProvider,
-          new SSLStrictTrustManager(), new Device("", "", ""), "",
-          new BeaconCacheConfiguration(
-            BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis,
-            BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes,
-            BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes),
-          beaconConfig)
+            : base(
+                OpenKitType.Dynatrace,
+                "",
+                appId,
+                deviceId,
+                deviceId.ToString(),
+                "",
+                sessionIdProvider,
+                new SSLStrictTrustManager(),
+                new Device("", "", ""),
+                "",
+                new BeaconCacheConfiguration(
+                    BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis,
+                    BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes,
+                    BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes),
+                  beaconConfig,
+                new PrivacyConfiguration(
+                    PrivacyConfiguration.DefaultDataCollectionLevel,
+                    PrivacyConfiguration.DefaultCrashReportingLevel)
+            )
         {
             ThisConfig.EnableCapture();
         }

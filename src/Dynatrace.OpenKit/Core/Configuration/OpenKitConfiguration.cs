@@ -35,15 +35,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const bool DefaultCaptureErrors = true;                // default: capture errors on
         private const bool DefaultCaptureCrashes = true;               // default: capture crashes on
 
-        // mutable settings
-        // TODO stefan.eberl@dynatrace.com - 2017-12-06 - capture/captureErrors/captureCrashes must be thread safe (APM-114816)
-
         // application and device settings
         private string applicationVersion;
 
         private IHttpClientConfiguration httpClientConfig;
         private readonly IBeaconConfiguration beaconConfig;
         private readonly IBeaconCacheConfiguration beaconCacheConfig;
+        private readonly IPrivacyConfiguration privacyConfig;
 
         // caching settings
 
@@ -51,9 +49,20 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         #region constructors
 
-        internal OpenKitConfiguration(OpenKitType openKitType, string applicationName, string applicationId, long deviceId, string origDeviceId, string endpointUrl,
-            ISessionIdProvider sessionIdProvider, ISSLTrustManager trustManager, Device device, string applicationVersion,
-            IBeaconCacheConfiguration beaconCacheConfiguration, IBeaconConfiguration beaconConfiguration)
+        internal OpenKitConfiguration(
+            OpenKitType openKitType,
+            string applicationName,
+            string applicationId,
+            long deviceId,
+            string origDeviceId,
+            string endpointUrl,
+            ISessionIdProvider sessionIdProvider,
+            ISSLTrustManager trustManager,
+            Device device, string applicationVersion,
+            IBeaconCacheConfiguration beaconCacheConfiguration,
+            IBeaconConfiguration beaconConfiguration,
+            IPrivacyConfiguration privacyConfiguration
+            )
         {
             OpenKitType = openKitType;
 
@@ -85,6 +94,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             beaconConfig = beaconConfiguration;
             beaconCacheConfig = beaconCacheConfiguration;
+            privacyConfig = privacyConfiguration;
         }
 
         #endregion
@@ -136,6 +146,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public Device Device { get; }
 
         IBeaconCacheConfiguration IOpenKitConfiguration.BeaconCacheConfig => beaconCacheConfig;
+
+        IPrivacyConfiguration IOpenKitConfiguration.PrivacyConfig => privacyConfig;
 
         IHttpClientConfiguration IOpenKitConfiguration.HttpClientConfig => httpClientConfig;
 

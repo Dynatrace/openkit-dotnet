@@ -24,16 +24,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
     internal interface IBeaconConfiguration
     {
         /// <summary>
-        /// Returns the configured <see cref="DataCollectionLevel"/>
-        /// </summary>
-        DataCollectionLevel DataCollectionLevel { get; }
-
-        /// <summary>
-        /// Returns the configured <see cref="CrashReportingLevel"/>
-        /// </summary>
-        CrashReportingLevel CrashReportingLevel { get; }
-
-        /// <summary>
         /// Returns the configured multiplicity
         /// </summary>
         int Multiplicity { get; }

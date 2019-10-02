@@ -111,6 +111,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         // Beacon configuration
         private volatile IBeaconConfiguration beaconConfiguration;
+        private readonly IPrivacyConfiguration privacyConfiguration;
 
         private readonly ILogger logger;
 
@@ -150,18 +151,11 @@ namespace Dynatrace.OpenKit.Protocol
             this.logger = logger;
             this.beaconCache = beaconCache;
             ThisBeacon.BeaconConfiguration = configuration.BeaconConfig;
+            privacyConfiguration = configuration.PrivacyConfig;
 
             beaconId = configuration.NextSessionNumber;
-            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.USER_BEHAVIOR)
-            {
-                SessionNumber = beaconId;
-                DeviceId = configuration.DeviceId;
-            }
-            else
-            {
-                SessionNumber = 1;
-                DeviceId = NextRandomPositiveLong(randomNumberGenerator);
-            }
+            DeviceId = CreateDeviceId(configuration, randomNumberGenerator);
+            SessionNumber = DetermineSessionNumber(privacyConfiguration, beaconId);
 
             this.timingProvider = timingProvider;
 
@@ -178,6 +172,26 @@ namespace Dynatrace.OpenKit.Protocol
         private static long NextRandomPositiveLong(IPrnGenerator randomGenerator)
         {
             return randomGenerator.NextLong(long.MaxValue) & 0x7fffffffffffffffL;
+        }
+
+        private static long CreateDeviceId(IOpenKitConfiguration configuration, IPrnGenerator randomGenerator)
+        {
+            if (configuration.PrivacyConfig.IsDeviceIdSendingAllowed)
+            {
+                return configuration.DeviceId;
+            }
+
+            return NextRandomPositiveLong(randomGenerator);
+        }
+
+        private static int DetermineSessionNumber(IPrivacyConfiguration privacyConfig, int beaconId)
+        {
+            if (privacyConfig.IsSessionNumberReportingAllowed)
+            {
+                return beaconId;
+            }
+
+            return 1;
         }
 
         #endregion
@@ -228,7 +242,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         string IBeacon.CreateTag(int parentActionId, int sequenceNo)
         {
-            if (ThisBeacon.BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (!privacyConfiguration.IsWebRequestTracingAllowed)
             {
                 return string.Empty;
             }
@@ -251,7 +265,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (!privacyConfiguration.IsActionReportingAllowed)
             {
                 return;
             }
@@ -295,7 +309,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (!privacyConfiguration.IsSessionReportingAllowed)
             {
                 return;
             }
@@ -318,7 +332,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            if (!privacyConfiguration.IsValueReportingAllowed)
             {
                 return;
             }
@@ -338,7 +352,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            if (!privacyConfiguration.IsValueReportingAllowed)
             {
                 return;
             }
@@ -358,7 +372,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            if (!privacyConfiguration.IsValueReportingAllowed)
             {
                 return;
             }
@@ -378,7 +392,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            if (!privacyConfiguration.IsEventReportingAllowed)
             {
                 return;
             }
@@ -398,7 +412,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (!privacyConfiguration.IsErrorReportingAllowed)
             {
                 return;
             }
@@ -425,7 +439,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.CrashReportingLevel != CrashReportingLevel.OPT_IN_CRASHES)
+            if (!privacyConfiguration.IsCrashReportingAllowed)
             {
                 return;
             }
@@ -451,7 +465,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (ThisBeacon.BeaconConfiguration.DataCollectionLevel == DataCollectionLevel.OFF)
+            if (!privacyConfiguration.IsWebRequestTracingAllowed)
             {
                 return;
             }
@@ -480,7 +494,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (beaconConfiguration.DataCollectionLevel != DataCollectionLevel.USER_BEHAVIOR)
+            if (!privacyConfiguration.IsUserIdentificationIsAllowed)
             {
                 return;
             }
@@ -627,8 +641,8 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceManufacturer, configuration.Device.Manufacturer);
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceModel, configuration.Device.ModelId);
 
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyDataCollectionLevel, (int)beaconConfiguration.DataCollectionLevel);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyCrashReportingLevel, (int)beaconConfiguration.CrashReportingLevel);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyDataCollectionLevel, (int)privacyConfiguration.DataCollectionLevel);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyCrashReportingLevel, (int)privacyConfiguration.CrashReportingLevel);
 
             return basicBeaconBuilder.ToString();
         }

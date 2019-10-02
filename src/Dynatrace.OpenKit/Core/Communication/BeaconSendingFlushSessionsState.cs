@@ -36,18 +36,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         protected override void DoExecute(IBeaconSendingContext context)
         {
             // first get all sessions that do not have any multiplicity explicitly set
-            context.NewSessions.ForEach(newSession =>
-            {
-                var currentConfiguration = newSession.BeaconConfiguration;
-                newSession.UpdateBeaconConfiguration(
-                    new BeaconConfiguration(1, currentConfiguration.DataCollectionLevel, currentConfiguration.CrashReportingLevel));
-            });
+            context.NewSessions.ForEach(newSession => newSession.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
 
             // end all open sessions -> will be flushed afterwards
-            context.OpenAndConfiguredSessions.ForEach(openSession =>
-            {
-                openSession.End();
-            });
+            context.OpenAndConfiguredSessions.ForEach(openSession => openSession.End());
 
             // flush already finished (and previously ended) sessions
             var tooManyRequestsReceived = false;

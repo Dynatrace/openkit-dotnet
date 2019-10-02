@@ -18,27 +18,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class BeaconConfiguration : IBeaconConfiguration
     {
-        public const DataCollectionLevel DefaultDataCollectionLevel = DataCollectionLevel.USER_BEHAVIOR;
-
-        public const CrashReportingLevel DefaultCrashReportingLevel = CrashReportingLevel.OPT_IN_CRASHES;
-
         public const int DefaultMultiplicity = 1;
 
         public BeaconConfiguration()
-            : this(DefaultMultiplicity, DefaultDataCollectionLevel, DefaultCrashReportingLevel)
+            : this(DefaultMultiplicity)
         {
         }
 
-        public BeaconConfiguration(int multiplicity, DataCollectionLevel dataCollectionLevel, CrashReportingLevel crashReportingLevel)
+        public BeaconConfiguration(int multiplicity)
         {
             Multiplicity = multiplicity;
-            DataCollectionLevel = dataCollectionLevel;
-            CrashReportingLevel = crashReportingLevel;
         }
-
-        public DataCollectionLevel DataCollectionLevel { get; }
-
-        public CrashReportingLevel CrashReportingLevel { get; }
 
         public int Multiplicity { get; }
 

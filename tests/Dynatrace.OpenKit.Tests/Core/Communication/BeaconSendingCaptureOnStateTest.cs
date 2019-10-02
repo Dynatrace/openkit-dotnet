@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private List<SessionWrapper> newSessions;
         private List<SessionWrapper> openSessions;
         private List<SessionWrapper> finishedSessions;
-        private long currentTime = 0;
+        private long currentTime;
 
         private ILogger logger;
         private IHttpClient httpClient;
@@ -120,7 +120,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
-            session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            session.UpdateBeaconConfiguration(new BeaconConfiguration(1));
             finishedSessions.Add(session);
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
@@ -265,7 +265,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 new SessionWrapper(CreateValidSession(clientIp)),
                 new SessionWrapper(CreateValidSession(clientIp)),
                 new SessionWrapper(CreateValidSession(clientIp)) });
-            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)));
+            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
 
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
@@ -293,7 +293,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 new SessionWrapper(CreateValidSession(clientIp)),
                 new SessionWrapper(CreateValidSession(clientIp)),
                 new SessionWrapper(CreateValidSession(clientIp)) });
-            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)));
+            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
 
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
@@ -326,7 +326,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var finishedSession = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            finishedSession.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            finishedSession.UpdateBeaconConfiguration(new BeaconConfiguration(1));
             finishedSessions.Add(finishedSession);
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(statusResponse);
 
@@ -374,7 +374,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
-            session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            session.UpdateBeaconConfiguration(new BeaconConfiguration(1));
             openSessions.Add(session);
 
             // when
@@ -403,7 +403,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
 
             var session = new SessionWrapper(CreateValidSession(clientIp));
-            session.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF));
+            session.UpdateBeaconConfiguration(new BeaconConfiguration(1));
             openSessions.Add(session);
 
             // when
@@ -432,7 +432,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 new SessionWrapper(CreateValidSession(clientIp)),
                 new SessionWrapper(CreateValidSession(clientIp)),
                 new SessionWrapper(CreateValidSession(clientIp)) });
-            openSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1, DataCollectionLevel.OFF, CrashReportingLevel.OFF)));
+            openSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
 
             context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
             context.SendInterval.Returns(sendInterval);
