@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,40 +15,37 @@
 //
 
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Communication;
+using Dynatrace.OpenKit.Core.Configuration;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace Dynatrace.OpenKit.Core
+namespace Dynatrace.OpenKit.Providers
 {
-    public class BeaconSenderTest
+    public class DefaultHttpClientProviderTest
     {
-        private IBeaconSendingContext context;
+        private ILogger mockLogger;
 
         [SetUp]
         public void SetUp()
         {
-            context = Substitute.For<IBeaconSendingContext>();
+            mockLogger = Substitute.For<ILogger>();
         }
 
         [Test]
-        public void IsInitializedGetsValueFromContext()
+        public void CreateClientReturnsNewHttpClient()
         {
             // given
-            var logger = Substitute.For<ILogger>();
-            var target = new BeaconSender(logger, context);
+            var httpClientConfig = Substitute.For<IHttpClientConfiguration>();
+            httpClientConfig.BaseUrl.Returns("https://localhost:9999/1");
+            httpClientConfig.ApplicationId.Returns("some cryptic appId");
 
-            // when context is not initialized
-            context.IsInitialized.Returns(false);
+            var target = new DefaultHttpClientProvider(mockLogger);
 
-            // then
-            Assert.That(target.IsInitialized, Is.False);
-
-            // and when context is initialized
-            context.IsInitialized.Returns(true);
+            // when
+            var obtained = target.CreateClient(httpClientConfig);
 
             // then
-            Assert.That(target.IsInitialized, Is.True);
+            Assert.That(obtained, Is.Not.Null);
         }
     }
 }

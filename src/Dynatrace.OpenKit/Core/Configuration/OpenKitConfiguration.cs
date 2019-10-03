@@ -16,10 +16,7 @@
 
 using System.Text;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
-using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -29,207 +26,122 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class OpenKitConfiguration : IOpenKitConfiguration
     {
-        private const bool DefaultCapture = true;                      // default: capture on
-        private const int DefaultSendInterval = 2 * 60 * 1000;         // default: wait 2m (in ms) to send beacon
-        private const int DefaultMaxBeaconSize = 30 * 1024;            // default: max 30KB (in B) to send in one beacon
-        private const bool DefaultCaptureErrors = true;                // default: capture errors on
-        private const bool DefaultCaptureCrashes = true;               // default: capture crashes on
-
-        // application and device settings
-        private string applicationVersion;
-
-        private IHttpClientConfiguration httpClientConfig;
-        private readonly IBeaconConfiguration beaconConfig;
-        private readonly IBeaconCacheConfiguration beaconCacheConfig;
-        private readonly IPrivacyConfiguration privacyConfig;
-
-        // caching settings
-
-        private readonly ISessionIdProvider sessionIdProvider;
+        /// <summary>
+        /// Character set used to encode application IDs
+        /// </summary>
+        private static readonly Encoding EncodingCharset = Encoding.UTF8;
+        /// <summary>
+        /// Reserved characters which also need encoding (underscore is a reserved character at server side).
+        /// </summary>
+        private static readonly char[] ReservedCharacters = {'_'};
 
         #region constructors
 
-        internal OpenKitConfiguration(
-            OpenKitType openKitType,
-            string applicationName,
-            string applicationId,
-            long deviceId,
-            string origDeviceId,
-            string endpointUrl,
-            ISessionIdProvider sessionIdProvider,
-            ISSLTrustManager trustManager,
-            Device device, string applicationVersion,
-            IBeaconCacheConfiguration beaconCacheConfiguration,
-            IBeaconConfiguration beaconConfiguration,
-            IPrivacyConfiguration privacyConfiguration
-            )
+        private OpenKitConfiguration(IOpenKitBuilder builder)
         {
-            OpenKitType = openKitType;
+            EndpointUrl = builder.EndpointUrl;
+            DeviceId = builder.DeviceId;
+            OrigDeviceId = builder.OrigDeviceId;
+            OpenKitType = builder.OpenKitType;
+            ApplicationId = builder.ApplicationId;
+            ApplicationIdPercentEncoded = PercentEncoder.Encode(ApplicationId, EncodingCharset, ReservedCharacters);
+            ApplicationName = builder.ApplicationName;
+            ApplicationVersion = builder.ApplicationVersion;
+            OperatingSystem = builder.OperatingSystem;
+            Manufacturer = builder.Manufacturer;
+            ModelId = builder.ModelId;
+            DefaultServerId = builder.DefaultServerId;
+            TrustManager = builder.TrustManager;
+        }
 
-            // immutable settings
-            ApplicationName = applicationName;
-            ApplicationId = applicationId;
-            ApplicationIdPercentEncoded = PercentEncoder.Encode(applicationId, Encoding.UTF8, new[] { '_' });
-            DeviceId = deviceId;
-            OrigDeviceId = origDeviceId;
-            EndpointUrl = endpointUrl;
+        /// <summary>
+        /// Creates a <see cref="IOpenKitConfiguration"/> from the given <paramref name="builder"/>
+        /// </summary>
+        /// <param name="builder">the OpenKit builder for which to create a <see cref="IOpenKitConfiguration"/></param>.
+        /// <returns>
+        ///     A newly created <see cref="IOpenKitConfiguration"/> or <code>null</code> if the given
+        ///     <paramref name="builder">argument</paramref> is <code>null</code>.
+        /// </returns>
+        internal static IOpenKitConfiguration From(IOpenKitBuilder builder)
+        {
+            if (builder == null)
+            {
+                return null;
+            }
 
-            // mutable settings
-            IsCaptureOn = DefaultCapture;
-            SendInterval = DefaultSendInterval;
-            MaxBeaconSize = DefaultMaxBeaconSize;
-            CaptureErrors = DefaultCaptureErrors;
-            CaptureCrashes = DefaultCaptureCrashes;
-
-            Device = device;
-
-            httpClientConfig = new HttpClientConfiguration(
-                endpointUrl,
-                openKitType.DefaultServerId,
-                applicationId,
-                trustManager);
-
-            this.applicationVersion = applicationVersion;
-            this.sessionIdProvider = sessionIdProvider;
-
-            beaconConfig = beaconConfiguration;
-            beaconCacheConfig = beaconCacheConfiguration;
-            privacyConfig = privacyConfiguration;
+            return new OpenKitConfiguration(builder);
         }
 
         #endregion
 
         #region public properties
 
-        // return next session number
-        public int NextSessionNumber => sessionIdProvider.GetNextSessionId();
-
-        public OpenKitType OpenKitType { get; }
-
-        public string ApplicationName { get; }
-
-        public string ApplicationId { get; }
-
-        public string ApplicationIdPercentEncoded { get; }
-
-        public long DeviceId { get; }
-
-        public string OrigDeviceId { get; }
-
+        /// <summary>
+        /// Returns the beacon endpoint communication URL.
+        /// </summary>
         public string EndpointUrl { get; }
 
-        // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
-        public bool IsCaptureOn { get; private set; }
+        /// <summary>
+        /// Returns the unique device identifier.
+        /// </summary>
+        public long DeviceId { get; }
 
-        public int SendInterval { get; private set; }
+        /// <summary>
+        /// Returns the device identifier before it was hashed to a 64 bit long value (in case the initial value passed
+        /// to the OpenKit builder was not numerical).
+        /// </summary>
+        public string OrigDeviceId { get; }
 
-        public int MaxBeaconSize { get; private set; }
+        /// <summary>
+        /// Returns the OpenKit type.
+        /// </summary>
+        public string OpenKitType { get; }
 
-        // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
-        public bool CaptureErrors { get; private set; }
+        /// <summary>
+        /// Returns the identifier of the application.
+        /// </summary>
+        public string ApplicationId { get; }
 
-        // TODO stefan.eberl@dynatrace.com is accessed from multiple threads
-        public bool CaptureCrashes { get; private set; }
+        /// <summary>
+        /// Returns the percent encoded representation of the application's identifier.
+        /// </summary>
+        public string ApplicationIdPercentEncoded { get; }
 
-        public string ApplicationVersion
-        {
-            get => applicationVersion;
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                {
-                    applicationVersion = value;
-                }
-            }
-        }
+        /// <summary>
+        /// Returns the name of the application.
+        /// </summary>
+        public string ApplicationName { get; }
 
-        public Device Device { get; }
+        /// <summary>
+        /// Returns the application's version.
+        /// </summary>
+        public string ApplicationVersion { get; }
 
-        IBeaconCacheConfiguration IOpenKitConfiguration.BeaconCacheConfig => beaconCacheConfig;
+        /// <summary>
+        /// Returns the device's operating system.
+        /// </summary>
+        public string OperatingSystem { get; }
 
-        IPrivacyConfiguration IOpenKitConfiguration.PrivacyConfig => privacyConfig;
+        /// <summary>
+        /// Returns the device's manufacturer.
+        /// </summary>
+        public string Manufacturer { get; }
 
-        IHttpClientConfiguration IOpenKitConfiguration.HttpClientConfig => httpClientConfig;
+        /// <summary>
+        /// Returns the device's model ID.
+        /// </summary>
+        public string ModelId { get; }
 
-        IBeaconConfiguration IOpenKitConfiguration.BeaconConfig => beaconConfig;
+        /// <summary>
+        /// Returns the default identifier of the Dynatrace/AppMon server to communicate with.
+        /// </summary>
+        public int DefaultServerId { get; }
+
+        /// <summary>
+        /// Returns the <see cref="ISSLTrustManager"/>l
+        /// </summary>
+        public ISSLTrustManager TrustManager { get; }
 
         #endregion
-
-        // updates settings based on a status response
-        void IOpenKitConfiguration.UpdateSettings(StatusResponse statusResponse)
-        {
-            // if invalid status response OR response code != 200 -> capture off
-            if ((statusResponse == null) || (statusResponse.ResponseCode != 200))
-            {
-                IsCaptureOn = false;
-            }
-            else
-            {
-                IsCaptureOn = statusResponse.Capture;
-            }
-
-            // if capture is off -> leave other settings on their current values
-            if (!IsCaptureOn)
-            {
-                return;
-            }
-
-            // use monitor name from beacon response or default
-            var newMonitorName = statusResponse.MonitorName ?? OpenKitType.DefaultMonitorName;
-
-            // use server id from beacon response or default
-            var newServerId = statusResponse.ServerId;
-            if (newServerId == -1)
-            {
-                newServerId = OpenKitType.DefaultServerId;
-            }
-
-            // check if http config needs to be updated
-            if (httpClientConfig.ServerId != newServerId)
-            {
-                httpClientConfig = new HttpClientConfiguration(
-                    EndpointUrl,
-                    newServerId,
-                    ApplicationId,
-                    httpClientConfig.SslTrustManager);
-            }
-
-            // use send interval from beacon response or default
-            var newSendInterval = statusResponse.SendInterval;
-            if (newSendInterval == -1)
-            {
-                newSendInterval = DefaultSendInterval;
-            }
-            // check if send interval has to be updated
-            if (SendInterval != newSendInterval)
-            {
-                SendInterval = newSendInterval;
-            }
-
-            // use max beacon size from beacon response or default
-            var newMaxBeaconSize = statusResponse.MaxBeaconSize;
-            if (newMaxBeaconSize == -1)
-            {
-                newMaxBeaconSize = DefaultMaxBeaconSize;
-            }
-            if (MaxBeaconSize != newMaxBeaconSize)
-            {
-                MaxBeaconSize = newMaxBeaconSize;
-            }
-
-            // use capture settings for errors and crashes
-            CaptureErrors = statusResponse.CaptureErrors;
-            CaptureCrashes = statusResponse.CaptureCrashes;
-        }
-
-        void IOpenKitConfiguration.EnableCapture()
-        {
-            IsCaptureOn = true;
-        }
-
-        void IOpenKitConfiguration.DisableCapture()
-        {
-            IsCaptureOn = false;
-        }
     }
 }

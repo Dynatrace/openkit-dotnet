@@ -19,7 +19,7 @@ namespace Dynatrace.OpenKit.Protocol
     /// <summary>
     /// Defines a status response which is sent back for the request types status check and beacon send.
     /// </summary>
-    public interface IStatusResponse
+    public interface IStatusResponse : IResponse
     {
         bool Capture { get; }
 

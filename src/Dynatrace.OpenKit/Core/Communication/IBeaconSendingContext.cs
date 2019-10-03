@@ -15,7 +15,6 @@
 //
 
 using System.Collections.Generic;
-using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
@@ -28,19 +27,9 @@ namespace Dynatrace.OpenKit.Core.Communication
     internal interface IBeaconSendingContext
     {
         /// <summary>
-        /// Returns the configuration
-        /// </summary>
-        IOpenKitConfiguration Configuration { get; }
-
-        /// <summary>
         /// Returns the HTTP client provider
         /// </summary>
         IHttpClientProvider HttpClientProvider { get; }
-
-        /// <summary>
-        /// Returns the timing provider
-        /// </summary>
-        ITimingProvider TimingProvider { get; }
 
         /// <summary>
         /// Returns the current state
@@ -96,17 +85,17 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Get all sessions that are considered new.
         /// </summary>
-        List<SessionWrapper> NewSessions { get; }
+        List<ISessionInternals> NewSessions { get; }
 
         /// <summary>
         /// Get a list of all sessions that have been configured and are currently open.
         /// </summary>
-        List<SessionWrapper> OpenAndConfiguredSessions { get; }
+        List<ISessionInternals> OpenAndConfiguredSessions { get; }
 
         /// <summary>
         /// Get a list of all sessions that have been configured and already finished.
         /// </summary>
-        List<SessionWrapper> FinishedAndConfiguredSessions { get; }
+        List<ISessionInternals> FinishedAndConfiguredSessions { get; }
 
         /// <summary>
         /// Executes the current state
@@ -151,38 +140,41 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Sleeps the given amount of milliseconds
         /// </summary>
-        /// <param name="millis"></param>
+        /// <param name="millis">the time to sleep in milliseconds</param>
         void Sleep(int millis);
 
         /// <summary>
-        /// Disables capturing
+        /// Disables capturing and clears all session data. Finished sessions are removed from the beacon.
         /// </summary>
-        void DisableCapture();
+        void DisableCaptureAndClear();
 
         /// <summary>
         /// Updates the configuration based on the provided status response.
         /// </summary>
-        /// <param name="statusResponse"></param>
-        void HandleStatusResponse(StatusResponse statusResponse);
+        /// <param name="statusResponse">the status response received from the server</param>
+        void HandleStatusResponse(IStatusResponse statusResponse);
 
         /// <summary>
-        /// Adds the provided session to the list of open sessions
+        /// Returns the current server ID to be used for creating new sessions.
         /// </summary>
-        /// <param name="session"></param>
-        void StartSession(ISessionInternals session);
+        int CurrentServerId { get; }
 
         /// <summary>
-        /// Removes the provided session from the list of open sessions and adds it to the list of finished sessions
+        /// Returns the number of sessions currently known to this context.
         /// </summary>
-        /// <remarks>If the provided session is not contained in the list of open sessions, it is nod added to the finished sessions</remarks>
-        /// <param name="session"></param>
-        void FinishSession(ISessionInternals session);
+        int SessionCount { get; }
 
         /// <summary>
-        /// Remove <paramref name="sessionWrapper"/> from internal list of sessions.
+        /// Adds the given session to the internal container of sessions.
         /// </summary>
-        /// <param name="sessionWrapper">The session wrapper to remove</param>
+        /// <param name="session">the new session to add.</param>
+        void AddSession(ISessionInternals session);
+
+        /// <summary>
+        /// Remove <paramref name="session"/> from internal list of sessions.
+        /// </summary>
+        /// <param name="session">The session wrapper to remove</param>
         /// <returns><code>true</code> on success, <code>false</code> otherwise.</returns>
-        bool RemoveSession(SessionWrapper sessionWrapper);
+        bool RemoveSession(ISessionInternals session);
     }
 }

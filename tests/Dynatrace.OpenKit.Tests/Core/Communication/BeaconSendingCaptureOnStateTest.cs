@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
@@ -28,57 +27,49 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingCaptureOnStateTest
     {
-        private readonly OpenKitConfiguration config = new TestConfiguration();
-        private List<SessionWrapper> newSessions;
-        private List<SessionWrapper> openSessions;
-        private List<SessionWrapper> finishedSessions;
-        private long currentTime;
-
-        private ILogger logger;
-        private IHttpClient httpClient;
-        private ITimingProvider timingProvider;
-        private IBeaconSendingContext context;
-        private BeaconSender beaconSender;
-        private IHttpClientProvider httpClientProvider;
-
-        private IOpenKitComposite mockParent;
+        private ILogger mockLogger;
+        private IBeaconSendingContext mockContext;
+        private ISessionInternals mockSession1Open;
+        private ISessionInternals mockSession2Open;
+        private ISessionInternals mockSession3Finished;
+        private ISessionInternals mockSession4Finished;
+        private ISessionInternals mockSession5New;
+        private ISessionInternals mockSession6New;
 
         [SetUp]
-        public void Setup()
+        public void SetUp()
         {
-            currentTime = 1;
-            newSessions = new List<SessionWrapper>();
-            openSessions = new List<SessionWrapper>();
-            finishedSessions = new List<SessionWrapper>();
+            mockSession1Open = Substitute.For<ISessionInternals>();
+            mockSession2Open = Substitute.For<ISessionInternals>();
+            mockSession3Finished = Substitute.For<ISessionInternals>();
+            mockSession4Finished = Substitute.For<ISessionInternals>();
+            mockSession5New = Substitute.For<ISessionInternals>();
+            mockSession6New = Substitute.For<ISessionInternals>();
 
-            // http client
-            httpClient = Substitute.For<IHttpClient>();
+            mockLogger = Substitute.For<ILogger>();
 
-            // provider
-            timingProvider = Substitute.For<ITimingProvider>();
-            timingProvider.ProvideTimestampInMilliseconds().Returns(x => ++currentTime); // every access is a tick
-            httpClientProvider = Substitute.For<IHttpClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(x => httpClient);
+            var okResponse = Substitute.For<IStatusResponse>();
+            okResponse.ResponseCode.Returns(Response.HttpOk);
+            okResponse.IsErroneousResponse.Returns(false);
 
-            // context
-            context = Substitute.For<IBeaconSendingContext>();
-            context.HttpClientProvider.Returns(x => httpClientProvider);
-            context.GetHttpClient().Returns(x => httpClient);
-            context.IsCaptureOn.Returns(true);
+            var errorResponse = Substitute.For<IStatusResponse>();
+            errorResponse.ResponseCode.Returns(404);
+            errorResponse.IsErroneousResponse.Returns(true);
 
-            // beacon sender
-            logger = Substitute.For<ILogger>();
-            beaconSender = new BeaconSender(logger, config, httpClientProvider, timingProvider);
+            mockSession1Open.IsDataSendingAllowed.Returns(true);
+            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(okResponse);
+            mockSession2Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(errorResponse);
 
-            // current time getter
-            context.CurrentTimestamp.Returns(x => timingProvider.ProvideTimestampInMilliseconds());
+            var mockHttpClientProvider = Substitute.For<IHttpClientProvider>();
 
-            // sessions
-            context.NewSessions.Returns(newSessions);
-            context.OpenAndConfiguredSessions.Returns(openSessions);
-            context.FinishedAndConfiguredSessions.Returns(finishedSessions);
-
-            mockParent = Substitute.For<IOpenKitComposite>();
+            mockContext = Substitute.For<IBeaconSendingContext>();
+            mockContext.HttpClientProvider.Returns(mockHttpClientProvider);
+            mockContext.CurrentTimestamp.Returns(42);
+            mockContext.NewSessions.Returns(new List<ISessionInternals>());
+            mockContext.OpenAndConfiguredSessions.Returns(new List<ISessionInternals>
+                {mockSession1Open, mockSession2Open});
+            mockContext.FinishedAndConfiguredSessions.Returns(new List<ISessionInternals>
+                {mockSession3Finished, mockSession4Finished});
         }
 
         [Test]
@@ -112,371 +103,428 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void TransitionToCaptureOffStateIsPerformed()
-        {
-            // given
-            const string clientIp = "127.0.0.1";
-            context.IsCaptureOn.Returns(false);
-            var statusResponse = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
-
-            var session = new SessionWrapper(CreateValidSession(clientIp));
-            session.UpdateBeaconConfiguration(new BeaconConfiguration(1));
-            finishedSessions.Add(session);
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
-
-            // when
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingCaptureOffState>();
-        }
-
-        [Test]
-        public void TransitionToFlushStateIsPerformedOnShutdown()
-        {
-            // given
-            context.IsShutdownRequested.Returns(true);
-
-            // when
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
-
-            // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingFlushSessionsState>();
-        }
-
-        [Test]
         public void NewSessionRequestsAreMadeForAllNewSessions()
         {
             // given
+            const int multiplicity = 5;
             var target = new BeaconSendingCaptureOnState();
 
-            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            var sessionTwo = new SessionWrapper(CreateEmptySession("127.0.0.2"));
-            newSessions.AddRange(new[] { sessionOne, sessionTwo });
+            var mockClient = Substitute.For<IHttpClient>();
+            mockContext.GetHttpClient().Returns(mockClient);
+            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockClient.SendNewSessionRequest()
+                .Returns(
+                    new StatusResponse(mockLogger, $"mp={multiplicity}", 200, new Dictionary<string, List<string>>()),
+                    new StatusResponse(mockLogger, string.Empty, Response.HttpBadRequest,
+                        new Dictionary<string, List<string>>())
+                    );
+            mockSession5New.CanSendNewSessionRequest.Returns(true);
+            mockSession6New.CanSendNewSessionRequest.Returns(true);
 
-            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, "mp=5", Response.HttpOk, new Dictionary<string, List<string>>()),
-                                                       new StatusResponse(logger, "mp=5", Response.HttpBadRequest, new Dictionary<string, List<string>>()),
-                                                       new StatusResponse(logger, "mp=3", Response.HttpOk, new Dictionary<string, List<string>>()));
+            IServerConfiguration serverConfigCapture = null;
+            mockSession5New.UpdateServerConfiguration(Arg.Do<IServerConfiguration>(c => serverConfigCapture = c));
 
             // when
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // verify for both new sessions a new session request has been made
-            httpClient.Received(2).SendNewSessionRequest();
+            mockClient.Received(2).SendNewSessionRequest();
 
-            // also verify that sessionOne got a new configuration
-            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(5));
+            // verify first new session has been updated
+            Assert.That(serverConfigCapture, Is.Not.Null);
+            mockSession5New.Received(1).UpdateServerConfiguration(serverConfigCapture);
+            Assert.That(serverConfigCapture.Multiplicity, Is.EqualTo(multiplicity));
 
-            // for session two the number of requests was decremented
-            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.False);
-            Assert.That(sessionTwo.NumNewSessionRequestsLeft, Is.EqualTo(3));
+            // verify second new session decreased number of retries
+            mockSession6New.Received(1).DecreaseNumRemainingSessionRequests();
         }
 
         [Test]
+        public void CaptureIsDisabledIfNoFurtherNewSessionRequestsAreAllowed()
+        {
+            // given
+            var target = new BeaconSendingCaptureOnState();
+
+            var mockClient = Substitute.For<IHttpClient>();
+            mockContext.GetHttpClient().Returns(mockClient);
+            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockClient.SendNewSessionRequest()
+                .Returns(
+                    new StatusResponse(mockLogger, "mp=5", 200, new Dictionary<string, List<string>>()),
+                    new StatusResponse(mockLogger, string.Empty, Response.HttpBadRequest,
+                        new Dictionary<string, List<string>>())
+                    );
+            mockSession5New.CanSendNewSessionRequest.Returns(false);
+            mockSession6New.CanSendNewSessionRequest.Returns(false);
+
+            // when
+            target.Execute(mockContext);
+
+            // verify for no session a new session request has been made
+            mockClient.Received(0).SendNewSessionRequest();
+
+            // verify both sessions disabled capture
+            mockSession5New.Received(1).DisableCapture();
+            mockSession6New.Received(1).DisableCapture();
+        }
+
+         [Test]
         public void NewSessionRequestsAreAbortedWhenTooManyRequestsResponseIsReceived()
         {
             // given
+            const int sleepTime = 6543;
             var target = new BeaconSendingCaptureOnState();
 
-            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
-            newSessions.AddRange(new[] { sessionOne, sessionTwo });
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            statusResponse.IsErroneousResponse.Returns(true);
+            statusResponse.GetRetryAfterInMilliseconds().Returns(sleepTime);
 
-            var responseHeaders = new Dictionary<string, List<string>>
-            {
-                { Response.ResponseKeyRetryAfter, new List<string> { "1234  "} }
-            };
-            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders),
-                                           new StatusResponse(logger, "mp=1", Response.HttpOk, new Dictionary<string, List<string>>()),
-                                           new StatusResponse(logger, "mp=1", Response.HttpOk, new Dictionary<string, List<string>>()));
+            var mockClient = Substitute.For<IHttpClient>();
+            mockClient.SendNewSessionRequest().Returns(statusResponse);
+            mockContext.GetHttpClient().Returns(mockClient);
+            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
 
-            AbstractBeaconSendingState capturedState = null;
-            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+            mockSession5New.CanSendNewSessionRequest.Returns(true);
+            mockSession6New.CanSendNewSessionRequest.Returns(true);
+
+            BeaconSendingCaptureOffState capturedState = null;
+            mockContext.NextState = Arg.Do<BeaconSendingCaptureOffState>(x => capturedState = x);
 
             // when
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // verify for first new sessions a new session request has been made
-            httpClient.Received(1).SendNewSessionRequest();
+            mockClient.Received(1).SendNewSessionRequest();
 
-            // verify no changes on first & second session
-            Assert.That(sessionOne.CanSendNewSessionRequest, Is.True);
-            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.False);
+            // verify no changes on first
+            _ = mockSession5New.Received(1).CanSendNewSessionRequest;
+            mockSession5New.Received(0).UpdateServerConfiguration(Arg.Any<IServerConfiguration>());
+            mockSession5New.Received(0).DecreaseNumRemainingSessionRequests();
 
-            Assert.That(sessionTwo.CanSendNewSessionRequest, Is.True);
-            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.False);
+            // verify second new session is not used at all
+            Assert.That(mockSession6New.ReceivedCalls(), Is.Empty);
 
-            // ensure that state transition has been made
-            context.ReceivedWithAnyArgs(1).NextState = null;
+            // ensure also transition to CaptureOffState
             Assert.That(capturedState, Is.Not.Null);
-            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
-            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(1234 * 1000));
-
-            context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
+            mockContext.Received(1).NextState = capturedState;
+            Assert.That(capturedState.SleepTimeInMilliseconds, Is.EqualTo(sleepTime));
         }
 
         [Test]
-        public void MultiplicityIsSetToZeroIfNoFurtherNewSessionRequestsAreAllowed()
+        public void ABeaconSendingCaptureOnStateSendsFinishedSessions()
         {
             // given
             var target = new BeaconSendingCaptureOnState();
 
-            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            var sessionTwo = new SessionWrapper(CreateEmptySession("127.0.0.2"));
-            newSessions.AddRange(new[] { sessionOne, sessionTwo });
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.IsErroneousResponse.Returns(false);
 
-            httpClient.SendNewSessionRequest().Returns(new StatusResponse(logger, "mp=5", 200, new Dictionary<string, List<string>>()), null);
-
-            // ensure that it's no longer possible to send session requests for both session wrapper
-            while (sessionOne.CanSendNewSessionRequest)
-            {
-                sessionOne.DecreaseNumNewSessionRequests();
-            }
-            while (sessionTwo.CanSendNewSessionRequest)
-            {
-                sessionTwo.DecreaseNumNewSessionRequests();
-            }
+            mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession3Finished.IsDataSendingAllowed.Returns(true);
+            mockSession4Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession4Finished.IsDataSendingAllowed.Returns(true);
 
             // when
-            target.Execute(context);
-
-            // verify for no session a new session request has been made
-            httpClient.Received(0).SendNewSessionRequest();
-
-            // also ensure that both got a configuration set
-            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
-
-            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionTwo.BeaconConfiguration.Multiplicity, Is.EqualTo(0));
-        }
-
-        [Test]
-        public void FinishedSessionsAreSent()
-        {
-            // given
-            var clientIp = "127.0.0.1";
-            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
-
-            finishedSessions.AddRange(new[] {
-                new SessionWrapper(CreateValidSession(clientIp)),
-                new SessionWrapper(CreateValidSession(clientIp)),
-                new SessionWrapper(CreateValidSession(clientIp)) });
-            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
-
-            // when
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then
-            httpClient.Received(3).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-            context.Received(1).HandleStatusResponse(statusResponse);
+            mockSession3Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession4Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+
+            // also verify that the sessions are removed
+            mockContext.Received(1).RemoveSession(mockSession3Finished);
+            mockContext.Received(1).RemoveSession(mockSession4Finished);
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOnStateClearsFinishedSessionsIfSendingIsNotAllowed()
+        {
+            // given
+            var target = new BeaconSendingCaptureOnState();
+
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.IsErroneousResponse.Returns(false);
+
+            mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession3Finished.IsDataSendingAllowed.Returns(false);
+            mockSession4Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession4Finished.IsDataSendingAllowed.Returns(false);
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockSession3Finished.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession4Finished.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+
+            mockContext.Received(1).RemoveSession(mockSession3Finished);
+            mockContext.Received(1).RemoveSession(mockSession4Finished);
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOnStateDoesNotRemoveFinishedSessionIfSendingWasUnsuccessful()
+        {
+            //given
+            var target = new BeaconSendingCaptureOnState();
+
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            statusResponse.IsErroneousResponse.Returns(true);
+
+            mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession3Finished.IsEmpty.Returns(false);
+            mockSession3Finished.IsDataSendingAllowed.Returns(true);
+
+            mockSession4Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession4Finished.IsDataSendingAllowed.Returns(true);
+
+            // when
+            target.Execute(mockContext);
+
+            mockSession3Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession4Finished.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+
+            _ = mockContext.Received(1).FinishedAndConfiguredSessions;
+            mockContext.Received(0).RemoveSession(Arg.Any<ISessionInternals>());
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOnStateContinuesWithNextFinishedSessionIfSendingWasUnsuccessfulButBeaconIsEmpty()
+        {
+            // given
+            var target = new BeaconSendingCaptureOnState();
+
+            var errorResponse = Substitute.For<IStatusResponse>();
+            errorResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            errorResponse.IsErroneousResponse.Returns(true);
+
+            var okResponse = Substitute.For<IStatusResponse>();
+            okResponse.ResponseCode.Returns(Response.HttpOk);
+            okResponse.IsErroneousResponse.Returns(false);
+
+            mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(errorResponse);
+            mockSession3Finished.IsEmpty.Returns(true);
+            mockSession3Finished.IsDataSendingAllowed.Returns(true);
+
+            mockSession4Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(okResponse);
+            mockSession4Finished.IsDataSendingAllowed.Returns(true);
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockSession3Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Finished.Received(1).ClearCapturedData();
+
+            mockSession4Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession4Finished.Received(1).ClearReceivedCalls();
+
+
+            _ = mockContext.Received(1).FinishedAndConfiguredSessions;
+            mockContext.Received(1).RemoveSession(mockSession3Finished);
+            mockContext.Received(1).RemoveSession(mockSession4Finished);
         }
 
         [Test]
         public void SendingFinishedSessionsIsAbortedImmediatelyWhenTooManyRequestsResponseIsReceived()
         {
             // given
-            var clientIp = "127.0.0.1";
-            var responseHeaders = new Dictionary<string, List<string>>
-            {
-                { Response.ResponseKeyRetryAfter, new List<string> { "4321"} }
-            };
-            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
-
-            finishedSessions.AddRange(new[] {
-                new SessionWrapper(CreateValidSession(clientIp)),
-                new SessionWrapper(CreateValidSession(clientIp)),
-                new SessionWrapper(CreateValidSession(clientIp)) });
-            finishedSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
-
-            AbstractBeaconSendingState capturedState = null;
-            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
-
+            const int sleepTime = 4321;
             var target = new BeaconSendingCaptureOnState();
+
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            statusResponse.IsErroneousResponse.Returns(true);
+            statusResponse.GetRetryAfterInMilliseconds().Returns(sleepTime);
+
+            mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession3Finished.IsDataSendingAllowed.Returns(true);
+            mockSession4Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession4Finished.IsDataSendingAllowed.Returns(true);
+
+            BeaconSendingCaptureOffState captureState = null;
+            mockContext.NextState = Arg.Do<BeaconSendingCaptureOffState>(c => captureState = c);
 
             // when
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then
-            // verify only one session request has been made
-            httpClient.Received(1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+            _ = mockSession3Finished.Received(1).IsDataSendingAllowed;
+            mockSession3Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Finished.Received(0).UpdateServerConfiguration(Arg.Any<IServerConfiguration>());
+            mockSession3Finished.Received(0).DecreaseNumRemainingSessionRequests();
 
-            // ensure that state transition has been made
-            context.ReceivedWithAnyArgs(1).NextState = null;
-            Assert.That(capturedState, Is.Not.Null);
-            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
-            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(4321 * 1000));
+            // verify no interactions with second finished session
+            Assert.That(mockSession4Finished.ReceivedCalls(), Is.Empty);
 
-            context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
+            // verify no interactions with open sessions
+            Assert.That(mockSession1Open.ReceivedCalls(), Is.Empty);
+            Assert.That(mockSession2Open.ReceivedCalls(), Is.Empty);
+
+            _ = mockContext.Received(1).FinishedAndConfiguredSessions;
+            mockContext.Received(0).RemoveSession(Arg.Any<ISessionInternals>());
+
+            Assert.That(captureState, Is.Not.Null);
+            mockContext.Received(1).NextState = captureState;
+            Assert.That(captureState.SleepTimeInMilliseconds, Is.EqualTo(sleepTime));
         }
 
         [Test]
-        public void UnsuccessfulFinishedSessionsAreNotRemovedFromCache()
-        {
-            //given
-            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
-            var target = new BeaconSendingCaptureOnState();
-
-            var finishedSession = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            finishedSession.UpdateBeaconConfiguration(new BeaconConfiguration(1));
-            finishedSessions.Add(finishedSession);
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(statusResponse);
-
-            //when calling execute
-            target.Execute(context);
-
-            _ = context.Received(1).FinishedAndConfiguredSessions;
-            context.Received(0).RemoveSession(finishedSession);
-        }
-
-        [Test]
-        public void ABeaconSendingCaptureOnStateContinuesWithNextFinishedSessionIfSendingWasUnsuccessfulButBeaconIsEmpty()
-        {
-            //given
-            var target = new BeaconSendingCaptureOnState();
-
-            var sessionOne = new SessionWrapper(CreateEmptySession("127.0.0.2"));
-            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            finishedSessions.AddRange(new[] { sessionOne, sessionTwo });
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
-
-            //when calling execute
-            target.Execute(context);
-
-            _ = context.Received(1).FinishedAndConfiguredSessions;
-            context.Received(1).RemoveSession(sessionOne);
-            context.Received(1).RemoveSession(sessionTwo);
-        }
-
-        [Test]
-        public void OpenSessionsAreSentIfSendIntervalIsExceeded()
+        public void ABeaconSendingCaptureOnStateSendsOpenSessionsIfNotExpired()
         {
             // given
-            var clientIp = "127.0.0.1";
-
-            var lastSendTime = 1;
-            var sendInterval = 1000;
-            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
-
-            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
-            context.SendInterval.Returns(sendInterval);
-            context.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
-
-            var session = new SessionWrapper(CreateValidSession(clientIp));
-            session.UpdateBeaconConfiguration(new BeaconConfiguration(1));
-            openSessions.Add(session);
+            var target = new BeaconSendingCaptureOnState();
+            mockSession1Open.IsDataSendingAllowed.Returns(true);
+            mockSession2Open.IsDataSendingAllowed.Returns(true);
 
             // when
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then
-            httpClient.Received(1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-            context.Received(1).HandleStatusResponse(statusResponse);
-            Assert.That(context.LastOpenSessionBeaconSendTime, Is.EqualTo(context.CurrentTimestamp)); // assert send time update
+            mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockContext.Received(1).LastOpenSessionBeaconSendTime = Arg.Any<long>();
         }
 
         [Test]
-        public void OpenSessionsAreNotSentIfSendIntervalIsNotExceeded()
+        public void ABeaconSendingCaptureOnStateClearsOpenSessionDataIfSendingIsNotAllowed()
         {
             // given
-            var clientIp = "127.0.0.1";
-
-            var lastSendTime = 1;
-            var sendInterval = 1000;
-
-            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
-            context.SendInterval.Returns(sendInterval);
-            context.CurrentTimestamp.Returns(lastSendTime + 1);
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => new StatusResponse(logger, string.Empty, Response.HttpOk, new Dictionary<string, List<string>>()));
-
-            var session = new SessionWrapper(CreateValidSession(clientIp));
-            session.UpdateBeaconConfiguration(new BeaconConfiguration(1));
-            openSessions.Add(session);
+            var target = new BeaconSendingCaptureOnState();
+            mockSession1Open.IsDataSendingAllowed.Returns(false);
+            mockSession2Open.IsDataSendingAllowed.Returns(false);
 
             // when
-            var target = new BeaconSendingCaptureOnState();
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then
-            httpClient.DidNotReceive().SendBeaconRequest(clientIp, Arg.Any<byte[]>());
-            context.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
+            mockSession1Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession1Open.Received(1).ClearCapturedData();
+            mockSession2Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(1).ClearCapturedData();
+            mockContext.Received(1).LastOpenSessionBeaconSendTime = Arg.Any<long>();
         }
 
         [Test]
         public void SendingOpenSessionsIsAbortedImmediatelyWhenTooManyRequestsResponseIsReceived()
         {
             //given
-            var clientIp = "127.0.0.1";
+            const int sleepTime = 987654;
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            statusResponse.IsErroneousResponse.Returns(true);
+            statusResponse.GetRetryAfterInMilliseconds().Returns(sleepTime);
 
-            var lastSendTime = 1;
-            var sendInterval = 1000;
-            var responseHeaders = new Dictionary<string, List<string>>
-            {
-                { Response.ResponseKeyRetryAfter, new List<string> { "987654"} }
-            };
-            var statusResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
-            openSessions.AddRange(new[] {
-                new SessionWrapper(CreateValidSession(clientIp)),
-                new SessionWrapper(CreateValidSession(clientIp)),
-                new SessionWrapper(CreateValidSession(clientIp)) });
-            openSessions.ForEach(s => s.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
+            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession1Open.IsDataSendingAllowed.Returns(true);
+            mockSession2Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession2Open.IsDataSendingAllowed.Returns(true);
 
-            context.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
-            context.SendInterval.Returns(sendInterval);
-            context.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
-
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(x => statusResponse);
-
-            AbstractBeaconSendingState capturedState = null;
-            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+            BeaconSendingCaptureOffState capturedState = null;
+            mockContext.NextState = Arg.Do<BeaconSendingCaptureOffState>(x => capturedState = x);
 
             var target = new BeaconSendingCaptureOnState();
 
             // when
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then
-            // verify only one session request has been made
-            httpClient.Received(1).SendBeaconRequest(clientIp, Arg.Any<byte[]>());
+            mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            _ = mockSession1Open.Received(1).IsDataSendingAllowed;
 
-            // ensure that state transition has been made
-            context.ReceivedWithAnyArgs(1).NextState = null;
+            Assert.That(mockSession2Open.ReceivedCalls(), Is.Empty);
+
             Assert.That(capturedState, Is.Not.Null);
-            Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
-            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(987654 * 1000));
-
-            context.ReceivedWithAnyArgs(0).HandleStatusResponse(null);
+            Assert.That(capturedState.SleepTimeInMilliseconds, Is.EqualTo(sleepTime));
         }
 
-        private Session CreateValidSession(string clientIp)
+        [Test]
+        public void ABeaconSendingCaptureOnStateTransitionsToCaptureOffStateWhenCapturingGotDisabled()
         {
-            var logger = Substitute.For<ILogger>();
-            var session = new Session(logger, mockParent, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                config, clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
+            // given
+            mockContext.IsCaptureOn.Returns(false);
+            var target = new BeaconSendingCaptureOnState();
 
-            session.EnterAction("Foo").LeaveAction();
+            // when
+            target.Execute(mockContext);
 
-            return session;
+            // then
+            mockContext.Received(1).HandleStatusResponse(Arg.Any<IStatusResponse>());
+            _ = mockContext.Received(1).IsCaptureOn;
+
+            mockContext.Received(1).NextState = Arg.Any<BeaconSendingCaptureOffState>();
         }
 
-        private Session CreateEmptySession(string clientIp)
+        [Test]
+        public void ABeaconSendingCaptureOnStateTransitionToFlushStateIsPerformedOnShutdown()
         {
-            var logger = Substitute.For<ILogger>();
-            return new Session(logger, mockParent,beaconSender, new Beacon(logger, new BeaconCache(logger),
-                config, clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
+            // given
+            mockContext.IsShutdownRequested.Returns(true);
+            var target = new BeaconSendingCaptureOnState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockContext.Received(1).NextState = Arg.Any<BeaconSendingFlushSessionsState>();
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOnStateSendsOpenSessionsIfSendIntervalIsExceeded()
+        {
+            // given
+            const int lastSendTime = 1;
+            const int sendInterval = 1000;
+            mockContext.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
+            mockContext.SendInterval.Returns(sendInterval);
+            mockContext.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
+
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.IsErroneousResponse.Returns(false);
+
+            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession1Open.IsDataSendingAllowed.Returns(true);
+
+            var target = new BeaconSendingCaptureOnState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockContext.Received(1).HandleStatusResponse(statusResponse);
+            Assert.That(mockContext.LastOpenSessionBeaconSendTime, Is.EqualTo(mockContext.CurrentTimestamp)); // assert send time update
+        }
+
+        [Test]
+        public void ABeaconSendingCaptureOnStateDoesNotSendOpenSessionsIfSendIntervalIsNotExceeded()
+        {
+            // given
+            const int lastSendTime = 1;
+            const int sendInterval = 1000;
+            mockContext.LastOpenSessionBeaconSendTime.Returns(lastSendTime);
+            mockContext.SendInterval.Returns(sendInterval);
+            mockContext.CurrentTimestamp.Returns(lastSendTime + 1);
+
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.IsErroneousResponse.Returns(false);
+
+            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
+            mockSession1Open.IsDataSendingAllowed.Returns(true);
+
+            var target = new BeaconSendingCaptureOnState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockSession1Open.DidNotReceive().SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockContext.DidNotReceive().HandleStatusResponse(Arg.Any<StatusResponse>());
         }
     }
 }

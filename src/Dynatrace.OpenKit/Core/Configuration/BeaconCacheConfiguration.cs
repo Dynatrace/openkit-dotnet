@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System;
 using Dynatrace.OpenKit.Core.Caching;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -24,22 +23,38 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class BeaconCacheConfiguration : IBeaconCacheConfiguration
     {
-        public static readonly long DefaultMaxRecordAgeInMillis = (long)TimeSpan.FromMinutes(105).TotalMilliseconds; // 1 hour and 45 minutes
-        public const long DefaultUpperMemoryBoundaryInBytes = 100 * 1024 * 1024;
-        public const long DefaultLowerMemoryBoundaryInBytes = 80 * 1024 * 1024;
+        #region constructor
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="maxRecordAge">Maximum record age in milliseconds</param>
-        /// <param name="cacheSizeLowerBound">lower memory limit for cache</param>
-        /// <param name="cacheSizeUpperBound">upper memory limit for cache</param>
-        public BeaconCacheConfiguration(long maxRecordAge, long cacheSizeLowerBound, long cacheSizeUpperBound)
+        /// <param name="builder">OpenKit builder providing the required configuration.</param>
+        private BeaconCacheConfiguration(IOpenKitBuilder builder)
         {
-            MaxRecordAge = maxRecordAge;
-            CacheSizeLowerBound = cacheSizeLowerBound;
-            CacheSizeUpperBound = cacheSizeUpperBound;
+            MaxRecordAge = builder.BeaconCacheMaxBeaconAge;
+            CacheSizeLowerBound = builder.BeaconCacheLowerMemoryBoundary;
+            CacheSizeUpperBound = builder.BeaconCacheUpperMemoryBoundary;
         }
+
+        /// <summary>
+        /// Creates a new <see cref="IBeaconCacheConfiguration"/> from the given <paramref name="builder"/>.
+        /// </summary>
+        /// <param name="builder">the OpenKit builder for which to create a <see cref="IBeaconCacheConfiguration"/></param>
+        /// <returns>
+        ///     a newly created <see cref="IBeaconCacheConfiguration"/> or <code>null</code> if the given
+        ///     <paramref name="builder">argument</paramref> is <code>null</code>.
+        /// </returns>
+        internal static IBeaconCacheConfiguration From(IOpenKitBuilder builder)
+        {
+            if (builder == null)
+            {
+                return null;
+            }
+
+            return new BeaconCacheConfiguration(builder);
+        }
+
+        #endregion
 
         /// <summary>
         /// Get maximum record age in millisecond.s

@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Core.Util
         private const string UnreservedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
 
         [Test]
-        public void RFC3986UnreservedCharactersAreNotEncoded()
+        public void Rfc3986UnreservedCharactersAreNotEncoded()
         {
             // when
             var obtained = PercentEncoder.Encode(UnreservedCharacters, Encoding.UTF8);
@@ -74,7 +74,7 @@ namespace Dynatrace.OpenKit.Core.Util
         public void ItIsPossibleToMarkAdditionalCharactersAsReserved()
         {
             // when
-            var additionalReservedCharacters = new char[] { '€', '0', '_' };
+            var additionalReservedCharacters = new [] { '€', '0', '_' };
             var obtained = PercentEncoder.Encode("0123456789-._~", Encoding.UTF8, additionalReservedCharacters);
 
             // then

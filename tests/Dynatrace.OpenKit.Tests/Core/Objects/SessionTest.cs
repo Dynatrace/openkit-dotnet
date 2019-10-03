@@ -15,7 +15,9 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -25,7 +27,6 @@ namespace Dynatrace.OpenKit.Core.Objects
     {
         private ILogger mockLogger;
         private IBeacon mockBeacon;
-        private IBeaconSender mockBeaconSender;
 
         [SetUp]
         public void SetUp()
@@ -35,63 +36,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockLogger.IsDebugEnabled.Returns(true);
 
             mockBeacon = Substitute.For<IBeacon>();
-            mockBeaconSender = Substitute.For<IBeaconSender>();
         }
 
         [Test]
-        public void ANewlyCreatedSessionIsNotEnded()
-        {
-            // given
-            var target = CreateSession().Build();
-
-            // then
-            Assert.That(target.EndTime, Is.EqualTo(-1L));
-            Assert.That(target.IsSessionEnded, Is.False);
-        }
-
-        [Test]
-        public void AfterCallingEndASessionIsEnded()
-        {
-            // given
-            var target = CreateSession().Build();
-
-            // when
-            target.End();
-
-            // then
-            Assert.That(target.IsSessionEnded, Is.True);
-        }
-
-        [Test]
-        public void EnterActionGivesNewRootAction()
-        {
-            // given
-            var target = CreateSession().Build();
-
-            // when
-            var obtained = target.EnterAction("action name");
-
-            // then
-            Assert.That(obtained, Is.Not.Null.And.TypeOf<RootAction>());
-        }
-
-        [Test]
-        public void EnterActionGivesNullActionIfSessionIsAlreadyEnded()
-        {
-            // given
-            var target = CreateSession().Build();
-            target.End();
-
-            // when
-            var obtained = target.EnterAction("action name");
-
-            // then
-            Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
-
-        }
-
-        [Test]
-        public void EnterActionGivesNullActionIfActionNameIsNull()
+        public void EnterActionWithNullActionNameGivesNullRootActionObject()
         {
             // given
             var target = CreateSession().Build();
@@ -106,7 +54,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void EnterActionGivesNullActionIfActionNameIsEmptyString()
+        public void EnterActionWithEmptyActionNameGivesNullRootActionObject()
         {
             // given
             var target = CreateSession().Build();
@@ -117,6 +65,19 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
             mockLogger.Received(1).Warn("Session [sn=0] EnterAction: actionName must not be null or empty");
+        }
+
+        [Test]
+        public void EnterActionWithNonEmptyNameGivesRootAction()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.EnterAction("action name");
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<RootAction>());
         }
 
         [Test]
@@ -155,35 +116,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void IdentifyUser()
-        {
-            // given
-            const string userTag = "john.doe@acme.com";
-            var target = CreateSession().Build();
-
-            // when
-            target.IdentifyUser(userTag);
-
-            // then
-            mockBeacon.Received(1).IdentifyUser(userTag);
-        }
-
-        [Test]
-        public void IdentifyUserDoesNothingIfSessionIsEnded()
-        {
-            // given
-            var target = CreateSession().Build();
-            target.End();
-
-            // when
-            target.IdentifyUser("john.doe@acme.com");
-
-            // then
-            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
-        }
-
-        [Test]
-        public void IdentifyUserDoesNothingIfUserTagIsNull()
+        public void IdentifyUserWithNullTagDoesNothing()
         {
             // given
             var target = CreateSession().Build();
@@ -197,7 +130,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void IdentifyUserDoesNothingIfUserTagIsAnEmptyString()
+        public void IdentifyUserWithEmptyTagDoesNothing()
         {
             // given
             var target = CreateSession().Build();
@@ -211,40 +144,38 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportCrash()
+        public void IdentifyUserWithNonEmptyTagReportsUser()
         {
             // given
-            const string errorName = "crash";
-            const string errorReason = "reason for crash";
-            const string stacktrace = "the stacktrace";
+            const string userTag = "john.doe@acme.com";
             var target = CreateSession().Build();
 
             // when
-            target.ReportCrash(errorName, errorReason, stacktrace);
+            target.IdentifyUser(userTag);
 
             // then
-            mockBeacon.Received(1).ReportCrash(errorName, errorReason, stacktrace);
+            mockLogger.Received(0).Warn(Arg.Any<string>());
+            mockBeacon.Received(1).IdentifyUser(userTag);
         }
 
         [Test]
-        public void ReportCrashDoesNothingIfSessionIsEnded()
+        public void IdentifyUserMultipleTimesAlwaysCallsBeacon()
         {
             // given
-            const string errorName = "crash";
-            const string errorReason = "reason for crash";
-            const string stacktrace = "stacktrace";
+            const string user = "user";
             var target = CreateSession().Build();
-            target.End();
 
             // when
-            target.ReportCrash(errorName, errorReason, stacktrace);
+            target.IdentifyUser(user);
+            target.IdentifyUser(user);
 
             // then
-            mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+            mockLogger.Received(0).Warn(Arg.Any<string>());
+            mockBeacon.Received(2).IdentifyUser(user);
         }
 
         [Test]
-        public void ReportCrashDoesNothingIfErrorNameIsNull()
+        public void ReportCrashWithNullErrorNameDoesNotReportAnything()
         {
             // given
             const string errorName = null;
@@ -261,7 +192,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportCrashDoesNothingIfErrorNameIsAnEmptyString()
+        public void ReportCrashWithEmptyErrorNameDoesNotReportAnything()
         {
             // given
             var errorName = string.Empty;
@@ -273,33 +204,61 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-           mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
-           mockLogger.Received(1).Warn("Session [sn=0] ReportCrash: errorName must not be null or empty");
+            mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+            mockLogger.Received(1).Warn("Session [sn=0] ReportCrash: errorName must not be null or empty");
         }
 
         [Test]
-        public void EndingASessionEndsOpenRootActionsFirst()
+        public void ReportCrashWithNullReasonAndStacktraceWorks()
         {
             // given
-            int timestamp = 100;
-            mockBeacon.CurrentTimestamp.Returns(_ => timestamp++);
-
+            const string errorName = "error name";
+            const string errorReason = null;
+            const string stacktrace = null;
             var target = CreateSession().Build();
-            var rootActionOne = target.EnterAction("Root Action One");
-            var rootActionTwo = target.EnterAction("Root Action Two");
 
             // when
-            target.End();
+            target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-            Assert.That(((IActionInternals)rootActionOne).IsActionLeft, Is.True);
-            Assert.That(((IActionInternals)rootActionTwo).IsActionLeft, Is.True);
-            Assert.That(((IActionInternals)rootActionOne).EndTime, Is.LessThan(((IActionInternals)rootActionTwo).EndTime));
-            Assert.That(((IActionInternals)rootActionTwo).EndTime, Is.LessThan(target.EndTime));
+            mockBeacon.Received(1).ReportCrash(errorName, errorReason, stacktrace);
         }
 
         [Test]
-        public void EndingASessionFinishesSessionContext()
+        public void ReportCrashWithEmptyReasonAndStacktraceWorks()
+        {
+            // given
+            const string errorName = "error name";
+            var errorReason = string.Empty;
+            var stacktrace = string.Empty;
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCrash(errorName, errorReason, stacktrace);
+
+            // then
+            mockBeacon.Received(1).ReportCrash(errorName, errorReason, stacktrace);
+        }
+
+        [Test]
+        public void ReportCrashWithSameDataMultipleTimesForwardsEachCallToBeacon()
+        {
+            // given
+            const string errorName = "error name";
+            const string errorReason = "error reason";
+            const string stacktrace = "stacktrace";
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCrash(errorName, errorReason, stacktrace);
+            target.ReportCrash(errorName, errorReason, stacktrace);
+
+            // then
+            mockBeacon.Received(2).ReportCrash(errorName, errorReason, stacktrace);
+        }
+
+        [Test]
+        public void EndingASessionFinishesSessionOnBeacon()
         {
             // given
             const long timestamp = 4321;
@@ -311,46 +270,30 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.End();
 
             // then
-            Assert.That(target.EndTime, Is.EqualTo(timestamp));
-            mockBeacon.Received(1).EndSession(target);
-            mockBeaconSender.Received(1).FinishSession(target);
+           mockBeacon.Received(1).EndSession();
         }
 
         [Test]
-        public void DisposingASessionEndsTheSession()
+        public void EndingAnAlreadyEndedSessionDoesNothing()
         {
             // given
-            const long timestamp = 4321;
-            mockBeacon.CurrentTimestamp.Returns(timestamp);
-
             var target = CreateSession().Build();
 
             // when
-            target.Dispose();
+            target.End();
 
             // then
-            Assert.That(target.EndTime, Is.EqualTo(timestamp));
-            mockBeacon.Received(1).EndSession(target);
-            mockBeaconSender.Received(1).FinishSession(target);
-        }
-
-        [Test]
-        public void EndingASessionReturnsImmediatelyIfEndedBefore()
-        {
-            // given
-            var target = CreateSession().Build();
-            target.End();
+            mockBeacon.Received(1).EndSession();
+            Assert.That(target.State.IsFinished, Is.True);
 
             mockBeacon.ClearReceivedCalls();
-            mockBeaconSender.ClearReceivedCalls();
 
-            // when
+            // and when
             target.End();
 
-
             // then
-            mockBeacon.Received(0).EndSession(Arg.Any<ISessionInternals>());
-            Assert.That(mockBeaconSender.ReceivedCalls(), Is.Empty);
+            mockBeacon.Received(0).EndSession();
+            Assert.That(target.State.IsFinished, Is.True);
         }
 
         [Test]
@@ -374,7 +317,243 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void TraceWebRequestGivesValidWebRequestTracer()
+        public void SendBeaconForwardsCallToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+            var clientProvider = Substitute.For<IHttpClientProvider>();
+
+            // when
+            target.SendBeacon(clientProvider);
+
+            // then
+            mockBeacon.Received(1).Send(clientProvider);
+        }
+
+        [Test]
+        public void ClearCapturedDataForwardsCallToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ClearCapturedData();
+
+            // then
+            mockBeacon.Received(1).ClearData();
+        }
+
+        [Test]
+        public void IsEmptyForwardsCallToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            _ = target.IsEmpty;
+
+            // then
+            _ = mockBeacon.Received(1).IsEmpty;
+        }
+
+        [Test]
+        public void UpdateServerConfigurationForwardsCallToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+            var mockServerConfig = Substitute.For<IServerConfiguration>();
+
+            // when
+            target.UpdateServerConfiguration(mockServerConfig);
+
+            // then
+            mockBeacon.Received(1).UpdateServerConfiguration(mockServerConfig);
+        }
+
+        [Test]
+        public void ANewlyCreatedSessionIsNotFinished()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // then
+            Assert.That(target.State.IsFinished, Is.False);
+        }
+
+        [Test]
+        public void ANewlyCreatedSessionIsInStateNew()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when, then
+            Assert.That(target.State.IsNew, Is.True);
+        }
+
+        [Test]
+        public void ANewlyCreatedSessionIsNotInStateConfigured()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when, then
+            Assert.That(target.State.IsConfigured, Is.False);
+            Assert.That(target.State.IsConfiguredAndFinished, Is.False);
+            Assert.That(target.State.IsConfiguredAndOpen, Is.False);
+        }
+
+        [Test]
+        public void AConfiguredSessionIsNotInStateNew()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            mockBeacon.IsServerConfigurationSet.Returns(true);
+
+            // then
+            Assert.That(target.State.IsNew, Is.False);
+            Assert.That(target.State.IsConfiguredAndOpen, Is.True);
+        }
+
+        [Test]
+        public void ANotConfiguredFinishedSessionIsNotInStateNew()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.End();
+
+            // then
+            Assert.That(target.State.IsNew, Is.False);
+            Assert.That(target.State.IsConfigured, Is.False);
+            Assert.That(target.State.IsFinished, Is.True);
+            Assert.That(target.State.IsConfiguredAndFinished, Is.False);
+        }
+
+        [Test]
+        public void AConfiguredFinishedSessionIsNotNew()
+        {
+            // given
+            mockBeacon.IsServerConfigurationSet.Returns(true);
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            target.UpdateServerConfiguration(Substitute.For<IServerConfiguration>());
+
+            // then
+            Assert.That(target.State.IsNew, Is.False);
+            Assert.That(target.State.IsConfigured, Is.True);
+            Assert.That(target.State.IsFinished, Is.True);
+            Assert.That(target.State.IsConfiguredAndFinished, Is.True);
+        }
+
+        [Test]
+        public void ASessionIsFinishedIfEndIsCalled()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.End();
+
+            // then
+            Assert.That(target.State.IsFinished, Is.True);
+        }
+
+        [Test]
+        public void EnterActionGivesNullActionIfSessionIsAlreadyEnded()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            var obtained = target.EnterAction("action name");
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
+
+        }
+
+        [Test]
+        public void IdentifyUserDoesNothingIfSessionIsEnded()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            target.IdentifyUser("john.doe@acme.com");
+
+            // then
+            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportCrashDoesNothingIfSessionIsEnded()
+        {
+            // given
+            const string errorName = "crash";
+            const string errorReason = "reason for crash";
+            const string stacktrace = "stacktrace";
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            target.ReportCrash(errorName, errorReason, stacktrace);
+
+            // then
+            mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+        }
+
+        [Test]
+        public void DisposingASessionEndsTheSession()
+        {
+            // given
+            const long timestamp = 4321;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
+
+            var target = CreateSession().Build();
+
+            // when
+            target.Dispose();
+
+            // then
+            mockBeacon.Received(1).EndSession();
+            Assert.That(target.State.IsFinished, Is.True);
+        }
+
+        [Test]
+        public void EndingASessionEndsOpenRootActionsFirst()
+        {
+            // given
+            int timestamp = 100;
+            mockBeacon.CurrentTimestamp.Returns(_ => timestamp++);
+
+            var target = CreateSession().Build();
+            var rootActionOne = target.EnterAction("Root Action One");
+            var rootActionTwo = target.EnterAction("Root Action Two");
+
+            // when
+            target.End();
+
+            // then
+            Assert.That(((IActionInternals)rootActionOne).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals)rootActionTwo).IsActionLeft, Is.True);
+            Received.InOrder(() =>
+                {
+                    rootActionOne.LeaveAction();
+                    rootActionTwo.LeaveAction();
+                    mockBeacon.EndSession();
+                }
+            );
+        }
+
+        [Test]
+        public void TraceWebRequestGivesAppropriateTracer()
         {
             // given
             var target = CreateSession().Build();
@@ -403,21 +582,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void TraceWebRequestGivesNullWebRequestTracerIfSessionIsAlreadyEnded()
-        {
-            // given
-            var target = CreateSession().Build();
-            target.End();
-
-            // when
-            var obtained = target.TraceWebRequest("http://example.com/pages/");
-
-            // then
-            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
-        }
-
-        [Test]
-        public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsNull()
+        public void TracingANullStringWebRequestIsNotAllowed()
         {
             // given
             var target = CreateSession().Build();
@@ -431,7 +596,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void TraceWebRequestGivesNullWebRequestTracerIfUrlIsAnEmptyString()
+        public void TracingAnEmptyStringWebRequestIsNotAllowed()
         {
             // given
             var target = CreateSession().Build();
@@ -445,7 +610,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void TraceWebRequestGivesNullWebRequestTracerIfUrlHasAnInvalidScheme()
+        public void TracingAWebRequestWithInvalidUrlIsNotAllowed()
         {
             // given
             const string url = "foo:bar://test.com";
@@ -457,6 +622,20 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
             mockLogger.Received(1).Warn($"Session [sn=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
+        }
+
+        [Test]
+        public void TraceWebRequestGivesNullWebRequestTracerIfSessionIsAlreadyEnded()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            var obtained = target.TraceWebRequest("http://example.com/pages/");
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
         }
 
         [Test]
@@ -490,12 +669,133 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.EqualTo($"Session [sn={sessionNumber}]"));
         }
 
+        [Test]
+        public void ANewSessionCanSendNewSessionRequests()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.CanSendNewSessionRequest;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void CanSendNewSessionRequestIsFalseIfAllRequestsAreUsedUp()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when, then
+            for (var i = Session.MaxNewSessionRequests; i > 0; i--)
+            {
+                Assert.That(target.CanSendNewSessionRequest, Is.True);
+
+                target.DecreaseNumRemainingSessionRequests();
+            }
+
+            // then
+            Assert.That(target.CanSendNewSessionRequest, Is.False);
+        }
+
+        [Test]
+        public void IsDataSendingAllowedReturnsTrueForConfiguredAndCaptureEnabledSession()
+        {
+            // given
+            mockBeacon.IsCaptureEnabled.Returns(true);
+            mockBeacon.IsServerConfigurationSet.Returns(true);
+
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.IsDataSendingAllowed;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void IsDataSendingAllowedReturnsFalseForNotConfiguredSession()
+        {
+            // given
+            mockBeacon.IsCaptureEnabled.Returns(true);
+            mockBeacon.IsServerConfigurationSet.Returns(false);
+
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.IsDataSendingAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsDataSendingAllowedReturnsFalseForCaptureDisabledSession()
+        {
+            // given
+            mockBeacon.IsCaptureEnabled.Returns(false);
+            mockBeacon.IsServerConfigurationSet.Returns(true);
+
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.IsDataSendingAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsDataSendingAllowedReturnsFalseForNotConfiguredAndCaptureDisabledSession()
+        {
+            // given
+            mockBeacon.IsCaptureEnabled.Returns(false);
+            mockBeacon.IsServerConfigurationSet.Returns(false);
+
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.IsDataSendingAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void EnableCaptureDelegatesToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.EnableCapture();
+
+            // then
+            mockBeacon.Received(1).EnableCapture();
+        }
+
+        [Test]
+        public void DisableCaptureDelegatesToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.DisableCapture();
+
+            // then
+            mockBeacon.Received(1).DisableCapture();
+        }
+
         private TestSessionBuilder CreateSession()
         {
             return new TestSessionBuilder()
-                .With(mockLogger)
-                .With(mockBeacon)
-                .With(mockBeaconSender);
+                    .With(mockLogger)
+                    .With(mockBeacon)
+                ;
         }
     }
 }

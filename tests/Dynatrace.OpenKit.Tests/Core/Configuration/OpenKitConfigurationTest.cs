@@ -14,12 +14,7 @@
 // limitations under the License.
 //
 
-using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Objects;
-using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Protocol.SSL;
-using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -27,178 +22,189 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class OpenKitConfigurationTest
     {
-        private ILogger logger;
+        private const string EndpointUrl = "https://localhost:9999/1";
+        private const long DeviceId = 37;
+        private const string OpenKitType = "Dynatrace NextGen";
+        private const string ApplicationId = "Application-Id";
+        private const string ApplicationName = "Application Name";
+        private const string ApplicationVersion = "1.2.3.4-b4321";
+        private const string OperatingSystem = "Linux #253-Microsoft Mon Dec 31 17:49:00 PST 2018 x86_64 GNU/Linux";
+        private const string Manufacturer = "Dynatrace";
+        private const string ModelId = "Latest Model";
+        private const int DefaultServerId = 777;
+
+        private IOpenKitBuilder mockOpenKitBuilder;
 
         [SetUp]
         public void SetUp()
         {
-            logger = Substitute.For<ILogger>();
+            mockOpenKitBuilder = Substitute.For<IOpenKitBuilder>();
+            mockOpenKitBuilder.EndpointUrl.Returns(EndpointUrl);
+            mockOpenKitBuilder.DeviceId.Returns(DeviceId);
+            mockOpenKitBuilder.OpenKitType.Returns(OpenKitType);
+            mockOpenKitBuilder.ApplicationId.Returns(ApplicationId);
+            mockOpenKitBuilder.ApplicationName.Returns(ApplicationName);
+            mockOpenKitBuilder.ApplicationVersion.Returns(ApplicationVersion);
+            mockOpenKitBuilder.OperatingSystem.Returns(OperatingSystem);
+            mockOpenKitBuilder.Manufacturer.Returns(Manufacturer);
+            mockOpenKitBuilder.ModelId.Returns(ModelId);
+            mockOpenKitBuilder.DefaultServerId.Returns(DefaultServerId);
         }
 
         [Test]
-        public void ADefaultConstructedConfigurationEnablesCapturing()
+        public void CreatingOpenKitConfigurationFromNullBuilderGivesNull()
+        {
+            // when, then
+            Assert.That(OpenKitConfiguration.From(null), Is.Null);
+        }
+
+        [Test]
+        public void CreatingOpenKitConfigurationFromNonNullBuilderGivesNonNullConfiguration()
+        {
+            // when
+            var obtained = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+        }
+
+        [Test]
+        public void CreatingAnOpenKitConfigurationFromBuilderCopiesEndpointUrl()
+        {
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(target.EndpointUrl, Is.EqualTo(EndpointUrl));
+            _ = mockOpenKitBuilder.Received(1).EndpointUrl;
+        }
+
+        [Test]
+        public void CreatingOpenKitConfigurationFromBuilderCopiesDeviceId()
+        {
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(target.DeviceId, Is.EqualTo(DeviceId));
+            _ = mockOpenKitBuilder.Received(1).DeviceId;
+        }
+
+        [Test]
+        public void CreatingOpenKitConfigurationFromBuilderCopiesType()
+        {
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(target.OpenKitType, Is.EqualTo(OpenKitType));
+            _ = mockOpenKitBuilder.Received(1).OpenKitType;
+        }
+
+        [Test]
+        public void CreatingOpenKitConfigurationFromBuilderCopiesApplicationId()
+        {
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(target.ApplicationId, Is.EqualTo(ApplicationId));
+            _ = mockOpenKitBuilder.Received(1).ApplicationId;
+        }
+
+        [Test]
+        public void CreatingOpenKitConfigurationFromBuilderPercentEncodesApplicationId()
         {
             // given
-            var target = CreateDefaultConfig();
+            mockOpenKitBuilder.ApplicationId.Returns("/App_ID%");
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // when
+            var obtained = target.ApplicationIdPercentEncoded;
 
             // then
-            Assert.That(target.IsCaptureOn, Is.True);
+            Assert.That(obtained, Is.EqualTo("%2FApp%5FID%25"));
         }
 
         [Test]
-        public void EnableAndDisableCapturing()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesApplicationName()
         {
-            // given
-            var target = CreateDefaultConfig();
-
-            // when capturing is enabled
-            target.EnableCapture();
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
             // then
-            Assert.That(target.IsCaptureOn, Is.True);
-
-            // and when capturing is disabled
-            target.DisableCapture();
-
-            // then
-            Assert.That(target.IsCaptureOn, Is.False);
+            Assert.That(target.ApplicationName, Is.EqualTo(ApplicationName));
+            _ = mockOpenKitBuilder.Received(1).ApplicationName;
         }
 
         [Test]
-        public void CapturingIsDisabledIfStatusResponseIsNull()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesApplicationVersion()
         {
-            // given
-            var target = CreateDefaultConfig();
-            target.EnableCapture();
-
-            // when status response to handle is null
-            target.UpdateSettings(null);
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
             // then
-            Assert.That(target.IsCaptureOn, Is.False);
+            Assert.That(target.ApplicationVersion, Is.EqualTo(ApplicationVersion));
+            _ = mockOpenKitBuilder.Received(1).ApplicationVersion;
         }
 
         [Test]
-        public void CapturingIsDisabledIfResponseCodeIndicatesFailures()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesOperatingSystem()
         {
-            // given
-            var target = CreateDefaultConfig();
-            target.EnableCapture();
-
-            // when status response indicates erroneous response
-            target.UpdateSettings(new StatusResponse(logger, string.Empty, 400, new Dictionary<string, List<string>>()));
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
             // then
-            Assert.That(target.IsCaptureOn, Is.False);
+            Assert.That(target.OperatingSystem, Is.EqualTo(OperatingSystem));
+            _ = mockOpenKitBuilder.Received(1).OperatingSystem;
         }
 
         [Test]
-        public void CapturingIsEnabledFromStatusResponse()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesManufacturer()
         {
-            // given
-            var target = CreateDefaultConfig();
-            target.EnableCapture();
-
-            var response = new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=" + "1", 200, new Dictionary<string, List<string>>());
-
-            // when capturing is enabled in status response
-            target.UpdateSettings(response);
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
             // then
-            Assert.That(target.IsCaptureOn, Is.True);
+            Assert.That(target.Manufacturer, Is.EqualTo(Manufacturer));
+            _ = mockOpenKitBuilder.Received(1).Manufacturer;
         }
 
         [Test]
-        public void CapturingIsDisabledFromStatusResponse()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesModelId()
         {
-            // given
-            var target = CreateDefaultConfig();
-            target.EnableCapture();
-
-            var response = new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=" + "0", 200, new Dictionary<string, List<string>>());
-
-            // when capturing is enabled in status response
-            target.UpdateSettings(response);
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
             // then
-            Assert.That(target.IsCaptureOn, Is.False);
+            Assert.That(target.ModelId, Is.EqualTo(ModelId));
+            _ = mockOpenKitBuilder.Received(1).ModelId;
         }
 
         [Test]
-        public void ConsecutiveCallsToNextSessionNumberIncrementTheSessionId()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesDefaultServerId()
         {
-            //given
-            var target = CreateDefaultConfig();
+            // given, when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
-            // when retrieving two sessionIDs
-            var sessionIdOne = target.NextSessionNumber;
-            var sessionIdTwo = target.NextSessionNumber;
-
-            //then
-            Assert.That(sessionIdTwo, Is.EqualTo(sessionIdOne + 1));
+            // then
+            Assert.That(target.DefaultServerId, Is.EqualTo(DefaultServerId));
+            _ = mockOpenKitBuilder.Received(1).DefaultServerId;
         }
 
         [Test]
-        public void ADefaultConstructedConfigurationUsesStrictTrustManager()
+        public void CreatingOpenKitConfigurationFromBuilderCopiesTrustManager()
         {
-            // given
-            var target = CreateDefaultConfig();
+            // given, when
+            var trustManager = Substitute.For<ISSLTrustManager>();
+            mockOpenKitBuilder.TrustManager.Returns(trustManager);
 
-            //when retrieving SSL Trust manager
-            var sslTrustManager = target.HttpClientConfig.SslTrustManager;
+            // when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
 
             // then
-            Assert.That(sslTrustManager, Is.InstanceOf<SSLStrictTrustManager>());
-        }
-
-        [Test]
-        public void GetApplicationId()
-        {
-            // given
-            var target = CreateDefaultConfig();
-
-            // then
-            Assert.That(target.ApplicationId, Is.EqualTo("/App_ID%"));
-        }
-
-        [Test]
-        public void GetApplicationIdPercentEncodedDoesProperEncoding()
-        {
-            // given
-            var target = CreateDefaultConfig();
-
-            // then
-            Assert.That(target.ApplicationIdPercentEncoded, Is.EqualTo("%2FApp%5FID%25"));
-        }
-
-        private static IOpenKitConfiguration CreateDefaultConfig()
-        {
-            var defaultCacheConfig = new BeaconCacheConfiguration(
-                BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis,
-                BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes,
-                BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes);
-            var defaultPrivacyConfig = new PrivacyConfiguration(
-                PrivacyConfiguration.DefaultDataCollectionLevel,
-                PrivacyConfiguration.DefaultCrashReportingLevel
-                );
-
-            var defaultBeaconConfig = new BeaconConfiguration();
-
-            return new OpenKitConfiguration(
-                OpenKitType.Dynatrace,
-                "",
-                "/App_ID%",
-                0,
-                "0",
-                "",
-                new TestSessionIdProvider(),
-                  new SSLStrictTrustManager(),
-                new Device("", "", ""),
-                "",
-                defaultCacheConfig,
-                defaultBeaconConfig,
-                defaultPrivacyConfig
-                );
+            Assert.That(target.TrustManager, Is.SameAs(trustManager));
+            _ = mockOpenKitBuilder.Received(1).TrustManager;
         }
     }
 }

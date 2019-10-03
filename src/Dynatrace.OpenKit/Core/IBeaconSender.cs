@@ -31,8 +31,8 @@ namespace Dynatrace.OpenKit.Core
 
         void Shutdown();
 
-        void StartSession(ISessionInternals session);
+        int CurrentServerId { get; }
 
-        void FinishSession(ISessionInternals session);
+        void AddSession(ISessionInternals session);
     }
 }

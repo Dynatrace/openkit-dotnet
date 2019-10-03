@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Standard implementation of the IWebRequestTracer interface.
     /// </summary>
-    public class WebRequestTracer : IWebRequestTracerInternals, IOpenKitObject
+    public class WebRequestTracer : IWebRequestTracerInternals
     {
         private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", RegexOptions.IgnoreCase);
 
@@ -42,7 +42,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// Parent object of this web request tracer
         /// </summary>
-        private IOpenKitComposite parent;
+        private readonly IOpenKitComposite parent;
 
         /// <summary>
         /// Dynatrace tag that has to be used for tracing the web request
@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             this.logger = logger;
             this.beacon = beacon;
             this.parent = parent;
-            this.parentActionId = parent.ActionId;
+            parentActionId = parent.ActionId;
 
             // creating start sequence number has to be done here, because it's needed for the creation of the tag
             StartSequenceNo = beacon.NextSequenceNumber;
@@ -129,6 +129,8 @@ namespace Dynatrace.OpenKit.Core.Objects
         public int BytesReceived { get; private set; } = -1;
 
         bool IWebRequestTracerInternals.IsStopped => EndTime != -1;
+
+        IOpenKitComposite IWebRequestTracerInternals.Parent => parent;
 
         #endregion
 
@@ -201,7 +203,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // last but not least notify the parent & detach from parent
             parent.OnChildClosed(this);
-            parent = null;
         }
 
         [Obsolete("Use Stop(int) instead")]
@@ -243,12 +244,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             return this;
         }
-
-        #endregion
-
-        #region OpenKitComposite implementation
-
-
 
         #endregion
 

@@ -14,8 +14,6 @@
 // limitations under the License.
 //
 
-using System.Collections.Generic;
-using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -35,20 +33,30 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void IsSuccessfulResponseReturnsFalseIfResponseIsErroneous()
         {
             // given
-            var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
+            var response = Substitute.For<IStatusResponse>();
+            response.IsErroneousResponse.Returns(true);
 
-            // when, then
-            Assert.That(BeaconSendingResponseUtil.IsSuccessfulResponse(erroneousResponse), Is.False);
+            // when
+            var obtained = BeaconSendingResponseUtil.IsSuccessfulResponse(response);
+
+            // then
+            _ = response.Received(1).IsErroneousResponse;
+            Assert.That(obtained, Is.False);
         }
 
         [Test]
         public void IsSuccessfulResponseReturnsTrueIfResponseIsNotErroneous()
         {
             // given
-            var successfulResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpOk, new Dictionary<string, List<string>>());
+            var response = Substitute.For<IStatusResponse>();
+            response.IsErroneousResponse.Returns(false);
 
-            // when, then
-            Assert.That(BeaconSendingResponseUtil.IsSuccessfulResponse(successfulResponse), Is.True);
+            // when
+            var obtained = BeaconSendingResponseUtil.IsSuccessfulResponse(response);
+
+            // then
+            Assert.That(obtained, Is.True);
+            _ = response.Received(1).IsErroneousResponse;
         }
 
         [Test]
@@ -62,20 +70,30 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void IsTooManyRequestsResponseReturnsFalseIfResponseCodeIsNotEqualToTooManyRequestsCode()
         {
             // given
-            var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpBadRequest, new Dictionary<string, List<string>>());
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(Response.HttpBadRequest);
 
-            // when, then
-            Assert.That(BeaconSendingResponseUtil.IsTooManyRequestsResponse(erroneousResponse), Is.False);
+            // when
+            var obtained = BeaconSendingResponseUtil.IsTooManyRequestsResponse(response);
+
+            // then
+            Assert.That(obtained, Is.False);
+            _ = response.Received(1).ResponseCode;
         }
 
         [Test]
         public void IsTooManyRequestsResponseReturnsTrueIfResponseCodeIndicatesTooManyRequests()
         {
             // given
-            var erroneousResponse = new StatusResponse(Substitute.For<ILogger>(), string.Empty, Response.HttpTooManyRequests, new Dictionary<string, List<string>>());
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(Response.HttpTooManyRequests);
 
-            // when, then
-            Assert.That(BeaconSendingResponseUtil.IsTooManyRequestsResponse(erroneousResponse), Is.True);
+            // when
+            var obtained = BeaconSendingResponseUtil.IsTooManyRequestsResponse(response);
+
+            // then
+            Assert.That(obtained, Is.True);
+            _ = response.Received(1).ResponseCode;
         }
     }
 }

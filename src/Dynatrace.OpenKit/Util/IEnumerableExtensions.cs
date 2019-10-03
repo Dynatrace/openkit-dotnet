@@ -16,11 +16,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Dynatrace.OpenKit.Util
 {
-    
+
     /// <summary>
     /// Utility class providing some extension methods which are not available in certain .NET flavors.
     /// </summary>

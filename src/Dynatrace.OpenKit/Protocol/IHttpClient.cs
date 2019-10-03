@@ -22,7 +22,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// Sends a status request and returns a status response
         /// </summary>
         /// <returns></returns>
-        StatusResponse SendStatusRequest();
+        IStatusResponse SendStatusRequest();
 
         /// <summary>
         /// Sends a beacon send request and returns a status response
@@ -30,12 +30,12 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="clientIpAddress"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        StatusResponse SendBeaconRequest(string clientIpAddress, byte[] data);
+        IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data);
 
         /// <summary>
         /// Sends a special status request for a new session.
         /// </summary>
         /// <returns>Returns the status response.</returns>
-        StatusResponse SendNewSessionRequest();
+        IStatusResponse SendNewSessionRequest();
     }
 }

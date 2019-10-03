@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using NSubstitute;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -21,27 +22,37 @@ namespace Dynatrace.OpenKit.Core.Configuration
     public class PrivacyConfigurationTest
     {
         [Test]
+        public void FromWithNullBuilderReturnsNull()
+        {
+            // given, when
+            var obtained = PrivacyConfiguration.From(null);
+
+            // then
+            Assert.That(obtained, Is.Null);
+        }
+
+        [Test]
         public void DataCollectionLevelReturnsLevelPassedInConstructor()
         {
             // when, then
-            Assert.That(new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF)
-                .DataCollectionLevel, Is.EqualTo(DataCollectionLevel.OFF));
-            Assert.That(new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF)
-                .DataCollectionLevel, Is.EqualTo(DataCollectionLevel.PERFORMANCE));
-            Assert.That(new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF)
-                .DataCollectionLevel, Is.EqualTo(DataCollectionLevel.USER_BEHAVIOR));
+            Assert.That(NewConfigWith(DataCollectionLevel.OFF).DataCollectionLevel,
+                Is.EqualTo(DataCollectionLevel.OFF));
+            Assert.That(NewConfigWith(DataCollectionLevel.PERFORMANCE).DataCollectionLevel,
+                Is.EqualTo(DataCollectionLevel.PERFORMANCE));
+            Assert.That(NewConfigWith(DataCollectionLevel.USER_BEHAVIOR).DataCollectionLevel,
+                Is.EqualTo(DataCollectionLevel.USER_BEHAVIOR));
         }
 
         [Test]
         public void CrashReportingLevelReturnsLevelPassedInConstructor()
         {
             // when, then
-            Assert.That(new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF)
-                .CrashReportingLevel, Is.EqualTo(CrashReportingLevel.OFF));
-            Assert.That(new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OPT_IN_CRASHES)
-                .CrashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_IN_CRASHES));
-            Assert.That(new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OPT_OUT_CRASHES)
-                .CrashReportingLevel, Is.EqualTo(CrashReportingLevel.OPT_OUT_CRASHES));
+            Assert.That(NewConfigWith(CrashReportingLevel.OFF).CrashReportingLevel,
+                Is.EqualTo(CrashReportingLevel.OFF));
+            Assert.That(NewConfigWith(CrashReportingLevel.OPT_IN_CRASHES).CrashReportingLevel,
+                Is.EqualTo(CrashReportingLevel.OPT_IN_CRASHES));
+            Assert.That(NewConfigWith(CrashReportingLevel.OPT_OUT_CRASHES).CrashReportingLevel,
+                Is.EqualTo(CrashReportingLevel.OPT_OUT_CRASHES));
         }
 
         #region session number reporting
@@ -50,7 +61,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SessionNumberReportingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsSessionNumberReportingAllowed, Is.True);
@@ -60,7 +71,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SessionNumberReportingIsNotAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsSessionNumberReportingAllowed, Is.False);
@@ -70,7 +81,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SessionNumberReportingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsSessionNumberReportingAllowed, Is.False);
@@ -84,7 +95,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void DeviceIdSendingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsDeviceIdSendingAllowed, Is.True);
@@ -94,7 +105,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void DeviceIdSendingIsNotAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsDeviceIdSendingAllowed, Is.False);
@@ -104,7 +115,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void DeviceIdSendingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsDeviceIdSendingAllowed, Is.False);
@@ -118,7 +129,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void WebRequestTracingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsWebRequestTracingAllowed, Is.True);
@@ -128,7 +139,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void WebRequestTracingIsAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsWebRequestTracingAllowed, Is.True);
@@ -138,7 +149,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void WebRequestTracingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsWebRequestTracingAllowed, Is.False);
@@ -152,7 +163,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SessionReportingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsSessionReportingAllowed, Is.True);
@@ -162,7 +173,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SessionReportingIsAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsSessionReportingAllowed, Is.True);
@@ -172,7 +183,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SessionReportingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsSessionReportingAllowed, Is.False);
@@ -186,7 +197,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ActionReportingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsActionReportingAllowed, Is.True);
@@ -196,7 +207,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ActionReportingIsAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsActionReportingAllowed, Is.True);
@@ -206,7 +217,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ActionReportingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsActionReportingAllowed, Is.False);
@@ -220,7 +231,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ValueReportingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsValueReportingAllowed, Is.True);
@@ -230,7 +241,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ValueReportingIsNotAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsValueReportingAllowed, Is.False);
@@ -240,7 +251,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ValueReportingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsValueReportingAllowed, Is.False);
@@ -254,7 +265,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void EventReportingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsEventReportingAllowed, Is.True);
@@ -264,7 +275,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void EventReportingIsNotAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsEventReportingAllowed, Is.False);
@@ -274,7 +285,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void EventReportingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsEventReportingAllowed, Is.False);
@@ -288,7 +299,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ErrorReportingIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsErrorReportingAllowed, Is.True);
@@ -298,7 +309,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ErrorReportingIsAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsErrorReportingAllowed, Is.True);
@@ -308,7 +319,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void ErrorReportingIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsErrorReportingAllowed, Is.False);
@@ -322,7 +333,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CrashReportingIsAllowedIfCrashReportingLevelIsEqualToOptInCrashes()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OPT_IN_CRASHES);
+            var target = NewConfigWith(CrashReportingLevel.OPT_IN_CRASHES);
 
             // when, then
             Assert.That(target.IsCrashReportingAllowed, Is.True);
@@ -332,7 +343,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CrashReportingIsNotAllowedIfCrashReportingLevelIsEqualToOptOutCrashes()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OPT_OUT_CRASHES);
+            var target = NewConfigWith(CrashReportingLevel.OPT_OUT_CRASHES);
 
             // when, then
             Assert.That(target.IsCrashReportingAllowed, Is.False);
@@ -342,7 +353,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CrashReportingIsNotAllowedIfCrashReportingLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target =  NewConfigWith(CrashReportingLevel.OFF);
 
             // when, then
             Assert.That(target.IsCrashReportingAllowed, Is.False);
@@ -356,7 +367,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void UserIdentificationIsAllowedIfDataCollectionLevelIsEqualToUserBehavior()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.USER_BEHAVIOR, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.USER_BEHAVIOR);
 
             // when, then
             Assert.That(target.IsUserIdentificationIsAllowed, Is.True);
@@ -366,7 +377,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void UserIdentificationIsNotAllowedIfDataCollectionLevelIsEqualToPerformance()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.PERFORMANCE, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.PERFORMANCE);
 
             // when, then
             Assert.That(target.IsUserIdentificationIsAllowed, Is.False);
@@ -376,12 +387,27 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void UserIdentificationIsNotAllowedIfDataCollectionLevelIsEqualToOff()
         {
             // given
-            var target = new PrivacyConfiguration(DataCollectionLevel.OFF, CrashReportingLevel.OFF);
+            var target = NewConfigWith(DataCollectionLevel.OFF);
 
             // when, then
             Assert.That(target.IsUserIdentificationIsAllowed, Is.False);
         }
 
         #endregion
+
+        private IPrivacyConfiguration NewConfigWith(CrashReportingLevel crashReportingLevel)
+        {
+            return NewConfigWith(ConfigurationDefaults.DefaultDataCollectionLevel, crashReportingLevel);
+        }
+
+        private IPrivacyConfiguration NewConfigWith(DataCollectionLevel dataCollectionLevel,
+            CrashReportingLevel crashReportingLevel = ConfigurationDefaults.DefaultCrashReportingLevel)
+        {
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.DataCollectionLevel.Returns(dataCollectionLevel);
+            builder.CrashReportingLevel.Returns(crashReportingLevel);
+
+            return PrivacyConfiguration.From(builder);
+        }
     }
 }

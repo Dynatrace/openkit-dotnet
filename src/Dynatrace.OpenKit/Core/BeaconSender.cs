@@ -14,11 +14,11 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
-using Dynatrace.OpenKit.API;
 using System.Threading;
 
 namespace Dynatrace.OpenKit.Core
@@ -44,15 +44,14 @@ namespace Dynatrace.OpenKit.Core
         // sending state context
         private readonly IBeaconSendingContext context;
 
-        internal BeaconSender(ILogger logger, IOpenKitConfiguration configuration, IHttpClientProvider clientProvider, ITimingProvider provider)
-            : this(logger, new BeaconSendingContext(logger, configuration, clientProvider, provider))
-        {
-        }
-
-        internal BeaconSender(ILogger logger, IBeaconSendingContext context)
+        internal BeaconSender(
+            ILogger logger,
+            IHttpClientConfiguration httpClientConfiguration,
+            IHttpClientProvider clientProvider,
+            ITimingProvider timingProvider)
         {
             this.logger = logger;
-            this.context = context;
+            context = new BeaconSendingContext(logger, httpClientConfiguration, clientProvider, timingProvider);
         }
 
         public bool IsInitialized => context.IsInitialized;
@@ -61,14 +60,14 @@ namespace Dynatrace.OpenKit.Core
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " thread started");
+                logger.Debug($"{GetType().Name} thread started");
             }
 
             // create sending thread
 #if WINDOWS_UWP || NETSTANDARD1_1
             beaconSenderThread = System.Threading.Tasks.Task.Factory.StartNew(SenderThread);
 #else
-            beaconSenderThread = new Thread(new ThreadStart(SenderThread))
+            beaconSenderThread = new Thread(SenderThread)
             {
                 IsBackground = true,
                 Name = GetType().Name
@@ -98,7 +97,7 @@ namespace Dynatrace.OpenKit.Core
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " thread request shutdown");
+                logger.Debug($"{GetType().Name} thread request shutdown");
             }
             context.RequestShutdown();
 
@@ -115,29 +114,24 @@ namespace Dynatrace.OpenKit.Core
 #endif
                 if (logger.IsDebugEnabled)
                 {
-                    logger.Debug(GetType().Name + " thread stopped");
+                    logger.Debug($"{GetType().Name} thread stopped");
                 }
             }
         }
 
-        // when starting a new Session, put it into open Sessions
-        void IBeaconSender.StartSession(ISessionInternals session)
-        {
-            if (logger.IsDebugEnabled)
-            {
-                logger.Debug(GetType().Name + " StartSession");
-            }
-            context.StartSession(session);
-        }
+        /// <summary>
+        /// Returns the current server ID to be used for creating new sessions.
+        /// </summary>
+        public int CurrentServerId => context.CurrentServerId;
 
-        // when finishing a Session, remove it from open Sessions and put it into finished Sessions
-        void IBeaconSender.FinishSession(ISessionInternals session)
+        // when starting a new Session, put it into open Sessions
+        void IBeaconSender.AddSession(ISessionInternals session)
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " FinishSession");
+                logger.Debug($"{GetType().Name} AddSession()");
             }
-            context.FinishSession(session);
+            context.AddSession(session);
         }
     }
 }

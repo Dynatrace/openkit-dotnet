@@ -83,7 +83,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         /// <summary>
-        /// Creates a new server configuration from the given <see cref="StatusResponse"/>.
+        /// Creates a new server configuration from the given <see cref="IStatusResponse"/>.
         /// </summary>
         /// <param name="statusResponse">the status response from which to create the server configuration.</param>
         /// <returns>the newly created server configuration.</returns>
@@ -140,7 +140,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
 
             /// <summary>
-            /// Creates a new builder instance with pre-initialized fields from the given <see cref="StatusResponse"/>.
+            /// Creates a new builder instance with pre-initialized fields from the given <see cref="IStatusResponse"/>.
             /// </summary>
             /// <param name="statusResponse">status response used for initializing this builder.</param>
             public Builder(IStatusResponse statusResponse)

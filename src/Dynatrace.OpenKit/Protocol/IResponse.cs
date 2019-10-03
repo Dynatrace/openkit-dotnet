@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,14 @@
 // limitations under the License.
 //
 
-namespace Dynatrace.OpenKit.Providers
+namespace Dynatrace.OpenKit.Protocol
 {
-    public class TestSessionIdProvider : ISessionIdProvider
+    public interface IResponse
     {
-        private int initialIntegerOffset = 0;
+        int ResponseCode { get; }
 
-        public int GetNextSessionId()
-        {
-            if (initialIntegerOffset == int.MaxValue)
-            {
-                initialIntegerOffset = 0;
-            }
-            initialIntegerOffset += 1;
+        bool IsErroneousResponse { get; }
 
-            return initialIntegerOffset;
-        }
+        int GetRetryAfterInMilliseconds();
     }
 }

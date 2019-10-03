@@ -21,16 +21,16 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingTerminalStateTest
     {
-        private IBeaconSendingContext context;
+        private IBeaconSendingContext mockContext;
 
         [SetUp]
         public void Setup()
         {
-            context = Substitute.For<IBeaconSendingContext>();
+            mockContext = Substitute.For<IBeaconSendingContext>();
         }
 
         [Test]
-        public void StateIsTerminal()
+        public void IsTerminalStateIsTrueForTheTerminalState()
         {
             // given
             var target = new BeaconSendingTerminalState();
@@ -40,26 +40,41 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void TerminalStateIsNextStateIfTransitionFromTerminalStateOccurs()
-        {
-            //given
-            var target = new BeaconSendingTerminalState();
-
-            //then
-            Assert.That(target.ShutdownState, Is.SameAs(target));
-        }
-
-        [Test]
-        public void TerminalStateCallsShutdownOnExecution()
+        public void TheShutdownStateIsAlwaysTheSameReference()
         {
             //given
             var target = new BeaconSendingTerminalState();
 
             // when
-            target.Execute(context);
+            var obtained = target.ShutdownState;
 
             // then
-            context.Received(1).RequestShutdown();
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void ToStringReturnsTheStateName()
+        {
+            // given
+            var target = new BeaconSendingTerminalState();
+
+            // when, then
+            Assert.That(target.ToString(), Is.EqualTo("Terminal"));
+        }
+
+        [Test]
+        public void ExecuteRequestsShutdown()
+        {
+            //given
+            var target = new BeaconSendingTerminalState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockContext.Received(1).RequestShutdown();
+            _ = mockContext.Received(2).IsShutdownRequested;
         }
     }
 }

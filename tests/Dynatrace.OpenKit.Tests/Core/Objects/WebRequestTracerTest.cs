@@ -59,7 +59,17 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void GetTag()
+        public void ANewlyCreatedWebRequestTracerDoesNotAttachToTheParent()
+        {
+            // given, when
+            var target = CreateWebRequestTracer().Build();
+
+            // then
+            _ = mockParent.Received(1).ActionId;
+        }
+
+        [Test]
+        public void TagGet()
         {
             // given
             var target = CreateWebRequestTracer().Build();
@@ -101,33 +111,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(target.IsStopped, Is.True);
-        }
-
-        [Test]
-        public void DisposingAWebRequestTracerStopsIt()
-        {
-            // given
-            var target = CreateWebRequestTracer().Build();
-
-            // when disposing the target
-            target.Dispose();
-
-            // then
-            Assert.That(target.IsStopped, Is.True);
-        }
-
-        [Test]
-        public void DisposingAWebRequestWithSetResponseCodeTracerStopsIt()
-        {
-            // given
-            var target = CreateWebRequestTracer().Build();
-            target.SetResponseCode(200);
-
-            // when disposing the target
-            target.Dispose();
-
-            // then
-            Assert.That(((WebRequestTracer)target).ResponseCode, Is.EqualTo(200));
         }
 
         [Test]
@@ -383,6 +366,78 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(target.EndSequenceNo, Is.EqualTo(sequenceNumber));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void StopWithResponseCodeNotifiesParentAndDetachesFromParent()
+        {
+            var target = CreateWebRequestTracer().Build();
+            mockBeacon.NextSequenceNumber.Returns(42);
+
+            // when
+            target.Stop(200);
+
+            // then
+            mockParent.Received(1).OnChildClosed(target);
+            _ = mockParent.Received(1).ActionId;
+        }
+
+        [Test]
+        public void StopNotifiesParentAndDetachesFromParent()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+            mockBeacon.NextSequenceNumber.Returns(42);
+
+            // when
+            target.Stop();
+
+            // then
+            mockParent.Received(1).OnChildClosed(target);
+            _ = mockParent.Received(1).ActionId;
+        }
+
+        [Test]
+        public void StopUsesSetResponseCode()
+        {
+            // given
+            const int responseCode = 418;
+            var target = CreateWebRequestTracer().Build();
+
+            // when
+            var obtained = target.SetResponseCode(responseCode);
+            target.Stop();
+
+            // then
+            Assert.That(target.ResponseCode, Is.EqualTo(responseCode));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void DisposingAWebRequestTracerStopsIt()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+
+            // when disposing the target
+            target.Dispose();
+
+            // then
+            Assert.That(target.IsStopped, Is.True);
+        }
+
+        [Test]
+        public void DisposingAWebRequestWithSetResponseCodeTracerStopsIt()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+            target.SetResponseCode(200);
+
+            // when disposing the target
+            target.Dispose();
+
+            // then
+            Assert.That(((WebRequestTracer)target).ResponseCode, Is.EqualTo(200));
         }
 
 

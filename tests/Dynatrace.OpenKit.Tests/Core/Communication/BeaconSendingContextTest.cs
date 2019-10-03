@@ -14,9 +14,7 @@
 // limitations under the License.
 //
 
-using System.Linq;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
@@ -28,108 +26,121 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingContextTest
     {
-        private IOpenKitConfiguration config;
-        private IHttpClientProvider clientProvider;
-        private ITimingProvider timingProvider;
-        private AbstractBeaconSendingState nonTerminalStateMock;
-        private ILogger logger = new DefaultLogger(LogLevel.DEBUG);
-
-        private IOpenKitComposite mockParent;
+        private ILogger mockLogger;
+        private IHttpClientConfiguration mockHttpClientConfig;
+        private IHttpClientProvider mockHttpClientProvider;
+        private ITimingProvider mockTimingProvider;
 
         [SetUp]
         public void Setup()
         {
-            config = new TestConfiguration();
-            clientProvider = Substitute.For<IHttpClientProvider>();
-            timingProvider = Substitute.For<ITimingProvider>();
-            nonTerminalStateMock = Substitute.For<AbstractBeaconSendingState>(false);
+            mockLogger = Substitute.For<ILogger>();
+            mockLogger.IsInfoEnabled.Returns(true);
+            mockLogger.IsDebugEnabled.Returns(true);
 
-            mockParent = Substitute.For<IOpenKitComposite>();
+            mockHttpClientConfig = Substitute.For<IHttpClientConfiguration>();
+
+            var statusResponse = Substitute.For<IStatusResponse>();
+            statusResponse.ResponseCode.Returns(Response.HttpOk);
+
+            var httpClient = Substitute.For<IHttpClient>();
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(statusResponse);
+
+            mockHttpClientProvider = Substitute.For<IHttpClientProvider>();
+            mockHttpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
+
+            mockTimingProvider = Substitute.For<ITimingProvider>();
         }
 
         [Test]
-        public void ContextIsInitializedWithInitState()
+        public void CurrentStateIsInitializedAccordingly()
         {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // given, when
+            var initState = new BeaconSendingInitState();
+            var target = CreateSendingContext().With(initState).Build();
 
-            Assert.IsNotNull(target.CurrentState);
-            Assert.AreEqual(typeof(BeaconSendingInitState), target.CurrentState.GetType());
+            // then
+            Assert.That(target.CurrentState, Is.Not.Null);
+            Assert.That(target.CurrentState, Is.InstanceOf<BeaconSendingInitState>());
         }
 
         [Test]
-        public void CurrentStateIsSet()
+        public void NextStateSetChangesState()
         {
-            BeaconSendingContext target = new BeaconSendingContext(logger, config, clientProvider, timingProvider)
-            {
-                CurrentState = nonTerminalStateMock
-            };
+            // given
+            var state = Substitute.For<AbstractBeaconSendingState>(false);
+            var target = CreateSendingContext().Build();
 
-            Assert.AreSame(nonTerminalStateMock, target.CurrentState);
+            // when
+            target.NextState = state;
+
+            // then
+            Assert.That(target.NextState, Is.SameAs(state));
         }
 
-        [Test]
-        public void ExecuteIsCalledOnCurrentState()
-        {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider)
-            {
-                CurrentState = nonTerminalStateMock
-            };
 
+        [Test]
+        public void ExecuteCurrentStateCallsExecuteOnCurrentState()
+        {
+            // given
+            var mockState = Substitute.For<AbstractBeaconSendingState>(false);
+            var target = CreateSendingContext().With(mockState).Build();
+            Assert.That(mockState.ReceivedCalls(), Is.Empty);
+
+            // when
             target.ExecuteCurrentState();
 
-            nonTerminalStateMock.Received(1).Execute(target);
+            // then
+            mockState.Received(1).Execute(target);
         }
 
         [Test]
-        public void ResetEventIsSetOnInitSuccess()
+        public void InitCompletionSuccessAndWait()
         {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // given
+            var target = CreateSendingContext().Build();
 
+            // when
             target.InitCompleted(true);
-            var actual = target.WaitForInit();
+            var obtained = target.WaitForInit();
 
-            Assert.That(actual, Is.True);
+            // then
+            Assert.That(obtained, Is.True);
         }
 
         [Test]
-        public void ResetEventIsSetOnInitFailed()
+        public void RequestShutdown()
         {
+            // given
+            var target = CreateSendingContext().Build();
+            Assert.False(target.IsShutdownRequested);
 
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // when
+            target.RequestShutdown();
 
+            // then
+            Assert.True(target.IsShutdownRequested);
+        }
+
+        [Test]
+        public void InitCompleteFailureAndWait()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+
+            // when
             target.InitCompleted(false);
-            var actual = target.WaitForInit();
+            var obtained = target.WaitForInit();
 
-            Assert.That(actual, Is.False);
+            // then
+            Assert.That(obtained, Is.False);
         }
 
         [Test]
-        public void IsInitializedOnInitSuccess()
+        public void WaitForInitCompleteTimeout()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-            target.InitCompleted(true);
-
-            // when, then
-            Assert.That(target.IsInitialized, Is.True);
-        }
-
-        [Test]
-        public void IsInitializedOnInitFailed()
-        {
-            // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-            target.InitCompleted(false);
-
-            // when, then
-            Assert.That(target.IsInitialized, Is.False);
-        }
-
-        [Test]
-        public void WaitForInitWhenTimeoutExpires()
-        {
-            // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
 
             // when waiting for init completion with a timeout of 1ms
             var obtained = target.WaitForInit(1);
@@ -138,11 +149,12 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(obtained, Is.False);
         }
 
+
         [Test]
-        public void WaitForInitWhenWithTimeoutSuccess()
+        public void WaitForInitCompleteWhenInitCompletedSucessfully()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
             target.InitCompleted(true);
 
             // when waiting for init completion with a timeout of 1ms
@@ -153,10 +165,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void WaitForInitWhenWithTimeoutFailed()
+        public void WaitForInitCompleteWhenInitCompletedNotSuccessfully()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
             target.InitCompleted(false);
 
             // when waiting for init completion with a timeout of 1ms
@@ -167,112 +179,199 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void IsShutdownRequestedIsSetCorrectly()
+        public void ADefaultConstructedContextIsNotInitialized()
         {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // given, when
+            var target = CreateSendingContext().Build();
 
-            Assert.False(target.IsShutdownRequested);
+            // then
+            Assert.That(target.IsInitialized, Is.False);
+        }
 
-            target.RequestShutdown();
+        [Test]
+        public void SuccessfullyInitializedContextIsInitialized()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+            target.InitCompleted(true);
 
-            Assert.True(target.IsShutdownRequested);
+            // when, then
+            Assert.That(target.IsInitialized, Is.True);
+        }
+
+        [Test]
+        public void NotSuccessfullyInitializedContextIsNotInitialized()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+            target.InitCompleted(false);
+
+            // when, then
+            Assert.That(target.IsInitialized, Is.False);
+        }
+
+        [Test]
+        public void IsInTerminalStateChecksCurrentState()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+            Assert.That(target.IsInTerminalState, Is.False);
+            Assert.That(target.CurrentState, Is.InstanceOf<BeaconSendingInitState>());
+
+            var terminalState = new BeaconSendingTerminalState();
+
+            // when
+            target.NextState = terminalState;
+
+            // then
+            Assert.That(target.IsInTerminalState, Is.False);
+            Assert.That(target.CurrentState, Is.InstanceOf<BeaconSendingInitState>());
+        }
+
+        [Test]
+        public void IsCaptureOnIsTakenFromDefaultServerConfig()
+        {
+            // given, when
+            var target = CreateSendingContext().Build();
+
+            // then
+            Assert.That(target.IsCaptureOn, Is.EqualTo(ServerConfiguration.Default.IsCaptureEnabled));
         }
 
         [Test]
         public void LastOpenSessionSendTimeIsSet()
         {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // given
+            long[] sendTimes = {1234, 5678};
+            var target = CreateSendingContext().Build();
 
-            Assert.AreEqual(0, target.LastOpenSessionBeaconSendTime);
+            foreach (var sendTime in sendTimes)
+            {
+                // when
+                target.LastOpenSessionBeaconSendTime = sendTime;
 
-            var expected = 17;
-            target.LastOpenSessionBeaconSendTime = expected;
-
-            Assert.AreEqual(expected, target.LastOpenSessionBeaconSendTime);
+                // then
+                Assert.That(target.LastOpenSessionBeaconSendTime, Is.EqualTo(sendTime));
+            }
         }
+
 
         [Test]
         public void LastStatusCheckTimeIsSet()
         {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // given
+            long[] statusCheckTimes = {1234, 56789};
+            var target = CreateSendingContext().Build();
 
-            Assert.AreEqual(0, target.LastStatusCheckTime);
+            foreach(var statusCheckTime in statusCheckTimes)
+            {
+                // when
+                target.LastStatusCheckTime = statusCheckTime;
 
-            var expected = 17;
-            target.LastStatusCheckTime = expected;
-
-            Assert.AreEqual(expected, target.LastStatusCheckTime);
+                // then
+                Assert.That(target.LastStatusCheckTime, Is.EqualTo(statusCheckTime));
+            }
         }
 
         [Test]
-        public void CanGetHttpClient()
+        public void SendIntervalIsTakenFromDefaultServerConfig()
         {
-            var expected = Substitute.For<HttpClient>(new DefaultLogger(LogLevel.DEBUG), new HttpClientConfiguration("", 0, "", null));
+            // given
+            var target = CreateSendingContext().Build();
 
-            clientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(expected);
+            // when
+            var obtained = target.SendInterval;
 
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
-            var actual = target.GetHttpClient();
-
-            Assert.NotNull(actual);
-            Assert.AreSame(expected, actual);
-            clientProvider.Received(1).CreateClient(Arg.Any<HttpClientConfiguration>());
+            // then
+            Assert.That(obtained, Is.EqualTo(ServerConfiguration.Default.SendIntervalInMilliSeconds));
         }
 
         [Test]
-        public void GetHttpClientUsesCurrentHttpConfig()
+        public void HttpClientProviderGet()
         {
-            clientProvider
-                .CreateClient(Arg.Any<HttpClientConfiguration>())
-                .Returns(Substitute.For<HttpClient>(new DefaultLogger(LogLevel.DEBUG), new HttpClientConfiguration("", 0, "", null)));
+            // given
+            var target = CreateSendingContext().Build();
 
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // when
+            var obtained = target.HttpClientProvider;
 
-            var actual = target.GetHttpClient();
-
-            clientProvider.Received(1).CreateClient(config.HttpClientConfig);
+            // then
+            Assert.That(obtained, Is.SameAs(mockHttpClientProvider));
         }
 
         [Test]
-        public void CanGetCurrentTimestamp()
+        public void GetHttpClient()
         {
-            var expected = 12356789;
-            timingProvider.ProvideTimestampInMilliseconds().Returns(expected);
+            // given
+            var mockClient = Substitute.For<IHttpClient>();
+            mockHttpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(mockClient);
 
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
 
-            var actual = target.CurrentTimestamp;
+            Assert.That(mockHttpClientConfig.ReceivedCalls(), Is.Empty);
+            Assert.That(mockHttpClientProvider.ReceivedCalls(), Is.Empty);
 
-            Assert.AreEqual(expected, actual);
-            timingProvider.Received(1).ProvideTimestampInMilliseconds();
+            // when
+            var obtained = target.GetHttpClient();
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained, Is.SameAs(mockClient));
+
+            mockHttpClientProvider.Received(1).CreateClient(mockHttpClientConfig);
+            Assert.That(mockClient.ReceivedCalls(), Is.Empty);
+            Assert.That(mockHttpClientConfig.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
-        public void DefaultSleepTimeIsUsed()
+        public void CurrentTimeStampGet()
         {
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            // given
+            const long expected = 12356789;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(expected);
 
+            var target = CreateSendingContext().Build();
+            Assert.That(mockTimingProvider.ReceivedCalls(), Is.Empty);
+
+            // when
+            var obtained = target.CurrentTimestamp;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(expected));
+            mockTimingProvider.Received(1).ProvideTimestampInMilliseconds();
+        }
+
+        [Test]
+        public void SleepDefaultTime()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+            Assert.That(mockTimingProvider.ReceivedCalls(), Is.Empty);
+
+            // when
             target.Sleep();
 
-            timingProvider.Received(1).Sleep(BeaconSendingContext.DefaultSleepTimeMilliseconds);
+            // then
+            mockTimingProvider.Received(1).Sleep(BeaconSendingContext.DefaultSleepTimeMilliseconds);
         }
 
         [Test]
-        public void CanSleepCustomPeriod()
+        public void SleepWithGivenTime()
         {
-            var expected = 1717;
+            // given
+            const int expected = 1717;
+            var target = CreateSendingContext().Build();
 
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-
+            // when
             target.Sleep(expected);
 
+            // then
 #if !NETCOREAPP1_0 || !NETCOREAPP1_1
-            timingProvider.Received(1).Sleep(expected);
+            mockTimingProvider.Received(1).Sleep(expected);
 #else
-            timingProvider.Received(2).Sleep(Arg.Any<int>());
-            timingProvider.Received(1).Sleep(1000);
-            timingProvider.Received(1).Sleep(717);
+            mockTimingProvider.Received(2).Sleep(Arg.Any<int>());
+            mockTimingProvider.Received(1).Sleep(1000);
+            mockTimingProvider.Received(1).Sleep(717);
 #endif
         }
 
@@ -280,19 +379,19 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void CanInterruptLongSleep()
         {
             // given
-            var expected = 101717;
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            const int expected = 101717;
+            var target = CreateSendingContext().Build();
             target.RequestShutdown();
             target.Sleep(expected);
 
             // then
 #if !NETCOREAPP1_0 || !NETCOREAPP1_1
             // normal sleep as thread interrupt exception exists
-            timingProvider.Received(1).Sleep(expected);
+            mockTimingProvider.Received(1).Sleep(expected);
 #else
             // no interrupt exception exists, therefore "sliced" sleep break after first iteration
-            timingProvider.Received(1).Sleep(Arg.Any<int>());
-            timingProvider.Received(1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+            mockTimingProvider.Received(1).Sleep(Arg.Any<int>());
+            mockTimingProvider.Received(1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
 #endif
         }
 
@@ -300,21 +399,21 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void CanSleepLonger()
         {
             // given
-            var expected = 101717;
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            const int expected = 101717;
+            var target = CreateSendingContext().Build();
             target.Sleep(expected);
 
             // then
 #if !NETCOREAPP1_0 || !NETCOREAPP1_1
             // normal sleep as thread interrupt exception exists
-            timingProvider.Received(1).Sleep(expected);
+            mockTimingProvider.Received(1).Sleep(expected);
 
 #else
             // no interrupt exception exists, therefore "sliced" sleeps until total sleep amount
             var expectedCount = (int)Math.Ceiling(expected / (double)BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
-            timingProvider.Received(expectedCount).Sleep(Arg.Any<int>());
-            timingProvider.Received(expectedCount - 1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
-            timingProvider.Received(1).Sleep(expected % BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+            mockTimingProvider.Received(expectedCount).Sleep(Arg.Any<int>());
+            mockTimingProvider.Received(expectedCount - 1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
+            mockTimingProvider.Received(1).Sleep(expected % BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
 #endif
         }
 
@@ -322,7 +421,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void ADefaultConstructedContextDoesNotStoreAnySessions()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
 
             // then
             Assert.That(target.NewSessions, Is.Empty);
@@ -331,130 +430,522 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void WhenStartingASessionTheSessionIsConsideredAsNew()
+        public void AddSession()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
+            var mockSessionOne = Substitute.For<ISessionInternals>();
+            var mockSessionTwo = Substitute.For<ISessionInternals>();
 
-            // when starting the first session
-            // Caution: Session CTOR implicitly starts itself!!!
-            var sessionOne = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
-
-            // then
-            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { sessionOne }));
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
-
-            // when starting the second session
-            // Caution: Session CTOR implicitly starts itself!!!
-            var sessionTwo = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
+            // when
+            target.AddSession(mockSessionOne);
 
             // then
-            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { sessionOne, sessionTwo }));
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+            Assert.That(target.SessionCount, Is.EqualTo(1));
+
+            // and when
+            target.AddSession(mockSessionTwo);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(2));
         }
 
         [Test]
-        public void DisableCaptureDisablesItInTheConfiguration()
+        public void RemoveSession()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
-            config.EnableCapture();
+            var target = CreateSendingContext().Build();
+            var mockSessionOne = Substitute.For<ISessionInternals>();
+            var mockSessionTwo = Substitute.For<ISessionInternals>();
 
-            // when disabling capture
-            target.DisableCapture();
+            target.AddSession(mockSessionOne);
+            target.AddSession(mockSessionTwo);
+            Assert.That(target.SessionCount, Is.EqualTo(2));
 
-            // then it's disabled again
-            Assert.That(config.IsCaptureOn, Is.False);
+            // when
+            target.RemoveSession(mockSessionOne);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(1));
+
+            // and when
+            target.RemoveSession(mockSessionTwo);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(0));
         }
 
         [Test]
-        public void FinishingANewSessionStillLeavesItNew()
+        public void DisableCaptureAndClearModifiesCaptureFlag()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var target = CreateSendingContext().Build();
+            Assert.That(target.IsCaptureOn, Is.True);
 
-            var session = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
+            // when
+            target.DisableCaptureAndClear();
 
             // then
-            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { session }));
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
-
-            // and when finishing the session
-            target.FinishSession(session);
-
-            // then it's in the list of new ones
-            Assert.That(target.NewSessions.Select(s => s.Session), Is.EquivalentTo(new[] { session }));
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
-
+            Assert.That(target.IsCaptureOn, Is.False);
         }
 
         [Test]
-        public void AfterASessionHasBeenConfiguredItsOpenAndConfigured()
+        public void DisableCaptureAndClearClearsCapturedSessionData()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var sessionState = Substitute.For<ISessionState>();
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
 
-            // when both session are added
-            var sessionOne = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
-            var sessionTwo = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
 
-            // and configuring the first one
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
-
-            // then
-            Assert.That(target.NewSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionTwo }));
-            Assert.That(target.OpenAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne }));
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
-
-            // and when configuring the second open session
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
+            // when
+            target.DisableCaptureAndClear();
 
             // then
-            Assert.That(target.NewSessions, Is.Empty);
-            Assert.That(target.OpenAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne, sessionTwo }));
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+            Assert.That(target.SessionCount, Is.EqualTo(1));
+            session.Received(1).ClearCapturedData();
         }
 
         [Test]
-        public void AfterAFinishedSessionHasBeenConfiguredItsFinishedAndConfigured()
+        public void DisableCaptureAndClearRemovesFinishedSession()
         {
             // given
-            var target = new BeaconSendingContext(logger, config, clientProvider, timingProvider);
+            var sessionState = Substitute.For<ISessionState>();
+            sessionState.IsFinished.Returns(true);
 
-            var sessionOne = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
-            var sessionTwo = new Session(logger, mockParent, new BeaconSender(logger, target), new Beacon(logger, new BeaconCache(logger),
-                config, "127.0.0.1", Substitute.For<IThreadIdProvider>(), timingProvider));
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
 
-            // when both session are added
-            // Caution: Session CTOR implicitly starts itself!!!
-            target.FinishSession(sessionOne);
-            target.FinishSession(sessionTwo);
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
 
-            // and configuring the first one
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
+            // when
+            target.DisableCaptureAndClear();
 
             // then
-            Assert.That(target.NewSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionTwo }));
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne }));
+            Assert.That(target.SessionCount, Is.EqualTo(0));
+            session.Received(1).ClearCapturedData();
+        }
 
-            // and when configuring the second open session
-            target.NewSessions[0].UpdateBeaconConfiguration(new BeaconConfiguration(1));
+        [Test]
+        public void HandleStatusResponseDisablesCaptureIfResponseIsNull()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+            Assert.That(target.IsCaptureOn, Is.True);
+
+            // when
+            target.HandleStatusResponse(null);
 
             // then
-            Assert.That(target.NewSessions, Is.Empty);
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions.Select(s => s.Session), Is.EqualTo(new[] { sessionOne, sessionTwo }));
+            Assert.That(target.IsCaptureOn, Is.False);
+        }
+
+        [Test]
+        public void HandleStatusResponseClearsSessionDataIfResponseIsNull()
+        {
+            // given
+            var state = Substitute.For<ISessionState>();
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(state);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+
+            // when
+            target.HandleStatusResponse(null);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(1));
+            session.Received(1).ClearCapturedData();
+        }
+
+        [Test]
+        public void HandleStatusResponseRemovesFinishedSessionsIfResponseIsNull()
+        {
+            // given
+            var state = Substitute.For<ISessionState>();
+            state.IsFinished.Returns(true);
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(state);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+
+            // when
+            target.HandleStatusResponse(null);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(0));
+            session.Received(1).ClearCapturedData();
+        }
+
+        [Test]
+        public void HandleStatusResponseDisablesCaptureIfResponseCodeIsNotOk()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(404);
+
+            var target = CreateSendingContext().Build();
+            Assert.That(target.IsCaptureOn, Is.True);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            Assert.That(target.IsCaptureOn, Is.False);
+        }
+
+        [Test]
+        public void HandleStatusResponseClearsSessionDataIfResponseCodeIsNotOk()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(404);
+
+            var sessionState = Substitute.For<ISessionState>();
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(1));
+            session.Received(1).ClearReceivedCalls();
+        }
+
+        [Test]
+        public void HandleStatusResponseRemovesFinishedSessionsIfResponseCodeIsNotOk()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(404);
+
+            var sessionState = Substitute.For<ISessionState>();
+            sessionState.IsFinished.Returns(true);
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(0));
+            session.Received(1).ClearCapturedData();
+        }
+
+        [Test]
+        public void HandleStatusResponseClearsSessionDataIfResponseIsCaptureOff()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.Capture.Returns(false);
+
+            var sessionState = Substitute.For<ISessionState>();
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(1));
+            session.Received(1).ClearCapturedData();
+        }
+
+        [Test]
+        public void HandleStatusResponseRemovesFinishedSessionsIfResponseIsCaptureOff()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(Response.HttpOk);
+            response.Capture.Returns(false);
+
+            var sessionState = Substitute.For<ISessionState>();
+            sessionState.IsFinished.Returns(true);
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            Assert.That(target.SessionCount, Is.EqualTo(0));
+            session.Received(1).ClearCapturedData();
+        }
+
+        [Test]
+        public void HandleStatusResponseUpdatesSendInterval()
+        {
+            // given
+            const int sendInterval = 999;
+            var response = Substitute.For<IStatusResponse>();
+            response.Capture.Returns(true);
+            response.ResponseCode.Returns(Response.HttpOk);
+            response.SendInterval.Returns(sendInterval);
+
+            var session = Substitute.For<ISessionInternals>();
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+            Assert.That(target.SendInterval, Is.Not.EqualTo(sendInterval));
+
+            // then
+            target.HandleStatusResponse(response);
+            var obtained = target.SendInterval;
+
+            // then
+            Assert.That(session.ReceivedCalls(), Is.Empty);
+            Assert.That(obtained, Is.EqualTo(sendInterval));
+        }
+
+        [Test]
+        public void HandleStatusResponseUpdatesCaptureStateToFalse()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.Capture.Returns(false);
+            response.ResponseCode.Returns(Response.HttpOk);
+
+            var sessionState = Substitute.For<ISessionState>();
+            var session = Substitute.For<ISessionInternals>();
+            session.State.Returns(sessionState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(session);
+            Assert.That(target.IsCaptureOn, Is.True);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            session.Received(1).ClearCapturedData();
+            Assert.That(target.IsCaptureOn, Is.False);
+        }
+
+        [Test]
+        public void HandleStatusResponseUpdatesCaptureStateToTrue()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.Capture.Returns(true);
+            response.ResponseCode.Returns(Response.HttpOk);
+
+            var session = Substitute.For<ISessionInternals>();
+
+            var target = CreateSendingContext().Build();
+            target.DisableCaptureAndClear();
+            target.AddSession(session);
+            Assert.That(target.IsCaptureOn, Is.False);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            Assert.That(session.ReceivedCalls(), Is.Empty);
+            Assert.That(target.IsCaptureOn, Is.True);
+        }
+
+        [Test]
+        public void HandleStatusResponseUpdatesHttpClientConfig()
+        {
+            mockHttpClientConfig.BaseUrl.Returns("https://localhost:9999/1");
+            mockHttpClientConfig.ApplicationId.Returns("some cryptic appId");
+            mockHttpClientConfig.ServerId.Returns(42);
+            mockHttpClientConfig.SslTrustManager.Returns(Substitute.For<ISSLTrustManager>());
+
+            const int serverId = 73;
+            var response = Substitute.For<IStatusResponse>();
+            response.Capture.Returns(true);
+            response.ResponseCode.Returns(Response.HttpOk);
+            response.ServerId.Returns(serverId);
+
+            var target = Substitute.ForPartsOf<BeaconSendingContext>(
+                mockLogger,
+                mockHttpClientConfig,
+                mockHttpClientProvider,
+                mockTimingProvider
+            );
+            Assert.That(mockHttpClientConfig.ReceivedCalls(), Is.Empty);
+
+            // when
+            target.HandleStatusResponse(response);
+
+            // then
+            target.Received(1).CreateHttpClientConfigurationWith(serverId);
+            _ = mockHttpClientConfig.Received(2).ServerId;
+            _ = mockHttpClientConfig.Received(1).BaseUrl;
+            _ = mockHttpClientConfig.Received(1).ApplicationId;
+            _ = mockHttpClientConfig.Received(1).SslTrustManager;
+
+            // and when
+            IHttpClientConfiguration configCapture = null;
+            mockHttpClientProvider.CreateClient(Arg.Do<IHttpClientConfiguration>(c => configCapture = c));
+
+            target.GetHttpClient();
+
+            // then
+            Assert.That(configCapture, Is.Not.Null);
+            mockHttpClientProvider.Received(1).CreateClient(configCapture);
+
+            Assert.That(configCapture, Is.Not.SameAs(mockHttpClientConfig));
+            Assert.That(configCapture.ServerId, Is.EqualTo(serverId));
+            Assert.That(configCapture.BaseUrl, Is.EqualTo(mockHttpClientConfig.BaseUrl));
+            Assert.That(configCapture.ApplicationId, Is.EqualTo(mockHttpClientConfig.ApplicationId));
+            Assert.That(configCapture.SslTrustManager, Is.SameAs(mockHttpClientConfig.SslTrustManager));
+        }
+
+        [Test]
+        public void CreateHttpClientConfigUpdatesOnlyServerId()
+        {
+            // given
+            const int serverId = 73;
+            const string baseUrl = "https://localhost:9999/1";
+            const string applicationId = "some cryptic appId";
+            var trustManager = Substitute.For<ISSLTrustManager>();
+            mockHttpClientConfig.ServerId.Returns(37);
+            mockHttpClientConfig.BaseUrl.Returns(baseUrl);
+            mockHttpClientConfig.ApplicationId.Returns(applicationId);
+            mockHttpClientConfig.SslTrustManager.Returns(trustManager);
+
+            var target = CreateSendingContext().Build();
+            Assert.That(mockHttpClientConfig.ServerId, Is.Not.EqualTo(serverId));
+
+            // when
+            var obtained = ((BeaconSendingContext) target).CreateHttpClientConfigurationWith(serverId);
+
+            // then
+            Assert.That(obtained.ServerId, Is.EqualTo(serverId));
+            Assert.That(obtained.BaseUrl, Is.EqualTo(baseUrl));
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
+            Assert.That(obtained.SslTrustManager, Is.SameAs(trustManager));
+        }
+
+        [Test]
+        public void NewSessionsReturnsOnlyNewSessions()
+        {
+            // given
+            var relevantSessionState = Substitute.For<ISessionState>();
+            relevantSessionState.IsNew.Returns(true);
+            var relevantSession = Substitute.For<ISessionInternals>();
+            relevantSession.State.Returns(relevantSessionState);
+
+            var ignoredSessionState = Substitute.For<ISessionState>();
+            ignoredSessionState.IsNew.Returns(false);
+            var ignoredSession = Substitute.For<ISessionInternals>();
+            ignoredSession.State.Returns(ignoredSessionState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(relevantSession);
+            target.AddSession(ignoredSession);
+
+            Assert.That(target.SessionCount, Is.EqualTo(2));
+
+            // when
+            var obtained = target.NewSessions;
+
+            // then
+            Assert.That(obtained.Count, Is.EqualTo(1));
+            Assert.That(obtained[0], Is.SameAs(relevantSession));
+        }
+
+        [Test]
+        public void OpenAndConfiguredSessionsReturnsOnlyConfiguredNotFinishedSessions()
+        {
+            // given
+            var relevantState = Substitute.For<ISessionState>();
+            relevantState.IsConfiguredAndOpen.Returns(true);
+            var relevantSession = Substitute.For<ISessionInternals>();
+            relevantSession.State.Returns(relevantState);
+
+            var ignoredState = Substitute.For<ISessionState>();
+            ignoredState.IsConfiguredAndOpen.Returns(false);
+            var ignoredSession = Substitute.For<ISessionInternals>();
+            ignoredSession.State.Returns(ignoredState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(relevantSession);
+            target.AddSession(ignoredSession);
+
+            Assert.That(target.SessionCount, Is.EqualTo(2));
+
+            // when
+            var obtained = target.OpenAndConfiguredSessions;
+
+            // then
+            Assert.That(obtained.Count, Is.EqualTo(1));
+            Assert.That(obtained[0], Is.SameAs(relevantSession));
+        }
+
+        [Test]
+        public void FinishedAndConfiguredSessionsReturnsOnlyConfiguredAndFinishedSessions()
+        {
+            // given
+            var relevantState = Substitute.For<ISessionState>();
+            relevantState.IsConfiguredAndFinished.Returns(true);
+            var relevantSession = Substitute.For<ISessionInternals>();
+            relevantSession.State.Returns(relevantState);
+
+            var ignoredState = Substitute.For<ISessionState>();
+            ignoredState.IsConfiguredAndFinished.Returns(false);
+            var ignoredSession = Substitute.For<ISessionInternals>();
+            ignoredSession.State.Returns(ignoredState);
+
+            var target = CreateSendingContext().Build();
+            target.AddSession(relevantSession);
+            target.AddSession(ignoredSession);
+
+            Assert.That(target.SessionCount, Is.EqualTo(2));
+
+            // when
+            var obtained = target.FinishedAndConfiguredSessions;
+
+            // then
+            Assert.That(obtained.Count, Is.EqualTo(1));
+            Assert.That(obtained[0], Is.SameAs(relevantSession));
+        }
+
+        [Test]
+        public void CurrentServerIdReturnsServerIdOfHttpClientConfig()
+        {
+            // given
+            const int serverId = 37;
+            mockHttpClientConfig.ServerId.Returns(serverId);
+
+            var target = CreateSendingContext().Build();
+
+            // when
+            var obtained = target.CurrentServerId;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(serverId));
+            _ = mockHttpClientConfig.Received(1).ServerId;
+        }
+
+        private TestBeaconSendingContextBuilder CreateSendingContext()
+        {
+            return new TestBeaconSendingContextBuilder()
+                    .With(mockLogger)
+                    .With(mockHttpClientConfig)
+                    .With(mockHttpClientProvider)
+                    .With(mockTimingProvider)
+                ;
         }
     }
 }

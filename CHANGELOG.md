@@ -12,6 +12,9 @@
 - Response code is now a parameter of WebRequestTracer's stop method.
   Existing methods for stopping and setting the response code have been deprecated.
 - Fix missing parameter in request URL when requesting a new session.
+- `WithModelID` on `AppMonOpenKitBuilder` / `DynatraceOpenKitBuilder` was deprecated. `WithModelId` should be used instead.
+- Setting property `ApplicationVersion` on `IOpenKit` was deprecated and calls to this setter are ignored. 
+  `WithApplicationVersion` on `AppMonOpenKitBuilder` / `DynatraceOpenKitBuilder` should be used instead.
 
 ### Improvements
 - Reformatted text files to unix style line endings.

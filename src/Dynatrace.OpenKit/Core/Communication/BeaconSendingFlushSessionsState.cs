@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -36,14 +35,17 @@ namespace Dynatrace.OpenKit.Core.Communication
         protected override void DoExecute(IBeaconSendingContext context)
         {
             // first get all sessions that do not have any multiplicity explicitly set
-            context.NewSessions.ForEach(newSession => newSession.UpdateBeaconConfiguration(new BeaconConfiguration(1)));
+            foreach(var newSession in context.NewSessions)
+            {
+                newSession.EnableCapture();
+            }
 
             // end all open sessions -> will be flushed afterwards
             context.OpenAndConfiguredSessions.ForEach(openSession => openSession.End());
 
             // flush already finished (and previously ended) sessions
             var tooManyRequestsReceived = false;
-            context.FinishedAndConfiguredSessions.ForEach(finishedSession =>
+            foreach(var finishedSession in context.FinishedAndConfiguredSessions)
             {
                 if (!tooManyRequestsReceived && finishedSession.IsDataSendingAllowed)
                 {
@@ -55,7 +57,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 }
                 finishedSession.ClearCapturedData();
                 context.RemoveSession(finishedSession);
-            });
+            }
 
             // make last state transition to terminal state
             context.NextState = new BeaconSendingTerminalState();

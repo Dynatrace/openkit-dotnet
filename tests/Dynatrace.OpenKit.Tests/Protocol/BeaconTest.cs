@@ -38,44 +38,41 @@ namespace Dynatrace.OpenKit.Protocol
         private const long DeviceId = 456;
         private const int ThreadId = 1234567;
         private const int SessionId = 73;
+        private const int Multiplicity = ServerConfiguration.DefaultMultiplicity;
 
-        private IOpenKitConfiguration mockConfiguration;
+        private IBeaconConfiguration mockBeaconConfiguration;
+        private IOpenKitConfiguration mockOpenKitConfiguration;
         private IPrivacyConfiguration mockPrivacyConfiguration;
-        private IBeaconCache mockBeaconCache;
+        private IServerConfiguration mockServerConfiguration;
+
+        private ISessionIdProvider mockSessionIdProvider;
         private IThreadIdProvider mockThreadIdProvider;
         private ITimingProvider mockTimingProvider;
-        private IPrnGenerator mockRandomGenerator;
+        private IOpenKitComposite mockParent;
+
         private ILogger mockLogger;
-        private IBeaconConfiguration mockBeaconConfig;
-        private OpenKitComposite mockParent;
+        private IBeaconCache mockBeaconCache;
 
         [SetUp]
         public void Setup()
         {
-            mockThreadIdProvider = Substitute.For<IThreadIdProvider>();
-            mockThreadIdProvider.ThreadId.Returns(ThreadId);
-
-            mockTimingProvider = Substitute.For<ITimingProvider>();
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(0);
-
-            mockRandomGenerator = Substitute.For<IPrnGenerator>();
-
-            mockLogger = Substitute.For<ILogger>();
-            mockParent = Substitute.For<OpenKitComposite>();
-            mockBeaconCache = Substitute.For<IBeaconCache>();
-
-            var mockDevice = Substitute.For<Device>(string.Empty, string.Empty, string.Empty);
-
-            var mockHttpClientConfig = Substitute.For<IHttpClientConfiguration>();
-            mockHttpClientConfig.ServerId.Returns(ServerId);
+            mockOpenKitConfiguration = Substitute.For<IOpenKitConfiguration>();
+            mockOpenKitConfiguration.ApplicationId.Returns(AppId);
+            mockOpenKitConfiguration.ApplicationIdPercentEncoded.Returns(AppId);
+            mockOpenKitConfiguration.ApplicationName.Returns(AppName);
+            mockOpenKitConfiguration.ApplicationVersion.Returns(AppVersion);
+            mockOpenKitConfiguration.OperatingSystem.Returns(string.Empty);
+            mockOpenKitConfiguration.Manufacturer.Returns(string.Empty);
+            mockOpenKitConfiguration.ModelId.Returns(string.Empty);
+            mockOpenKitConfiguration.DeviceId.Returns(DeviceId);
 
             mockPrivacyConfiguration = Substitute.For<IPrivacyConfiguration>();
-            mockPrivacyConfiguration.DataCollectionLevel.Returns(PrivacyConfiguration.DefaultDataCollectionLevel);
-            mockPrivacyConfiguration.CrashReportingLevel.Returns(PrivacyConfiguration.DefaultCrashReportingLevel);
+            mockPrivacyConfiguration.DataCollectionLevel.Returns(ConfigurationDefaults.DefaultDataCollectionLevel);
+            mockPrivacyConfiguration.CrashReportingLevel.Returns(ConfigurationDefaults.DefaultCrashReportingLevel);
             mockPrivacyConfiguration.IsDeviceIdSendingAllowed.Returns(true);
+            mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(true);
             mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(true);
             mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
-            mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(true);
             mockPrivacyConfiguration.IsActionReportingAllowed.Returns(true);
             mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
             mockPrivacyConfiguration.IsEventReportingAllowed.Returns(true);
@@ -83,25 +80,40 @@ namespace Dynatrace.OpenKit.Protocol
             mockPrivacyConfiguration.IsCrashReportingAllowed.Returns(true);
             mockPrivacyConfiguration.IsUserIdentificationIsAllowed.Returns(true);
 
-            mockBeaconConfig = Substitute.For<IBeaconConfiguration>();
-            mockBeaconConfig.Multiplicity.Returns(BeaconConfiguration.DefaultMultiplicity);
-            mockBeaconConfig.CapturingAllowed.Returns(true);
+            mockServerConfiguration = Substitute.For<IServerConfiguration>();
+            mockServerConfiguration.IsSendingDataAllowed.Returns(true);
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(true);
+            mockServerConfiguration.IsCaptureEnabled.Returns(true);
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(true);
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(true);
+            mockServerConfiguration.ServerId.Returns(ServerId);
+            mockServerConfiguration.BeaconSizeInBytes.Returns(30 * 1024); // 30kB
+            mockServerConfiguration.Multiplicity.Returns(Multiplicity);
 
-            mockConfiguration = Substitute.For<IOpenKitConfiguration>();
-            mockConfiguration.ApplicationId.Returns(AppId);
-            mockConfiguration.ApplicationIdPercentEncoded.Returns(AppId);
-            mockConfiguration.ApplicationName.Returns(AppName);
-            mockConfiguration.ApplicationVersion.Returns(AppVersion);
-            mockConfiguration.Device.Returns(mockDevice);
-            mockConfiguration.DeviceId.Returns(DeviceId);
-            mockConfiguration.IsCaptureOn.Returns(true);
-            mockConfiguration.CaptureErrors.Returns(true);
-            mockConfiguration.CaptureCrashes.Returns(true);
-            mockConfiguration.MaxBeaconSize.Returns(30 * 1024); // 30kB
-            mockConfiguration.HttpClientConfig.Returns(mockHttpClientConfig);
-            mockConfiguration.BeaconConfig.Returns(mockBeaconConfig);
-            mockConfiguration.PrivacyConfig.Returns(mockPrivacyConfiguration);
-            mockConfiguration.NextSessionNumber.Returns(SessionId);
+            var mockHttpClientConfig = Substitute.For<IHttpClientConfiguration>();
+            mockHttpClientConfig.ServerId.Returns(ServerId);
+
+            mockBeaconConfiguration = Substitute.For<IBeaconConfiguration>();
+            mockBeaconConfiguration.OpenKitConfiguration.Returns(mockOpenKitConfiguration);
+            mockBeaconConfiguration.PrivacyConfiguration.Returns(mockPrivacyConfiguration);
+            mockBeaconConfiguration.ServerConfiguration.Returns(mockServerConfiguration);
+            mockBeaconConfiguration.HttpClientConfiguration.Returns(mockHttpClientConfig);
+
+            mockSessionIdProvider = Substitute.For<ISessionIdProvider>();
+            mockSessionIdProvider.GetNextSessionId().Returns(SessionId);
+
+            mockThreadIdProvider = Substitute.For<IThreadIdProvider>();
+            mockThreadIdProvider.ThreadId.Returns(ThreadId);
+
+            mockTimingProvider = Substitute.For<ITimingProvider>();
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(0);
+
+
+            mockLogger = Substitute.For<ILogger>();
+            mockBeaconCache = Substitute.For<IBeaconCache>();
+
+            mockParent = Substitute.For<IOpenKitComposite>();
+            mockParent.ActionId.Returns(0);
         }
 
         [Test]
@@ -111,17 +123,39 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // then
-            Assert.That(target.CapturingDisabled, Is.False);
+            Assert.That(target.IsCaptureEnabled, Is.True);
         }
 
         [Test]
-        public void DefaultBeaconConfigurationSetsMultiplicityToOne()
+        public void CreateInstanceWithInvalidIpAddress()
         {
-            // given
-            var target = CreateBeacon().Build();
+            // given when
+            string capturedIpAddress = null;
+            mockLogger.IsWarnEnabled.Returns(true);
+            var httpClient = Substitute.For<IHttpClient>();
+            httpClient.SendBeaconRequest(Arg.Do<string>(c => capturedIpAddress = c), Arg.Any<byte[]>())
+                .Returns(null as IStatusResponse);
+
+            var httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
+
+            const string ipAddress = "invalid";
+
+            var target = CreateBeacon()
+                .WithIpAddress(ipAddress)
+                .Build();
+
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .Returns("dummy");
+
+            // when
+            target.Send(httpClientProvider);
 
             // then
-            Assert.That(target.Multiplicity, Is.EqualTo(1));
+            Assert.That(capturedIpAddress, Is.Not.Null);
+            Assert.That(capturedIpAddress, Is.EqualTo(string.Empty));
+            httpClient.Received(1).SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>());
+
         }
 
         [Test]
@@ -200,7 +234,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             const int sequenceNumber = 1;
-            mockConfiguration.DeviceId.Returns(DeviceId);
+            mockOpenKitConfiguration.DeviceId.Returns(DeviceId);
             var target = CreateBeacon().Build();
 
             // when
@@ -257,10 +291,9 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             var target = CreateBeacon().Build();
-            var session = Substitute.For<ISessionInternals>();
 
             // when
-            target.EndSession(session);
+            target.EndSession();
 
             // then
             mockBeaconCache.Received(1).AddEventData(
@@ -908,7 +941,6 @@ namespace Dynatrace.OpenKit.Protocol
         public void ClearDataFromBeaconCache()
         {
             // given
-            var session = Substitute.For<ISessionInternals>();
             var action = Substitute.For<IActionInternals>();
             action.Id.Returns(ActionId);
 
@@ -922,7 +954,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportEvent(ActionId, "SomeEvent");
             target.ReportError(ActionId, "SomeError", -123, "SomeReason");
             target.ReportCrash("SomeCrash", "SomeReason", "SomeStacktrace");
-            target.EndSession(session);
+            target.EndSession();
 
             Assert.That(beaconCache.GetActions(target.SessionNumber), Is.Not.Empty);
             Assert.That(beaconCache.GetEvents(target.SessionNumber), Is.Not.Empty);
@@ -939,13 +971,11 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoSessionIsAddedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
-            var session = Substitute.For<ISessionInternals>();
-
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
-            target.EndSession(session);
+            target.EndSession();
 
             // then ensure nothing has been serialized
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -955,7 +985,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoActionIsAddedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             var action = Substitute.For<IActionInternals>();
             action.Id.Returns(ActionId);
 
@@ -972,7 +1002,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoIntValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             const int intValue = 42;
 
             var target = CreateBeacon().Build();
@@ -988,7 +1018,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoDoubleValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             const double doubleValue = Math.E;
 
             var target = CreateBeacon().Build();
@@ -1004,7 +1034,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoStringValueIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             const string stringValue = "Write once, debug everywhere";
 
             var target = CreateBeacon().Build();
@@ -1020,8 +1050,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoEventIsReportedIfBeaconConfigurationDisablesCapturing()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
-
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1032,11 +1061,24 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoErrorIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoEventIsReportedIfDataSendingDisallowed()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
 
+            // when
+            target.ReportEvent(ActionId, "Event name");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoErrorIsReportedIfCapturingDisabled()
+        {
+            // given
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1047,10 +1089,24 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoCrashIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoErrorIsReportedIfSendingErrorDataDisallowed()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoCrashIsReportedIfCapturingDisabled()
+        {
+            // given
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
 
             var target = CreateBeacon().Build();
 
@@ -1062,28 +1118,39 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoWebRequestIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoCrashIsReportedIfSendingCrashDataDisallowed()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
-
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
+            // when
+            target.ReportCrash("Error name", "The reason for this error", "the stack trace");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoWebRequestIsReportedIfCapturingDisabled()
+        {
+            // given
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            var target = CreateBeacon().Build();
             var webRequestTracer = CreateWebRequestTracer(target).WithUrl("https://foo.bar").Build();
 
             // when
-            target.AddWebRequest(17, webRequestTracer);
+            target.AddWebRequest(ActionId, webRequestTracer);
 
             // then ensure nothing has been serialized
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
-        public void NoUserIdentificationIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoUserIdentificationIsReportedIfCapturingDisabled()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
-
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1093,9 +1160,8 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
-
         [Test]
-        public void NoWebRequestIsReportedForDataCollectionLevelIfWebRequestTracingDisallowed()
+        public void NoWebRequestIsReportedIfWebRequestTracingDisallowed()
         {
             // given
             mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
@@ -1108,6 +1174,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then ensure nothing has been serialized
             Assert.That(webRequestTracer.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
@@ -1132,11 +1199,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void CreateTagReturnsEmptyStringIfWebRequestTracingDisallowed()
+        public void BeaconReturnsEmptyTagIfWebRequestTracingDisallowed()
         {
             // given
             mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1147,12 +1213,11 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void CreateTagReturnsTagStringIfWebRequestTracingIsAllowed()
+        public void BeaconReturnsValidTagIfWebRequestTracingIsAllowed()
         {
             // given
             const int sequenceNo = 1;
             mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1173,7 +1238,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void CreateTagReturnsTagWithSessionNumberIfSessionNumberReportingAllowed()
+        public void BeaconReturnsValidTagWithSessionNumberIfSessionNumberReportingAllowed()
         {
             // given
             const int sequenceNo = 1;
@@ -1200,7 +1265,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void CreateTagReturnsWitSessionNumberOneIfSessionNumberReportingDisallowed()
+        public void BeaconReturnsValidTagWithSessionNumberOneIfSessionNumberReportingDisallowed()
         {
             // given
             const int sequenceNo = 1;
@@ -1231,7 +1296,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsUserIdentificationIsAllowed.Returns(false);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1261,13 +1325,14 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsDeviceIdSendingAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             _ = target.DeviceId;
 
             // then
+            _ = mockOpenKitConfiguration.Received(0).DeviceId;
             mockRandomGenerator.Received(1).NextLong(long.MaxValue);
         }
 
@@ -1275,26 +1340,30 @@ namespace Dynatrace.OpenKit.Protocol
         public void GivenDeviceIdIsUsedOnIfDeviceIdSendingIsAllowed()
         {
             // given
+            const long deviceId = 999;
             mockPrivacyConfiguration.IsDeviceIdSendingAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
+            mockOpenKitConfiguration.DeviceId.Returns(deviceId);
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             var obtained = target.DeviceId;
 
             // then
+            _ = mockOpenKitConfiguration.Received(1).DeviceId;
             Assert.That(mockRandomGenerator.ReceivedCalls(), Is.Empty);
-            Assert.That(obtained, Is.EqualTo(DeviceId));
+            Assert.That(obtained, Is.EqualTo(deviceId));
         }
 
         [Test]
         public void RandomDeviceIdCannotBeNegativeIfDeviceIdSendingIsDisallowed()
         {
             // given
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
             mockRandomGenerator.NextLong(Arg.Any<long>()).Returns(-123456789);
             mockPrivacyConfiguration.IsDeviceIdSendingAllowed.Returns(false);
 
-            var target = CreateBeacon().Build();
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             var deviceId = target.DeviceId;
@@ -1306,7 +1375,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void SessionIdIsAlwaysValue1IfSessionNumberReportingDisallowed()
+        public void SessionIdIsAlwaysValueOneIfSessionNumberReportingDisallowed()
         {
             // given
             mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(false);
@@ -1320,11 +1389,12 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(sessionId, Is.EqualTo(1));
         }
 
-
         [Test]
         public void SessionIdIsValueFromSessionIdProviderIfSessionNumberReportingAllowed()
         {
             // given
+            const int sessionId = 1234;
+            mockSessionIdProvider.GetNextSessionId().Returns(sessionId);
             mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(true);
 
             var target = CreateBeacon().Build();
@@ -1333,8 +1403,8 @@ namespace Dynatrace.OpenKit.Protocol
             var obtained = target.SessionNumber;
 
             // then
-            Assert.That(obtained, Is.EqualTo(SessionId));
-            _ = mockConfiguration.Received(1).NextSessionNumber;
+            Assert.That(obtained, Is.EqualTo(sessionId));
+            _ = mockSessionIdProvider.Received(1).GetNextSessionId();
         }
 
         [Test]
@@ -1385,6 +1455,22 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ActionNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var action = Substitute.For<IActionInternals>();
+            var target = CreateBeacon().Build();
+
+            // when
+            target.AddAction(action);
+
+            // then
+            Assert.That(action.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
         public void ActionReportedIfActionReportingAllowed()
         {
             // given
@@ -1406,29 +1492,38 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(false);
-            var session = Substitute.For<ISessionInternals>();
-
             var target = CreateBeacon().Build();
 
             // when
-            target.EndSession(session);
+            target.EndSession();
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void SessionNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.EndSession();
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
 
         [Test]
         public void SessionReportedIfSessionReportingAllowed()
         {
             // given
             mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(true);
-            var session = Substitute.For<ISessionInternals>();
-
             var target = CreateBeacon().Build();
 
             // when
-            target.EndSession(session);
+            target.EndSession();
 
             // then
             mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
@@ -1439,7 +1534,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(false);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1454,7 +1548,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(true);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1479,6 +1572,19 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void IntValueNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", 123);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
 
         [Test]
         public void IntValueIsReportedIfValueReportingAllowed()
@@ -1495,13 +1601,11 @@ namespace Dynatrace.OpenKit.Protocol
             mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
-
         [Test]
         public void DoubleValueNotReportedIfValueReportingDisallowed()
         {
             // given
             mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1511,12 +1615,25 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
-       [Test]
+        [Test]
+        public void DoubleValueNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test double value", 2.71);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
         public void DoubleValueReportedIfValueReportingAllowed()
         {
             // given
             mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1526,13 +1643,25 @@ namespace Dynatrace.OpenKit.Protocol
             mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
-
         [Test]
         public void StringValueNotReportedIValueReportingDisallowed()
         {
             // given
             mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
 
+            // when
+            target.ReportValue(ActionId, "test string value", "test data");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void StringValueNotReportedIfDataSendingDisallowed()
+        {
+            //given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1547,7 +1676,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1562,7 +1690,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsEventReportingAllowed.Returns(false);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1577,7 +1704,6 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             mockPrivacyConfiguration.IsEventReportingAllowed.Returns(true);
-
             var target = CreateBeacon().Build();
 
             // when
@@ -1619,7 +1745,7 @@ namespace Dynatrace.OpenKit.Protocol
         public void NoSessionStartIsReportedIfCapturingDisabled()
         {
             // given
-            mockBeaconConfig.CapturingAllowed.Returns(false);
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
 
             var target = CreateBeacon().Build();
 
@@ -1630,13 +1756,95 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void UpdateServerConfigurationDelegatesToBeaconConfig()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            var serverConfig = Substitute.For<IServerConfiguration>();
+
+            // when
+            target.UpdateServerConfiguration(serverConfig);
+
+            // then
+            mockBeaconConfiguration.Received(1).UpdateServerConfiguration(serverConfig);
+            Assert.That(serverConfig.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void IsServerConfigurationSetDelegatesToBeaconConfig()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            mockBeaconConfiguration.IsServerConfigurationSet.Returns(false);
+            var obtained = target.IsServerConfigurationSet;
+
+            // then
+            Assert.That(obtained, Is.False);
+
+            // and when
+            mockBeaconConfiguration.IsServerConfigurationSet.Returns(true);
+            obtained = target.IsServerConfigurationSet;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void IsCaptureEnabledReturnsValueFromServerConfig()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            var obtained = target.IsCaptureEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+
+            // and when
+            mockServerConfiguration.IsCaptureEnabled.Returns(true);
+            obtained = target.IsCaptureEnabled;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void EnableCaptureDelegatesToBeaconConfig()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.EnableCapture();
+
+            // then
+            mockBeaconConfiguration.Received(1).EnableCapture();
+        }
+
+        [Test]
+        public void DisableCaptureDelegatesToBeaconConfig()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.DisableCapture();
+
+            // then
+            mockBeaconConfiguration.Received(1).DisableCapture();
+        }
 
         [Test]
         public void UseInternalBeaconIdForAccessingBeaconCacheWhenSessionNumberReportingDisallowed()
         {
             // given
             const int beaconId = 73;
-            mockConfiguration.NextSessionNumber.Returns(beaconId);
+            mockSessionIdProvider.GetNextSessionId().Returns(beaconId);
             mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(false);
 
             var target = CreateBeacon().Build();
@@ -1679,11 +1887,11 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
                 $"&md={string.Empty}" +
-                $"&dl={(int)PrivacyConfiguration.DefaultCrashReportingLevel}" +
-                $"&cl={(int)PrivacyConfiguration.DefaultCrashReportingLevel}" +
+                $"&dl={(int)ConfigurationDefaults.DefaultCrashReportingLevel}" +
+                $"&cl={(int)ConfigurationDefaults.DefaultCrashReportingLevel}" +
                 "&tx=0" +
                 "&tv=0" +
-                $"&mp={BeaconConfiguration.DefaultMultiplicity}",
+                $"&mp={Multiplicity}",
                 Arg.Any<int>(),
                 Arg.Any<char>()
             );
@@ -1694,11 +1902,11 @@ namespace Dynatrace.OpenKit.Protocol
             return new TestBeaconBuilder()
                     .With(mockLogger)
                     .With(mockBeaconCache)
-                    .With(mockConfiguration)
+                    .With(mockBeaconConfiguration)
                     .WithIpAddress("127.0.0.1")
+                    .With(mockSessionIdProvider)
                     .With(mockThreadIdProvider)
                     .With(mockTimingProvider)
-                    .With(mockRandomGenerator)
                 ;
         }
 

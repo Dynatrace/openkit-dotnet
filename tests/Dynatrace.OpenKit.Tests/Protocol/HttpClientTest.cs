@@ -82,8 +82,14 @@ namespace Dynatrace.OpenKit.Protocol
             // mock trust manager
             trustManager = Substitute.For<ISSLTrustManager>();
 
+            var openKitConfig = Substitute.For<IOpenKitConfiguration>();
+            openKitConfig.EndpointUrl.Returns(BaseUrl);
+            openKitConfig.DefaultServerId.Returns(ServerId);
+            openKitConfig.ApplicationId.Returns(ApplicationId);
+            openKitConfig.TrustManager.Returns(trustManager);
+
             // HTTPClient spy
-            var httpConfiguration = new HttpClientConfiguration(BaseUrl, ServerId, ApplicationId, trustManager);
+            var httpConfiguration = HttpClientConfiguration.From(openKitConfig);
             spyClient = Substitute.ForPartsOf<StubHttpClient>(mockLogger, httpConfiguration);
         }
 
@@ -144,7 +150,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(200));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
+            Assert.That(((StatusResponse)obtained).Headers, Is.EqualTo(headers));
 
             spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
         }
@@ -168,7 +174,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(400));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
+            Assert.That(((StatusResponse)obtained).Headers, Is.EqualTo(headers));
 
             spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
         }
@@ -187,7 +193,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(3).DoGetRequest(string.Empty, string.Empty);
         }
@@ -206,7 +212,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             // and when
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseLong);
@@ -215,7 +221,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(2).DoGetRequest(string.Empty, string.Empty);
         }
@@ -235,7 +241,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
         }
@@ -297,7 +303,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(200));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
+            Assert.That(((StatusResponse)obtained).Headers, Is.EqualTo(headers));
 
             spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
         }
@@ -321,7 +327,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(400));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
+            Assert.That(((StatusResponse)obtained).Headers, Is.EqualTo(headers));
 
             spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
         }
@@ -340,7 +346,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(3).DoGetRequest(string.Empty, string.Empty);
         }
@@ -359,7 +365,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             // and when
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseLong);
@@ -368,7 +374,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(2).DoGetRequest(string.Empty, string.Empty);
         }
@@ -388,7 +394,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(1).DoGetRequest(string.Empty, string.Empty);
         }
@@ -509,7 +515,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(200));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
+            Assert.That(((StatusResponse)obtained).Headers, Is.EqualTo(headers));
 
             spyClient.ReceivedWithAnyArgs(1).DoPostRequest(string.Empty, string.Empty, null);
         }
@@ -533,7 +539,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(400));
-            Assert.That(obtained.Headers, Is.EqualTo(headers));
+            Assert.That(((StatusResponse)obtained).Headers, Is.EqualTo(headers));
 
             spyClient.ReceivedWithAnyArgs(1).DoPostRequest(string.Empty, string.Empty, null);
         }
@@ -552,7 +558,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(3).DoPostRequest(string.Empty, string.Empty, null);
         }
@@ -571,7 +577,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             // and when
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseLong);
@@ -580,7 +586,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(2).DoPostRequest(string.Empty, string.Empty, null);
         }
@@ -601,7 +607,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(int.MaxValue));
-            Assert.That(obtained.Headers, Is.Empty);
+            Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(1).DoPostRequest(string.Empty, string.Empty, null);
         }

@@ -101,6 +101,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
         }
 
+        public int Count
+        {
+            get
+            {
+                lock (list)
+                {
+                    return list.Count;
+                }
+            }
+        }
     }
 
 }

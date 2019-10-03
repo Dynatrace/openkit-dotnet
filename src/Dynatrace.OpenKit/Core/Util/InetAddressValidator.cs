@@ -162,7 +162,7 @@ namespace Dynatrace.OpenKit.Core.Util
 
         ///<summary>
         /// Check if <code>input</code> is an IPv4 address mapped into a IPv6 address. These are
-        /// starting with "::fff:" followed by the IPv4 address in a dot-separated notation.
+        /// starting with "::ffff:" followed by the IPv4 address in a dot-separated notation.
         /// </summary>
         /// <param name="input">ip-address to check </param>
         /// <returns>true if input is in correct IPv6 notation</returns>

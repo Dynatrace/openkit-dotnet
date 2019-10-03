@@ -86,9 +86,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="context">The state context.</param>
         /// <returns>The last status response received.</returns>
-        private StatusResponse SendNewSessionRequests(IBeaconSendingContext context)
+        private IStatusResponse SendNewSessionRequests(IBeaconSendingContext context)
         {
-            StatusResponse statusResponse = null;
+            IStatusResponse statusResponse = null;
             var newSessions = context.NewSessions;
 
             foreach(var newSession in newSessions)
@@ -96,16 +96,15 @@ namespace Dynatrace.OpenKit.Core.Communication
                 if (!newSession.CanSendNewSessionRequest)
                 {
                     // already exceeded the maximum number of session requests, disable any further data collecting
-                    var newConfiguration = new BeaconConfiguration(0);
-                    newSession.UpdateBeaconConfiguration(newConfiguration);
+                    newSession.DisableCapture();
                     continue;
                 }
 
                 statusResponse = context.GetHttpClient().SendNewSessionRequest();
                 if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
-                    var newConfiguration = new BeaconConfiguration(statusResponse.Multiplicity);
-                    newSession.UpdateBeaconConfiguration(newConfiguration);
+                    var newConfiguration = ServerConfiguration.From(statusResponse);
+                    newSession.UpdateServerConfiguration(newConfiguration);
                 }
                 else if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
                 {
@@ -115,7 +114,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 else
                 {
                     // any other unsuccessful response
-                    newSession.DecreaseNumNewSessionRequests();
+                    newSession.DecreaseNumRemainingSessionRequests();
                 }
             }
 
@@ -127,9 +126,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="context">The state's context</param>
         /// <returns>The last status response received.</returns>
-        private StatusResponse SendFinishedSessions(IBeaconSendingContext context)
+        private IStatusResponse SendFinishedSessions(IBeaconSendingContext context)
         {
-            StatusResponse statusResponse = null;
+            IStatusResponse statusResponse = null;
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
             var finishedSessions = context.FinishedAndConfiguredSessions;
 
@@ -161,9 +160,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="context">The state's context</param>
         /// <returns>The last status response received.</returns>
-        private StatusResponse SendOpenSessions(IBeaconSendingContext context)
+        private IStatusResponse SendOpenSessions(IBeaconSendingContext context)
         {
-            StatusResponse statusResponse = null;
+            IStatusResponse statusResponse = null;
 
             var currentTimestamp = context.CurrentTimestamp;
             if (currentTimestamp <= context.LastOpenSessionBeaconSendTime + context.SendInterval)
@@ -195,7 +194,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             return statusResponse;
         }
 
-        private static void HandleStatusResponse(IBeaconSendingContext context, StatusResponse statusResponse)
+        private static void HandleStatusResponse(IBeaconSendingContext context, IStatusResponse statusResponse)
         {
             if (statusResponse == null)
             {

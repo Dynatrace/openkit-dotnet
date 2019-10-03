@@ -14,8 +14,7 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core.Objects;
-using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -29,20 +28,26 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     internal interface IOpenKitConfiguration
     {
-        /// <summary>
-        /// Returns the next session number.
-        /// </summary>
-        int NextSessionNumber { get; }
 
         /// <summary>
-        /// Returns the <see cref="Dynatrace.OpenKit.Core.Configuration.OpenKitType"/> of this configuration
+        /// Returns the endpoint URL to which beacon data will be sent.
         /// </summary>
-        OpenKitType OpenKitType { get; }
+        string EndpointUrl { get; }
 
         /// <summary>
-        /// Returns the name of the application for which this configuration is used.
+        /// Returns the identifier of the device for which this configuration is used.
         /// </summary>
-        string ApplicationName { get; }
+        long DeviceId { get; }
+
+        /// <summary>
+        /// Returns the original (not hashed) <see cref="DeviceId">device identifier</see>
+        /// </summary>
+        string OrigDeviceId { get; }
+
+        /// <summary>
+        /// Returns the type of this configuration
+        /// </summary>
+        string OpenKitType { get; }
 
         /// <summary>
         /// Returns the identifier of the application for which this configuration is used.
@@ -55,94 +60,38 @@ namespace Dynatrace.OpenKit.Core.Configuration
         string ApplicationIdPercentEncoded { get; }
 
         /// <summary>
+        /// Returns the name of the application for which this configuration is used.
+        /// </summary>
+        string ApplicationName { get; }
+
+        /// <summary>
         /// Returns the version of the application for which this configuration is used.
         /// </summary>
-        string ApplicationVersion { get; set; }
+        string ApplicationVersion { get; }
 
         /// <summary>
-        /// Returns the identifier of the device for which this configuration is used.
+        /// Returns the device's operating system.
         /// </summary>
-        long DeviceId { get; }
+        string OperatingSystem { get; }
 
         /// <summary>
-        /// Returns information about the device for which this configuration is used.
+        /// Returns the device's manufacturer.
         /// </summary>
-        Device Device { get; }
+        string Manufacturer { get; }
 
         /// <summary>
-        /// Returns the original (not hashed) <see cref="DeviceId">device identifier</see>
+        /// Returns the device's model ID.
         /// </summary>
-        string OrigDeviceId { get; }
+        string ModelId { get; }
 
         /// <summary>
-        /// Returns the endpoint URL to which beacon data will be sent.
+        /// Returns the default identifier of the Dynatrace/AppMon server to communicate with.
         /// </summary>
-        string EndpointUrl { get; }
+        int DefaultServerId { get; }
 
         /// <summary>
-        /// Indicates whether capturing is currently enabled or not.
+        /// Returns the <see cref="ISSLTrustManager"/>
         /// </summary>
-        bool IsCaptureOn { get; }
-
-        /// <summary>
-        /// Returns the currently configured interval at which beacon data will be sent.
-        /// </summary>
-        int SendInterval { get; }
-
-        /// <summary>
-        /// Returns the currently configured maximum size (in bytes) which a beacon can have.
-        /// </summary>
-        int MaxBeaconSize { get; }
-
-        /// <summary>
-        /// Indicates if errors are currently captured or not.
-        /// </summary>
-        bool CaptureErrors { get; }
-
-        /// <summary>
-        /// Indicates if crashes are currently captured or not.
-        /// </summary>
-        bool CaptureCrashes { get; }
-
-        #region Extended configuration
-
-        /// <summary>
-        /// Returns the <see cref="IBeaconConfiguration">configuration</see> of the beacon cache.
-        /// </summary>
-        IBeaconCacheConfiguration BeaconCacheConfig { get; }
-
-        /// <summary>
-        /// Returns the <see cref="IPrivacyConfiguration">privacy configuration</see> used to determine which data is
-        /// allowed to be sent.
-        /// </summary>
-        IPrivacyConfiguration PrivacyConfig { get; }
-
-        /// <summary>
-        /// Returns the <see cref="IHttpClientConfiguration">configuration</see> for communication via HTTP.
-        /// </summary>
-        IHttpClientConfiguration HttpClientConfig { get; }
-
-        /// <summary>
-        /// Returns the configuration of the <see cref="IBeacon"/>.
-        /// </summary>
-        IBeaconConfiguration BeaconConfig { get; }
-
-        #endregion
-
-        /// <summary>
-        /// Updates the settings of this configuration based on the given status response.
-        /// </summary>
-        /// <param name="statusResponse">the status response from which to update this settings.</param>
-        void UpdateSettings(StatusResponse statusResponse);
-
-        /// <summary>
-        /// Enables capturing
-        /// </summary>
-        void EnableCapture();
-
-        /// <summary>
-        /// Disables capturing
-        /// </summary>
-        void DisableCapture();
+        ISSLTrustManager TrustManager { get; }
     }
 }

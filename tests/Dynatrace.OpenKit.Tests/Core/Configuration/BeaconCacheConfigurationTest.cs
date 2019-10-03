@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using NSubstitute;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -21,30 +22,157 @@ namespace Dynatrace.OpenKit.Core.Configuration
     public class BeaconCacheConfigurationTest
     {
         [Test]
-        public void MaxRecordAge()
+        public void BeaconCacheConfigurationFromNullReturnsNull()
         {
+            // given, when
+            var obtained = BeaconCacheConfiguration.From(null);
+
             // then
-            Assert.That(new BeaconCacheConfiguration(-100L, 1L, 2L).MaxRecordAge, Is.EqualTo(-100L));
-            Assert.That(new BeaconCacheConfiguration(0L, 1L, 2L).MaxRecordAge, Is.EqualTo(0L));
-            Assert.That(new BeaconCacheConfiguration(200L, 1L, 2L).MaxRecordAge, Is.EqualTo(200L));
+            Assert.That(obtained, Is.Null);
         }
 
         [Test]
-        public void CacheSizeLowerBound()
+        public void PositiveMaxOrderAgeIsTakenOverFromOpenKitBuilder()
         {
+            // given
+            const long maxRecordAge = 73;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheMaxBeaconAge.Returns(maxRecordAge);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
             // then
-            Assert.That(new BeaconCacheConfiguration(0L, -1L, 2L).CacheSizeLowerBound, Is.EqualTo(-1L));
-            Assert.That(new BeaconCacheConfiguration(-1L, 0L, 2L).CacheSizeLowerBound, Is.EqualTo(0L));
-            Assert.That(new BeaconCacheConfiguration(0L, 1L, 2L).CacheSizeLowerBound, Is.EqualTo(1L));
+            _ = builder.Received(1).BeaconCacheMaxBeaconAge;
+            Assert.That(obtained.MaxRecordAge, Is.EqualTo(maxRecordAge));
         }
 
         [Test]
-        public void CacheSizeUpperBound()
+        public void NegativeMaxOrderAgeIsTakenOverFromOpenKitBuilder()
         {
+            // given
+            const long maxRecordAge = -73;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheMaxBeaconAge.Returns(maxRecordAge);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
             // then
-            Assert.That(new BeaconCacheConfiguration(0L, -1L, -2L).CacheSizeUpperBound, Is.EqualTo(-2L));
-            Assert.That(new BeaconCacheConfiguration(-1L, 1L, 0L).CacheSizeUpperBound, Is.EqualTo(0L));
-            Assert.That(new BeaconCacheConfiguration(0L, 1L, 2L).CacheSizeUpperBound, Is.EqualTo(2L));
+            _ = builder.Received(1).BeaconCacheMaxBeaconAge;
+            Assert.That(obtained.MaxRecordAge, Is.EqualTo(maxRecordAge));
+        }
+
+        [Test]
+        public void ZeroMaxOrderAgeIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long maxRecordAge = 0;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheMaxBeaconAge.Returns(maxRecordAge);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheMaxBeaconAge;
+            Assert.That(obtained.MaxRecordAge, Is.EqualTo(maxRecordAge));
+        }
+
+        [Test]
+        public void PositiveLowerCacheSizeBoundIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long lowerBound = 73;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheLowerMemoryBoundary.Returns(lowerBound);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheLowerMemoryBoundary;
+            Assert.That(obtained.CacheSizeLowerBound, Is.EqualTo(lowerBound));
+        }
+
+        [Test]
+        public void NegativeLowerCacheSizeBoundIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long lowerBound = -73;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheLowerMemoryBoundary.Returns(lowerBound);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheLowerMemoryBoundary;
+            Assert.That(obtained.CacheSizeLowerBound, Is.EqualTo(lowerBound));
+        }
+
+        [Test]
+        public void ZeroLowerCacheSizeBoundIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long lowerBound = 0;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheLowerMemoryBoundary.Returns(lowerBound);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheLowerMemoryBoundary;
+            Assert.That(obtained.CacheSizeLowerBound, Is.EqualTo(lowerBound));
+        }
+
+        [Test]
+        public void PositiveUpperCacheSizeBoundIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long upperBound = 73;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheUpperMemoryBoundary.Returns(upperBound);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheUpperMemoryBoundary;
+            Assert.That(obtained.CacheSizeUpperBound, Is.EqualTo(upperBound));
+        }
+
+        [Test]
+        public void NegativeUpperCacheSizeBoundIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long upperBound = -73;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheUpperMemoryBoundary.Returns(upperBound);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheUpperMemoryBoundary;
+            Assert.That(obtained.CacheSizeUpperBound, Is.EqualTo(upperBound));
+        }
+
+        [Test]
+        public void ZeroUpperCacheSizeBoundIsTakenOverFromOpenKitBuilder()
+        {
+            // given
+            const long upperBound = 0;
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheUpperMemoryBoundary.Returns(upperBound);
+
+            // when
+            var obtained = BeaconCacheConfiguration.From(builder);
+
+            // then
+            _ = builder.Received(1).BeaconCacheUpperMemoryBoundary;
+            Assert.That(obtained.CacheSizeUpperBound, Is.EqualTo(upperBound));
         }
     }
 }

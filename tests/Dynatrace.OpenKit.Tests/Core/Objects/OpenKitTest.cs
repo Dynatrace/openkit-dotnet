@@ -30,9 +30,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         private const string AppName = "appName";
 
         private ILogger mockLogger;
-        private IOpenKitConfiguration mockConfig;
+        private IPrivacyConfiguration mockPrivacyConfig;
+        private IOpenKitConfiguration mockOpenKitConfig;
         private ITimingProvider mockTimingProvider;
         private IThreadIdProvider mockThreadIdProvider;
+        private ISessionIdProvider mockSessionIdProvider;
         private IBeaconCache mockBeaconCache;
         private IBeaconSender mockBeaconSender;
         private IBeaconCacheEvictor mockBeaconCacheEvictor;
@@ -44,14 +46,21 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockLogger.IsInfoEnabled.Returns(true);
             mockLogger.IsDebugEnabled.Returns(true);
 
-            mockConfig = Substitute.For<IOpenKitConfiguration>();
-            mockConfig.ApplicationId.Returns(AppId);
-            mockConfig.DeviceId.Returns(DeviceId);
-            mockConfig.ApplicationName.Returns(AppName);
-            mockConfig.Device.Returns(new Device("", "", ""));
+            mockPrivacyConfig = Substitute.For<IPrivacyConfiguration>();
+            mockPrivacyConfig.DataCollectionLevel.Returns(ConfigurationDefaults.DefaultDataCollectionLevel);
+            mockPrivacyConfig.CrashReportingLevel.Returns(ConfigurationDefaults.DefaultCrashReportingLevel);
+
+            mockOpenKitConfig = Substitute.For<IOpenKitConfiguration>();
+            mockOpenKitConfig.ApplicationId.Returns(AppId);
+            mockOpenKitConfig.DeviceId.Returns(DeviceId);
+            mockOpenKitConfig.ApplicationName.Returns(AppName);
+            mockOpenKitConfig.OperatingSystem.Returns(string.Empty);
+            mockOpenKitConfig.Manufacturer.Returns(string.Empty);
+            mockOpenKitConfig.ModelId.Returns(string.Empty);
 
             mockTimingProvider = Substitute.For<ITimingProvider>();
             mockThreadIdProvider = Substitute.For<IThreadIdProvider>();
+            mockSessionIdProvider = Substitute.For<ISessionIdProvider>();
             mockBeaconCache = Substitute.For<IBeaconCache>();
             mockBeaconSender = Substitute.For<IBeaconSender>();
             mockBeaconCacheEvictor = Substitute.For<IBeaconCacheEvictor>();
@@ -61,7 +70,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void InitializeStartsTheBeaconCacheEvictor()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             target.Initialize();
@@ -74,7 +83,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void InitializeInitializesBeaconSender()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             target.Initialize();
@@ -88,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             // given
             mockBeaconSender.WaitForInitCompletion().Returns(false, true);
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             var obtained = target.WaitForInitCompletion();
@@ -109,7 +118,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void WaitForInitCompletionWithTimeoutForwardsTheCallToBeaconSender()
         {
             mockBeaconSender.WaitForInitCompletion(Arg.Any<int>()).Returns(false, true);
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             var obtained = target.WaitForInitCompletion(100);
@@ -131,7 +140,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             // given
             mockBeaconSender.IsInitialized.Returns(false, true);
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             var obtained = target.IsInitialized;
@@ -152,7 +161,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ShutdownStopsTheBeaconCacheEvictor()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             target.Shutdown();
@@ -165,7 +174,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ShutdownShutsDownBeaconSender()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             target.Shutdown();
@@ -175,10 +184,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ShutdownClosesAllChildObjects()
+        public void ShutdownDisposesAllChildObjects()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
             IOpenKitComposite targetComposite = target;
 
             var childObjectOne = Substitute.For<IOpenKitObject>();
@@ -195,10 +204,24 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void DisposeCallsShutdown()
+        {
+            // given
+            var target = CreateOpenKit().Build();
+
+            // when
+            target.Dispose();
+
+            // then
+            mockBeaconSender.Received(1).Shutdown();
+            mockBeaconCacheEvictor.Received(1).Stop();
+        }
+
+        [Test]
         public void CallingShutdownASecondTimeReturnsImmediately()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
             IOpenKitComposite targetComposite = target;
 
             var childObjectOne = Substitute.For<IOpenKitObject>();
@@ -234,7 +257,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void CreateSessionReturnsSessionObject()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
 
             // when
             var obtained = target.CreateSession("127.0.0.1");
@@ -247,7 +270,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void CreateSessionAddsNewlyCreatedSessionToListOfChildren()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
             IOpenKitComposite targetComposite = target;
 
             // when
@@ -274,7 +297,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void CreateSessionAfterShutdownHasBeenCalledReturnsNullSession()
         {
             // given
-            var target = CreateOpenKit();
+            var target = CreateOpenKit().Build();
             target.Shutdown();
 
             // when
@@ -289,7 +312,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void OnChildClosedRemovesArgumentFromListOfChildren()
         {
             // given
-            IOpenKitComposite target = CreateOpenKit();
+            IOpenKitComposite target = CreateOpenKit().Build();
 
             var childObjectOne = Substitute.For<IOpenKitObject>();
             var childObjectTwo = Substitute.For<IOpenKitObject>();
@@ -311,17 +334,19 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(target.GetCopyOfChildObjects(), Is.Empty);
         }
 
-        private OpenKit CreateOpenKit()
+        private TestOpenKitBuilder CreateOpenKit()
         {
-            return new OpenKit(
-                mockLogger,
-                mockConfig,
-                mockTimingProvider,
-                mockThreadIdProvider,
-                mockBeaconCache,
-                mockBeaconSender,
-                mockBeaconCacheEvictor
-                );
+            return new TestOpenKitBuilder()
+                    .With(mockLogger)
+                    .With(mockPrivacyConfig)
+                    .With(mockOpenKitConfig)
+                    .With(mockThreadIdProvider)
+                    .With(mockTimingProvider)
+                    .With(mockSessionIdProvider)
+                    .With(mockBeaconCache)
+                    .With(mockBeaconSender)
+                    .With(mockBeaconCacheEvictor)
+                ;
         }
     }
 }

@@ -100,18 +100,11 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly IThreadIdProvider threadIdProvider;
         private readonly ITimingProvider timingProvider;
 
-        // configuration
-        private readonly IHttpClientConfiguration httpConfiguration;
-
         // basic beacon protocol data
         private readonly string basicBeaconData;
 
-        // Configuration reference
-        private readonly IOpenKitConfiguration configuration;
-
         // Beacon configuration
-        private volatile IBeaconConfiguration beaconConfiguration;
-        private readonly IPrivacyConfiguration privacyConfiguration;
+        private volatile IBeaconConfiguration configuration;
 
         private readonly ILogger logger;
 
@@ -127,11 +120,28 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="beaconCache">Cache storing beacon related data</param>
         /// <param name="configuration">OpenKit related configuration</param>
         /// <param name="clientIpAddress">The client's IP address</param>
+        /// <param name="sessionIdProvider">Provider for session IDs</param>
         /// <param name="threadIdProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
-        internal Beacon(ILogger logger, IBeaconCache beaconCache, IOpenKitConfiguration configuration, string clientIpAddress,
-            IThreadIdProvider threadIdProvider, ITimingProvider timingProvider)
-            : this(logger, beaconCache, configuration, clientIpAddress, threadIdProvider, timingProvider, new DefaultPrnGenerator())
+        internal Beacon(
+            ILogger logger,
+            IBeaconCache beaconCache,
+            IBeaconConfiguration configuration,
+            string clientIpAddress,
+            ISessionIdProvider sessionIdProvider,
+            IThreadIdProvider threadIdProvider,
+            ITimingProvider timingProvider
+            )
+            : this(
+                logger,
+                beaconCache,
+                configuration,
+                clientIpAddress,
+                sessionIdProvider,
+                threadIdProvider,
+                timingProvider,
+                new DefaultPrnGenerator()
+                )
         {
         }
 
@@ -142,30 +152,36 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="beaconCache">Cache storing beacon related data</param>
         /// <param name="configuration">OpenKit related configuration</param>
         /// <param name="clientIpAddress">The client's IP address</param>
+        /// <param name="sessionIdProvider">Provider for session IDs</param>
         /// <param name="threadIdProvider">Provider for retrieving thread id</param>
         /// <param name="timingProvider">Provider for time related methods</param>
         /// <param name="randomNumberGenerator">Random number generator</param>
-        internal Beacon(ILogger logger, IBeaconCache beaconCache, IOpenKitConfiguration configuration, string clientIpAddress,
-            IThreadIdProvider threadIdProvider, ITimingProvider timingProvider, IPrnGenerator randomNumberGenerator)
+        internal Beacon(
+            ILogger logger,
+            IBeaconCache beaconCache,
+            IBeaconConfiguration configuration,
+            string clientIpAddress,
+            ISessionIdProvider sessionIdProvider,
+            IThreadIdProvider threadIdProvider,
+            ITimingProvider timingProvider,
+            IPrnGenerator randomNumberGenerator
+            )
         {
             this.logger = logger;
             this.beaconCache = beaconCache;
-            ThisBeacon.BeaconConfiguration = configuration.BeaconConfig;
-            privacyConfiguration = configuration.PrivacyConfig;
-
-            beaconId = configuration.NextSessionNumber;
-            DeviceId = CreateDeviceId(configuration, randomNumberGenerator);
-            SessionNumber = DetermineSessionNumber(privacyConfiguration, beaconId);
+            beaconId = sessionIdProvider.GetNextSessionId();
+            SessionNumber = DetermineSessionNumber(configuration, beaconId);
 
             this.timingProvider = timingProvider;
-
             this.configuration = configuration;
             this.threadIdProvider = threadIdProvider;
             sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
+            DeviceId = CreateDeviceId(configuration, randomNumberGenerator);
+
+
             this.clientIpAddress = InetAddressValidator.IsValidIP(clientIpAddress) ? clientIpAddress : string.Empty;
-            // store the current http configuration
-            httpConfiguration = configuration.HttpClientConfig;
+
             basicBeaconData = CreateBasicBeaconData();
         }
 
@@ -174,19 +190,19 @@ namespace Dynatrace.OpenKit.Protocol
             return randomGenerator.NextLong(long.MaxValue) & 0x7fffffffffffffffL;
         }
 
-        private static long CreateDeviceId(IOpenKitConfiguration configuration, IPrnGenerator randomGenerator)
+        private static long CreateDeviceId(IBeaconConfiguration configuration, IPrnGenerator randomGenerator)
         {
-            if (configuration.PrivacyConfig.IsDeviceIdSendingAllowed)
+            if (configuration.PrivacyConfiguration.IsDeviceIdSendingAllowed)
             {
-                return configuration.DeviceId;
+                return configuration.OpenKitConfiguration.DeviceId;
             }
 
             return NextRandomPositiveLong(randomGenerator);
         }
 
-        private static int DetermineSessionNumber(IPrivacyConfiguration privacyConfig, int beaconId)
+        private static int DetermineSessionNumber(IBeaconConfiguration configuration, int beaconId)
         {
-            if (privacyConfig.IsSessionNumberReportingAllowed)
+            if (configuration.PrivacyConfiguration.IsSessionNumberReportingAllowed)
             {
                 return beaconId;
             }
@@ -220,21 +236,27 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
 
-        IBeaconConfiguration IBeacon.BeaconConfiguration
+        bool IBeacon.IsCaptureEnabled => configuration.ServerConfiguration.IsCaptureEnabled;
+
+        void IBeacon.UpdateServerConfiguration(IServerConfiguration serverConfiguration)
         {
-            set
-            {
-                if (value != null)
-                {
-                    beaconConfiguration = value;
-                }
-            }
-            get => beaconConfiguration;
+            configuration.UpdateServerConfiguration(serverConfiguration);
         }
 
-        int IBeacon.Multiplicity => ThisBeacon.BeaconConfiguration.Multiplicity;
+        /// <summary>
+        /// Indicates whether a server configuration is set on this beacon or not.
+        /// </summary>
+        bool IBeacon.IsServerConfigurationSet => configuration.IsServerConfigurationSet;
 
-        bool IBeacon.CapturingDisabled => !ThisBeacon.BeaconConfiguration.CapturingAllowed;
+        void IBeacon.EnableCapture()
+        {
+            configuration.EnableCapture();
+        }
+
+        void IBeacon.DisableCapture()
+        {
+            configuration.DisableCapture();
+        }
 
         #endregion
 
@@ -242,17 +264,19 @@ namespace Dynatrace.OpenKit.Protocol
 
         string IBeacon.CreateTag(int parentActionId, int sequenceNo)
         {
-            if (!privacyConfiguration.IsWebRequestTracingAllowed)
+            if (!configuration.PrivacyConfiguration.IsWebRequestTracingAllowed)
             {
                 return string.Empty;
             }
 
+            var openKitConfig = configuration.OpenKitConfiguration;
+            var httpConfiguration = configuration.HttpClientConfiguration;
             return $"{WebRequestTagPrefix}_"
                 + $"{ProtocolConstants.ProtocolVersion}_"
                 + $"{httpConfiguration.ServerId}_"
                 + $"{DeviceId}_"
                 + $"{SessionNumber}_"
-                + $"{configuration.ApplicationIdPercentEncoded}_"
+                + $"{openKitConfig.ApplicationIdPercentEncoded}_"
                 + $"{parentActionId}_"
                 + $"{threadIdProvider.ThreadId}_"
                 + $"{sequenceNo}";
@@ -260,12 +284,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.AddAction(IActionInternals action)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsActionReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsActionReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
             {
                 return;
             }
@@ -286,7 +310,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.StartSession()
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!ThisBeacon.IsCaptureEnabled)
             {
                 return;
             }
@@ -302,14 +326,14 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(sessionStartTime, eventBuilder);
         }
 
-        void IBeacon.EndSession(ISessionInternals session)
+        void IBeacon.EndSession()
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsSessionReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsSessionReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
             {
                 return;
             }
@@ -318,21 +342,22 @@ namespace Dynatrace.OpenKit.Protocol
 
             BuildBasicEventData(eventBuilder, EventType.SESSION_END, null);
 
+            var sessionEndTime = ThisBeacon.CurrentTimestamp;
             AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, 0);
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
-            AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(session.EndTime));
+            AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(sessionEndTime));
 
-            AddEventData(session.EndTime, eventBuilder);
+            AddEventData(sessionEndTime, eventBuilder);
         }
 
         void IBeacon.ReportValue(int actionId, string valueName, int value)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsValueReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
             {
                 return;
             }
@@ -347,12 +372,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportValue(int actionId, string valueName, double value)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsValueReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
             {
                 return;
             }
@@ -367,12 +392,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportValue(int actionId, string valueName, string value)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsValueReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
             {
                 return;
             }
@@ -387,12 +412,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportEvent(int actionId, string eventName)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsEventReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsEventReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
             {
                 return;
             }
@@ -406,13 +431,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportError(int actionId, string errorName, int errorCode, string reason)
         {
-            // if capture errors is off -> do nothing
-            if (ThisBeacon.CapturingDisabled || !configuration.CaptureErrors)
+            if (!configuration.PrivacyConfiguration.IsErrorReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsErrorReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingErrorsAllowed)
             {
                 return;
             }
@@ -433,13 +457,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportCrash(string errorName, string reason, string stacktrace)
         {
-            // if capture crashes is off -> do nothing
-            if (ThisBeacon.CapturingDisabled || !configuration.CaptureCrashes)
+            if (!configuration.PrivacyConfiguration.IsCrashReportingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsCrashReportingAllowed)
+            if (!configuration.ServerConfiguration.IsSendingCrashesAllowed)
             {
                 return;
             }
@@ -460,12 +483,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.AddWebRequest(int parentActionId, IWebRequestTracerInternals webRequestTracer)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsWebRequestTracingAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsWebRequestTracingAllowed)
+            if (!ThisBeacon.IsCaptureEnabled)
             {
                 return;
             }
@@ -489,12 +512,12 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.IdentifyUser(string userTag)
         {
-            if (ThisBeacon.CapturingDisabled)
+            if (!configuration.PrivacyConfiguration.IsUserIdentificationIsAllowed)
             {
                 return;
             }
 
-            if (!privacyConfiguration.IsUserIdentificationIsAllowed)
+            if (!ThisBeacon.IsCaptureEnabled)
             {
                 return;
             }
@@ -511,10 +534,10 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        StatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider)
+        IStatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider)
         {
-            var httpClient = httpClientProvider.CreateClient(httpConfiguration);
-            StatusResponse response = null;
+            var httpClient = httpClientProvider.CreateClient(configuration.HttpClientConfiguration);
+            IStatusResponse response = null;
 
             while (true)
             {
@@ -523,7 +546,7 @@ namespace Dynatrace.OpenKit.Protocol
                 // subtract 1024 to ensure that the chunk does not exceed the send size configured on server side?
                 // i guess that was the original intention, but i'm not sure about this
                 // TODO stefan.eberl - This is a quite uncool algorithm and should be improved, avoid subtracting some "magic" number
-                var chunk = beaconCache.GetNextBeaconChunk(beaconId, prefix, configuration.MaxBeaconSize - 1024, BeaconDataDelimiter);
+                var chunk = beaconCache.GetNextBeaconChunk(beaconId, prefix, configuration.ServerConfiguration.BeaconSizeInBytes - 1024, BeaconDataDelimiter);
                 if (string.IsNullOrEmpty(chunk))
                 {
                     // no data added so far or no data to send
@@ -566,7 +589,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="actionBuilder">Contains the serialized action data.</param>
         private void AddActionData(long timestamp, StringBuilder actionBuilder)
         {
-            if (configuration.IsCaptureOn)
+            if (ThisBeacon.IsCaptureEnabled)
             {
                 beaconCache.AddActionData(beaconId, timestamp, actionBuilder.ToString());
             }
@@ -579,7 +602,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="eventBuilder">Contains the serialized event data.</param>
         private void AddEventData(long timestamp, StringBuilder eventBuilder)
         {
-            if (configuration.IsCaptureOn)
+            if (ThisBeacon.IsCaptureEnabled)
             {
                 beaconCache.AddEventData(beaconId, timestamp, eventBuilder.ToString());
             }
@@ -620,14 +643,15 @@ namespace Dynatrace.OpenKit.Protocol
         // helper method for creating basic beacon protocol data
         private string CreateBasicBeaconData()
         {
-            StringBuilder basicBeaconBuilder = new StringBuilder();
+            var openKitConfig = configuration.OpenKitConfiguration;
+            var basicBeaconBuilder = new StringBuilder();
 
             // version and application information
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyProtocolVersion, ProtocolConstants.ProtocolVersion);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyOpenKitVersion, ProtocolConstants.OpenKitVersion);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationId, configuration.ApplicationId);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationName, configuration.ApplicationName);
-            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyApplicationVersion, configuration.ApplicationVersion);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationId, openKitConfig.ApplicationId);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationName, openKitConfig.ApplicationName);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyApplicationVersion, openKitConfig.ApplicationVersion);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyPlatformType, ProtocolConstants.PlatformTypeOpenKit);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
 
@@ -637,12 +661,13 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyClientIpAddress, clientIpAddress);
 
             // platform information
-            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceOs, configuration.Device.OperatingSystem);
-            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceManufacturer, configuration.Device.Manufacturer);
-            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceModel, configuration.Device.ModelId);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceOs, openKitConfig.OperatingSystem);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceManufacturer, openKitConfig.Manufacturer);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceModel, openKitConfig.ModelId);
 
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyDataCollectionLevel, (int)privacyConfiguration.DataCollectionLevel);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyCrashReportingLevel, (int)privacyConfiguration.CrashReportingLevel);
+            var privacyConfig = configuration.PrivacyConfiguration;
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyDataCollectionLevel, (int)privacyConfig.DataCollectionLevel);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeyCrashReportingLevel, (int)privacyConfig.CrashReportingLevel);
 
             return basicBeaconBuilder.ToString();
         }
@@ -666,7 +691,7 @@ namespace Dynatrace.OpenKit.Protocol
         // helper method for creating basic timestamp data
         private string CreateTimestampData()
         {
-            StringBuilder timestampBuilder = new StringBuilder();
+            var timestampBuilder = new StringBuilder();
 
             AddKeyValuePair(timestampBuilder, BeaconKeyTransmissionTime, timingProvider.ProvideTimestampInMilliseconds());
             AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, sessionStartTime);
@@ -678,8 +703,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             var builder = new StringBuilder();
 
-            // multiplicity information
-            AddKeyValuePair(builder, BeaconKeyMultiplicity, ThisBeacon.Multiplicity);
+            var multiplicity = configuration.ServerConfiguration.Multiplicity;
+            AddKeyValuePair(builder, BeaconKeyMultiplicity, multiplicity);
 
             return builder.ToString();
         }

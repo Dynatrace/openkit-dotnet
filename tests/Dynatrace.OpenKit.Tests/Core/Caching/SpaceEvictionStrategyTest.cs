@@ -41,8 +41,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheStrategyIsDisabledIfCacheSizeLowerBoundIsLessThanZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, -1L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, -1L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
@@ -52,8 +52,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheStrategyIsDisabledIfCacheSizeLowerBoundIsEqualToZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 0L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 0L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
@@ -63,8 +63,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheStrategyIsDisabledIfCacheSizeUpperBoundIsLessThanZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, -1L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, -1L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
@@ -74,8 +74,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheStrategyIsDisabledIfCacheSizeUpperBoundIsEqualToZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 0L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 0L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
@@ -85,8 +85,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheStrategyIsDisabledIfCacheSizeUpperBoundIsLessThanLowerBound()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 999L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 999L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
@@ -96,8 +96,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ShouldRunGivesTrueIfNumBytesInCacheIsGreaterThanUpperBoundLimit()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1);
 
@@ -109,8 +109,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ShouldRunGivesFalseIfNumBytesInCacheIsEqualToUpperBoundLimit()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound);
 
@@ -122,8 +122,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ShouldRunGivesFalseIfNumBytesInCacheIsLessThanUpperBoundLimit()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound - 1);
 
@@ -135,8 +135,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionLogsAMessageOnceAndReturnsIfStrategyIsDisabled()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, -1L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, -1L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockLogger.IsInfoEnabled.Returns(true);
 
@@ -160,8 +160,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionDoesNotLogIfStrategyIsDisabledAndInfoIsDisabledInLogger()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, -1L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, -1L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockLogger.IsInfoEnabled.Returns(false);
 
@@ -184,8 +184,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionCallsCacheMethodForEachBeacon()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,
                 configuration.CacheSizeUpperBound + 1,
@@ -207,8 +207,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionLogsEvictionResultIfDebugIsEnabled()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,
                 configuration.CacheSizeUpperBound + 1,
@@ -234,8 +234,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionDoesNotLogEvictionResultIfDebugIsDisabled()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,
                 configuration.CacheSizeUpperBound + 1,
@@ -260,8 +260,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionRunsUntilTheCacheSizeIsLessThanOrEqualToLowerBound()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,  //should run method
                 configuration.CacheSizeUpperBound, // first iteration
@@ -291,8 +291,9 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // given
             var shutdown = false;
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, () => shutdown);
+            isShutdownFunc = () => shutdown;
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,  //should run method
                 configuration.CacheSizeUpperBound, // first iteration
@@ -323,8 +324,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionStopsIfNumBytesInCacheFallsBelowLowerBoundBetweenTwoBeacons()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new SpaceEvictionStrategy(mockLogger, mockBeaconCache, configuration, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateSpaceEvictionStrategyWith(configuration);
 
             mockBeaconCache.NumBytesInCache.Returns(configuration.CacheSizeUpperBound + 1,  //should run method
                 configuration.CacheSizeUpperBound, // first iteration
@@ -343,6 +344,27 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             _ = mockBeaconCache.Received(8).NumBytesInCache;
             mockBeaconCache.Received(3).EvictRecordsByNumber(Arg.Any<int>(), 1);
+        }
+
+        private SpaceEvictionStrategy CreateSpaceEvictionStrategyWith(IBeaconCacheConfiguration config)
+        {
+            return new SpaceEvictionStrategy(
+                mockLogger,
+                mockBeaconCache,
+                config,
+                isShutdownFunc
+                );
+        }
+
+        private static IBeaconCacheConfiguration MockBeaconCacheConfig(long maxRecordAge, long lowerSizeBound, long upperSizeBound)
+        {
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheMaxBeaconAge.Returns(maxRecordAge);
+            builder.BeaconCacheLowerMemoryBoundary.Returns(lowerSizeBound);
+            builder.BeaconCacheUpperMemoryBoundary.Returns(upperSizeBound);
+
+            var config = BeaconCacheConfiguration.From(builder);
+            return config;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Protocol
     /// <summary>
     ///  Abstract base class for a response to one of the 2 request types (status check, beacon send).
     /// </summary>
-    public abstract class Response
+    public abstract class Response : IResponse
     {
         /// <summary>
         /// Response code sent by HTTP server to indicate success.

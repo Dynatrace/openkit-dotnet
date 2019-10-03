@@ -30,9 +30,9 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <param name="numRetries">The number of retries (total number of tries = numRetries + 1)</param>
         /// <param name="initialRetryDelayInMillis">The initial delay which is doubled between one unsuccessful attempt and the next retry.</param>
         /// <returns> A status response or <code>null</code> if shutdown was requested or number of retries was reached.</returns>
-        internal static StatusResponse SendStatusRequest(IBeaconSendingContext context, int numRetries, int initialRetryDelayInMillis)
+        internal static IStatusResponse SendStatusRequest(IBeaconSendingContext context, int numRetries, int initialRetryDelayInMillis)
         {
-            StatusResponse statusResponse;
+            IStatusResponse statusResponse;
             var sleepTimeInMillis = initialRetryDelayInMillis;
             var retry = 0;
 

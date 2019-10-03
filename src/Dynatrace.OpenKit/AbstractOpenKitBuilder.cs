@@ -27,15 +27,12 @@ namespace Dynatrace.OpenKit
     /// <summary>
     /// Abstract base class for concrete builder. Using the builder an IOpenKit instance can be created
     /// </summary>
-    public abstract class AbstractOpenKitBuilder
+    public abstract class AbstractOpenKitBuilder : IOpenKitBuilder
     {
         // mutable fields
         private ILogger logger;
-        private LogLevel logLevel = LogLevel.WARN;
-        private string operatingSystem = OpenKitConstants.DefaultOperatingSystem;
-        private string manufacturer = OpenKitConstants.DefaultManufacturer;
-        private string modelId = OpenKitConstants.DefaultModelId;
-        private string applicationVersion = OpenKitConstants.DefaultApplicationVersion;
+
+        #region constructor
 
         protected AbstractOpenKitBuilder(string endpointUrl, long deviceId)
             : this(endpointUrl, deviceId, deviceId.ToString(CultureInfo.InvariantCulture))
@@ -69,31 +66,7 @@ namespace Dynatrace.OpenKit
             }
         }
 
-        protected string OperatingSystem => operatingSystem;
-        protected string Manufacturer => manufacturer;
-        protected string ModelID => modelId;
-        protected string ApplicationVersion => applicationVersion;
-        protected ISSLTrustManager TrustManager { get; private set; } = new SSLStrictTrustManager();
-
-        protected ILogger Logger => logger ?? new DefaultLogger(logLevel);
-        protected string EndpointUrl { get; }
-        protected long DeviceId { get; }
-        protected string OrigDeviceId { get; }
-
-        protected long BeaconCacheMaxBeaconAge { get; private set; } =
-            BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis;
-
-        protected long BeaconCacheLowerMemoryBoundary { get; private set; } =
-            BeaconCacheConfiguration.DefaultLowerMemoryBoundaryInBytes;
-
-        protected long BeaconCacheUpperMemoryBoundary { get; private set; } =
-            BeaconCacheConfiguration.DefaultUpperMemoryBoundaryInBytes;
-
-        protected DataCollectionLevel DataCollectionLevel { get; private set; } =
-            PrivacyConfiguration.DefaultDataCollectionLevel;
-
-        protected CrashReportingLevel CrashReportingLevel { get; private set; } =
-            PrivacyConfiguration.DefaultCrashReportingLevel;
+        #endregion
 
         /// <summary>
         /// Enables verbose mode. Verbose mode is only enabled if the the default logger is used.
@@ -101,7 +74,8 @@ namespace Dynatrace.OpenKit
         /// depends on the values returned by <code>IsDebugEnabled</code> and <code>IsInfoEnabled</code>.
         /// </summary>
         /// <remarks>
-        /// With the introduction <see cref="LogLevel"/> prefer the <see cref="WithLogLevel(LogLevel)"/> method.
+        /// With the introduction <see cref="LogLevel"/> prefer the
+        /// <see cref="WithLogLevel(Dynatrace.OpenKit.API.LogLevel)"/> method.
         /// </remarks>
         /// <returns><code>this</code></returns>
         [Obsolete("EnableVerbose is deprecated, use WithLogLevel instead.")]
@@ -119,7 +93,7 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithLogLevel(LogLevel logLevel)
         {
-            this.logLevel = logLevel;
+            LogLevel = logLevel;
             return this;
         }
 
@@ -144,7 +118,7 @@ namespace Dynatrace.OpenKit
         {
             if (!string.IsNullOrEmpty(applicationVersion))
             {
-                this.applicationVersion = applicationVersion;
+                ApplicationVersion = applicationVersion;
             }
             return this;
         }
@@ -161,7 +135,7 @@ namespace Dynatrace.OpenKit
         {
             if (trustManager != null)
             {
-                this.TrustManager = trustManager;
+                TrustManager = trustManager;
             }
             return this;
         }
@@ -175,7 +149,7 @@ namespace Dynatrace.OpenKit
         {
             if (!string.IsNullOrEmpty(operatingSystem))
             {
-                this.operatingSystem = operatingSystem;
+                OperatingSystem = operatingSystem;
             }
             return this;
         }
@@ -189,9 +163,15 @@ namespace Dynatrace.OpenKit
         {
             if (!string.IsNullOrEmpty(manufacturer))
             {
-                this.manufacturer = manufacturer;
+                Manufacturer = manufacturer;
             }
             return this;
+        }
+
+        [Obsolete("Use WithModelId instead")]
+        public AbstractOpenKitBuilder WithModelID(string modelId)
+        {
+            return WithModelId(modelId);
         }
 
         /// <summary>
@@ -203,7 +183,7 @@ namespace Dynatrace.OpenKit
         {
             if (!string.IsNullOrEmpty(modelId))
             {
-                this.modelId = modelId;
+                ModelId = modelId;
             }
             return this;
         }
@@ -271,7 +251,7 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithDataCollectionLevel(DataCollectionLevel dataCollectionLevel)
         {
-            this.DataCollectionLevel = dataCollectionLevel;
+            DataCollectionLevel = dataCollectionLevel;
             return this;
         }
 
@@ -296,7 +276,7 @@ namespace Dynatrace.OpenKit
         /// <returns><code>this</code></returns>
         public AbstractOpenKitBuilder WithCrashReportingLevel(CrashReportingLevel crashReportingLevel)
         {
-            this.CrashReportingLevel = crashReportingLevel;
+            CrashReportingLevel = crashReportingLevel;
             return this;
         }
 
@@ -306,16 +286,199 @@ namespace Dynatrace.OpenKit
         /// <returns></returns>
         public IOpenKit Build()
         {
-            var openKit = new Core.Objects.OpenKit(Logger, BuildConfiguration());
+            var openKit = new Core.Objects.OpenKit(this);
             openKit.Initialize();
 
             return openKit;
         }
 
         /// <summary>
-        /// Builds the configuration for the OpenKit instance
+        /// Returns the string identifying the OpenKit tpe that gets created by the builder.
+        ///
+        /// <para>
+        ///     The only real purpose is for logging reasons.
+        /// </para>
         /// </summary>
-        /// <returns></returns>
-        internal abstract OpenKitConfiguration BuildConfiguration();
+        /// <returns>some string identifying the OpenKit's type.</returns>
+        public abstract string OpenKitType { get; }
+
+        /// <summary>
+        /// Returns the application identifier for which the OpenKit reports data.
+        /// </summary>
+        public abstract string ApplicationId { get; }
+
+        /// <summary>
+        /// Returns the application's name
+        ///
+        /// <para>
+        ///     It depends on the concrete builder whether the application name is configurable or not.
+        ///     In any case, the derived classes have to return a string that is neither <code>null</code> nor empty.
+        /// </para>
+        /// </summary>
+        public abstract string ApplicationName { get; }
+
+        /// <summary>
+        /// Returns the ID of the server to communicate with.
+        ///
+        /// <para>
+        ///     This might be changed based on the OpenKit type.
+        /// </para>
+        /// </summary>
+        public virtual int DefaultServerId { get; protected set; } = ServerConfiguration.DefaultServerId;
+
+        /// <summary>
+        /// Returns the application version that has been set with <see cref="WithApplicationVersion"/>.
+        ///
+        /// <para>
+        ///     If no version was set, the <see cref="OpenKitConstants.DefaultApplicationVersion">default version</see>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        public string ApplicationVersion { get; private set; } = OpenKitConstants.DefaultApplicationVersion;
+
+        /// <summary>
+        /// Returns the operating system that has been set with <see cref="WithOperatingSystem"/>.
+        ///
+        /// <para>
+        ///     If no operating system was set, the <see cref="OpenKitConstants.DefaultOperatingSystem">default
+        ///     operating system</see> is returned.
+        /// </para>
+        /// </summary>
+        public string OperatingSystem { get; private set; } = OpenKitConstants.DefaultOperatingSystem;
+
+        /// <summary>
+        /// Returns the manufacturer that has been set with <see cref="WithManufacturer"/>.
+        ///
+        /// <para>
+        ///     If no manufacturer was set, the <see cref="OpenKitConstants.DefaultManufacturer">default manufacturer</see>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        public string Manufacturer { get; private set; } = OpenKitConstants.DefaultManufacturer;
+
+        /// <summary>
+        /// Returns the model identifier that has been set with <see cref="WithModelId"/>.
+        ///
+        /// <para>
+        ///     If no model ID was set, the <see cref="OpenKitConstants.DefaultModelId">default model ID</see> is
+        ///     returned.
+        /// </para>
+        /// </summary>
+        public string ModelId { get; private set; } = OpenKitConstants.DefaultModelId;
+
+        /// <summary>
+        /// Returns the endpoint ULR that has ben set in the constructor.
+        ///
+        /// <para>
+        ///     The endpoint ULR is where the beacon data is sent to.
+        /// </para>
+        /// </summary>
+        public string EndpointUrl { get; }
+
+        /// <summary>
+        /// Returns the device identifier that has been set in the constructor.
+        ///
+        /// <para>
+        ///     The device identifier is a unique numeric value that identifies the device or the installation.
+        ///     The user of the OpenKit library is responsible of providing a unique value which stays consistent
+        ///     per device/installation.
+        /// </para>
+        /// </summary>
+        public long DeviceId { get; }
+
+        /// <summary>
+        /// Returns the <see cref="DeviceId"/> as it was passed (not <see cref="StringUtil.To64BitHash">hashed</see>) to
+        /// the constructor.
+        /// </summary>
+        public string OrigDeviceId { get; }
+
+        /// <summary>
+        /// Returns the SSL trust manager that has been set with <see cref="WithTrustManager"/>.
+        ///
+        /// <para>
+        ///     The <see cref="ISSLTrustManager"/> implementation is responsible for checking the X509 certificate chain
+        ///     and also to reject untrusted/invalid certificates.
+        ///     The default implementation rejects every untrusted/invalid (including self-signed) certificate.
+        /// </para>
+        /// </summary>
+        public ISSLTrustManager TrustManager { get; private set; } = new SSLStrictTrustManager();
+
+        /// <summary>
+        /// Returns the maximum beacon cache record age that has been set with <see cref="WithBeaconCacheMaxRecordAge"/>.
+        ///
+        /// <para>
+        ///     Is no max age was set, the <see cref="ConfigurationDefaults.DefaultMaxRecordAgeInMillis">default max
+        ///     age</see> is returned.
+        /// </para>
+        /// </summary>
+        public long BeaconCacheMaxBeaconAge { get; private set; } =
+            ConfigurationDefaults.DefaultMaxRecordAgeInMillis;
+
+        /// <summary>
+        /// Returns the beacon cache's lower memory boundary that has been set with
+        /// <see cref="WithBeaconCacheLowerMemoryBoundary"/>.
+        ///
+        /// <para>
+        ///     If no lower memory boundary was set, the
+        ///     <see cref="ConfigurationDefaults.DefaultLowerMemoryBoundaryInBytes">default lower boundary</see> is
+        ///     returned.
+        /// </para>
+        /// </summary>
+        public long BeaconCacheLowerMemoryBoundary { get; private set; } =
+            ConfigurationDefaults.DefaultLowerMemoryBoundaryInBytes;
+
+        /// <summary>
+        /// Returns the beacon cache's upper memory boundary that has been set with
+        /// <see cref="WithBeaconCacheUpperMemoryBoundary"/>.
+        ///
+        /// <para>
+        ///     If no upper memory boundary was set, the
+        ///     <see cref="ConfigurationDefaults.DefaultUpperMemoryBoundaryInBytes">default upper boundary</see> is
+        ///     returned.
+        /// </para>
+        /// </summary>
+        public long BeaconCacheUpperMemoryBoundary { get; private set; } =
+            ConfigurationDefaults.DefaultUpperMemoryBoundaryInBytes;
+
+        /// <summary>
+        /// Returns the data collection level that has been set with <see cref="WithDataCollectionLevel"/>.
+        ///
+        /// <para>
+        ///     If no data collection level was set, the <see cref="ConfigurationDefaults.DefaultDataCollectionLevel"/>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        public DataCollectionLevel DataCollectionLevel { get; private set; } =
+            ConfigurationDefaults.DefaultDataCollectionLevel;
+
+        /// <summary>
+        /// Returns the crash reporting level that has been set with <see cref="WithCrashReportingLevel"/>.
+        ///
+        /// <para>
+        ///     If no crash reporting level was set, the <see cref="ConfigurationDefaults.DefaultCrashReportingLevel"/>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        public CrashReportingLevel CrashReportingLevel { get; private set; } =
+            ConfigurationDefaults.DefaultCrashReportingLevel;
+
+        /// <summary>
+        /// Returns the log level that has been set with <see cref="WithLogLevel"/>.
+        ///
+        /// <para>
+        ///     If no log level was set, the <see cref="Dynatrace.OpenKit.API.LogLevel.WARN">default log level</see>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        public LogLevel LogLevel { get; private set; } = LogLevel.WARN;
+
+        /// <summary>
+        /// Returns the <see cref="ILogger"/> that has been set with <see cref="WithLogger"/>.
+        ///
+        /// <para>
+        ///     If no logger was set, a <see cref="DefaultLogger">default logger</see> instance is returned.
+        /// </para>
+        /// </summary>
+        public ILogger Logger => logger ?? new DefaultLogger(LogLevel);
     }
 }

@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </summary>
         /// <param name="response">The given response to check whether it is successful or not.</param>
         /// <returns><code>true</code> if response is successful, <code>false</code> otherwise.</returns>
-        internal static bool IsSuccessfulResponse(Response response)
+        internal static bool IsSuccessfulResponse(IResponse response)
         {
             return response != null && !response.IsErroneousResponse;
         }
@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// </remarks>
         /// <param name="response">The given response to check whether it is a "too many requests" response or not.</param>
         /// <returns><code>true</code> if response indicates too many requests, <code>false</code> otherwise.</returns>
-        internal static bool IsTooManyRequestsResponse(Response response)
+        internal static bool IsTooManyRequestsResponse(IResponse response)
         {
             return response != null && response.ResponseCode == Response.HttpTooManyRequests;
         }

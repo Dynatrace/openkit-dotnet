@@ -26,8 +26,9 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private ILogger logger;
         private IBeaconCache beaconCache;
-        private IOpenKitConfiguration configuration;
+        private IBeaconConfiguration configuration;
         private string clientIpAddress;
+        private ISessionIdProvider sessionIdProvider;
         private IThreadIdProvider threadIdProvider;
         private ITimingProvider timingProvider;
         private IPrnGenerator randomGenerator;
@@ -37,9 +38,9 @@ namespace Dynatrace.OpenKit.Protocol
             logger = Substitute.For<ILogger>();
             beaconCache = Substitute.For<IBeaconCache>();
             clientIpAddress = "127.0.0.1";
+            sessionIdProvider = Substitute.For<ISessionIdProvider>();
             threadIdProvider = Substitute.For<IThreadIdProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
-            randomGenerator = Substitute.For<IPrnGenerator>();
         }
 
         internal TestBeaconBuilder With(ILogger logger)
@@ -54,7 +55,7 @@ namespace Dynatrace.OpenKit.Protocol
             return this;
         }
 
-        internal TestBeaconBuilder With(IOpenKitConfiguration config)
+        internal TestBeaconBuilder With(IBeaconConfiguration config)
         {
             configuration = config;
             return this;
@@ -63,6 +64,12 @@ namespace Dynatrace.OpenKit.Protocol
         internal TestBeaconBuilder WithIpAddress(string ipAddress)
         {
             clientIpAddress = ipAddress;
+            return this;
+        }
+
+        internal TestBeaconBuilder With(ISessionIdProvider provider)
+        {
+            sessionIdProvider = provider;
             return this;
         }
 
@@ -86,14 +93,28 @@ namespace Dynatrace.OpenKit.Protocol
 
         internal IBeacon Build()
         {
+            if (randomGenerator != null)
+            {
+                return new Beacon(
+                    logger,
+                    beaconCache,
+                    configuration,
+                    clientIpAddress,
+                    sessionIdProvider,
+                    threadIdProvider,
+                    timingProvider,
+                    randomGenerator
+                );
+            }
+
             return new Beacon(
                 logger,
                 beaconCache,
                 configuration,
                 clientIpAddress,
+                sessionIdProvider,
                 threadIdProvider,
-                timingProvider,
-                randomGenerator
+                timingProvider
             );
         }
     }

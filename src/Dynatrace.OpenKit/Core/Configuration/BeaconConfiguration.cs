@@ -16,22 +16,150 @@
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
-    public class BeaconConfiguration : IBeaconConfiguration
+    internal class BeaconConfiguration : IBeaconConfiguration
     {
-        public const int DefaultMultiplicity = 1;
+        /// <summary>
+        /// Configuration holding server related details.
+        /// </summary>
+        private IServerConfiguration serverConfiguration;
 
-        public BeaconConfiguration()
-            : this(DefaultMultiplicity)
+        /// <summary>
+        /// Object for synchronization.
+        /// </summary>
+        private readonly  object lockObject = new object();
+
+        private BeaconConfiguration(
+            IOpenKitConfiguration openKitConfiguration,
+            IPrivacyConfiguration privacyConfiguration,
+            int serverId)
         {
+            OpenKitConfiguration = openKitConfiguration;
+            PrivacyConfiguration = privacyConfiguration;
+            HttpClientConfiguration = Configuration.HttpClientConfiguration.ModifyWith(openKitConfiguration)
+                .WithServerId(serverId)
+                .Build();
+            serverConfiguration = null;
         }
 
-        public BeaconConfiguration(int multiplicity)
+        /// <summary>
+        /// Creates a <see cref="IBeaconConfiguration"/> from the given <see cref="IOpenKitConfiguration"/> and
+        /// <see cref="IPrivacyConfiguration"/>.
+        /// </summary>
+        /// <param name="openKitConfiguration">OpenKit configuration.</param>
+        /// <param name="privacyConfiguration">privacy related settings.</param>
+        /// <param name="serverId">identifier of the server to communicate with.</param>
+        /// <returns></returns>
+        public static IBeaconConfiguration From(
+            IOpenKitConfiguration openKitConfiguration,
+            IPrivacyConfiguration privacyConfiguration,
+            int serverId)
         {
-            Multiplicity = multiplicity;
+            if (openKitConfiguration == null || privacyConfiguration == null)
+            {
+                return null;
+            }
+            return new BeaconConfiguration(openKitConfiguration, privacyConfiguration, serverId);
         }
 
-        public int Multiplicity { get; }
+        /// <summary>
+        /// OpenKit related configuration that has been configured in the <see cref="IOpenKitBuilder"/>.
+        /// </summary>
+        public IOpenKitConfiguration OpenKitConfiguration { get; }
 
-        public bool CapturingAllowed => Multiplicity > 0;
+        /// <summary>
+        /// Privacy configuration that has been configured in the <see cref="IOpenKitBuilder"/>.
+        /// </summary>
+        public IPrivacyConfiguration PrivacyConfiguration { get; }
+
+        /// <summary>
+        /// Returns configuration for HTTP related data.
+        /// </summary>
+        public IHttpClientConfiguration HttpClientConfiguration { get; }
+
+        /// <summary>
+        /// Returns the sever configuration that was set before.
+        ///
+        /// <para>
+        /// If no server configuration was set the
+        /// <see cref="Dynatrace.OpenKit.Core.Configuration.ServerConfiguration.Default">default configuration</see> is
+        /// returned.
+        /// </para>
+        /// </summary>
+        public IServerConfiguration ServerConfiguration
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return serverConfiguration ?? Configuration.ServerConfiguration.Default;
+                }
+            }
+        }
+
+        void IBeaconConfiguration.UpdateServerConfiguration(IServerConfiguration newServerConfiguration)
+        {
+            if (newServerConfiguration == null)
+            {
+                return;
+            }
+
+            lock (lockObject)
+            {
+                if (serverConfiguration == null)
+                {
+                    // no server configuration was set so far so just take the new one.
+                    serverConfiguration = newServerConfiguration;
+                }
+                else
+                {
+                    serverConfiguration = serverConfiguration.Merge(newServerConfiguration);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Enables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// </summary>
+        public void EnableCapture()
+        {
+            UpdateCaptureWith(true);
+        }
+
+        /// <summary>
+        /// Disables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// </summary>
+        public void DisableCapture()
+        {
+            UpdateCaptureWith(false);
+        }
+
+        /// <summary>
+        /// Enables/disables capture according to the given <paramref name="captureState">state</paramref>.
+        /// </summary>
+        /// <param name="captureState">the state to which capture will be set.</param>
+        private void UpdateCaptureWith(bool captureState)
+        {
+            lock (lockObject)
+            {
+                var currentServerConfig = ServerConfiguration;
+                serverConfiguration = new ServerConfiguration.Builder(currentServerConfig)
+                    .WithCapture(captureState)
+                    .Build();
+            }
+        }
+
+        /// <summary>
+        /// Indicates whether the server configuration has been set before or not.
+        /// </summary>
+        public bool IsServerConfigurationSet
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return serverConfiguration != null;
+                }
+            }
+        }
     }
 }

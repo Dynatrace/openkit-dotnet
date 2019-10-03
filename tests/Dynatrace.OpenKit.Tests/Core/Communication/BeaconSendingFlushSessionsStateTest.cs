@@ -22,71 +22,44 @@ using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingFlushSessionsStateTest
     {
-        private List<SessionWrapper> newSessions;
-        private List<SessionWrapper> openSessions;
-        private List<SessionWrapper> finishedSessions;
-        private ITimingProvider timingProvider;
-        private IHttpClient httpClient;
-        private IBeaconSendingContext context;
-        private IHttpClientProvider httpClientProvider;
-        private BeaconSender beaconSender;
-
-        private IOpenKitComposite mockParent;
+        private IBeaconSendingContext mockContext;
+        private ISessionInternals mockSession1Open;
+        private ISessionInternals mockSession2Open;
+        private ISessionInternals mockSession3Closed;
 
         [SetUp]
         public void Setup()
         {
-            httpClient = Substitute.For<IHttpClient>();
-            newSessions = new List<SessionWrapper>();
-            openSessions = new List<SessionWrapper>();
-            finishedSessions = new List<SessionWrapper>();
+            var mockResponse = Substitute.For<IStatusResponse>();
+            mockResponse.ResponseCode.Returns(Response.HttpOk);
 
-            // provider
-            timingProvider = Substitute.For<ITimingProvider>();
-            httpClientProvider = Substitute.For<IHttpClientProvider>();
-            httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(x => httpClient);
+            mockSession1Open = Substitute.For<ISessionInternals>();
+            mockSession1Open.IsDataSendingAllowed.Returns(true);
+            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(mockResponse);
 
-            // context
-            context = Substitute.For<IBeaconSendingContext>();
-            context.GetHttpClient().Returns(httpClient);
-            context.HttpClientProvider.Returns(httpClientProvider);
+            mockSession2Open = Substitute.For<ISessionInternals>();
+            mockSession2Open.IsDataSendingAllowed.Returns(true);
+            mockSession2Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(mockResponse);
 
-            // beacon sender
-            var logger = Substitute.For<ILogger>();
-            beaconSender = new BeaconSender(logger, context);
+            mockSession3Closed = Substitute.For<ISessionInternals>();
+            mockSession3Closed.IsDataSendingAllowed.Returns(true);
+            mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(mockResponse);
 
-            // sessions
-            context.NewSessions.Returns(newSessions);
-            context.OpenAndConfiguredSessions.Returns(openSessions);
-            context.FinishedAndConfiguredSessions.Returns(finishedSessions);
-
-            mockParent = Substitute.For<IOpenKitComposite>();
-        }
-
-        [Test]
-        public void StateIsNotTerminal()
-        {
-            // when
-            var target = new BeaconSendingFlushSessionsState();
-
-            // then
-            Assert.That(target.IsTerminalState, Is.False);
-        }
-
-        [Test]
-        public void ShutdownStateIsTerminalState()
-        {
-            // when
-            var target = new BeaconSendingFlushSessionsState();
-
-            // then
-            Assert.That(target.ShutdownState, Is.InstanceOf(typeof(BeaconSendingTerminalState)));
+            var mockHttpClient = Substitute.For<IHttpClient>();
+            mockContext = Substitute.For<IBeaconSendingContext>();
+            mockContext.GetHttpClient().Returns(mockHttpClient);
+            mockContext.NewSessions.Returns(new List<ISessionInternals>());
+            mockContext.OpenAndConfiguredSessions.Returns(new List<ISessionInternals>
+                {mockSession1Open, mockSession2Open});
+            mockContext.FinishedAndConfiguredSessions.Returns(new List<ISessionInternals>
+                {mockSession3Closed, mockSession2Open, mockSession1Open});
         }
 
         [Test]
@@ -100,41 +73,37 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void ABeaconSendingFlushSessionStateIsNotATerminalState()
+        {
+            // when
+            var target = new BeaconSendingFlushSessionsState();
+
+            // then
+            Assert.That(target.IsTerminalState, Is.False);
+        }
+
+        [Test]
+        public void ABeaconSendingFlushSessionStateHasTerminalStateBeaconSendingTerminalState()
+        {
+            // when
+            var target = new BeaconSendingFlushSessionsState();
+
+            // then
+            Assert.That(target.ShutdownState, Is.InstanceOf(typeof(BeaconSendingTerminalState)));
+        }
+
+
+        [Test]
         public void ABeaconSendingFlushSessionsStateTransitionsToTerminalStateWhenDataIsSent()
         {
             // given
             var target = new BeaconSendingFlushSessionsState();
 
             // when
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then verify transition to terminal state
-            context.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>();
-        }
-
-        [Test]
-        public void ABeaconSendingFlushSessionsStateConfiguresAllNotConfiguredSessions()
-        {
-            // given
-            var target = new BeaconSendingFlushSessionsState();
-
-            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
-            var sessionThree = new SessionWrapper(CreateValidSession("127.0.0.2"));
-            // end one session to demonstrate that those which are already ended are also configured
-            sessionThree.End();
-            newSessions.AddRange(new[] { sessionOne, sessionTwo, sessionThree });
-
-            // when
-            target.Execute(context);
-
-            // verify that all three sessions are configured
-            Assert.That(sessionOne.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionOne.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
-            Assert.That(sessionTwo.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionTwo.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
-            Assert.That(sessionThree.IsBeaconConfigurationSet, Is.True);
-            Assert.That(sessionThree.BeaconConfiguration.Multiplicity, Is.EqualTo(1));
+            mockContext.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>();
         }
 
         [Test]
@@ -143,31 +112,90 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var target = new BeaconSendingFlushSessionsState();
 
-            var sessionOne = new SessionWrapper(CreateValidSession("127.0.0.1"));
-            sessionOne.UpdateBeaconConfiguration(new BeaconConfiguration(1));
-            var sessionTwo = new SessionWrapper(CreateValidSession("127.0.0.2"));
-            sessionTwo.UpdateBeaconConfiguration(new BeaconConfiguration(1));
+            // when
+            target.Execute(mockContext);
 
-            openSessions.AddRange(new[] { sessionOne, sessionTwo });
+            // then
+            mockSession1Open.Received(1).End();
+            mockSession2Open.Received(1).End();
+        }
+
+        [Test]
+        public void ABeaconSendingFlushSessionStateSendsAllOpenAndClosedBeacons()
+        {
+            // given
+            var target = new BeaconSendingFlushSessionsState();
 
             // when
-            target.Execute(context);
+            target.Execute(mockContext);
 
-            // verify that open sessions are closed
-            context.Received(1).FinishSession(sessionOne.Session);
-            context.Received(1).FinishSession(sessionTwo.Session);
+            // then
+            mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Closed.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
         }
 
-        private Session CreateValidSession(string clientIp)
+        [Test]
+        public void ABeaconSendingFlushSessionStateDoesNotSendIfSendingIsNotAllowed()
         {
-            var logger = Substitute.For<ILogger>();
-            var session = new Session(logger, mockParent, beaconSender, new Beacon(logger, new BeaconCache(logger),
-                new TestConfiguration(), clientIp, Substitute.For<IThreadIdProvider>(), timingProvider));
+            // given
+            var target = new BeaconSendingFlushSessionsState();
+            mockSession1Open.IsDataSendingAllowed.Returns(false);
+            mockSession2Open.IsDataSendingAllowed.Returns(false);
+            mockSession3Closed.IsDataSendingAllowed.Returns(false);
 
-            session.EnterAction("Foo").LeaveAction();
+            // when
+            target.Execute(mockContext);
 
-            return session;
+            // then
+            mockSession1Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession1Open.Received(1).ClearCapturedData();
+
+            mockSession2Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(1).ClearCapturedData();
+
+            mockSession3Closed.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Closed.Received(1).ClearCapturedData();
         }
 
+        [Test]
+        public void ABeaconSendingFlushSessionStateStopsSendingIfTooManyRequestsResponseWasReceived()
+        {
+            // given
+            var target = new BeaconSendingFlushSessionsState();
+
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseCode.Returns(Response.HttpTooManyRequests);
+            response.IsErroneousResponse.Returns(true);
+            mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(response);
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockSession3Closed.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Closed.Received(1).ClearCapturedData();
+
+            mockSession1Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession1Open.Received(1).ClearCapturedData();
+
+            mockSession2Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(1).ClearCapturedData();
+        }
+
+        [Test]
+        public void ABeaconSendingFlushSessionStateEnablesCaptureForNewSessions()
+        {
+            // given
+            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession1Open, mockSession2Open});
+            var target = new BeaconSendingFlushSessionsState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockSession1Open.Received(1).EnableCapture();
+            mockSession2Open.Received(1).EnableCapture();
+        }
     }
 }

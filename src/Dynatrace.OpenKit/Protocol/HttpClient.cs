@@ -96,24 +96,24 @@ namespace Dynatrace.OpenKit.Protocol
         public int ServerId { get; }
 
         // sends a status check request and returns a status response
-        public StatusResponse SendStatusRequest()
+        public IStatusResponse SendStatusRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.Status, monitorUrl, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+            return (IStatusResponse)SendRequest(RequestType.Status, monitorUrl, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // sends a beacon send request and returns a status response
-        public StatusResponse SendBeaconRequest(string clientIpAddress, byte[] data)
+        public IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data)
         {
-            return (StatusResponse)SendRequest(RequestType.Beacon, monitorUrl, clientIpAddress, data, "POST") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+            return (IStatusResponse)SendRequest(RequestType.Beacon, monitorUrl, clientIpAddress, data, "POST") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
-        public StatusResponse SendNewSessionRequest()
+        public IStatusResponse SendNewSessionRequest()
         {
-            return (StatusResponse)SendRequest(RequestType.NewSession, newSessionUrl, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
+            return (IStatusResponse)SendRequest(RequestType.NewSession, newSessionUrl, null, null, "GET") ?? new StatusResponse(logger, string.Empty, int.MaxValue, new Dictionary<string, List<string>>());
         }
 
         // generic request send with some verbose output and exception handling
-        protected Response SendRequest(RequestType requestType, string url, string clientIpAddress, byte[] data, string method)
+        protected IResponse SendRequest(RequestType requestType, string url, string clientIpAddress, byte[] data, string method)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         // generic internal request send
-        protected Response SendRequestInternal(RequestType requestType, string url, string clientIpAddress, byte[] data, string method)
+        protected IResponse SendRequestInternal(RequestType requestType, string url, string clientIpAddress, byte[] data, string method)
         {
             int retry = 1;
             while (true)
@@ -200,7 +200,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        private Response ParseStatusResponse(HttpResponse httpResponse)
+        private IResponse ParseStatusResponse(HttpResponse httpResponse)
         {
             if (IsStatusResponse(httpResponse))
             {
@@ -278,7 +278,7 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        private Response UnknownErrorResponse(RequestType requestType)
+        private IResponse UnknownErrorResponse(RequestType requestType)
         {
             if (requestType == null)
             {

@@ -57,19 +57,14 @@ namespace Dynatrace.OpenKit.Protocol
         long CurrentTimestamp { get; }
 
         /// <summary>
-        /// Gets or sets the <see cref="IBeaconConfiguration"/>.
-        /// </summary>
-        IBeaconConfiguration BeaconConfiguration { get; set; }
-
-        /// <summary>
-        /// Returns the currently configurede multiplicity.
-        /// </summary>
-        int Multiplicity { get; }
-
-        /// <summary>
         /// Indicates whether capturing is currently enabled or not.
         /// </summary>
-        bool CapturingDisabled { get; }
+        bool IsCaptureEnabled { get; }
+
+        /// <summary>
+        /// Indicates whether a server configuration is set on this beacon or not.
+        /// </summary>
+        bool IsServerConfigurationSet { get; }
 
         #endregion
 
@@ -105,8 +100,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Ends the given session on this beacon
         /// </summary>
-        /// <param name="session">the session to be ended.</param>
-        void EndSession(ISessionInternals session);
+        void EndSession();
 
         /// <summary>
         /// Reports the given integer value on the action belonging to the given ID.
@@ -206,12 +200,37 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         /// <param name="httpClientProvider">provider of the HTTP client to which to send the serialized beacon data.</param>
         /// <returns>the response of the sent beacon.</returns>
-        StatusResponse Send(IHttpClientProvider httpClientProvider);
+        IStatusResponse Send(IHttpClientProvider httpClientProvider);
 
         /// <summary>
         /// Clears all event/action data of this beacon.
         /// </summary>
         void ClearData();
+
+        /// <summary>
+        /// Updates this beacon with the given <see cref="IServerConfiguration"/>
+        /// </summary>
+        /// <param name="serverConfiguration">the server configuration which will be used to update this beacon.</param>
+        void UpdateServerConfiguration(IServerConfiguration serverConfiguration);
+
+        /// <summary>
+        /// Enables capturing for this beacon.
+        ///
+        /// <para>
+        ///     This will implicitly cause <see cref="IsServerConfigurationSet"/> to return <code>true</code>.
+        /// </para>
+        /// </summary>
+        void EnableCapture();
+
+
+        /// <summary>
+        /// Disables capturing for this session.
+        ///
+        /// <para>
+        ///     This will implicitly cause <see cref="IsServerConfigurationSet"/> to return <code>true</code>.
+        /// </para>
+        /// </summary>
+        void DisableCapture();
 
         #endregion
     }

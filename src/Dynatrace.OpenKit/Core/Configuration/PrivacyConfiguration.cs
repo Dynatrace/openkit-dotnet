@@ -21,20 +21,27 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class PrivacyConfiguration : IPrivacyConfiguration
     {
-        /// <summary>
-        /// Default data collection level used if no other value was specified
-        /// </summary>
-        public const DataCollectionLevel DefaultDataCollectionLevel = DataCollectionLevel.USER_BEHAVIOR;
-
-        /// <summary>
-        /// Default crash reporting level used if no other value was specified.
-        /// </summary>
-        public const CrashReportingLevel DefaultCrashReportingLevel = CrashReportingLevel.OPT_IN_CRASHES;
-
-        public PrivacyConfiguration(DataCollectionLevel dataCollectionLevel, CrashReportingLevel crashReportingLevel)
+        private PrivacyConfiguration(IOpenKitBuilder builder)
         {
-            DataCollectionLevel = dataCollectionLevel;
-            CrashReportingLevel = crashReportingLevel;
+            DataCollectionLevel = builder.DataCollectionLevel;
+            CrashReportingLevel = builder.CrashReportingLevel;
+        }
+
+        /// <summary>
+        /// Create a <see cref="IPrivacyConfiguration"/> from the given <see cref="IOpenKitBuilder"/>.
+        /// </summary>
+        /// <param name="builder">the OpenKit builder for which to create a <see cref="IPrivacyConfiguration"/>.</param>
+        /// <returns>
+        ///     the newly created <see cref="IPrivacyConfiguration"/> or <code>null</code> if the given
+        ///     <see cref="builder"/> is <code>null</code>.
+        /// </returns>
+        public static IPrivacyConfiguration From(IOpenKitBuilder builder)
+        {
+            if (builder == null)
+            {
+                return null;
+            }
+            return new PrivacyConfiguration(builder);
         }
 
         public DataCollectionLevel DataCollectionLevel { get; }

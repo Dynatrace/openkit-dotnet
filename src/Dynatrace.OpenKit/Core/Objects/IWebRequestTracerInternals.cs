@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// more easily testable.
     /// </para>
     /// </summary>
-    internal interface IWebRequestTracerInternals : IWebRequestTracer
+    internal interface IWebRequestTracerInternals : IWebRequestTracer, IOpenKitObject
     {
         /// <summary>
         /// Returns the URL to be traced (excluding query arguments)
@@ -73,5 +73,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// or not.
         /// </summary>
         bool IsStopped { get; }
+
+        /// <summary>
+        /// Parent object of this web request tracer
+        /// </summary>
+        IOpenKitComposite Parent { get; }
     }
 }

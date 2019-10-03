@@ -65,6 +65,7 @@ namespace Dynatrace.OpenKit.API
         ///  Defines the version of the application.
         /// </summary>
         /// <param name="value">application version</param>
+        [Obsolete("Use OpenKitBuilder to set ApplicationVersion")]
         string ApplicationVersion { set; }
 
         /// <summary>

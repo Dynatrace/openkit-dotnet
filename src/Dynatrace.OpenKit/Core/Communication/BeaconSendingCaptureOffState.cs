@@ -33,21 +33,16 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Number of retries for the status request
         /// </summary>
-        public const int STATUS_REQUEST_RETRIES = 5;
+        private const int StatusRequestRetries = 5;
         /// <summary>
         /// Initial sleep time for retries in milliseconds
         /// </summary>
-        public const int INITIAL_RETRY_SLEEP_TIME_MILLISECONDS = 1000;
+        private const int InitialRetrySleepTimeMilliseconds = 1000;
 
         /// <summary>
         ///  Time period for re-execute of status check
         /// </summary>
-        public const int STATUS_CHECK_INTERVAL = 2 * 60 * 60 * 1000;    // wait 2h (in ms) for next status request
-
-        /// <summary>
-        /// Sleep time in milliseconds.
-        /// </summary>
-        internal readonly int sleepTimeInMilliseconds;
+        internal const int StatusCheckInterval = 2 * 60 * 60 * 1000;    // wait 2h (in ms) for next status request
 
         /// <summary>
         /// Create CaptureOff state with default sleep behavior.
@@ -61,20 +56,25 @@ namespace Dynatrace.OpenKit.Core.Communication
         public BeaconSendingCaptureOffState(int sleepTimeInMilliseconds)
             : base(false)
         {
-            this.sleepTimeInMilliseconds = sleepTimeInMilliseconds;
+            SleepTimeInMilliseconds = sleepTimeInMilliseconds;
         }
+
+        /// <summary>
+        /// Sleep time in milliseconds
+        /// </summary>
+        internal int SleepTimeInMilliseconds { get; }
 
         internal override AbstractBeaconSendingState ShutdownState => new BeaconSendingFlushSessionsState();
 
         protected override void DoExecute(IBeaconSendingContext context)
         {
-            context.DisableCapture();
+            context.DisableCaptureAndClear();
 
             var currentTime = context.CurrentTimestamp;
 
-            var delta = sleepTimeInMilliseconds > 0
-                ? sleepTimeInMilliseconds
-                : (int)(STATUS_CHECK_INTERVAL - (currentTime - context.LastStatusCheckTime));
+            var delta = SleepTimeInMilliseconds > 0
+                ? SleepTimeInMilliseconds
+                : (int)(StatusCheckInterval - (currentTime - context.LastStatusCheckTime));
             if (delta > 0 && !context.IsShutdownRequested)
             {
                 // still have some time to sleep
@@ -82,7 +82,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
 
             // send the status request
-            var statusResponse = BeaconSendingRequestUtil.SendStatusRequest(context, STATUS_REQUEST_RETRIES, INITIAL_RETRY_SLEEP_TIME_MILLISECONDS);
+            var statusResponse = BeaconSendingRequestUtil.SendStatusRequest(context, StatusRequestRetries, InitialRetrySleepTimeMilliseconds);
 
             // process the response
             HandleStatusResponse(context, statusResponse);
@@ -91,7 +91,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             context.LastStatusCheckTime = currentTime;
         }
 
-        private static void HandleStatusResponse(IBeaconSendingContext context, StatusResponse statusResponse)
+        private static void HandleStatusResponse(IBeaconSendingContext context, IStatusResponse statusResponse)
         {
             if (statusResponse != null)
             {

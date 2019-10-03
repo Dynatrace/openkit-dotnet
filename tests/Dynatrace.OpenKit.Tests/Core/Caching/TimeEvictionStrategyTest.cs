@@ -44,8 +44,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheInitialLastRunTimestampIsMinusOne()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(-1L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(-1L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.LastRunTimestamp, Is.EqualTo(-1L));
@@ -55,45 +55,54 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void TheStrategyIsDisabledIfBeaconMaxAgeIsSetToLessThanZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(-1L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(-1L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
+            Assert.That(mockLogger.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+            Assert.That(mockTimingProvider.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void TheStrategyIsDisabledIfBeaconMaxAgeIsSetToZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(0L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(0L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.True);
+            Assert.That(mockLogger.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+            Assert.That(mockTimingProvider.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void TheStrategyIsNotDisabledIfMaxRecordAgeIsGreaterThanZero()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             // then
             Assert.That(target.IsStrategyDisabled, Is.False);
+            Assert.That(mockLogger.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+            Assert.That(mockTimingProvider.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
         public void ShouldRunGivesFalseIfLastRunIsLessThanMaxAgeMillisecondsAgo()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc)
-            {
-                LastRunTimestamp = 1000
-            };
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(target.LastRunTimestamp + configuration.MaxRecordAge - 1);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
+            target.LastRunTimestamp = 1000;
+
+            mockTimingProvider.ProvideTimestampInMilliseconds()
+                .Returns(target.LastRunTimestamp + configuration.MaxRecordAge - 1);
 
             // then
             Assert.That(target.ShouldRun, Is.False);
@@ -103,12 +112,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ShouldRunGivesTrueIfLastRunIsExactlyMaxAgeMillisecondsAgo()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc)
-            {
-                LastRunTimestamp = 1000
-            };
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(target.LastRunTimestamp + configuration.MaxRecordAge);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
+            target.LastRunTimestamp = 1000;
+
+            mockTimingProvider.ProvideTimestampInMilliseconds()
+                .Returns(target.LastRunTimestamp + configuration.MaxRecordAge);
 
             // then
             Assert.That(target.ShouldRun, Is.True);
@@ -118,12 +127,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ShouldRunGivesTrueIfLastRunIsMoreThanMaxAgeMillisecondsAgo()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc)
-            {
-                LastRunTimestamp = 1000
-            };
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(target.LastRunTimestamp + configuration.MaxRecordAge + 1);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
+            target.LastRunTimestamp = 1000;
+
+            mockTimingProvider.ProvideTimestampInMilliseconds()
+                .Returns(target.LastRunTimestamp + configuration.MaxRecordAge + 1);
 
             // then
             Assert.That(target.ShouldRun, Is.True);
@@ -133,8 +142,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionLogsAMessageOnceAndReturnsIfStrategyIsDisabled()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(0L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(0L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockLogger.IsInfoEnabled.Returns(true);
 
@@ -160,8 +169,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionDoesNotLogIfStrategyIsDisabledAndInfoIsDisabledInLogger()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(0L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(0L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockLogger.IsInfoEnabled.Returns(false);
 
@@ -186,8 +195,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void LastRuntimeStampIsAdjustedDuringFirstExecution()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 1001L);
 
@@ -210,8 +219,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionStopsIfNoBeaconIdsAreAvailableInCache()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2000L);
             mockBeaconCache.BeaconIDs.Returns(new HashSet<int>());
@@ -233,8 +242,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
 
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
             mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 1, 42 });
@@ -256,8 +265,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ExecuteEvictionLogsTheNumberOfRecordsRemoved()
         {
             // given
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, isShutdownFunc);
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
 
@@ -281,8 +290,9 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var shutdown = false;
-            var configuration = new BeaconCacheConfiguration(1000L, 1000L, 2000L);
-            var target = new TimeEvictionStrategy(mockLogger, mockBeaconCache, configuration, mockTimingProvider, () => shutdown);
+            isShutdownFunc = () => shutdown;
+            var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
+            var target = CreateTimeEvictionStrategyWith(configuration);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
 
@@ -300,6 +310,28 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then verify interactions
             _ = mockBeaconCache.Received(1).BeaconIDs;
             mockBeaconCache.Received(1).EvictRecordsByAge(Arg.Any<int>(), 2099L - configuration.MaxRecordAge);
+        }
+
+        private TimeEvictionStrategy CreateTimeEvictionStrategyWith(IBeaconCacheConfiguration config)
+        {
+            return new TimeEvictionStrategy(
+                mockLogger,
+                mockBeaconCache,
+                config,
+                mockTimingProvider,
+                isShutdownFunc
+            );
+        }
+
+        private IBeaconCacheConfiguration MockBeaconCacheConfig(long maxRecordAge, long lowerSizeBound, long upperSizeBound)
+        {
+            var builder = Substitute.For<IOpenKitBuilder>();
+            builder.BeaconCacheMaxBeaconAge.Returns(maxRecordAge);
+            builder.BeaconCacheLowerMemoryBoundary.Returns(lowerSizeBound);
+            builder.BeaconCacheUpperMemoryBoundary.Returns(upperSizeBound);
+
+            var config = BeaconCacheConfiguration.From(builder);
+            return config;
         }
     }
 }

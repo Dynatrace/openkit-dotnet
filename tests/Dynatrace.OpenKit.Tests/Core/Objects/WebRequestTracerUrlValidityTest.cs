@@ -14,10 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.Protocol;
-using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -25,22 +21,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 {
     public class WebRequestTracerUrlValidityTest
     {
-        private Beacon beacon;
-        private ILogger logger;
-
-        [SetUp]
-        public void SetUp()
-        {
-            logger = Substitute.For<ILogger>();
-            beacon = new Beacon(logger,
-                                new BeaconCache(logger),
-                                new TestConfiguration(),
-                                "127.0.0.1",
-                                Substitute.For<IThreadIdProvider>(),
-                                Substitute.For<ITimingProvider>());
-        }
-
-        [Test]
+       [Test]
         public void NullIsNotAValidUrlScheme()
         {
             // then
@@ -92,7 +73,9 @@ namespace Dynatrace.OpenKit.Core.Objects
             var parent = Substitute.For<OpenKitComposite>();
             parent.ActionId.Returns(21);
 
-            var target = new WebRequestTracer(logger, parent, beacon, "a1337://foo");
+            var target = CreateWebRequestTracer()
+                .WithUrl("a1337://foo")
+                .Build();
 
             // then
             Assert.That(target.Url, Is.EqualTo("a1337://foo"));
@@ -105,10 +88,44 @@ namespace Dynatrace.OpenKit.Core.Objects
             var parent = Substitute.For<OpenKitComposite>();
             parent.ActionId.Returns(42);
 
-            var target = new WebRequestTracer(logger, parent, beacon, "foobar");
+            var target = CreateWebRequestTracer()
+                .WithUrl("foobar")
+                .Build();
 
             // then
             Assert.That(target.Url, Is.EqualTo("<unknown>"));
+        }
+
+        [Test]
+        public void UrlStoredDoesNotContainRequestParameters()
+        {
+            // given
+            var target = CreateWebRequestTracer()
+                .WithUrl("https://www.google.com/foo/bar?foo=bar&asdf=jklo")
+                .Build();
+
+            // then
+            Assert.That(target.Url, Is.EqualTo("https://www.google.com/foo/bar"));
+        }
+
+        [Test]
+        public void ANewlyCreatedWebRequestTracerDoesNotAttachToTheParent()
+        {
+            // given
+            var mockParent = Substitute.For<IOpenKitComposite>();
+            var target = CreateWebRequestTracer()
+                .With(mockParent)
+                .WithUrl("https://www.google.com/")
+                .Build();
+
+            // then
+            Assert.That(target.Parent, Is.SameAs(mockParent));
+            _ = mockParent.Received(1).ActionId;
+        }
+
+        private TestWebRequestTracerBuilder CreateWebRequestTracer()
+        {
+            return new TestWebRequestTracerBuilder();
         }
     }
 }

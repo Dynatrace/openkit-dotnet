@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
@@ -24,54 +23,33 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingCaptureOffStateTest
     {
-        private long currentTime = 0;
-        private long lastStatusCheckTime = -1;
-
-        private ILogger logger;
-        private IHttpClient httpClient;
-        private IBeaconSendingContext context;
-
+        private ILogger mockLogger;
+        private IHttpClient mockHttpClient;
+        private IBeaconSendingContext mockContext;
 
         [SetUp]
         public void Setup()
         {
-            currentTime = 0;
-            lastStatusCheckTime = -1;
+            mockLogger = Substitute.For<ILogger>();
+            var mockResponse = Substitute.For<IStatusResponse>();
+            mockResponse.ResponseCode.Returns(Response.HttpOk);
+            mockResponse.IsErroneousResponse.Returns(false);
 
-            logger = Substitute.For<ILogger>();
-            httpClient = Substitute.For<IHttpClient>();
-            context = Substitute.For<IBeaconSendingContext>();
-            context.GetHttpClient().Returns(httpClient);
+            mockHttpClient = Substitute.For<IHttpClient>();
+            mockHttpClient.SendStatusRequest().Returns(mockResponse);
 
-            // default return success
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
-
-            // current time getter
-            context.CurrentTimestamp.Returns(x => ++currentTime);
-
-            // last time sync getter + setter
-            context.LastStatusCheckTime = Arg.Do<long>(x => lastStatusCheckTime = x);
-            context.LastStatusCheckTime = lastStatusCheckTime; // init with -1
+            mockContext = Substitute.For<IBeaconSendingContext>();
+            mockContext.GetHttpClient().Returns(mockHttpClient);
         }
 
         [Test]
-        public void StateIsNotTerminal()
+        public void ABeaconSendingCaptureOffStateIsNotATerminalState()
         {
             // when
             var target = new BeaconSendingCaptureOffState();
 
             // then
             Assert.That(target.IsTerminalState, Is.False);
-        }
-
-        [Test]
-        public void ShutdownStateIsFlushState()
-        {
-            // when
-            var target = new BeaconSendingCaptureOffState();
-
-            // then
-            Assert.That(target.ShutdownState, Is.InstanceOf(typeof(BeaconSendingFlushSessionsState)));
         }
 
         [Test]
@@ -85,93 +63,45 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void TransitionToCaptureOnStateIsPerformed()
+        public void ABeaconSendingCaptureOffStateHasTerminalStateBeaconSendingFlushSessions()
         {
-            // given
-            context.IsCaptureOn.Returns(true);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
-
             // when
             var target = new BeaconSendingCaptureOffState();
-            target.Execute(context);
 
             // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingCaptureOnState>();
+            Assert.That(target.ShutdownState, Is.InstanceOf(typeof(BeaconSendingFlushSessionsState)));
         }
 
-        [Test]
-        public void TransitionToFlushStateIsPerformedOnShutdown()
-        {
-            // given
-            context.IsShutdownRequested.Returns(true);
-
-            // when
-            var target = new BeaconSendingCaptureOffState();
-            target.Execute(context);
-
-            // then
-            context.Received(1).NextState = Arg.Any<BeaconSendingFlushSessionsState>();
-        }
 
         [Test]
-        public void StatusRequestIsRetried()
+        public void ABeaconSendingCaptureOffStateTransitionsToCaptureOnStateWhenCapturingActive()
         {
             // given
-            httpClient.SendStatusRequest().Returns((StatusResponse)null); // always return null
+            var target = new BeaconSendingCaptureOffState();
+            mockContext.IsCaptureOn.Returns(true);
 
             // when
-            var target = new BeaconSendingCaptureOffState();
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then
-            httpClient.Received(6).SendStatusRequest();
-        }
-
-        [Test]
-        public void SleepIsCalledOnEntry()
-        {
-            // given
-            context.CurrentTimestamp.Returns(0);
-            context.LastStatusCheckTime.Returns(0);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
-
-            // when
-            var target = new BeaconSendingCaptureOffState();
-            target.Execute(context);
-
-            // then
-            context.Received(1).Sleep(BeaconSendingCaptureOffState.STATUS_CHECK_INTERVAL);
-        }
-
-        [Test]
-        public void SleepIsNotCalledIfShutdownIsRequested()
-        {
-            // given
-            context.IsShutdownRequested.Returns(true);
-            context.CurrentTimestamp.Returns(0);
-            context.LastStatusCheckTime.Returns(0);
-            httpClient.SendStatusRequest().Returns(new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()));
-
-            // when
-            var target = new BeaconSendingCaptureOffState();
-            target.Execute(context);
-
-            // then
-            context.DidNotReceive().Sleep(Arg.Any<int>());
+            mockContext.Received(1).DisableCaptureAndClear();
+            mockContext.Received(1).LastStatusCheckTime = Arg.Any<long>();
+            mockContext.Received(1).NextState = Arg.Any<BeaconSendingCaptureOnState>();
         }
 
         [Test]
         public void ABeaconSendingCaptureOffStateWaitsForGivenTime()
         {
             //given
-            var target = new BeaconSendingCaptureOffState(12345);
-            context.IsCaptureOn.Returns(true);
+            const int sleepTime = 12345;
+            var target = new BeaconSendingCaptureOffState(sleepTime);
+            mockContext.IsCaptureOn.Returns(true);
 
-            // when calling execute
-            target.Execute(context);
+            // when
+            target.Execute(mockContext);
 
-            // then verify the custom amount of time was waited
-            context.Received(1).Sleep(12345);
+            // then
+            mockContext.Received(1).Sleep(sleepTime);
         }
 
         [Test]
@@ -179,24 +109,81 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             //given
             var target = new BeaconSendingCaptureOffState(12345);
-            var responseHeaders = new Dictionary<string, List<string>>
-            {
-                { Response.ResponseKeyRetryAfter, new List<string> { "1234" } }
-            };
-            var tooManyRequestsResponse = new StatusResponse(logger, string.Empty, Response.HttpTooManyRequests, responseHeaders);
-            httpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
-            context.IsCaptureOn.Returns(false);
+
+            const int retryTimeout = 1234;
+            var tooManyRequestsResponse = Substitute.For<IStatusResponse>();
+            tooManyRequestsResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            tooManyRequestsResponse.IsErroneousResponse.Returns(true);
+            tooManyRequestsResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
+
+            mockHttpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
+            mockContext.IsCaptureOn.Returns(false);
 
             AbstractBeaconSendingState capturedState = null;
-            context.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
+            mockContext.NextState = Arg.Do<AbstractBeaconSendingState>(x => capturedState = x);
 
             // when calling execute
-            target.Execute(context);
+            target.Execute(mockContext);
 
             // then verify next state
             Assert.That(capturedState, Is.Not.Null);
             Assert.That(capturedState, Is.InstanceOf<BeaconSendingCaptureOffState>());
-            Assert.That(((BeaconSendingCaptureOffState)capturedState).sleepTimeInMilliseconds, Is.EqualTo(1234 * 1000));
+            Assert.That(((BeaconSendingCaptureOffState)capturedState).SleepTimeInMilliseconds, Is.EqualTo(retryTimeout));
+        }
+
+        [Test]
+        public void TransitionToFlushStateIsPerformedOnShutdown()
+        {
+            // given
+            mockContext.IsShutdownRequested.Returns(true);
+            var target = new BeaconSendingCaptureOffState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockContext.Received(1).NextState = Arg.Any<BeaconSendingFlushSessionsState>();
+        }
+
+        [Test]
+        public void StatusRequestIsRetried()
+        {
+            // given
+            mockHttpClient.SendStatusRequest().Returns((StatusResponse)null); // always return null
+            var target = new BeaconSendingCaptureOffState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockHttpClient.Received(6).SendStatusRequest();
+        }
+
+        [Test]
+        public void SleepIsCalledOnEntry()
+        {
+            // given
+            var target = new BeaconSendingCaptureOffState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockContext.Received(1).Sleep(BeaconSendingCaptureOffState.StatusCheckInterval);
+        }
+
+        [Test]
+        public void SleepIsNotCalledIfShutdownIsRequested()
+        {
+            // given
+            mockContext.IsShutdownRequested.Returns(true);
+            var target = new BeaconSendingCaptureOffState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockContext.DidNotReceive().Sleep(Arg.Any<int>());
         }
     }
 }

@@ -28,45 +28,47 @@ namespace Dynatrace.OpenKit.Core.Objects
     internal class Session : OpenKitComposite, ISessionInternals
     {
         /// <summary>
+        /// The maximum number of "new session requests" to send per session.
+        /// </summary>
+        internal const int MaxNewSessionRequests = 4;
+
+        /// <summary>
         /// <see cref="ILogger"/> for tracing log messages.
         /// </summary>
         private readonly ILogger logger;
-
-        /// <summary>
-        /// Object for synchronization.
-        /// </summary>
-        private readonly object lockObject = new object();
 
         /// <summary>
         /// Parent object of this session.
         /// </summary>
         private readonly IOpenKitComposite parent;
 
-        // end time of this Session
-        private long endTime = -1;
+        /// <summary>
+        /// Beacon reference.
+        /// </summary>
+        private readonly IBeacon beacon;
 
         /// <summary>
-        /// Indicates whether this session has already been ended or not.
+        /// Current state of the session (also used for synchronization).
         /// </summary>
-        private bool isSessionEnded;
+        private readonly SessionState state;
 
-        // Configuration and Beacon reference
-        private readonly IBeaconSender beaconSender;
-        private readonly IBeacon beacon;
+        /// <summary>
+        /// the number of retries for new session requests.
+        /// </summary>
+        private int numRemainingNewSessionRequests = MaxNewSessionRequests;
+
 
         internal Session(
             ILogger logger,
             IOpenKitComposite parent,
-            IBeaconSender beaconSender,
             IBeacon beacon
             )
         {
+            state = new SessionState(this);
             this.logger = logger;
             this.parent = parent;
-            this.beaconSender = beaconSender;
             this.beacon = beacon;
 
-            beaconSender.StartSession(this);
             beacon.StartSession();
         }
 
@@ -81,26 +83,43 @@ namespace Dynatrace.OpenKit.Core.Objects
         private IOpenKitComposite ThisComposite => this;
 
         #region ISessionInternals implementation
+
         bool ISessionInternals.IsEmpty => beacon.IsEmpty;
-
-        long ISessionInternals.EndTime => endTime;
-
-        IBeaconConfiguration ISessionInternals.BeaconConfiguration
-        {
-            get => beacon.BeaconConfiguration;
-            set => beacon.BeaconConfiguration = value;
-        }
-
-        bool ISessionInternals.IsSessionEnded => isSessionEnded;
 
         void ISessionInternals.ClearCapturedData()
         {
             beacon.ClearData();
         }
 
-        StatusResponse ISessionInternals.SendBeacon(IHttpClientProvider clientProvider)
+        IStatusResponse ISessionInternals.SendBeacon(IHttpClientProvider clientProvider)
         {
             return beacon.Send(clientProvider);
+        }
+
+        void ISessionInternals.UpdateServerConfiguration(IServerConfiguration serverConfiguration)
+        {
+            beacon.UpdateServerConfiguration(serverConfiguration);
+        }
+
+        ISessionState ISessionInternals.State => state;
+
+        bool ISessionInternals.IsDataSendingAllowed => state.IsConfigured && beacon.IsCaptureEnabled;
+
+        void ISessionInternals.EnableCapture()
+        {
+            beacon.EnableCapture();
+        }
+
+        void ISessionInternals.DisableCapture()
+        {
+            beacon.DisableCapture();
+        }
+
+        bool ISessionInternals.CanSendNewSessionRequest => numRemainingNewSessionRequests > 0;
+
+        void ISessionInternals.DecreaseNumRemainingSessionRequests()
+        {
+            numRemainingNewSessionRequests--;
         }
 
         #endregion
@@ -124,9 +143,9 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} EnterAction({actionName})");
             }
 
-            lock (lockObject)
+            lock (state)
             {
-                if (!ThisSession.IsSessionEnded)
+                if (!state.IsFinishingOrFinished)
                 {
                     var result = new RootAction(logger, this, actionName, beacon);
                     ThisComposite.StoreChildInList(result);
@@ -150,9 +169,9 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} IdentifyUser({userTag})");
             }
 
-            lock (lockObject)
+            lock (state)
             {
-                if (!ThisSession.IsSessionEnded)
+                if (!state.IsFinishingOrFinished)
                 {
                     beacon.IdentifyUser(userTag);
                 }
@@ -171,9 +190,9 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} ReportCrash({errorName}, {reason}, {stacktrace})");
             }
 
-            lock (lockObject)
+            lock (state)
             {
-                if (!ThisSession.IsSessionEnded)
+                if (!state.IsFinishingOrFinished)
                 {
                     beacon.ReportCrash(errorName, reason, stacktrace);
                 }
@@ -197,9 +216,9 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} TraceWebRequest({url})");
             }
 
-            lock (lockObject)
+            lock (state)
             {
-                if (!ThisSession.IsSessionEnded)
+                if (!state.IsFinishingOrFinished)
                 {
                     var webRequestTracer = new WebRequestTracer(logger, this, beacon, url);
                     ThisComposite.StoreChildInList(webRequestTracer);
@@ -218,15 +237,9 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} End()");
             }
 
-            lock (lockObject)
+            if (!state.MarkAsIsFinishing())
             {
-                // check if end() was already called before by looking at endTime
-                if (ThisSession.IsSessionEnded)
-                {
-                    return;
-                }
-
-                isSessionEnded = true;
+                return; // end was already called before
             }
 
             // forcefully leave all child elements
@@ -238,14 +251,12 @@ namespace Dynatrace.OpenKit.Core.Objects
                 childObject.Dispose();
             }
 
-            endTime = beacon.CurrentTimestamp;
-
             // create end session data on beacon
-            beacon.EndSession(this);
+            beacon.EndSession();
 
-            // finish session on configuration and stop managing it
-            beaconSender.FinishSession(this);
+            state.MarkAsFinished();
 
+            // last but not least update parent relation
              parent.OnChildClosed(this);
         }
 
@@ -256,7 +267,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private protected override void OnChildClosed(IOpenKitObject childObject)
         {
-            lock (lockObject)
+            lock (state)
             {
                 ThisComposite.RemoveChildFromList(childObject);
             }
@@ -268,5 +279,110 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             return $"{GetType().Name} [sn={beacon.SessionNumber}]";
         }
+
+        #region session state
+
+        private class SessionState : ISessionState
+        {
+            private readonly Session session;
+
+            private bool isFinishing;
+            private bool isFinished;
+
+            internal SessionState(Session session)
+            {
+                this.session = session;
+            }
+
+            public bool IsNew
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return !session.beacon.IsServerConfigurationSet && !IsFinishingOrFinished;
+                    }
+                }
+            }
+
+            public bool IsConfigured
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return session.beacon.IsServerConfigurationSet;
+                    }
+                }
+            }
+
+            public bool IsConfiguredAndFinished
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return IsConfigured && isFinished;
+                    }
+                }
+            }
+
+            public bool IsConfiguredAndOpen
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return IsConfigured && !isFinished;
+                    }
+                }
+            }
+
+            public bool IsFinished
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return isFinished;
+                    }
+                }
+            }
+
+            public bool IsFinishingOrFinished
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return isFinishing || isFinished;
+                    }
+                }
+            }
+
+            internal bool MarkAsIsFinishing()
+            {
+                lock (this)
+                {
+                    if (IsFinishingOrFinished)
+                    {
+                        return false;
+                    }
+
+                    isFinishing = true;
+                    return true;
+                }
+            }
+
+            internal void MarkAsFinished()
+            {
+                lock (this)
+                {
+                    isFinished = true;
+                }
+            }
+        }
+
+        #endregion
     }
 }

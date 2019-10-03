@@ -15,9 +15,6 @@
 //
 
 using System;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Core.Objects;
-using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit
 {
@@ -26,7 +23,10 @@ namespace Dynatrace.OpenKit
     /// </summary>
     public class AppMonOpenKitBuilder : AbstractOpenKitBuilder
     {
-        private readonly string applicationName;
+        /// <summary>
+        /// Identifies the type of OpenKit for which this builder is made.
+        /// </summary>
+        public const string Type = "AppMonOpenKit";
 
         /// <summary>
         /// Creates a new instance of type AppMonOpenKitBuilder
@@ -37,7 +37,7 @@ namespace Dynatrace.OpenKit
         public AppMonOpenKitBuilder(string endpointUrl, string applicationName, long deviceId)
            : base(endpointUrl, deviceId)
         {
-            this.applicationName = applicationName;
+            this.ApplicationName = applicationName;
         }
 
         /// <summary>
@@ -50,34 +50,13 @@ namespace Dynatrace.OpenKit
         public AppMonOpenKitBuilder(string endpointUrl, string applicationName, string deviceId)
             : base(endpointUrl, deviceId)
         {
-            this.applicationName = applicationName;
+            ApplicationName = applicationName;
         }
 
-        internal override OpenKitConfiguration BuildConfiguration()
-        {
-            var device = new Device(OperatingSystem, Manufacturer, ModelID);
+        public override string OpenKitType => Type;
 
-            var beaconCacheConfig = new BeaconCacheConfiguration(
-                BeaconCacheMaxBeaconAge, BeaconCacheLowerMemoryBoundary, BeaconCacheUpperMemoryBoundary);
+        public override string ApplicationId => ApplicationName;
 
-            var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DefaultMultiplicity);
-            var privacyConfig = new PrivacyConfiguration(DataCollectionLevel, CrashReportingLevel);
-
-            return new OpenKitConfiguration(
-                OpenKitType.AppMon,
-                applicationName,
-                applicationName,
-                DeviceId,
-                OrigDeviceId,
-                EndpointUrl,
-                new DefaultSessionIdProvider(),
-                TrustManager,
-                device,
-                ApplicationVersion,
-                beaconCacheConfig,
-                beaconConfig,
-                privacyConfig
-                );
-        }
+        public override string ApplicationName { get; }
     }
 }

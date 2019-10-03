@@ -24,13 +24,50 @@ namespace Dynatrace.OpenKit.Core.Configuration
     internal interface IBeaconConfiguration
     {
         /// <summary>
-        /// Returns the configured multiplicity
+        /// OpenKit related configuration details.
         /// </summary>
-        int Multiplicity { get; }
+        IOpenKitConfiguration OpenKitConfiguration { get; }
 
         /// <summary>
-        /// Indicates whether capturing is currently allowed or not.
+        /// Privacy related configuration details.
         /// </summary>
-        bool CapturingAllowed { get; }
+        IPrivacyConfiguration PrivacyConfiguration { get; }
+
+        /// <summary>
+        /// Returns configuration for HTTP related details.
+        /// </summary>
+        IHttpClientConfiguration HttpClientConfiguration { get; }
+
+        /// <summary>
+        /// Returns the configuration about server related details.
+        /// </summary>
+        IServerConfiguration ServerConfiguration { get; }
+
+        /// <summary>
+        /// Updates the server configuration.
+        ///
+        /// <para>
+        ///     The first call to this method will take over the configuration as is. Further calls to this method
+        ///     will <see cref="IServerConfiguration.Merge">merge</see> the given configuration with the already
+        ///     existing one.
+        /// </para>
+        /// </summary>
+        /// <param name="newServerConfiguration">new server configuration as received from the server.</param>
+        void UpdateServerConfiguration(IServerConfiguration newServerConfiguration);
+
+        /// <summary>
+        /// Enables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// </summary>
+        void EnableCapture();
+
+        /// <summary>
+        /// Disables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// </summary>
+        void DisableCapture();
+
+        /// <summary>
+        /// Indicates whether the server configuration has been set before or not.
+        /// </summary>
+        bool IsServerConfigurationSet { get; }
     }
 }

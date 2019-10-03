@@ -23,14 +23,12 @@ namespace Dynatrace.OpenKit.Core.Objects
     {
         private ILogger logger;
         private IOpenKitComposite parent;
-        private IBeaconSender beaconSender;
         private IBeacon beacon;
 
         internal TestSessionBuilder()
         {
             logger = Substitute.For<ILogger>();
             parent = Substitute.For<IOpenKitComposite>();
-            beaconSender = Substitute.For<IBeaconSender>();
             beacon = Substitute.For<IBeacon>();
         }
 
@@ -52,20 +50,13 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
-        internal TestSessionBuilder With(IBeaconSender sender)
-        {
-            beaconSender = sender;
-            return this;
-        }
-
         internal ISessionInternals Build()
         {
             return new Session(
                 logger,
                 parent,
-                beaconSender,
                 beacon
-                );
+            );
         }
     }
 }

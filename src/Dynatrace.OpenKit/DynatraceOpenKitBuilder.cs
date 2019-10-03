@@ -15,9 +15,6 @@
 //
 
 using System;
-using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Core.Objects;
-using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit
 {
@@ -26,7 +23,12 @@ namespace Dynatrace.OpenKit
     /// </summary>
     public class DynatraceOpenKitBuilder : AbstractOpenKitBuilder
     {
-        private readonly string applicationId;
+        /// <summary>
+        /// Identifies the type of OpenKit for which this builder is made.
+        /// </summary>
+        public const string Type = "DynatraceOpenKit";
+
+
         private string applicationName = string.Empty;
 
         /// <summary>
@@ -38,7 +40,7 @@ namespace Dynatrace.OpenKit
         public DynatraceOpenKitBuilder(string endPointUrl, string applicationId, long deviceId)
             : base(endPointUrl, deviceId)
         {
-            this.applicationId = applicationId;
+            ApplicationId = applicationId;
         }
 
         /// <summary>
@@ -51,7 +53,7 @@ namespace Dynatrace.OpenKit
         public DynatraceOpenKitBuilder(string endPointUrl, string applicationId, string deviceId)
             : base(endPointUrl, deviceId)
         {
-            this.applicationId = applicationId;
+            ApplicationId = applicationId;
         }
 
         /// <summary>
@@ -68,31 +70,12 @@ namespace Dynatrace.OpenKit
             return this;
         }
 
-        internal override OpenKitConfiguration BuildConfiguration()
-        {
-            var device = new Device(OperatingSystem, Manufacturer, ModelID);
+        public override string OpenKitType => Type;
 
-            var beaconCacheConfig = new BeaconCacheConfiguration(
-                BeaconCacheMaxBeaconAge, BeaconCacheLowerMemoryBoundary, BeaconCacheUpperMemoryBoundary);
+        public override string ApplicationId { get; }
 
-            var beaconConfig = new BeaconConfiguration(BeaconConfiguration.DefaultMultiplicity);
-            var privacyConfig = new PrivacyConfiguration(DataCollectionLevel, CrashReportingLevel);
+        public override string ApplicationName => applicationName;
 
-            return new OpenKitConfiguration(
-               OpenKitType.Dynatrace,
-               applicationName,
-               applicationId,
-               DeviceId,
-               OrigDeviceId,
-               EndpointUrl,
-               new DefaultSessionIdProvider(),
-               TrustManager,
-               device,
-               ApplicationVersion,
-               beaconCacheConfig,
-               beaconConfig,
-               privacyConfig
-               );
-        }
+
     }
 }

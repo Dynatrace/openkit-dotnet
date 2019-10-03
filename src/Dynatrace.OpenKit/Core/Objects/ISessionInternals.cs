@@ -41,25 +41,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         bool IsEmpty { get; }
 
         /// <summary>
-        /// Returns the current end time of this session.
-        ///
-        /// <para>
-        /// In case the session is not yet ended <code>-1</code> is returned.
-        /// </para>
-        /// </summary>
-        long EndTime { get; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="BeaconConfiguration"/> for this session.
-        /// </summary>
-        IBeaconConfiguration BeaconConfiguration { get; set; }
-
-        /// <summary>
-        /// Indicates whether the session is already <see cref="ISession.End()">ended</see> or not
-        /// </summary>
-        bool IsSessionEnded { get; }
-
-        /// <summary>
         /// Clears the captured beacon data.
         /// </summary>
         void ClearCapturedData();
@@ -70,6 +51,60 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         /// <param name="clientProvider">the HTTP client provider.</param>
         /// <returns>the response by the server.</returns>
-        StatusResponse SendBeacon(IHttpClientProvider clientProvider);
+        IStatusResponse SendBeacon(IHttpClientProvider clientProvider);
+
+        /// <summary>
+        /// Indicates whether sending data for this session is allowed or not.
+        /// </summary>
+        bool IsDataSendingAllowed { get; }
+
+        /// <summary>
+        /// Returns the current state of this session.
+        /// </summary>
+        ISessionState State { get; }
+
+        /// <summary>
+        /// Updates the <see cref="IBeacon"/> with the given <see cref="IServerConfiguration"/>.
+        /// </summary>
+        void UpdateServerConfiguration(IServerConfiguration serverConfiguration);
+
+        /// <summary>
+        /// Enables capturing for this session.
+        ///
+        /// <para>
+        ///     Will implicitly also set the <see cref="State">session state</see> to
+        ///     <see cref="ISessionState.IsConfigured">configured</see>.
+        /// </para>
+        /// </summary>
+        void EnableCapture();
+
+        /// <summary>
+        /// Disables capturing for this session.
+        ///
+        /// <para>
+        ///     Will implicitly also set the <see cref="State">session state</see> to
+        ///     <see cref="ISessionState.IsConfigured">configured</see>.
+        /// </para>
+        /// </summary>
+        void DisableCapture();
+
+        /// <summary>
+        /// Indicates whether a new session request can be sent or not.
+        ///
+        /// <para>
+        ///     This is directly related to <see cref="DecreaseNumRemainingSessionRequests()"/>
+        /// </para>
+        /// </summary>
+        bool CanSendNewSessionRequest { get; }
+
+        /// <summary>
+        /// Decreases the number of remaining new session requests.
+        ///
+        /// <para>
+        ///     In case no more new session requests remain, <see cref="CanSendNewSessionRequest"/> will return
+        ///     <code>false</code>.
+        /// </para>
+        /// </summary>
+        void DecreaseNumRemainingSessionRequests();
     }
 }
