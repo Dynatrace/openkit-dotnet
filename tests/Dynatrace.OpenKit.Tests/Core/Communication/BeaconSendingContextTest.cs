@@ -283,7 +283,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var obtained = target.SendInterval;
 
             // then
-            Assert.That(obtained, Is.EqualTo(ServerConfiguration.Default.SendIntervalInMilliSeconds));
+            Assert.That(obtained, Is.EqualTo(ServerConfiguration.Default.SendIntervalInMilliseconds));
         }
 
         [Test]

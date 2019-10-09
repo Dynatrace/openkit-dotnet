@@ -60,7 +60,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void InDefaultServerConfigurationSendIntervalIsMinusOne()
         {
-            Assert.That(ServerConfiguration.Default.SendIntervalInMilliSeconds, Is.EqualTo(-1));
+            Assert.That(ServerConfiguration.Default.SendIntervalInMilliseconds, Is.EqualTo(-1));
         }
 
         [Test]
@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = ServerConfiguration.From(mockStatusResponse);
 
             // then
-            Assert.That(target.SendIntervalInMilliSeconds, Is.EqualTo(sendInterval));
+            Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
             _ = mockStatusResponse.Received(1).SendInterval;
         }
 
@@ -421,7 +421,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var obtained = target.Merge(other);
 
             // then
-            Assert.That(obtained.SendIntervalInMilliSeconds, Is.EqualTo(sendInterval));
+            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
         }
 
         [Test]
@@ -522,7 +522,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var obtained = new ServerConfiguration.Builder().WithSendingIntervalInMilliseconds(sendInterval).Build();
 
             // then
-            Assert.That(obtained.SendIntervalInMilliSeconds, Is.EqualTo(sendInterval));
+            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
         }
 
         [Test]

@@ -76,7 +76,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             IsCaptureEnabled = builder.IsCaptureEnabled;
             IsCrashReportingEnabled = builder.IsCrashReportingEnabled;
             IsErrorReportingEnabled = builder.IsErrorReportingEnabled;
-            SendIntervalInMilliSeconds = builder.SendIntervalInMilliSeconds;
+            SendIntervalInMilliseconds = builder.SendIntervalInMilliseconds;
             ServerId = builder.ServerId;
             BeaconSizeInBytes = builder.BeaconSizeInBytes;
             Multiplicity = builder.Multiplicity;
@@ -102,7 +102,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public bool IsErrorReportingEnabled { get; }
 
-        public int SendIntervalInMilliSeconds { get; }
+        public int SendIntervalInMilliseconds { get; }
 
         public int ServerId { get; }
 
@@ -148,7 +148,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 IsCaptureEnabled = statusResponse.Capture;
                 IsCrashReportingEnabled = statusResponse.CaptureCrashes;
                 IsErrorReportingEnabled = statusResponse.CaptureErrors;
-                SendIntervalInMilliSeconds = statusResponse.SendInterval;
+                SendIntervalInMilliseconds = statusResponse.SendInterval;
                 ServerId = statusResponse.ServerId;
                 BeaconSizeInBytes = statusResponse.MaxBeaconSize;
                 Multiplicity = statusResponse.Multiplicity;
@@ -163,7 +163,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 IsCaptureEnabled = serverConfiguration.IsCaptureEnabled;
                 IsCrashReportingEnabled = serverConfiguration.IsCrashReportingEnabled;
                 IsErrorReportingEnabled = serverConfiguration.IsErrorReportingEnabled;
-                SendIntervalInMilliSeconds = serverConfiguration.SendIntervalInMilliSeconds;
+                SendIntervalInMilliseconds = serverConfiguration.SendIntervalInMilliseconds;
                 ServerId = serverConfiguration.ServerId;
                 BeaconSizeInBytes = serverConfiguration.BeaconSizeInBytes;
                 Multiplicity = serverConfiguration.Multiplicity;
@@ -210,16 +210,16 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int SendIntervalInMilliSeconds { get; private set; } = DefaultSendInterval;
+            internal int SendIntervalInMilliseconds { get; private set; } = DefaultSendInterval;
 
             /// <summary>
             /// Configures the send interval.
             /// </summary>
-            /// <param name="sendIntervalInMilliSeconds">the send interval in milliseconds.</param>
+            /// <param name="sendIntervalInMilliseconds">the send interval in milliseconds.</param>
             /// <returns><code>this</code></returns>
-            public Builder WithSendingIntervalInMilliseconds(int sendIntervalInMilliSeconds)
+            public Builder WithSendingIntervalInMilliseconds(int sendIntervalInMilliseconds)
             {
-                SendIntervalInMilliSeconds = sendIntervalInMilliSeconds;
+                SendIntervalInMilliseconds = sendIntervalInMilliseconds;
                 return this;
             }
 

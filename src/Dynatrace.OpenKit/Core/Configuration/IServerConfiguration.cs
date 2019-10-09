@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// <summary>
         /// Returns the send interval in milliseconds.
         /// </summary>
-        int SendIntervalInMilliSeconds { get; }
+        int SendIntervalInMilliseconds { get; }
 
         /// <summary>
         /// Returns the ID of the server which is communicated with.
