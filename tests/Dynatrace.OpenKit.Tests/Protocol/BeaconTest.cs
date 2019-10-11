@@ -145,6 +145,42 @@ namespace Dynatrace.OpenKit.Protocol
                 .WithIpAddress(ipAddress)
                 .Build();
 
+            // then
+            mockLogger.Received(1).Warn($"Beacon: Client IP address validation failed: {ipAddress}");
+
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .Returns("dummy");
+
+            // when
+            target.Send(httpClientProvider);
+
+            // then
+            Assert.That(capturedIpAddress, Is.Empty);
+            httpClient.Received(1).SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>());
+
+            
+        }
+
+        [Test]
+        public void CreateInstanceWithNullIpAddress()
+        {
+            // given when
+            string capturedIpAddress = null;
+            mockLogger.IsWarnEnabled.Returns(true);
+            var httpClient = Substitute.For<IHttpClient>();
+            httpClient.SendBeaconRequest(Arg.Do<string>(c => capturedIpAddress = c), Arg.Any<byte[]>())
+                .Returns(null as IStatusResponse);
+
+            var httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
+            
+            var target = CreateBeacon()
+                .WithIpAddress(null)
+                .Build();
+
+            // then
+            mockLogger.Received(0).Warn(Arg.Any<string>());
+
             mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .Returns("dummy");
 
@@ -155,7 +191,6 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(capturedIpAddress, Is.Not.Null);
             Assert.That(capturedIpAddress, Is.EqualTo(string.Empty));
             httpClient.Received(1).SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>());
-
         }
 
         [Test]

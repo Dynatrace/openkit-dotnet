@@ -76,6 +76,16 @@ namespace Dynatrace.OpenKit.API
         ISession CreateSession(string clientIpAddress);
 
         /// <summary>
+        ///  Creates a Session instance which can then be used to create Actions.
+        /// </summary>
+        /// <remarks>
+        /// This is similar to the method <see cref="CreateSession(string)"/>, except that
+        /// the client's IP address is determined on the server side.
+        /// </remarks>
+        /// <returns>Session instance to work with</returns>
+        ISession CreateSession();
+
+        /// <summary>
         ///  Shuts down the OpenKit, ending all open Sessions and waiting for them to be sent.
         /// </summary>
         void Shutdown();

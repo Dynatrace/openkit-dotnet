@@ -15,6 +15,8 @@
 - `WithModelID` on `AppMonOpenKitBuilder` / `DynatraceOpenKitBuilder` was deprecated. `WithModelId` should be used instead.
 - Setting property `ApplicationVersion` on `IOpenKit` was deprecated and calls to this setter are ignored. 
   `WithApplicationVersion` on `AppMonOpenKitBuilder` / `DynatraceOpenKitBuilder` should be used instead.
+- Add OpenKit.createSession overload without IP address parameter.  
+  The IP address is determined in this case on the server side.
 
 ### Improvements
 - Reformatted text files to unix style line endings.

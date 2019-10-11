@@ -179,8 +179,24 @@ namespace Dynatrace.OpenKit.Protocol
 
             DeviceId = CreateDeviceId(configuration, randomNumberGenerator);
 
-
-            this.clientIpAddress = InetAddressValidator.IsValidIP(clientIpAddress) ? clientIpAddress : string.Empty;
+            if (clientIpAddress == null)
+            {
+                // A client IP address, which is a null, is valid.
+                // The real IP address is determined on the server side.
+                this.clientIpAddress = string.Empty;
+            }
+            else if (InetAddressValidator.IsValidIP(clientIpAddress))
+            {
+                this.clientIpAddress = clientIpAddress;
+            }
+            else
+            {
+                if (logger.IsWarnEnabled)
+                {
+                    logger.Warn($"Beacon: Client IP address validation failed: {clientIpAddress}");
+                }
+                this.clientIpAddress = string.Empty;
+            }
 
             basicBeaconData = CreateBasicBeaconData();
         }

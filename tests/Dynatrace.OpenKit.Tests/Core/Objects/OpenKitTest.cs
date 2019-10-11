@@ -267,6 +267,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void CreateSessionWithoutIpAddressReturnsSessionObject()
+        {
+            // given
+            var target = CreateOpenKit().Build();
+
+            // when
+            var obtained = target.CreateSession();
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<Session>());
+        }
+
+        [Test]
         public void CreateSessionAddsNewlyCreatedSessionToListOfChildren()
         {
             // given
@@ -294,6 +307,33 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void CreateSessionWithoutIpAddsNewlyCreatedSessionToListOfChildren()
+        {
+            // given
+            var target = CreateOpenKit().Build();
+            IOpenKitComposite targetComposite = target;
+
+            // when
+            var sessionOne = target.CreateSession();
+
+            // then
+            var childObjects = targetComposite.GetCopyOfChildObjects();
+            Assert.That(sessionOne, Is.Not.Null);
+            Assert.That(childObjects.Count, Is.EqualTo(1));
+            Assert.That(childObjects[0], Is.SameAs(sessionOne));
+
+            // when
+            var sessionTwo = target.CreateSession();
+
+            // then
+            childObjects = targetComposite.GetCopyOfChildObjects();
+            Assert.That(sessionTwo, Is.Not.Null);
+            Assert.That(childObjects.Count, Is.EqualTo(2));
+            Assert.That(childObjects[0], Is.SameAs(sessionOne));
+            Assert.That(childObjects[1], Is.SameAs(sessionTwo));
+        }
+
+        [Test]
         public void CreateSessionAfterShutdownHasBeenCalledReturnsNullSession()
         {
             // given
@@ -302,6 +342,21 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // when
             var obtained = target.CreateSession("127.0.0.1");
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullSession>());
+            Assert.That(obtained, Is.SameAs(NullSession.Instance));
+        }
+
+        [Test]
+        public void CreateSessionWithoutIpAfterShutdownHasBeenCalledReturnsNullSession()
+        {
+            // given
+            var target = CreateOpenKit().Build();
+            target.Shutdown();
+
+            // when
+            var obtained = target.CreateSession();
 
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullSession>());

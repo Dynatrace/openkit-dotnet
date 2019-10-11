@@ -258,6 +258,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
         }
 
+        public ISession CreateSession()
+        {
+            return CreateSession(null);
+        }
+
         public void Shutdown()
         {
             if (logger.IsDebugEnabled)
