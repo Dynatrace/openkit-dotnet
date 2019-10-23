@@ -68,6 +68,50 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(target.Multiplicity, Is.EqualTo(1));
         }
 
+
+        [Test]
+        public void CreateInstanceWithInvalidIpAddress()
+        {
+            // given when
+            string capturedIpAddress = null;
+            logger.IsWarnEnabled.Returns(true);
+
+            const string ipAddress = "invalid";
+
+            var httpClient = Substitute.For<IHTTPClient>();
+            var httpClientProvider = Substitute.For<IHTTPClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(httpClient);
+            
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), ipAddress, threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
+            // then
+            logger.Received(1).Warn($"Beacon: Client IP address validation failed: {ipAddress}");
+        }
+
+        [Test]
+        public void CreateInstanceWithNullIpAddress()
+        {
+            // given when
+            string capturedIpAddress = null;
+            logger.IsWarnEnabled.Returns(true);
+
+            var httpClient = Substitute.For<IHTTPClient>();
+            var httpClientProvider = Substitute.For<IHTTPClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<HTTPClientConfiguration>()).Returns(httpClient);
+
+
+            var target = new Beacon(logger, new BeaconCache(logger), new TestConfiguration(), null, threadIDProvider, timingProvider)
+            {
+                BeaconConfiguration = beaconConfig
+            };
+
+            // then
+            logger.Received(0).Warn(Arg.Any<string>());
+        }
+
         [Test]
         public void CanAddUserIdentifyEvent()
         {

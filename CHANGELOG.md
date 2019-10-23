@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.3..HEAD)
 
+### Changed
+- Add OpenKit.createSession overload without IP address parameter.  
+  The IP address is determined in this case on the server side.
+
 ## 1.4.3 [Release date: 2019-09-13]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.3)
 

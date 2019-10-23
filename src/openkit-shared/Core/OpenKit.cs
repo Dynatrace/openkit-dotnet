@@ -138,6 +138,11 @@ namespace Dynatrace.OpenKit.Core
             return new Session(logger, beaconSender, beacon);
         }
 
+        public ISession CreateSession()
+        {
+            return CreateSession(null);
+        }
+
         public void Shutdown()
         {
             if (logger.IsDebugEnabled)

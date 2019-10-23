@@ -178,14 +178,25 @@ namespace Dynatrace.OpenKit.Protocol
             this.randomNumberGenerator = randomNumberGenerator;
             sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
-            if (InetAddressValidator.IsValidIP(clientIPAddress))
+            if (clientIPAddress == null)
+            {
+                // A client IP address, which is a null, is valid.
+                // The real IP address is determined on the server side.
+                this.clientIPAddress = string.Empty;
+            }
+            else if (InetAddressValidator.IsValidIP(clientIPAddress))
             {
                 this.clientIPAddress = clientIPAddress;
             }
             else
             {
+                if (logger.IsWarnEnabled)
+                {
+                    logger.Warn($"Beacon: Client IP address validation failed: {clientIPAddress}");
+                }
                 this.clientIPAddress = string.Empty;
             }
+
             // store the current http configuration
             httpConfiguration = configuration.HTTPClientConfig;
             basicBeaconData = CreateBasicBeaconData();
