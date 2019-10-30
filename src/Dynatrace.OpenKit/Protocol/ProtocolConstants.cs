@@ -23,5 +23,6 @@ namespace Dynatrace.OpenKit.Protocol
         public const int ProtocolVersion = 3;
         public const int PlatformTypeOpenKit = 1;
         public const string AgentTechnologyType = "okdotnet";
+        public const string ErrorTechnologyType = "c";
     }
 }

@@ -530,6 +530,7 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&t0=0"                                // event timestamp
                 + $"&ev={errorCode}"                      // reported error code
                 + $"&rs={reason}"                         // error reason
+                +  "&tt=c"                                // error technology type
                 );
         }
 
@@ -553,6 +554,7 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&s0=1"                                // event sequence number
                 +  "&t0=0"                                // event timestamp
                 + $"&ev={errorCode}"                      // reported error code
+                +  "&tt=c"                                // error technology type
                 );
         }
 
@@ -581,6 +583,7 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&t0=0"                                // event timestamp
                 + $"&rs={reason}"                         // error reason
                 + $"&st={stacktrace}"                     // reported stacktrace
+                +  "&tt=c"                                // error technology type
                 );
         }
 
@@ -605,6 +608,7 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&pa=0"                                // parent action ID
                 +  "&s0=1"                                // event sequence number
                 +  "&t0=0"                                // event timestamp
+                +  "&tt=c"                                // error technology type
                 );
         }
 

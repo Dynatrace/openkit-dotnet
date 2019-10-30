@@ -71,6 +71,9 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyErrorCode = "ev";
         private const string BeaconKeyErrorReason = "rs";
         private const string BeaconKeyErrorStacktrace = "st";
+        private const string BeaconKeyErrorTechnologyType = "tt";
+
+        // web request constants
         private const string BeaconKeyWebRequestResponseCode = "rc";
         private const string BeaconKeyWebRequestBytesSent = "bs";
         private const string BeaconKeyWebRequestBytesReceived = "br";
@@ -467,6 +470,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePair(eventBuilder, BeaconKeyErrorCode, errorCode);
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, reason);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, ProtocolConstants.ErrorTechnologyType);
 
             AddEventData(timestamp, eventBuilder);
         }
@@ -493,6 +497,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, reason);
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, stacktrace);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, ProtocolConstants.ErrorTechnologyType);
 
             AddEventData(timestamp, eventBuilder);
         }

@@ -4,6 +4,7 @@
 
 ### Added
 - Support for parsing JSON
+- Technology type support for error and crashes
 
 ### Changed
 - On OpenKitBuilder creation device ID is parsed from the given string. Non-numeric
