@@ -245,15 +245,20 @@ namespace Dynatrace.OpenKit.Core.Communication
             }
         }
 
-        public List<ISessionInternals> NewSessions =>
-            sessions.ToList().Where(session => session.State.IsNew).ToList();
+        public List<ISessionInternals> GetAllNotConfiguredSessions()
+        {
+            return sessions.ToList().Where(session => !session.State.IsConfigured).ToList();
+        }
 
-        public List<ISessionInternals> OpenAndConfiguredSessions => sessions.ToList()
-            .Where(session => session.State.IsConfiguredAndOpen).ToList();
+        public List<ISessionInternals> GetAllOpenAndConfiguredSessions()
+        {
+            return sessions.ToList().Where(session => session.State.IsConfiguredAndOpen).ToList();
+        }
 
-        public List<ISessionInternals> FinishedAndConfiguredSessions => sessions.ToList()
-            .Where(session => session.State.IsConfiguredAndFinished).ToList();
-
+        public List<ISessionInternals> GetAllFinishedAndConfiguredSessions()
+        {
+            return sessions.ToList().Where(session => session.State.IsConfiguredAndFinished).ToList();
+        }
 
         /// <summary>
         /// Returns the number of sessions currently known to this context.

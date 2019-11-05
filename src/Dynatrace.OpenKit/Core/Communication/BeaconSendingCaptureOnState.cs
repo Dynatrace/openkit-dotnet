@@ -89,14 +89,14 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IStatusResponse SendNewSessionRequests(IBeaconSendingContext context)
         {
             IStatusResponse statusResponse = null;
-            var newSessions = context.NewSessions;
+            var notConfiguredSessions = context.GetAllNotConfiguredSessions();
 
-            foreach(var newSession in newSessions)
+            foreach(var session in notConfiguredSessions)
             {
-                if (!newSession.CanSendNewSessionRequest)
+                if (!session.CanSendNewSessionRequest)
                 {
                     // already exceeded the maximum number of session requests, disable any further data collecting
-                    newSession.DisableCapture();
+                    session.DisableCapture();
                     continue;
                 }
 
@@ -104,7 +104,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
                     var newConfiguration = ServerConfiguration.From(statusResponse);
-                    newSession.UpdateServerConfiguration(newConfiguration);
+                    session.UpdateServerConfiguration(newConfiguration);
                 }
                 else if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
                 {
@@ -114,7 +114,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 else
                 {
                     // any other unsuccessful response
-                    newSession.DecreaseNumRemainingSessionRequests();
+                    session.DecreaseNumRemainingSessionRequests();
                 }
             }
 
@@ -130,7 +130,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             IStatusResponse statusResponse = null;
             // check if there's finished Sessions to be sent -> immediately send beacon(s) of finished Sessions
-            var finishedSessions = context.FinishedAndConfiguredSessions;
+            var finishedSessions = context.GetAllFinishedAndConfiguredSessions();
 
             foreach (var session in finishedSessions)
             {
@@ -170,7 +170,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 return null; // some time left until open sessions need to be sent
             }
 
-            var openSessions = context.OpenAndConfiguredSessions;
+            var openSessions = context.GetAllOpenAndConfiguredSessions();
             foreach (var session in openSessions)
             {
                 if (session.IsDataSendingAllowed)

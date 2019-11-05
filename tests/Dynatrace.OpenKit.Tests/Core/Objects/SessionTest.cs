@@ -378,16 +378,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(target.State.IsFinished, Is.False);
-        }
-
-        [Test]
-        public void ANewlyCreatedSessionIsInStateNew()
-        {
-            // given
-            var target = CreateSession().Build();
-
-            // when, then
-            Assert.That(target.State.IsNew, Is.True);
+            Assert.That(target.State.IsConfiguredAndFinished, Is.False);
         }
 
         [Test]
@@ -403,51 +394,61 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void AConfiguredSessionIsNotInStateNew()
+        public void ANotConfiguredNotFinishedSessionHasCorrectState()
         {
             // given
+            mockBeacon.IsServerConfigurationSet.Returns(false);
             var target = CreateSession().Build();
 
-            // when
-            mockBeacon.IsServerConfigurationSet.Returns(true);
-
-            // then
-            Assert.That(target.State.IsNew, Is.False);
-            Assert.That(target.State.IsConfiguredAndOpen, Is.True);
-        }
-
-        [Test]
-        public void ANotConfiguredFinishedSessionIsNotInStateNew()
-        {
-            // given
-            var target = CreateSession().Build();
-
-            // when
-            target.End();
-
-            // then
-            Assert.That(target.State.IsNew, Is.False);
+            // then, then
             Assert.That(target.State.IsConfigured, Is.False);
-            Assert.That(target.State.IsFinished, Is.True);
+            Assert.That(target.State.IsConfiguredAndOpen, Is.False);
             Assert.That(target.State.IsConfiguredAndFinished, Is.False);
+            Assert.That(target.State.IsFinished, Is.False);
         }
 
         [Test]
-        public void AConfiguredFinishedSessionIsNotNew()
+        public void AConfiguredNotFinishedSessionHasCorrectState()
+        {
+            // given
+            mockBeacon.IsServerConfigurationSet.Returns(true);
+            var target = CreateSession().Build();
+
+            // then, then
+            Assert.That(target.State.IsConfigured, Is.True);
+            Assert.That(target.State.IsConfiguredAndOpen, Is.True);
+            Assert.That(target.State.IsConfiguredAndFinished, Is.False);
+            Assert.That(target.State.IsFinished, Is.False);
+        }
+
+        [Test]
+        public void ANotConfiguredFinishedSessionHasCorrectState()
+        {
+            // given
+            mockBeacon.IsServerConfigurationSet.Returns(false);
+            var target = CreateSession().Build();
+            target.End();
+
+            // then, then
+            Assert.That(target.State.IsConfigured, Is.False);
+            Assert.That(target.State.IsConfiguredAndOpen, Is.False);
+            Assert.That(target.State.IsConfiguredAndFinished, Is.False);
+            Assert.That(target.State.IsFinished, Is.True);
+        }
+
+        [Test]
+        public void AConfiguredFinishedSessionHasCorrectState()
         {
             // given
             mockBeacon.IsServerConfigurationSet.Returns(true);
             var target = CreateSession().Build();
             target.End();
 
-            // when
-            target.UpdateServerConfiguration(Substitute.For<IServerConfiguration>());
-
-            // then
-            Assert.That(target.State.IsNew, Is.False);
+            // then, then
             Assert.That(target.State.IsConfigured, Is.True);
-            Assert.That(target.State.IsFinished, Is.True);
+            Assert.That(target.State.IsConfiguredAndOpen, Is.False);
             Assert.That(target.State.IsConfiguredAndFinished, Is.True);
+            Assert.That(target.State.IsFinished, Is.True);
         }
 
         [Test]

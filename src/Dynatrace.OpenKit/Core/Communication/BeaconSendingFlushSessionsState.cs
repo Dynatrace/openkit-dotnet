@@ -35,17 +35,20 @@ namespace Dynatrace.OpenKit.Core.Communication
         protected override void DoExecute(IBeaconSendingContext context)
         {
             // first get all sessions that do not have any multiplicity explicitly set
-            foreach(var newSession in context.NewSessions)
+            foreach(var session in context.GetAllNotConfiguredSessions())
             {
-                newSession.EnableCapture();
+                session.EnableCapture();
             }
 
             // end all open sessions -> will be flushed afterwards
-            context.OpenAndConfiguredSessions.ForEach(openSession => openSession.End());
+            foreach (var session in context.GetAllOpenAndConfiguredSessions())
+            {
+                session.End();
+            }
 
             // flush already finished (and previously ended) sessions
             var tooManyRequestsReceived = false;
-            foreach(var finishedSession in context.FinishedAndConfiguredSessions)
+            foreach(var finishedSession in context.GetAllFinishedAndConfiguredSessions())
             {
                 if (!tooManyRequestsReceived && finishedSession.IsDataSendingAllowed)
                 {

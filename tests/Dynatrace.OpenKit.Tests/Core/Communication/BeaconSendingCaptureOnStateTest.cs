@@ -65,10 +65,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext = Substitute.For<IBeaconSendingContext>();
             mockContext.HttpClientProvider.Returns(mockHttpClientProvider);
             mockContext.CurrentTimestamp.Returns(42);
-            mockContext.NewSessions.Returns(new List<ISessionInternals>());
-            mockContext.OpenAndConfiguredSessions.Returns(new List<ISessionInternals>
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals>());
+            mockContext.GetAllOpenAndConfiguredSessions().Returns(new List<ISessionInternals>
                 {mockSession1Open, mockSession2Open});
-            mockContext.FinishedAndConfiguredSessions.Returns(new List<ISessionInternals>
+            mockContext.GetAllFinishedAndConfiguredSessions().Returns(new List<ISessionInternals>
                 {mockSession3Finished, mockSession4Finished});
         }
 
@@ -103,7 +103,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void NewSessionRequestsAreMadeForAllNewSessions()
+        public void NewSessionRequestsAreMadeForAllNotConfiguredSessions()
         {
             // given
             const int multiplicity = 5;
@@ -111,7 +111,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var mockClient = Substitute.For<IHttpClient>();
             mockContext.GetHttpClient().Returns(mockClient);
-            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
             mockClient.SendNewSessionRequest()
                 .Returns(
                     new StatusResponse(mockLogger, $"mp={multiplicity}", 200, new Dictionary<string, List<string>>()),
@@ -147,7 +147,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var mockClient = Substitute.For<IHttpClient>();
             mockContext.GetHttpClient().Returns(mockClient);
-            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
             mockClient.SendNewSessionRequest()
                 .Returns(
                     new StatusResponse(mockLogger, "mp=5", 200, new Dictionary<string, List<string>>()),
@@ -183,7 +183,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var mockClient = Substitute.For<IHttpClient>();
             mockClient.SendNewSessionRequest().Returns(statusResponse);
             mockContext.GetHttpClient().Returns(mockClient);
-            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
 
             mockSession5New.CanSendNewSessionRequest.Returns(true);
             mockSession6New.CanSendNewSessionRequest.Returns(true);
@@ -287,7 +287,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockSession3Finished.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
             mockSession4Finished.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
 
-            _ = mockContext.Received(1).FinishedAndConfiguredSessions;
+            _ = mockContext.Received(1).GetAllFinishedAndConfiguredSessions();
             mockContext.Received(0).RemoveSession(Arg.Any<ISessionInternals>());
         }
 
@@ -323,7 +323,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockSession4Finished.Received(1).ClearReceivedCalls();
 
 
-            _ = mockContext.Received(1).FinishedAndConfiguredSessions;
+            _ = mockContext.Received(1).GetAllFinishedAndConfiguredSessions();
             mockContext.Received(1).RemoveSession(mockSession3Finished);
             mockContext.Received(1).RemoveSession(mockSession4Finished);
         }
@@ -364,7 +364,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(mockSession1Open.ReceivedCalls(), Is.Empty);
             Assert.That(mockSession2Open.ReceivedCalls(), Is.Empty);
 
-            _ = mockContext.Received(1).FinishedAndConfiguredSessions;
+            _ = mockContext.Received(1).GetAllFinishedAndConfiguredSessions();
             mockContext.Received(0).RemoveSession(Arg.Any<ISessionInternals>());
 
             Assert.That(captureState, Is.Not.Null);

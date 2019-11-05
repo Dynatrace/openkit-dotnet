@@ -138,7 +138,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public int DefaultServerId { get; }
 
         /// <summary>
-        /// Returns the <see cref="ISSLTrustManager"/>l
+        /// Returns the <see cref="ISSLTrustManager"/>
         /// </summary>
         public ISSLTrustManager TrustManager { get; }
 

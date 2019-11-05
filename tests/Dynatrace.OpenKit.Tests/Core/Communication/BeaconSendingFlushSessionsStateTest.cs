@@ -55,10 +55,10 @@ namespace Dynatrace.OpenKit.Core.Communication
             var mockHttpClient = Substitute.For<IHttpClient>();
             mockContext = Substitute.For<IBeaconSendingContext>();
             mockContext.GetHttpClient().Returns(mockHttpClient);
-            mockContext.NewSessions.Returns(new List<ISessionInternals>());
-            mockContext.OpenAndConfiguredSessions.Returns(new List<ISessionInternals>
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals>());
+            mockContext.GetAllOpenAndConfiguredSessions().Returns(new List<ISessionInternals>
                 {mockSession1Open, mockSession2Open});
-            mockContext.FinishedAndConfiguredSessions.Returns(new List<ISessionInternals>
+            mockContext.GetAllFinishedAndConfiguredSessions().Returns(new List<ISessionInternals>
                 {mockSession3Closed, mockSession2Open, mockSession1Open});
         }
 
@@ -184,10 +184,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void ABeaconSendingFlushSessionStateEnablesCaptureForNewSessions()
+        public void ABeaconSendingFlushSessionStateEnablesCaptureForNotConfiguredSessions()
         {
             // given
-            mockContext.NewSessions.Returns(new List<ISessionInternals> {mockSession1Open, mockSession2Open});
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession1Open, mockSession2Open});
             var target = new BeaconSendingFlushSessionsState();
 
             // when

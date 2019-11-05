@@ -294,16 +294,6 @@ namespace Dynatrace.OpenKit.Core.Objects
                 this.session = session;
             }
 
-            public bool IsNew
-            {
-                get
-                {
-                    lock (this)
-                    {
-                        return !session.beacon.IsServerConfigurationSet && !IsFinishingOrFinished;
-                    }
-                }
-            }
 
             public bool IsConfigured
             {

@@ -83,19 +83,25 @@ namespace Dynatrace.OpenKit.Core.Communication
         bool IsInTerminalState { get; }
 
         /// <summary>
-        /// Get all sessions that are considered new.
+        /// Get all sessions that are not yet configured.
+        ///
+        /// <para>
+        /// A session is considered as not configured if it did not receive a server configuration update (either
+        /// when receiving a successful for the first new session request or when capturing for the session got
+        /// disabled due to an unsuccessful response).
+        /// </para>
         /// </summary>
-        List<ISessionInternals> NewSessions { get; }
+        List<ISessionInternals> GetAllNotConfiguredSessions();
 
         /// <summary>
         /// Get a list of all sessions that have been configured and are currently open.
         /// </summary>
-        List<ISessionInternals> OpenAndConfiguredSessions { get; }
+        List<ISessionInternals> GetAllOpenAndConfiguredSessions();
 
         /// <summary>
         /// Get a list of all sessions that have been configured and already finished.
         /// </summary>
-        List<ISessionInternals> FinishedAndConfiguredSessions { get; }
+        List<ISessionInternals> GetAllFinishedAndConfiguredSessions();
 
         /// <summary>
         /// Executes the current state

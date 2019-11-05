@@ -36,7 +36,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// </summary>
         /// <param name="openKitConfig">the OpenKit configuration from which the newly created instance will be
         /// initialized with.</param>
-        /// <returns>a new <see cref="IHttpClientConfiguration"/> instance initialized with the <</returns>
+        /// <returns>a new <see cref="IHttpClientConfiguration"/> instance initialized with the given
+        ///   <see cref="IOpenKitConfiguration"/>.
+        /// </returns>
         internal static IHttpClientConfiguration From(IOpenKitConfiguration openKitConfig)
         {
             return ModifyWith(openKitConfig).Build();

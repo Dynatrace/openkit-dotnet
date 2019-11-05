@@ -424,9 +424,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = CreateSendingContext().Build();
 
             // then
-            Assert.That(target.NewSessions, Is.Empty);
-            Assert.That(target.OpenAndConfiguredSessions, Is.Empty);
-            Assert.That(target.FinishedAndConfiguredSessions, Is.Empty);
+            Assert.That(target.GetAllNotConfiguredSessions(), Is.Empty);
+            Assert.That(target.GetAllOpenAndConfiguredSessions(), Is.Empty);
+            Assert.That(target.GetAllFinishedAndConfiguredSessions(), Is.Empty);
         }
 
         [Test]
@@ -838,16 +838,16 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void NewSessionsReturnsOnlyNewSessions()
+        public void GetAllNotConfiguredSessionsReturnsOnlyNotConfiguredSessions()
         {
             // given
             var relevantSessionState = Substitute.For<ISessionState>();
-            relevantSessionState.IsNew.Returns(true);
+            relevantSessionState.IsConfigured.Returns(false);
             var relevantSession = Substitute.For<ISessionInternals>();
             relevantSession.State.Returns(relevantSessionState);
 
             var ignoredSessionState = Substitute.For<ISessionState>();
-            ignoredSessionState.IsNew.Returns(false);
+            ignoredSessionState.IsConfigured.Returns(true);
             var ignoredSession = Substitute.For<ISessionInternals>();
             ignoredSession.State.Returns(ignoredSessionState);
 
@@ -858,7 +858,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.SessionCount, Is.EqualTo(2));
 
             // when
-            var obtained = target.NewSessions;
+            var obtained = target.GetAllNotConfiguredSessions();
 
             // then
             Assert.That(obtained.Count, Is.EqualTo(1));
@@ -866,7 +866,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void OpenAndConfiguredSessionsReturnsOnlyConfiguredNotFinishedSessions()
+        public void GetAllOpenAndConfiguredSessionsReturnsOnlyConfiguredNotFinishedSessions()
         {
             // given
             var relevantState = Substitute.For<ISessionState>();
@@ -886,7 +886,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.SessionCount, Is.EqualTo(2));
 
             // when
-            var obtained = target.OpenAndConfiguredSessions;
+            var obtained = target.GetAllOpenAndConfiguredSessions();
 
             // then
             Assert.That(obtained.Count, Is.EqualTo(1));
@@ -894,7 +894,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void FinishedAndConfiguredSessionsReturnsOnlyConfiguredAndFinishedSessions()
+        public void GetAllFinishedAndConfiguredSessionsReturnsOnlyConfiguredAndFinishedSessions()
         {
             // given
             var relevantState = Substitute.For<ISessionState>();
@@ -914,7 +914,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(target.SessionCount, Is.EqualTo(2));
 
             // when
-            var obtained = target.FinishedAndConfiguredSessions;
+            var obtained = target.GetAllFinishedAndConfiguredSessions();
 
             // then
             Assert.That(obtained.Count, Is.EqualTo(1));

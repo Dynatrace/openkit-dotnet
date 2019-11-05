@@ -20,16 +20,6 @@ namespace Dynatrace.OpenKit.Core.Objects
     internal interface ISessionState
     {
         /// <summary>
-        /// Indicates if the <see cref="ISession"/> is still new.
-        ///
-        /// <para>
-        ///     A <see cref="ISession"/> is considered as new if it has not yet received any configuration updates from
-        ///     the server and if it also is not finished.
-        /// </para>
-        /// </summary>
-        bool IsNew { get; }
-
-        /// <summary>
         /// Indicates whether the <see cref="ISession"/> is configured or not.
         ///
         /// <para>
