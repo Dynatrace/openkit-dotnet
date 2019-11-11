@@ -65,7 +65,7 @@ namespace Dynatrace.OpenKit
             var target = new DynatraceOpenKitBuilder(EndpointUrl, ApplicationId, DeviceId);
 
             // then
-            Assert.That(target.DefaultServerId, Is.EqualTo(ServerConfiguration.DefaultServerId));
+            Assert.That(target.DefaultServerId, Is.EqualTo(DynatraceOpenKitBuilder.DefaultServerIdValue));
         }
 
         [Test]

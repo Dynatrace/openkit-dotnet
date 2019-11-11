@@ -24,6 +24,11 @@ namespace Dynatrace.OpenKit
     public class DynatraceOpenKitBuilder : AbstractOpenKitBuilder
     {
         /// <summary>
+        /// The default ID of the server to communicate with
+        /// </summary>
+        public const int DefaultServerIdValue = 1;
+
+        /// <summary>
         /// Identifies the type of OpenKit for which this builder is made.
         /// </summary>
         public const string Type = "DynatraceOpenKit";
@@ -69,6 +74,8 @@ namespace Dynatrace.OpenKit
             }
             return this;
         }
+
+        public override int DefaultServerId => DefaultServerIdValue;
 
         public override string OpenKitType => Type;
 

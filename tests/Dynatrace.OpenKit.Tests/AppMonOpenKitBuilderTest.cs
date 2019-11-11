@@ -73,7 +73,7 @@ namespace Dynatrace.OpenKit
             var target = new AppMonOpenKitBuilder(EndpointUrl, ApplicationName, DeviceId);
 
             // then
-            Assert.That(target.DefaultServerId, Is.EqualTo(ServerConfiguration.DefaultServerId));
+            Assert.That(target.DefaultServerId, Is.EqualTo(AppMonOpenKitBuilder.DefaultServerIdValue));
         }
     }
 }

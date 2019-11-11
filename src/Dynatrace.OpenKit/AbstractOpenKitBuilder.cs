@@ -324,7 +324,7 @@ namespace Dynatrace.OpenKit
         ///     This might be changed based on the OpenKit type.
         /// </para>
         /// </summary>
-        public virtual int DefaultServerId { get; protected set; } = ServerConfiguration.DefaultServerId;
+        public abstract int DefaultServerId { get; }
 
         /// <summary>
         /// Returns the application version that has been set with <see cref="WithApplicationVersion"/>.
