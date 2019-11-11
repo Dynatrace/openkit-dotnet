@@ -107,9 +107,7 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly string basicBeaconData;
 
         // Beacon configuration
-        private volatile IBeaconConfiguration configuration;
-
-        private readonly ILogger logger;
+        private readonly IBeaconConfiguration configuration;
 
         private readonly IBeaconCache beaconCache;
         private readonly int beaconId;
@@ -170,7 +168,6 @@ namespace Dynatrace.OpenKit.Protocol
             IPrnGenerator randomNumberGenerator
             )
         {
-            this.logger = logger;
             this.beaconCache = beaconCache;
             beaconId = sessionIdProvider.GetNextSessionId();
             SessionNumber = DetermineSessionNumber(configuration, beaconId);

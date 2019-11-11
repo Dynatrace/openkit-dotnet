@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -23,14 +22,12 @@ namespace Dynatrace.OpenKit.Core.Communication
 {
     public class BeaconSendingCaptureOffStateTest
     {
-        private ILogger mockLogger;
         private IHttpClient mockHttpClient;
         private IBeaconSendingContext mockContext;
 
         [SetUp]
         public void Setup()
         {
-            mockLogger = Substitute.For<ILogger>();
             var mockResponse = Substitute.For<IStatusResponse>();
             mockResponse.ResponseCode.Returns(Response.HttpOk);
             mockResponse.IsErroneousResponse.Returns(false);

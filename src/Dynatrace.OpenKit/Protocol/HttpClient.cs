@@ -83,7 +83,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         #region constructors
 
-        public HttpClient(ILogger logger, IHttpClientConfiguration configuration)
+        protected HttpClient(ILogger logger, IHttpClientConfiguration configuration)
         {
             this.logger = logger;
             ServerId = configuration.ServerId;

@@ -14,13 +14,14 @@
 // limitations under the License.
 //
 
+#if NETSTANDARD1_1
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Dynatrace.OpenKit.Util
 {
-#if NETSTANDARD1_1
 
     /// <summary>
     /// Utility class providing some extension methods which are not available in certain .NET flavors.
@@ -40,6 +41,5 @@ namespace Dynatrace.OpenKit.Util
             }
         }
     }
-
-#endif
 }
+#endif

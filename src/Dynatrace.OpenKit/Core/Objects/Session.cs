@@ -73,11 +73,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         /// <summary>
-        /// Accessor for simplified explicit access to <see cref="ISessionInternals"/>.
-        /// </summary>
-        private ISessionInternals ThisSession => this;
-
-        /// <summary>
         /// Accessor for simplified explicit access to <see cref="IOpenKitComposite"/>.
         /// </summary>
         private IOpenKitComposite ThisComposite => this;

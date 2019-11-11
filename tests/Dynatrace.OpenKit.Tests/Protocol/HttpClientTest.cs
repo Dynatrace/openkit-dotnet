@@ -29,8 +29,6 @@ namespace Dynatrace.OpenKit.Protocol
 {
     public class HttpClientTest
     {
-        private ILogger mockLogger;
-        private ISSLTrustManager trustManager;
         private StubHttpClient spyClient;
 
         private const string BaseUrl = "https://localhost";
@@ -73,14 +71,14 @@ namespace Dynatrace.OpenKit.Protocol
         public void SetUp()
         {
             // mock logger
-            mockLogger = Substitute.For<ILogger>();
+            var mockLogger = Substitute.For<ILogger>();
             mockLogger.IsDebugEnabled.Returns(true);
             mockLogger.IsInfoEnabled.Returns(true);
             mockLogger.IsWarnEnabled.Returns(true);
             mockLogger.IsErrorEnabled.Returns(true);
 
             // mock trust manager
-            trustManager = Substitute.For<ISSLTrustManager>();
+            var trustManager = Substitute.For<ISSLTrustManager>();
 
             var openKitConfig = Substitute.For<IOpenKitConfiguration>();
             openKitConfig.EndpointUrl.Returns(BaseUrl);

@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// </summary>
     internal abstract class AbstractBeaconSendingState
     {
-        internal AbstractBeaconSendingState(bool isTerminalState)
+        protected AbstractBeaconSendingState(bool isTerminalState)
         {
             IsTerminalState = isTerminalState;
         }

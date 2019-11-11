@@ -14,12 +14,13 @@
 // limitations under the License.
 //
 
+#if NET35 || NET40
+
 using System;
 using System.Reflection;
 
 namespace Dynatrace.OpenKit.Util
 {
-#if NET35 || NET40
 
     /// <summary>
     /// Attribute utility class.
@@ -36,5 +37,5 @@ namespace Dynatrace.OpenKit.Util
             return (T)GetCustomAttribute(element, typeof(T));
         }
     }
-#endif
 }
+#endif

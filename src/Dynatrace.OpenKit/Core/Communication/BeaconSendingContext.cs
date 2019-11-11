@@ -57,7 +57,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Provider for timing information.
         /// </summary>
-        private ITimingProvider timingProvider;
+        private readonly ITimingProvider timingProvider;
 
         // container storing all sessions
         private readonly SynchronizedQueue<ISessionInternals> sessions = new SynchronizedQueue<ISessionInternals>();

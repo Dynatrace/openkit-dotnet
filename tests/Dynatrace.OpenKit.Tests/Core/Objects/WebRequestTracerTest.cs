@@ -62,7 +62,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ANewlyCreatedWebRequestTracerDoesNotAttachToTheParent()
         {
             // given, when
-            var target = CreateWebRequestTracer().Build();
+            CreateWebRequestTracer().Build();
 
             // then
             _ = mockParent.Received(1).ActionId;

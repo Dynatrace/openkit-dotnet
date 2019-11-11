@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+#if !(WINDOWS_UWP || NETSTANDARD1_1)
+
 using System;
 using Dynatrace.OpenKit.API;
 
@@ -31,7 +33,6 @@ namespace Dynatrace.OpenKit.Protocol.SSL
     ///
     /// NOTE: DO NOT USE THIS IN PRODUCTION!!
     /// </remarks>
-#if !(WINDOWS_UWP || NETSTANDARD1_1)
     public class SSLBlindTrustManager : ISSLTrustManager
     {
         public SSLBlindTrustManager()
@@ -50,5 +51,5 @@ namespace Dynatrace.OpenKit.Protocol.SSL
             }
         }
     }
-#endif
 }
+#endif

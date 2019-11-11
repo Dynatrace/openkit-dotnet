@@ -14,13 +14,14 @@
 // limitations under the License.
 //
 
+#if (!NET40 && !NET35)
+
 using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 
 namespace Dynatrace.OpenKit.Protocol
 {
-#if (!NET40 && !NET35)
 
     public class HttpClientHttpClient : HttpClient
     {
@@ -145,6 +146,5 @@ namespace Dynatrace.OpenKit.Protocol
         #endregion
 
     }
-
-#endif
 }
+#endif

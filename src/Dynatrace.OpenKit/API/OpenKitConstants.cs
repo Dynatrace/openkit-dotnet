@@ -22,7 +22,7 @@ namespace Dynatrace.OpenKit.API
     /// <summary>
     /// Defines constant values used in OpenKit
     /// </summary>
-    public class OpenKitConstants
+    public static class OpenKitConstants
     {
         // default values used in configuration
         public static readonly string DefaultApplicationVersion = "<unknown version>";

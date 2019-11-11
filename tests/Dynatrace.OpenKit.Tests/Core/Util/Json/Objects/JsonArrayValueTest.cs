@@ -57,7 +57,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             _ = jsonValues.Received(1).Count;
         }
 
-      [Test]
+        [Test]
         public void GetEnumeratorDelegatesTheCallToTheUnderlyingList()
         {
             // given
@@ -73,7 +73,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
 
             //then
             Assert.That(obtained, Is.Not.Null);
-            using (jsonValues.Received(1).GetEnumerator()) {}
+            using (jsonValues.Received(1).GetEnumerator()) { /* nothing, just to get rid of warning */ }
         }
     }
 }

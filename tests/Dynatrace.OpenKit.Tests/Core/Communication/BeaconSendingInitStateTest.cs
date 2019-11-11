@@ -24,7 +24,6 @@ namespace Dynatrace.OpenKit.Core.Communication
     [TestFixture]
     public class BeaconSendingInitStateTest
     {
-        private ILogger mockLogger;
         private IHttpClient mockHttpClient;
         private IBeaconSendingContext mockContext;
         private IStatusResponse mockResponse;
@@ -32,8 +31,6 @@ namespace Dynatrace.OpenKit.Core.Communication
         [SetUp]
         public void Setup()
         {
-            mockLogger = Substitute.For<ILogger>();
-
             mockResponse = Substitute.For<IStatusResponse>();
             mockResponse.ResponseCode.Returns(Response.HttpOk);
             mockResponse.IsErroneousResponse.Returns(false);

@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.API
     /// <remarks>
     /// This level is used to specify the priority of a log event.
     /// </remarks>
-    public enum LogLevel : int
+    public enum LogLevel
     {
         DEBUG = 0,
         INFO = 10,

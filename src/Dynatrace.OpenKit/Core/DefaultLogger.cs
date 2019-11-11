@@ -123,6 +123,8 @@ namespace Dynatrace.OpenKit.Core
         {
 #if !(WINDOWS_UWP || NETSTANDARD1_1)
             Console.WriteLine(text);
+#else
+            // do nothing if console is not available
 #endif
         }
     }
