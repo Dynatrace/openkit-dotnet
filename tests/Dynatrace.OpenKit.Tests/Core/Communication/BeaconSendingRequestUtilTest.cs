@@ -30,7 +30,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             mockResponse = Substitute.For<IStatusResponse>();
-            mockResponse.ResponseCode.Returns(Response.HttpOk);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             mockResponse.IsErroneousResponse.Returns(false);
 
             mockHttpClient = Substitute.For<IHttpClient>();
@@ -44,7 +44,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void SendStatusRequestIsAbortedWhenShutDownIsRequested()
         {
             // given
-            mockResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             mockResponse.IsErroneousResponse.Returns(true);
             mockContext.IsShutdownRequested.Returns(true);
 
@@ -65,7 +65,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void SendStatusRequestIsAbortedIfNumberOfRetriesIsExceeded()
         {
             // given
-            mockResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             mockResponse.IsErroneousResponse.Returns(true);
             mockContext.IsShutdownRequested.Returns(false);
 
@@ -104,7 +104,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void SleepTimeIsDoubledBetweenConsecutiveRetries()
         {
             // given
-            mockResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             mockResponse.IsErroneousResponse.Returns(true);
             mockContext.IsShutdownRequested.Returns(false);
 
@@ -148,7 +148,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void SendStatusRequestReturnsTooManyRequestsResponseImmediately()
         {
             // given
-            mockResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             mockResponse.IsErroneousResponse.Returns(true);
             mockContext.IsShutdownRequested.Returns(false);
 

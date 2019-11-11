@@ -49,7 +49,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockLogger = Substitute.For<ILogger>();
 
             var okResponse = Substitute.For<IStatusResponse>();
-            okResponse.ResponseCode.Returns(Response.HttpOk);
+            okResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             okResponse.IsErroneousResponse.Returns(false);
 
             var errorResponse = Substitute.For<IStatusResponse>();
@@ -115,7 +115,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockClient.SendNewSessionRequest()
                 .Returns(
                     new StatusResponse(mockLogger, $"mp={multiplicity}", 200, new Dictionary<string, List<string>>()),
-                    new StatusResponse(mockLogger, string.Empty, Response.HttpBadRequest,
+                    new StatusResponse(mockLogger, string.Empty, StatusResponse.HttpBadRequest,
                         new Dictionary<string, List<string>>())
                     );
             mockSession5New.CanSendNewSessionRequest.Returns(true);
@@ -151,7 +151,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockClient.SendNewSessionRequest()
                 .Returns(
                     new StatusResponse(mockLogger, "mp=5", 200, new Dictionary<string, List<string>>()),
-                    new StatusResponse(mockLogger, string.Empty, Response.HttpBadRequest,
+                    new StatusResponse(mockLogger, string.Empty, StatusResponse.HttpBadRequest,
                         new Dictionary<string, List<string>>())
                     );
             mockSession5New.CanSendNewSessionRequest.Returns(false);
@@ -176,7 +176,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             statusResponse.IsErroneousResponse.Returns(true);
             statusResponse.GetRetryAfterInMilliseconds().Returns(sleepTime);
 
@@ -218,7 +218,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             statusResponse.IsErroneousResponse.Returns(false);
 
             mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
@@ -245,7 +245,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             statusResponse.IsErroneousResponse.Returns(false);
 
             mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
@@ -271,7 +271,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             statusResponse.IsErroneousResponse.Returns(true);
 
             mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
@@ -298,11 +298,11 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var errorResponse = Substitute.For<IStatusResponse>();
-            errorResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
 
             var okResponse = Substitute.For<IStatusResponse>();
-            okResponse.ResponseCode.Returns(Response.HttpOk);
+            okResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             okResponse.IsErroneousResponse.Returns(false);
 
             mockSession3Finished.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(errorResponse);
@@ -336,7 +336,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingCaptureOnState();
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             statusResponse.IsErroneousResponse.Returns(true);
             statusResponse.GetRetryAfterInMilliseconds().Returns(sleepTime);
 
@@ -414,7 +414,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             //given
             const int sleepTime = 987654;
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             statusResponse.IsErroneousResponse.Returns(true);
             statusResponse.GetRetryAfterInMilliseconds().Returns(sleepTime);
 
@@ -483,7 +483,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.CurrentTimestamp.Returns(lastSendTime + sendInterval + 1);
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             statusResponse.IsErroneousResponse.Returns(false);
 
             mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);
@@ -511,7 +511,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.CurrentTimestamp.Returns(lastSendTime + 1);
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             statusResponse.IsErroneousResponse.Returns(false);
 
             mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(statusResponse);

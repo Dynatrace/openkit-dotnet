@@ -15,14 +15,10 @@
 //
 
 using System.Collections.Generic;
-using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Core.Caching;
-using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
-using NSubstitute.ClearExtensions;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -38,7 +34,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             var mockResponse = Substitute.For<IStatusResponse>();
-            mockResponse.ResponseCode.Returns(Response.HttpOk);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpOk);
 
             mockSession1Open = Substitute.For<ISessionInternals>();
             mockSession1Open.IsDataSendingAllowed.Returns(true);
@@ -165,7 +161,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = new BeaconSendingFlushSessionsState();
 
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(Response.HttpTooManyRequests);
+            response.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             response.IsErroneousResponse.Returns(true);
             mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(response);
 

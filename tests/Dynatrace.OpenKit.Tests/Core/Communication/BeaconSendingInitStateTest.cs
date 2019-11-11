@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
@@ -32,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             mockResponse = Substitute.For<IStatusResponse>();
-            mockResponse.ResponseCode.Returns(Response.HttpOk);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             mockResponse.IsErroneousResponse.Returns(false);
 
             mockHttpClient = Substitute.For<IHttpClient>();
@@ -155,7 +154,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var count = 0;
             var erroneousResponse = Substitute.For<IStatusResponse>();
-            erroneousResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            erroneousResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             erroneousResponse.IsErroneousResponse.Returns(true);
             mockHttpClient.SendStatusRequest().Returns(erroneousResponse); // always return erroneous response
             mockContext.IsShutdownRequested.Returns(_ => count++ > 40);
@@ -233,7 +232,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             //given
             var errorResponse = Substitute.For<IStatusResponse>();
-            errorResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
 
             mockHttpClient.SendStatusRequest().Returns(errorResponse);
@@ -261,7 +260,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var errorResponse = Substitute.For<IStatusResponse>();
-            errorResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
             mockHttpClient.SendStatusRequest().Returns(errorResponse); // always return erroneous response
             mockContext.IsShutdownRequested.Returns(false, false, false, false, false, true);
@@ -280,7 +279,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var errorResponse = Substitute.For<IStatusResponse>();
-            errorResponse.ResponseCode.Returns(Response.HttpBadRequest);
+            errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
             mockHttpClient.SendStatusRequest().Returns(errorResponse);
             mockContext.IsShutdownRequested.Returns(false, false, true);
@@ -364,7 +363,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             const int retryTimeout = 1234;
             var errorResponse = Substitute.For<IStatusResponse>();
-            errorResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            errorResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             errorResponse.IsErroneousResponse.Returns(true);
             errorResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
             mockHttpClient.SendStatusRequest().Returns(errorResponse);
@@ -385,7 +384,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             const int retryTimeout = 1234;
             var errorResponse = Substitute.For<IStatusResponse>();
-            errorResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            errorResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             errorResponse.IsErroneousResponse.Returns(true);
             errorResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
             mockHttpClient.SendStatusRequest().Returns(errorResponse);

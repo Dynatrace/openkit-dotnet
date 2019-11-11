@@ -33,6 +33,113 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void IsErroneousResponseGivesTrueForErrorCodeEqualTo400()
+        {
+            // when, then
+            Assert.That(new StatusResponse(logger, "", 400, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesTrueForErrorCodeGreaterThan400()
+        {
+            // when, then
+            Assert.That(new StatusResponse(logger, "", 401, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesFalseForErrorCodeLessThan400()
+        {
+            // when, then
+            Assert.That(new StatusResponse(logger, "", 399, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.False);
+        }
+
+        [Test]
+        public void ResponseCodeIsSet()
+        {
+            // given
+            Assert.That(new StatusResponse(logger, "", 418, new Dictionary<string, List<string>>()).ResponseCode, Is.EqualTo(418));
+        }
+
+        [Test]
+        public void HeadersAreSet()
+        {
+            // given
+            var headers = new Dictionary<string, List<string>>
+            {
+                { "X-Foo", new List<string> { "X-BAR" }  },
+                { "X-YZ", new List<string>() }
+            };
+
+            // then
+            Assert.That(new StatusResponse(logger, "", 418, headers).Headers, Is.EqualTo(headers));
+        }
+
+        [Test]
+        public void GetRetryAfterReturnsDefaultValueIfResponseKeyDoesNotExist()
+        {
+            // given
+            var target = new StatusResponse(logger, "", 429, new Dictionary<string, List<string>>());
+
+            // when
+            var obtained = target.GetRetryAfterInMilliseconds();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(StatusResponse.DefaultRetryAfterInMilliseconds));
+        }
+
+        [Test]
+        public void GetRetryAfterReturnsDefaultValueIfMultipleValuesWereRetrieved()
+        {
+            // given
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { StatusResponse.ResponseKeyRetryAfter, new List<string>{ "100", "200" } }
+            };
+            var target = new StatusResponse(logger, "", 429, responseHeaders);
+
+            // when
+            var obtained = target.GetRetryAfterInMilliseconds();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(StatusResponse.DefaultRetryAfterInMilliseconds));
+        }
+
+        [Test]
+        public void GetRetryAfterReturnsDefaultValueIfValueIsNotParsableAsInteger()
+        {
+            // given
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { StatusResponse.ResponseKeyRetryAfter, new List<string>{ "a" } }
+            };
+            var target = new StatusResponse(logger, "", 429, responseHeaders);
+
+            // when
+            var obtained = target.GetRetryAfterInMilliseconds();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(StatusResponse.DefaultRetryAfterInMilliseconds));
+        }
+
+        [Test]
+        public void GetRetryAfterReturnsParsedValue()
+        {
+            // given
+            var responseHeaders = new Dictionary<string, List<string>>
+            {
+                { StatusResponse.ResponseKeyRetryAfter, new List<string>{ "1234" } }
+            };
+            var target = new StatusResponse(logger, "", 429, responseHeaders);
+
+            // when
+            var obtained = target.GetRetryAfterInMilliseconds();
+
+
+            // then
+            Assert.That(obtained, Is.EqualTo(1234L * 1000L));
+        }
+
+        [Test]
         public void PassingNullResponseStringDoesNotThrow()
         {
             // then
@@ -77,7 +184,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void DefaultServerIDIsMinusOne()
+        public void DefaultServerIdIsMinusOne()
         {
             // given
             var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
@@ -233,7 +340,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void ServerIDIsParsed()
+        public void ServerIdIsParsed()
         {
             // given
             var target = new StatusResponse(logger, StatusResponse.ResponseKeyServerId + "=1234", 200, new Dictionary<string, List<string>>());
@@ -243,7 +350,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void ParsingInvalidServerIDThrowsException()
+        public void ParsingInvalidServerIdThrowsException()
         {
             // when wrong format is used, then
             Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyServerId + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
@@ -366,7 +473,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void ParsingMultiplictyWorks()
+        public void ParsingMultiplicityWorks()
         {
             // when it's a positive number greater than 1, then
             Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=3", 200, new Dictionary<string, List<string>>()).Multiplicity, Is.EqualTo(3));

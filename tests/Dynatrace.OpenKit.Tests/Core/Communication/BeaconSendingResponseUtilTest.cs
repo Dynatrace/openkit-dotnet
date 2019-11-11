@@ -71,7 +71,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(Response.HttpBadRequest);
+            response.ResponseCode.Returns(StatusResponse.HttpBadRequest);
 
             // when
             var obtained = BeaconSendingResponseUtil.IsTooManyRequestsResponse(response);
@@ -86,7 +86,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(Response.HttpTooManyRequests);
+            response.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
 
             // when
             var obtained = BeaconSendingResponseUtil.IsTooManyRequestsResponse(response);

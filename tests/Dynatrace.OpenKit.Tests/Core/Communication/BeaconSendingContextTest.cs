@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockHttpClientConfig = Substitute.For<IHttpClientConfiguration>();
 
             var statusResponse = Substitute.For<IStatusResponse>();
-            statusResponse.ResponseCode.Returns(Response.HttpOk);
+            statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
 
             var httpClient = Substitute.For<IHttpClient>();
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(statusResponse);
@@ -151,7 +151,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
 
         [Test]
-        public void WaitForInitCompleteWhenInitCompletedSucessfully()
+        public void WaitForInitCompleteWhenInitCompletedSuccessfully()
         {
             // given
             var target = CreateSendingContext().Build();
@@ -671,7 +671,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(Response.HttpOk);
+            response.ResponseCode.Returns(StatusResponse.HttpOk);
             response.Capture.Returns(false);
 
             var sessionState = Substitute.For<ISessionState>();
@@ -697,7 +697,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             const int sendInterval = 999;
             var response = Substitute.For<IStatusResponse>();
             response.Capture.Returns(true);
-            response.ResponseCode.Returns(Response.HttpOk);
+            response.ResponseCode.Returns(StatusResponse.HttpOk);
             response.SendInterval.Returns(sendInterval);
 
             var session = Substitute.For<ISessionInternals>();
@@ -721,7 +721,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var response = Substitute.For<IStatusResponse>();
             response.Capture.Returns(false);
-            response.ResponseCode.Returns(Response.HttpOk);
+            response.ResponseCode.Returns(StatusResponse.HttpOk);
 
             var sessionState = Substitute.For<ISessionState>();
             var session = Substitute.For<ISessionInternals>();
@@ -745,7 +745,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // given
             var response = Substitute.For<IStatusResponse>();
             response.Capture.Returns(true);
-            response.ResponseCode.Returns(Response.HttpOk);
+            response.ResponseCode.Returns(StatusResponse.HttpOk);
 
             var session = Substitute.For<ISessionInternals>();
 
@@ -773,7 +773,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             const int serverId = 73;
             var response = Substitute.For<IStatusResponse>();
             response.Capture.Returns(true);
-            response.ResponseCode.Returns(Response.HttpOk);
+            response.ResponseCode.Returns(StatusResponse.HttpOk);
             response.ServerId.Returns(serverId);
 
             var target = Substitute.ForPartsOf<BeaconSendingContext>(

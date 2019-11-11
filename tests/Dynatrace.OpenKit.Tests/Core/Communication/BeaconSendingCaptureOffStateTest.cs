@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void Setup()
         {
             var mockResponse = Substitute.For<IStatusResponse>();
-            mockResponse.ResponseCode.Returns(Response.HttpOk);
+            mockResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             mockResponse.IsErroneousResponse.Returns(false);
 
             mockHttpClient = Substitute.For<IHttpClient>();
@@ -109,7 +109,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             const int retryTimeout = 1234;
             var tooManyRequestsResponse = Substitute.For<IStatusResponse>();
-            tooManyRequestsResponse.ResponseCode.Returns(Response.HttpTooManyRequests);
+            tooManyRequestsResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             tooManyRequestsResponse.IsErroneousResponse.Returns(true);
             tooManyRequestsResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
 

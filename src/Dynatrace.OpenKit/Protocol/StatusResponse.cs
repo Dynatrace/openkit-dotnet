@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Protocol
     /// <summary>
     ///  Implements a status response which is sent for the request types status check & beacon send.
     /// </summary>
-    public class StatusResponse : Response, IStatusResponse
+    public class StatusResponse : IStatusResponse
     {
         private static readonly char[] PartsSeparator = { '&' };
 
@@ -38,11 +38,53 @@ namespace Dynatrace.OpenKit.Protocol
         public const string ResponseKeyCaptureCrashes = "cr";
         public const string ResponseKeyMultiplicity = "mp";
 
-        public StatusResponse(ILogger logger, string response, int responseCode, Dictionary<string, List<string>> headers) :
-            base(logger, responseCode, headers)
+        /// <summary>
+        /// Response code sent by HTTP server to indicate success.
+        /// </summary>
+        public const int HttpOk = 200;
+
+        /// <summary>
+        /// First error code indicating an HTTP error and therefore an erroneous response.
+        /// </summary>
+        public const int HttpBadRequest = 400;
+
+        /// <summary>
+        /// Too many requests sent by client (rate limiting) error code.
+        /// </summary>
+        public const int HttpTooManyRequests = 429;
+
+        /// <summary>
+        /// Key in the HTTP response headers for Retry-After
+        /// </summary>
+        internal const string ResponseKeyRetryAfter = "retry-after";
+
+        /// <summary>
+        /// Default "Retry-After" is 10 minutes.
+        /// </summary>
+        internal const int DefaultRetryAfterInMilliseconds = 10 * 60 * 1000;
+
+        /// <summary>
+        /// Logger for logging messages.
+        /// </summary>
+        private readonly ILogger logger;
+
+        public StatusResponse(ILogger logger, string response, int responseCode, Dictionary<string, List<string>> headers)
         {
+             this.logger = logger;
+            ResponseCode = responseCode;
+            Headers = headers;
             ParseResponse(response);
         }
+
+        /// <summary>
+        /// Gives a boolean indicating whether this response is erroneous or not.
+        /// </summary>
+        public bool IsErroneousResponse => ResponseCode >= HttpBadRequest;
+
+        /// <summary>
+        /// Get the HTTP response code.
+        /// </summary>
+        public int ResponseCode { get; }
 
         public bool Capture { get; private set; } = true;
 
@@ -59,6 +101,49 @@ namespace Dynatrace.OpenKit.Protocol
         public bool CaptureCrashes { get; private set; } = true;
 
         public int Multiplicity { get; private set; } = 1;
+
+        /// <summary>
+        /// Get the HTTP response headers.
+        /// </summary>
+        public Dictionary<string, List<string>> Headers { get; }
+
+        /// <summary>
+        /// Get Retry-After response header value in milliseconds.
+        /// </summary>
+        /// <remarks>
+        /// Retry-After response header can either be an HTTP date or a delay in seconds.
+        /// This function can only correctly parse the delay seconds.
+        /// </remarks>
+        /// <returns>Retry-After value in milliseconds.</returns>
+        public int GetRetryAfterInMilliseconds()
+        {
+            if (!Headers.TryGetValue(ResponseKeyRetryAfter, out List<string> values))
+            {
+                // the Retry-After response header is missing
+                logger.Warn($"{ResponseKeyRetryAfter} is not available - using default value ${DefaultRetryAfterInMilliseconds}");
+                return DefaultRetryAfterInMilliseconds;
+            }
+
+            if (values.Count != 1)
+            {
+                // the Retry-After response header has multiple values, but only one is expected
+                logger.Warn($"{ResponseKeyRetryAfter} has unexpected number of values - using default value {DefaultRetryAfterInMilliseconds}");
+                return DefaultRetryAfterInMilliseconds;
+            }
+
+            // according to RFC 7231 Section 7.1.3 (https://tools.ietf.org/html/rfc7231#section-7.1.3)
+            // Retry-After value can either be a delay seconds value, which is a non-negative decimal integer
+            // or it is an HTTP date.
+            // Our implementation assumes only delay seconds value here
+            if (!int.TryParse(values[0], out int delaySeconds))
+            {
+                logger.Error($"Failed to parse {ResponseKeyRetryAfter} value \"${values[0]}\" - using default value ${DefaultRetryAfterInMilliseconds}");
+                return DefaultRetryAfterInMilliseconds;
+            }
+
+            // convert delay seconds to milliseconds
+            return delaySeconds * 1000;
+        }
 
         // parses status check response
         private void ParseResponse(string response)
