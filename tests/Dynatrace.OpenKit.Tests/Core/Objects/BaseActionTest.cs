@@ -76,6 +76,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportEvent: eventName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -92,6 +93,21 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportEvent: eventName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportEventLogsInvocation()
+        {
+            // given
+            const string eventName = "event name";
+            var target = CreateStubAction();
+
+            // when
+            target.ReportEvent(eventName);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportEvent({eventName})");
         }
 
         [Test]
@@ -109,6 +125,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportValue (int): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -126,6 +143,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportValue (int): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -145,6 +163,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void ReportValueIntLogsInvocation()
+        {
+             // given
+            const int value = 42;
+            const string valueName = "intValue";
+            var target = CreateStubAction();
+
+            // when
+            target.ReportValue(valueName, value);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportValue (int) ({valueName}, {value})");
+        }
+
+        [Test]
         public void ReportValueDoubleWithNullNameDoesNotReportValue()
         {
             // given
@@ -159,6 +192,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportValue (double): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -176,6 +210,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportValue (double): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -192,6 +227,21 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(obtained, Is.SameAs(target));
             mockBeacon.Received(1).ReportValue(IdBaseOffset, valueName, value);
+        }
+
+        [Test]
+        public void ReportValueDoubleLogsInvocation()
+        {
+            // given
+            const string valueName = "doubleValue";
+            const double value = 42.5;
+            var target = CreateStubAction();
+
+            // when
+            target.ReportValue(valueName, value);
+
+            // then
+           mockLogger.Debug($"{target} ReportValue (double) ({valueName}, {value})");
         }
 
         [Test]
@@ -225,6 +275,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportValue (string): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -242,6 +293,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportValue (string): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -260,7 +312,22 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockBeacon.Received(1).ReportValue(IdBaseOffset, valueName, value);
         }
 
-            [Test]
+        [Test]
+        public void ReportValueStringLogsInvocation()
+        {
+            // given
+            const string valueName = "valueName";
+            const string value = "value";
+            var target = CreateStubAction();
+
+            // when
+            var obtained = target.ReportValue(valueName, value);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportValue (string) ({valueName}, {value})");
+        }
+
+        [Test]
         public void ReportErrorWithAllValuesSet()
         {
             // given
@@ -294,6 +361,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportError: errorName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -314,6 +382,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.SameAs(target));
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} ReportError: errorName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -331,6 +400,22 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(obtained, Is.SameAs(target));
             mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, errorCode, errorReason);
+        }
+
+        [Test]
+        public void ReportErrorLogsInvocation()
+        {
+            // given
+            const string errorName = "errorName";
+            const string errorReason = "reason";
+            const int errorCode = 418;
+            var target = CreateStubAction();
+
+            // when
+            target.ReportError(errorName, errorCode, errorReason);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {errorCode}, {errorReason})");
         }
 
         [Test]
@@ -392,6 +477,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} TraceWebRequest (String): url must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -408,6 +494,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} TraceWebRequest (String): url must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
         [Test]
@@ -424,6 +511,21 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             mockLogger.Received(1).Warn($"{target} TraceWebRequest (String): url \"foo:bar://test.com\" does not have a valid scheme");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void TraceWebRequestLogsInvocation()
+        {
+            // given
+            var url = "https://localhost";
+            var target = CreateStubAction();
+
+            // when
+            target.TraceWebRequest(url);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} TraceWebRequest(${url})");
         }
 
         [Test]
@@ -666,6 +768,19 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
             Assert.That(parent.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void LeaveActionLogsInvocation()
+        {
+            // given
+            var target = CreateStubAction();
+
+            // when
+            target.LeaveAction();
+
+            // then
+            mockLogger.Received(1).Debug($"{target} LeaveAction({ActionName})");
         }
 
         [Test]

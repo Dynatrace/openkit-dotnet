@@ -48,14 +48,14 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public IAction EnterAction(string actionName)
         {
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Debug($"{this} EnterAction(\"{actionName}\")");
-            }
             if (string.IsNullOrEmpty(actionName))
             {
                 Logger.Warn($"{this} EnterAction: actionName must not be null or empty");
                 return new NullAction(this);
+            }
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"{this} EnterAction({actionName})");
             }
 
             lock (LockObject)

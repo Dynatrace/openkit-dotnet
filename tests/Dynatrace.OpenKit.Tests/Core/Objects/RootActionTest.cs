@@ -34,6 +34,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void SetUp()
         {
             mockLogger = Substitute.For<ILogger>();
+            mockLogger.IsDebugEnabled.Returns(true);
             mockBeacon = Substitute.For<IBeacon>();
             mockSession = Substitute.For<ISessionInternals>();
         }
@@ -160,6 +161,19 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(childTwo, Is.Not.Null.And.TypeOf<NullAction>());
             Assert.That(childTwo, Is.Not.SameAs(childOne));
+        }
+
+        [Test]
+        public void EnterActionLogsInvocation()
+        {
+            // given
+            var target = CreateRootAction();
+
+            // when
+            target.EnterAction(ChildActionName);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} EnterAction({ChildActionName})");
         }
 
         [Test]

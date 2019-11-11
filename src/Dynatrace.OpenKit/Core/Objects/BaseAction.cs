@@ -170,7 +170,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportValue({valueName}, {value})");
+                Logger.Debug($"{this} ReportValue (string) ({valueName}, {value})");
             }
 
             lock (LockObject)
@@ -193,7 +193,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportValue(double) ({valueName}, {value})");
+                Logger.Debug($"{this} ReportValue (double) ({valueName}, {value})");
             }
 
             lock (LockObject)
@@ -216,7 +216,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportValue(int) ({valueName}, {value})");
+                Logger.Debug($"{this} ReportValue (int) ({valueName}, {value})");
             }
 
             lock (LockObject)
@@ -267,7 +267,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} TraceWebRequest (${url})");
+                Logger.Debug($"{this} TraceWebRequest(${url})");
             }
 
             lock (LockObject)
