@@ -57,7 +57,15 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
         /// </summary>
         /// <param name="key">the key whose associated JSON value is to be returned.</param>
         /// <returns>the JSON value this key is associated with or <code>null</code> if no such key exists.</returns>
-        public JsonValue this[string key] => jsonObjectDictionary[key];
+        public JsonValue this[string key]
+        {
+            get
+            {
+                jsonObjectDictionary.TryGetValue(key, out var value);
+                return value;
+            }
+        }
+
 
         /// <summary>
         ///     Factory method for creating a new <see cref="JsonObjectValue" />.

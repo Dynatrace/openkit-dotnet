@@ -65,6 +65,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// </summary>
         public const int DefaultMultiplicity = 1;
 
+        public const int DefaultMaxSessionDuration = -1;
+        public const int DefaultMaxEventsPerSession = -1;
+        public const int DefaultSessionTimeout = -1;
+        public const int DefaultVisitStoreVersion = 1;
+
         #endregion
 
         /// <summary>
@@ -80,6 +85,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
             ServerId = builder.ServerId;
             BeaconSizeInBytes = builder.BeaconSizeInBytes;
             Multiplicity = builder.Multiplicity;
+            MaxSessionDurationInMilliseconds = builder.MaxSessionDurationInMilliseconds;
+            MaxEventsPerSession = builder.MaxEventsPerSession;
+            SessionTimeoutInMilliseconds = builder.SessionTimeoutInMilliseconds;
+            VisitStoreVersion = builder.VisitStoreVersion;
         }
 
         /// <summary>
@@ -93,6 +102,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             {
                 return null;
             }
+
             return new Builder(statusResponse).Build();
         }
 
@@ -109,6 +119,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public int BeaconSizeInBytes { get; }
 
         public int Multiplicity { get; }
+
+        public int MaxSessionDurationInMilliseconds { get; }
+
+        public int MaxEventsPerSession { get; }
+
+        public int SessionTimeoutInMilliseconds { get; }
+
+        public int VisitStoreVersion { get; }
 
         public bool IsSendingDataAllowed => IsCaptureEnabled && Multiplicity > 0;
 
@@ -167,6 +185,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 ServerId = serverConfiguration.ServerId;
                 BeaconSizeInBytes = serverConfiguration.BeaconSizeInBytes;
                 Multiplicity = serverConfiguration.Multiplicity;
+                MaxSessionDurationInMilliseconds = serverConfiguration.MaxSessionDurationInMilliseconds;
+                MaxEventsPerSession = serverConfiguration.MaxEventsPerSession;
+                SessionTimeoutInMilliseconds = serverConfiguration.SessionTimeoutInMilliseconds;
+                VisitStoreVersion = serverConfiguration.VisitStoreVersion;
             }
 
             internal bool IsCaptureEnabled { get; private set; } = DefaultCaptureEnabled;
@@ -259,6 +281,58 @@ namespace Dynatrace.OpenKit.Core.Configuration
             public Builder WithMultiplicity(int multiplicity)
             {
                 Multiplicity = multiplicity;
+                return this;
+            }
+
+            internal int MaxSessionDurationInMilliseconds { get; private set; } = DefaultMaxSessionDuration;
+
+            /// <summary>
+            /// Configures the maximum duration after which the session gets split.
+            /// </summary>
+            /// <param name="maxSessionDurationInMilliseconds">the maximum duration of a session in milliseconds</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithMaxSessionDurationInMilliseconds(int maxSessionDurationInMilliseconds)
+            {
+                MaxSessionDurationInMilliseconds = maxSessionDurationInMilliseconds;
+                return this;
+            }
+
+            internal int MaxEventsPerSession { get; private set; } = DefaultMaxEventsPerSession;
+
+            /// <summary>
+            /// Configures the maximum number of events after which the session gets split.
+            /// </summary>
+            /// <param name="maxEventsPerSession">the maximum number of top level elements after which a session gets split</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithMaxEventsPerSession(int maxEventsPerSession)
+            {
+                MaxEventsPerSession = maxEventsPerSession;
+                return this;
+            }
+
+            internal int SessionTimeoutInMilliseconds { get; private set; } = DefaultSessionTimeout;
+
+            /// <summary>
+            /// Configures the idle timeout after which a session gets split.
+            /// </summary>
+            /// <param name="sessionTimeoutInMilliseconds">the idle timeout in milliseconds after which a session gets split</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithSessionTimeoutInMilliseconds(int sessionTimeoutInMilliseconds)
+            {
+                SessionTimeoutInMilliseconds = sessionTimeoutInMilliseconds;
+                return this;
+            }
+
+            internal int VisitStoreVersion { get; private set; } = DefaultVisitStoreVersion;
+
+            /// <summary>
+            /// Configures the version of the visit store that is to be used.
+            /// </summary>
+            /// <param name="visitStoreVersion">the version of the visit store to be used.</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithVisitStoreVersion(int visitStoreVersion)
+            {
+                VisitStoreVersion = visitStoreVersion;
                 return this;
             }
 

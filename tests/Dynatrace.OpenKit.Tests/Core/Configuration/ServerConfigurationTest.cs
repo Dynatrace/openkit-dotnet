@@ -81,6 +81,31 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(ServerConfiguration.Default.Multiplicity, Is.EqualTo(1));
         }
 
+
+        [Test]
+        public void InDefaultServerConfigurationMaxSessionDurationIsMinusOne()
+        {
+            Assert.That(ServerConfiguration.Default.MaxSessionDurationInMilliseconds, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void InDefaultServerConfigurationMaxEventsPerSessionIsMinusOne()
+        {
+            Assert.That(ServerConfiguration.Default.MaxEventsPerSession, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void InDefaultServerConfigurationSessionTimeoutIsMinusOne()
+        {
+            Assert.That(ServerConfiguration.Default.SessionTimeoutInMilliseconds, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void InDefaultServerConfigurationVisitStoreVersionIsMinusOne()
+        {
+            Assert.That(ServerConfiguration.Default.VisitStoreVersion, Is.EqualTo(1));
+        }
+
         #endregion
 
         #region test creation with 'From' method
@@ -370,7 +395,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         [Test]
         public void MergeTakesOverDisabledCrashReporting()
         {
-             // given
+            // given
             var target = new ServerConfiguration.Builder().WithCrashReporting(true).Build();
             var other = new ServerConfiguration.Builder().WithCrashReporting(false).Build();
 

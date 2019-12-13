@@ -69,7 +69,7 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             var obtained = target.Count;
 
             // then
-            Assert.That(obtained, Is. EqualTo(42));
+            Assert.That(obtained, Is.EqualTo(42));
             _ = jsonObjectDict.Received(1).Count;
         }
 
@@ -100,23 +100,39 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
         public void IndexerDelegatesToUnderlyingDictionary()
         {
             // given
-            var jsonObjectDict = Substitute.For<IDictionary<string, JsonValue>>();
-            jsonObjectDict[Arg.Any<string>()].Returns(Substitute.For<JsonValue>());
+            var valueOne = Substitute.For<JsonValue>();
+            var valueTwo = Substitute.For<JsonValue>();
+
+            var jsonObjectDict = new Dictionary<string, JsonValue> {["foo"] = valueOne, ["bar"] = valueTwo};
+
             var target = JsonObjectValue.FromDictionary(jsonObjectDict);
 
             // when
             var obtained = target["foo"];
 
             // then
-            Assert.That(obtained, Is.Not.Null);
-           _ = jsonObjectDict.Received(1)["foo"];
+            Assert.That(obtained, Is.Not.Null.And.SameAs(valueOne));
 
             // and when
             obtained = target["bar"];
 
             // then
-            Assert.That(obtained, Is.Not.Null);
-            _ = jsonObjectDict.Received(1)["bar"];
+            Assert.That(obtained, Is.Not.Null.And.SameAs(valueTwo));
+        }
+
+        [Test]
+        public void IndexerReturnsNullIfKeyDoesNotExist()
+        {
+            // given
+            var jsonObjectDict = new Dictionary<string, JsonValue>();
+
+            var target = JsonObjectValue.FromDictionary(jsonObjectDict);
+
+            // when
+            var obtained = target["foo"];
+
+            // then
+            Assert.That(obtained, Is.Null);
         }
     }
 }

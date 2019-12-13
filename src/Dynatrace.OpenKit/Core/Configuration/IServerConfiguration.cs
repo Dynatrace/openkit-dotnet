@@ -62,6 +62,26 @@ namespace Dynatrace.OpenKit.Core.Configuration
         int Multiplicity { get; }
 
         /// <summary>
+        /// Returns the maximum duration in milliseconds after which a session is to be split.
+        /// </summary>
+        int MaxSessionDurationInMilliseconds { get; }
+
+        /// <summary>
+        /// Returns the maximum number of events after which a session is to be split.
+        /// </summary>
+        int MaxEventsPerSession { get; }
+
+        /// <summary>
+        /// Returns the idle timeout after which a session si to be split.
+        /// </summary>
+        int SessionTimeoutInMilliseconds { get; }
+
+        /// <summary>
+        /// Returns the version of the visit store that is being used.
+        /// </summary>
+        int VisitStoreVersion { get; }
+
+        /// <summary>
         /// Indicates whether sending arbitrary data to the server is allowed or not.
         ///
         /// <para>
