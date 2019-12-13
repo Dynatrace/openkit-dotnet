@@ -74,6 +74,27 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParsingKeyWithoutKeyValuePairThrowsException()
+        {
+            Assert.Throws<ArgumentException>(() => KeyValueResponseParser.Parse("key_value"),
+                "Invalid response; even number of tokens expected.");
+        }
+
+        [Test]
+        public void ParsingAnOddNumberOfTokensThrowsException()
+        {
+            Assert.Throws<ArgumentException>(() => KeyValueResponseParser.Parse("cp=100&cr"),
+                "Invalid response; even number of tokens expected.");
+        }
+
+        [Test]
+        public void ParsingKeyValueWithAmpersandAsSeparatorThrowsException()
+        {
+            Assert.Throws<ArgumentException>(() => KeyValueResponseParser.Parse("cp&100"),
+                "Invalid response; even number of tokens expected.");
+        }
+
+        [Test]
         public void ParseExtractsBeaconSize()
         {
             // given
@@ -89,6 +110,36 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParsingBeaconSizeWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyMaxBeaconSizeInKb, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingBeaconSizeWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyMaxBeaconSizeInKb, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingBeaconSizeWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyMaxBeaconSizeInKb, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
         public void ParseExtractsSendInterval()
         {
             // given
@@ -101,6 +152,36 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(sendInterval * 1000));
+        }
+
+        [Test]
+        public void ParsingSendIntervalWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeySendIntervalInSec, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingSendIntervalWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeySendIntervalInSec, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingSendIntervalWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeySendIntervalInSec, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
         }
 
         [Test]
@@ -132,6 +213,50 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParsingCaptureWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyCapture, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingCaptureWithValueNotEqualToOneGivesFalse()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyCapture, 200);
+
+            // when
+            var obtained = KeyValueResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.IsCapture, Is.False);
+        }
+
+        [Test]
+        public void ParsingCaptureWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyCapture, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingCaptureWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyCapture, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
         public void ParseExtractsCaptureCrashesEnabled()
         {
             // given
@@ -157,6 +282,50 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.IsCaptureCrashes, Is.False);
+        }
+
+        [Test]
+        public void ParsingReportCrashesWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyReportCrashes, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingReportCrashesWithValueNotEqualToZeroGivesTrue()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyReportCrashes, 200);
+
+            // when
+            var obtained = KeyValueResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.IsCaptureCrashes, Is.True);
+        }
+
+        [Test]
+        public void ParsingReportCrashesWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyCapture, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingReportCrashesWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyCapture, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
         }
 
         [Test]
@@ -188,6 +357,51 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParsingReportErrorsWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyReportErrors, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingReportErrorsWithValueNotEqualToZeroGivesTrue()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyReportErrors, 200);
+
+            // when
+            var obtained = KeyValueResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.IsCaptureErrors, Is.True);
+        }
+
+        [Test]
+        public void ParsingReportErrorsWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyReportErrors, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingReportErrorsWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyReportErrors, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+
+        [Test]
         public void ParseExtractsServerId()
         {
             // given
@@ -203,6 +417,36 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParsingServerIdWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyServerId, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingServerIdWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyServerId, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingServerIdWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyServerId, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
         public void ParseExtractsMultiplicity()
         {
             // given
@@ -215,6 +459,36 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.Multiplicity, Is.EqualTo(multiplicity));
+        }
+
+        [Test]
+        public void ParsingMultiplicityWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyMultiplicity, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingMultiplicityWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyMultiplicity, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingMultiplicityWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyMultiplicity, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
         }
 
         [Test]
@@ -274,7 +548,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsAttributeSet(ResponseAttribute.TIMESTAMP), Is.False);
         }
 
-        private void AppendParameter(string key, int value)
+        private void AppendParameter(string key, long value)
         {
             AppendParameter(key, value.ToString());
         }

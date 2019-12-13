@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         int MaxEventsPerSession { get; }
 
         /// <summary>
-        /// Returns the idle timeout after which a session si to be split.
+        /// Returns the idle timeout after which a session is to be split.
         /// </summary>
         int SessionTimeoutInMilliseconds { get; }
 

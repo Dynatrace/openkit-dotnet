@@ -109,15 +109,19 @@ namespace Dynatrace.OpenKit.Core.Communication
             const int multiplicity = 5;
             var target = new BeaconSendingCaptureOnState();
 
+            var successResponse = StatusResponse.CreateSuccessResponse(mockLogger,
+                ResponseAttributes.WithJsonDefaults().WithMultiplicity(multiplicity).Build(), 200,
+                new Dictionary<string, List<string>>());
+
             var mockClient = Substitute.For<IHttpClient>();
             mockContext.GetHttpClient().Returns(mockClient);
-            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.GetAllNotConfiguredSessions()
+                .Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.UpdateLastResponseAttributesFrom(Arg.Any<StatusResponse>())
+                .Returns(successResponse.ResponseAttributes);
             mockClient.SendNewSessionRequest()
-                .Returns(
-                    new StatusResponse(mockLogger, $"mp={multiplicity}", 200, new Dictionary<string, List<string>>()),
-                    new StatusResponse(mockLogger, string.Empty, StatusResponse.HttpBadRequest,
-                        new Dictionary<string, List<string>>())
-                    );
+                .Returns(successResponse,
+                    StatusResponse.CreateErrorResponse(mockLogger, StatusResponse.HttpBadRequest));
             mockSession5New.CanSendNewSessionRequest.Returns(true);
             mockSession6New.CanSendNewSessionRequest.Returns(true);
 
@@ -140,20 +144,88 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void SuccessfulNewSessionRequestUpdateLastResponseAttributes()
+        {
+            // given
+            var target = new BeaconSendingCaptureOnState();
+
+            const int beaconSize = 73;
+            var responseAttributes = Substitute.For<IResponseAttributes>();
+            responseAttributes.MaxBeaconSizeInBytes.Returns(beaconSize);
+            var sessionRequestResponse = Substitute.For<IStatusResponse>();
+            sessionRequestResponse.ResponseAttributes.Returns(responseAttributes);
+
+            mockContext.UpdateLastResponseAttributesFrom(Arg.Any<IStatusResponse>()).Returns(responseAttributes);
+
+            var mockClient = Substitute.For<IHttpClient>();
+            mockClient.SendNewSessionRequest().Returns(sessionRequestResponse);
+
+            mockContext.GetHttpClient().Returns(mockClient);
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New});
+            mockSession5New.CanSendNewSessionRequest.Returns(true);
+
+            IServerConfiguration captureConfig = null;
+            mockSession5New.UpdateServerConfiguration(Arg.Do<IServerConfiguration>(c => captureConfig = c));
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            mockContext.Received(1).UpdateLastResponseAttributesFrom(sessionRequestResponse);
+            mockSession5New.Received(1).UpdateServerConfiguration(Arg.Any<IServerConfiguration>());
+
+            Assert.That(captureConfig, Is.Not.Null);
+            Assert.That(captureConfig.BeaconSizeInBytes, Is.EqualTo(beaconSize));
+        }
+
+        [Test]
+        public void UnsuccessfulNewSessionRequestDoesNotMergeStatusResponse()
+        {
+            // given
+            var target = new BeaconSendingCaptureOnState();
+
+            var sessionRequestResponse = Substitute.For<IStatusResponse>();
+            sessionRequestResponse.IsErroneousResponse.Returns(true);
+            var contextAttributes = Substitute.For<IResponseAttributes>();
+
+            var mockClient = Substitute.For<IHttpClient>();
+            mockClient.SendNewSessionRequest().Returns(sessionRequestResponse);
+
+            mockContext.GetHttpClient().Returns(mockClient);
+            mockContext.LastResponseAttributes.Returns(contextAttributes);
+            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New});
+            mockSession5New.CanSendNewSessionRequest.Returns(true);
+
+            // when
+            target.Execute(mockContext);
+
+            // then
+            Assert.That(contextAttributes.ReceivedCalls(), Is.Empty);
+            mockSession5New.Received(0).UpdateServerConfiguration(Arg.Any<ServerConfiguration>());
+        }
+
+        [Test]
         public void CaptureIsDisabledIfNoFurtherNewSessionRequestsAreAllowed()
         {
             // given
             var target = new BeaconSendingCaptureOnState();
 
+            var successResponse = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                ResponseAttributes.WithJsonDefaults().WithMultiplicity(5).Build(),
+                200,
+                new Dictionary<string, List<string>>()
+            );
+
             var mockClient = Substitute.For<IHttpClient>();
             mockContext.GetHttpClient().Returns(mockClient);
-            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.GetAllNotConfiguredSessions()
+                .Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
             mockClient.SendNewSessionRequest()
                 .Returns(
-                    new StatusResponse(mockLogger, "mp=5", 200, new Dictionary<string, List<string>>()),
-                    new StatusResponse(mockLogger, string.Empty, StatusResponse.HttpBadRequest,
-                        new Dictionary<string, List<string>>())
-                    );
+                    successResponse,
+                    StatusResponse.CreateErrorResponse(mockLogger, StatusResponse.HttpBadRequest)
+                );
             mockSession5New.CanSendNewSessionRequest.Returns(false);
             mockSession6New.CanSendNewSessionRequest.Returns(false);
 
@@ -168,7 +240,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockSession6New.Received(1).DisableCapture();
         }
 
-         [Test]
+        [Test]
         public void NewSessionRequestsAreAbortedWhenTooManyRequestsResponseIsReceived()
         {
             // given
@@ -183,7 +255,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             var mockClient = Substitute.For<IHttpClient>();
             mockClient.SendNewSessionRequest().Returns(statusResponse);
             mockContext.GetHttpClient().Returns(mockClient);
-            mockContext.GetAllNotConfiguredSessions().Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
+            mockContext.GetAllNotConfiguredSessions()
+                .Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
 
             mockSession5New.CanSendNewSessionRequest.Returns(true);
             mockSession6New.CanSendNewSessionRequest.Returns(true);
@@ -497,7 +570,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
             mockContext.Received(1).HandleStatusResponse(statusResponse);
-            Assert.That(mockContext.LastOpenSessionBeaconSendTime, Is.EqualTo(mockContext.CurrentTimestamp)); // assert send time update
+            Assert.That(mockContext.LastOpenSessionBeaconSendTime,
+                Is.EqualTo(mockContext.CurrentTimestamp)); // assert send time update
         }
 
         [Test]

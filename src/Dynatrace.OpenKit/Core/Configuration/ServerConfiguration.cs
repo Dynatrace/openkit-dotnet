@@ -92,18 +92,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         /// <summary>
-        /// Creates a new server configuration from the given <see cref="IStatusResponse"/>.
+        /// Creates a new server configuration from the given <see cref="IResponseAttributes"/>.
         /// </summary>
-        /// <param name="statusResponse">the status response from which to create the server configuration.</param>
+        /// <param name="responseAttributes">the response attributes from which to create the server configuration.</param>
         /// <returns>the newly created server configuration.</returns>
-        public static IServerConfiguration From(IStatusResponse statusResponse)
+        public static IServerConfiguration From(IResponseAttributes responseAttributes)
         {
-            if (statusResponse == null)
+            if (responseAttributes == null)
             {
                 return null;
             }
 
-            return new Builder(statusResponse).Build();
+            return new Builder(responseAttributes).Build();
         }
 
         public bool IsCaptureEnabled { get; }
@@ -158,24 +158,28 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
 
             /// <summary>
-            /// Creates a new builder instance with pre-initialized fields from the given <see cref="IStatusResponse"/>.
+            /// Creates a new builder instance with pre-initialized fields from the given <see cref="IResponseAttributes"/>.
             /// </summary>
-            /// <param name="statusResponse">status response used for initializing this builder.</param>
-            public Builder(IStatusResponse statusResponse)
+            /// <param name="responseAttributes">response attributes used for initializing this builder.</param>
+            public Builder(IResponseAttributes responseAttributes)
             {
-                IsCaptureEnabled = statusResponse.Capture;
-                IsCrashReportingEnabled = statusResponse.CaptureCrashes;
-                IsErrorReportingEnabled = statusResponse.CaptureErrors;
-                SendIntervalInMilliseconds = statusResponse.SendInterval;
-                ServerId = statusResponse.ServerId;
-                BeaconSizeInBytes = statusResponse.MaxBeaconSize;
-                Multiplicity = statusResponse.Multiplicity;
+                IsCaptureEnabled = responseAttributes.IsCapture;
+                IsCrashReportingEnabled = responseAttributes.IsCaptureCrashes;
+                IsErrorReportingEnabled = responseAttributes.IsCaptureErrors;
+                SendIntervalInMilliseconds = responseAttributes.SendIntervalInMilliseconds;
+                ServerId = responseAttributes.ServerId;
+                BeaconSizeInBytes = responseAttributes.MaxBeaconSizeInBytes;
+                Multiplicity = responseAttributes.Multiplicity;
+                MaxSessionDurationInMilliseconds = responseAttributes.MaxSessionDurationInMilliseconds;
+                MaxEventsPerSession = responseAttributes.MaxEventsPerSession;
+                SessionTimeoutInMilliseconds = responseAttributes.SessionTimeoutInMilliseconds;
+                VisitStoreVersion = responseAttributes.VisitStoreVersion;
             }
 
             /// <summary>
-            ///
+            /// Creates a new builder instance with pre-initialized fields from the given <see cref="IServerConfiguration"/>
             /// </summary>
-            /// <param name="serverConfiguration"></param>
+            /// <param name="serverConfiguration">the server configuration from which to initialize the builder instance.</param>
             public Builder(IServerConfiguration serverConfiguration)
             {
                 IsCaptureEnabled = serverConfiguration.IsCaptureEnabled;

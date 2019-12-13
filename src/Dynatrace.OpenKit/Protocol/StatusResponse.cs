@@ -14,30 +14,16 @@
 // limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Protocol
 {
-
     /// <summary>
     ///  Implements a status response which is sent for the request types status check & beacon send.
     /// </summary>
     public class StatusResponse : IStatusResponse
     {
-        private static readonly char[] PartsSeparator = { '&' };
-
-        // status response constants
-        public const string ResponseKeyCapture = "cp";
-        public const string ResponseKeySendInterval = "si";
-        public const string ResponseKeyMonitorName = "bn";
-        public const string ResponseKeyServerId = "id";
-        public const string ResponseKeyMaxBeaconSize = "bl";
-        public const string ResponseKeyCaptureErrors = "er";
-        public const string ResponseKeyCaptureCrashes = "cr";
-        public const string ResponseKeyMultiplicity = "mp";
-
         /// <summary>
         /// Response code sent by HTTP server to indicate success.
         /// </summary>
@@ -68,12 +54,31 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         private readonly ILogger logger;
 
-        public StatusResponse(ILogger logger, string response, int responseCode, Dictionary<string, List<string>> headers)
+        private StatusResponse(ILogger logger, IResponseAttributes responseAttributes, int responseCode,
+            Dictionary<string, List<string>> headers)
         {
-             this.logger = logger;
+            this.logger = logger;
             ResponseCode = responseCode;
             Headers = headers;
-            ParseResponse(response);
+            ResponseAttributes = responseAttributes;
+        }
+
+        public static StatusResponse CreateSuccessResponse(ILogger logger, IResponseAttributes responseAttributes,
+            int responseCode, Dictionary<string, List<string>> headers)
+        {
+            return new StatusResponse(logger, responseAttributes, responseCode, headers);
+        }
+
+        public static StatusResponse CreateErrorResponse(ILogger logger, int responseCode)
+        {
+            return CreateErrorResponse(logger, responseCode, new Dictionary<string, List<string>>());
+        }
+
+        public static StatusResponse CreateErrorResponse(ILogger logger, int responseCode,
+            Dictionary<string, List<string>> headers)
+        {
+            var responseAttributes = Protocol.ResponseAttributes.WithUndefinedDefaults().Build();
+            return new StatusResponse(logger, responseAttributes, responseCode, headers);
         }
 
         /// <summary>
@@ -86,21 +91,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         public int ResponseCode { get; }
 
-        public bool Capture { get; private set; } = true;
-
-        public int SendInterval { get; private set; } = -1;
-
-        public string MonitorName { get; private set; } = null;
-
-        public int ServerId { get; private set; } = -1;
-
-        public int MaxBeaconSize { get; private set; } = -1;
-
-        public bool CaptureErrors { get; private set; } = true;
-
-        public bool CaptureCrashes { get; private set; } = true;
-
-        public int Multiplicity { get; private set; } = 1;
+        public IResponseAttributes ResponseAttributes { get; }
 
         /// <summary>
         /// Get the HTTP response headers.
@@ -120,14 +111,16 @@ namespace Dynatrace.OpenKit.Protocol
             if (!Headers.TryGetValue(ResponseKeyRetryAfter, out List<string> values))
             {
                 // the Retry-After response header is missing
-                logger.Warn($"{ResponseKeyRetryAfter} is not available - using default value ${DefaultRetryAfterInMilliseconds}");
+                logger.Warn(
+                    $"{ResponseKeyRetryAfter} is not available - using default value ${DefaultRetryAfterInMilliseconds}");
                 return DefaultRetryAfterInMilliseconds;
             }
 
             if (values.Count != 1)
             {
                 // the Retry-After response header has multiple values, but only one is expected
-                logger.Warn($"{ResponseKeyRetryAfter} has unexpected number of values - using default value {DefaultRetryAfterInMilliseconds}");
+                logger.Warn(
+                    $"{ResponseKeyRetryAfter} has unexpected number of values - using default value {DefaultRetryAfterInMilliseconds}");
                 return DefaultRetryAfterInMilliseconds;
             }
 
@@ -137,63 +130,13 @@ namespace Dynatrace.OpenKit.Protocol
             // Our implementation assumes only delay seconds value here
             if (!int.TryParse(values[0], out int delaySeconds))
             {
-                logger.Error($"Failed to parse {ResponseKeyRetryAfter} value \"${values[0]}\" - using default value ${DefaultRetryAfterInMilliseconds}");
+                logger.Error(
+                    $"Failed to parse {ResponseKeyRetryAfter} value \"${values[0]}\" - using default value ${DefaultRetryAfterInMilliseconds}");
                 return DefaultRetryAfterInMilliseconds;
             }
 
             // convert delay seconds to milliseconds
             return delaySeconds * 1000;
-        }
-
-        // parses status check response
-        private void ParseResponse(string response)
-        {
-            if (string.IsNullOrEmpty(response))
-            {
-                return;
-            }
-
-            foreach (var parts in response.Split(PartsSeparator, StringSplitOptions.RemoveEmptyEntries))
-            {
-                var tokens = parts.Split('=');
-                if (tokens.Length != 2)
-                {
-                    throw new ArgumentException("Invalid response; even number of tokens expected.");
-                }
-
-                var key = tokens[0];
-                var value = tokens[1];
-
-                switch (key)
-                {
-                    case ResponseKeyCapture:
-                        Capture = (int.Parse(value) == 1);
-                        break;
-                    case ResponseKeySendInterval:
-                        SendInterval = int.Parse(value) * 1000;
-                        break;
-                    case ResponseKeyMonitorName:
-                        MonitorName = value;
-                        break;
-                    case ResponseKeyServerId:
-                        ServerId = int.Parse(value);
-                        break;
-                    case ResponseKeyMaxBeaconSize:
-                        MaxBeaconSize = int.Parse(value) * 1024;
-                        break;
-                    case ResponseKeyCaptureErrors:
-                        CaptureErrors = (int.Parse(value) != 0);                  // 1 (always on) and 2 (only on WiFi) are treated the same
-                        break;
-                    case ResponseKeyCaptureCrashes:
-                        CaptureCrashes = (int.Parse(value) != 0);                 // 1 (always on) and 2 (only on WiFi) are treated the same
-                        break;
-                    case ResponseKeyMultiplicity:
-                        Multiplicity = int.Parse(value);
-                        break;
-                    default:
-                        break;
-                }
-            }
         }
     }
 }

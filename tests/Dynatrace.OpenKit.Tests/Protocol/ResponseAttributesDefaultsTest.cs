@@ -98,6 +98,19 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(ResponseAttributesDefaults.JsonResponse.TimestampInMilliseconds, Is.EqualTo(0L));
         }
 
+        [Test]
+        public void DefaultJsonMergeReturnsPassedValue()
+        {
+            // given
+            var responseAttributes = Substitute.For<IResponseAttributes>();
+
+            // when
+            var obtained = ResponseAttributesDefaults.JsonResponse.Merge(responseAttributes);
+
+            // then
+            Assert.That(obtained, Is.SameAs(responseAttributes));
+        }
+
         #endregion
 
         #region Key/Value pair response tests
@@ -176,6 +189,19 @@ namespace Dynatrace.OpenKit.Protocol
         public void DefaultKeyValueTimestamp()
         {
             Assert.That(ResponseAttributesDefaults.KeyValueResponse.TimestampInMilliseconds, Is.EqualTo(0L));
+        }
+
+        [Test]
+        public void DefaultKeyValueMergeReturnsPassedValue()
+        {
+            // given
+            var responseAttributes = Substitute.For<IResponseAttributes>();
+
+            // when
+            var obtained = ResponseAttributesDefaults.KeyValueResponse.Merge(responseAttributes);
+
+            // then
+            Assert.That(obtained, Is.SameAs(responseAttributes));
         }
 
         #endregion

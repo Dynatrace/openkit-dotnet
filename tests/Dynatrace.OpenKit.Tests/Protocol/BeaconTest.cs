@@ -157,8 +157,6 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(capturedIpAddress, Is.Empty);
             httpClient.Received(1).SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>());
-
-            
         }
 
         [Test]
@@ -173,7 +171,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
             httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
-            
+
             var target = CreateBeacon()
                 .WithIpAddress(null)
                 .Build();
@@ -930,12 +928,18 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             const string ipAddress = "127.0.0.1";
             const int responseCode = 200;
+            var successResponse = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                ResponseAttributes.WithJsonDefaults().Build(),
+                responseCode,
+                new Dictionary<string, List<string>>()
+            );
 
             var target = CreateBeacon().With(new BeaconCache(mockLogger)).WithIpAddress(ipAddress).Build();
 
              var httpClient = Substitute.For<IHttpClient>();
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
-                .Returns(new StatusResponse(mockLogger, "", responseCode, new Dictionary<string, List<string>>()));
+                .Returns(successResponse);
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
             httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
@@ -961,7 +965,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var httpClient = Substitute.For<IHttpClient>();
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
-                .Returns(new StatusResponse(mockLogger, "", responseCode, new Dictionary<string, List<string>>()));
+                .Returns(StatusResponse.CreateErrorResponse(mockLogger, responseCode));
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
             httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);

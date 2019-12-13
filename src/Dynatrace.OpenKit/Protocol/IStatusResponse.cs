@@ -27,18 +27,6 @@ namespace Dynatrace.OpenKit.Protocol
 
         int GetRetryAfterInMilliseconds();
 
-        bool Capture { get; }
-
-        int SendInterval { get; }
-
-        int ServerId { get; }
-
-        int MaxBeaconSize { get; }
-
-        bool CaptureErrors { get; }
-
-        bool CaptureCrashes { get; }
-
-        int Multiplicity { get; }
+        IResponseAttributes ResponseAttributes { get; }
     }
 }

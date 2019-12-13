@@ -99,6 +99,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             serverConfiguration = ServerConfiguration.Default;
             HttpClientProvider = httpClientProvider;
             this.timingProvider = timingProvider;
+            LastResponseAttributes = ResponseAttributes.WithUndefinedDefaults().Build();
 
             CurrentState = initialState;
         }
@@ -210,7 +211,8 @@ namespace Dynatrace.OpenKit.Core.Communication
                 return;
             }
 
-            serverConfiguration = new ServerConfiguration.Builder(statusResponse).Build();
+            var updatedAttributes = UpdateLastResponseAttributesFrom(statusResponse);
+            serverConfiguration = new ServerConfiguration.Builder(updatedAttributes).Build();
 
             if (!IsCaptureOn)
             {
@@ -224,6 +226,25 @@ namespace Dynatrace.OpenKit.Core.Communication
                 httpClientConfiguration = CreateHttpClientConfigurationWith(serverId);
             }
         }
+
+        public IResponseAttributes UpdateLastResponseAttributesFrom(IStatusResponse statusResponse)
+        {
+            if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
+            {
+                LastResponseAttributes = LastResponseAttributes.Merge(statusResponse.ResponseAttributes);
+            }
+
+            return LastResponseAttributes;
+        }
+
+        /// <summary>
+        /// This property will be subsequently updated from every successful server response (e.g. from session
+        /// requests) by merging the received attributes.
+        /// <para>
+        /// Modification of this field must only happen within the context of the BeaconSending thread.
+        /// </para>
+        /// </summary>
+        public IResponseAttributes LastResponseAttributes { get; private set; }
 
         internal virtual IHttpClientConfiguration CreateHttpClientConfigurationWith(int serverId)
         {

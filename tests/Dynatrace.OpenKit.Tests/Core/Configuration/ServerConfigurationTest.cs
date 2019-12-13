@@ -22,19 +22,20 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
     public class ServerConfigurationTest
     {
-        private IStatusResponse mockStatusResponse;
+        private readonly IResponseAttributes defaultValues = ResponseAttributesDefaults.Undefined;
+        private IResponseAttributes mockAttributes;
 
         [SetUp]
         public void SetUp()
         {
-            mockStatusResponse = Substitute.For<IStatusResponse>();
-            mockStatusResponse.Capture.Returns(ServerConfiguration.DefaultCaptureEnabled);
-            mockStatusResponse.CaptureCrashes.Returns(ServerConfiguration.DefaultCrashReportingEnabled);
-            mockStatusResponse.CaptureErrors.Returns(ServerConfiguration.DefaultErrorReportingEnabled);
-            mockStatusResponse.SendInterval.Returns(ServerConfiguration.DefaultSendInterval);
-            mockStatusResponse.ServerId.Returns(ServerConfiguration.DefaultServerId);
-            mockStatusResponse.MaxBeaconSize.Returns(ServerConfiguration.DefaultBeaconSize);
-            mockStatusResponse.Multiplicity.Returns(ServerConfiguration.DefaultMultiplicity);
+            mockAttributes = Substitute.For<IResponseAttributes>();
+            mockAttributes.IsCapture.Returns(ServerConfiguration.DefaultCaptureEnabled);
+            mockAttributes.IsCaptureCrashes.Returns(ServerConfiguration.DefaultCrashReportingEnabled);
+            mockAttributes.IsCaptureErrors.Returns(ServerConfiguration.DefaultErrorReportingEnabled);
+            mockAttributes.SendIntervalInMilliseconds.Returns(ServerConfiguration.DefaultSendInterval);
+            mockAttributes.ServerId.Returns(ServerConfiguration.DefaultServerId);
+            mockAttributes.MaxBeaconSizeInBytes.Returns(ServerConfiguration.DefaultBeaconSize);
+            mockAttributes.Multiplicity.Returns(ServerConfiguration.DefaultMultiplicity);
         }
 
         #region test defaults
@@ -121,36 +122,36 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void CreatingAServerConfigurationFromStatusResponseCopiesCaptureSettings()
         {
             // given, when
-            mockStatusResponse.Capture.Returns(false);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.IsCaptureEnabled, Is.False);
-            _ = mockStatusResponse.Received(1).Capture;
+            _ = mockAttributes.Received(1).IsCapture;
         }
 
         [Test]
         public void CreatingAServerConfigurationFromStatusResponseCopiesCrashReportingSettings()
         {
             // given, when
-            mockStatusResponse.CaptureCrashes.Returns(false);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCaptureCrashes.Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.IsCrashReportingEnabled, Is.False);
-            _ = mockStatusResponse.Received(1).CaptureCrashes;
+            _ = mockAttributes.Received(1).IsCaptureCrashes;
         }
 
         [Test]
         public void CreatingAServerConfigurationFromStatusResponseCopiesErrorReportingSettings()
         {
             // given, when
-            mockStatusResponse.CaptureErrors.Returns(false);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCaptureErrors.Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.IsErrorReportingEnabled, Is.False);
-            _ = mockStatusResponse.Received(1).CaptureErrors;
+            _ = mockAttributes.Received(1).IsCaptureErrors;
         }
 
         [Test]
@@ -158,12 +159,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given, when
             const int sendInterval = 1234;
-            mockStatusResponse.SendInterval.Returns(sendInterval);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.SendIntervalInMilliseconds.Returns(sendInterval);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
-            _ = mockStatusResponse.Received(1).SendInterval;
+            _ = mockAttributes.Received(1).SendIntervalInMilliseconds;
         }
 
         [Test]
@@ -171,12 +172,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given, when
             const int serverId = 73;
-            mockStatusResponse.ServerId.Returns(serverId);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.ServerId.Returns(serverId);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.ServerId, Is.EqualTo(serverId));
-            _ = mockStatusResponse.Received(1).ServerId;
+            _ = mockAttributes.Received(1).ServerId;
         }
 
         [Test]
@@ -184,12 +185,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given, when
             const int beaconSize = 37;
-            mockStatusResponse.MaxBeaconSize.Returns(beaconSize);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.MaxBeaconSizeInBytes.Returns(beaconSize);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.BeaconSizeInBytes, Is.EqualTo(beaconSize));
-            _ = mockStatusResponse.Received(1).MaxBeaconSize;
+            _ = mockAttributes.Received(1).MaxBeaconSizeInBytes;
         }
 
         [Test]
@@ -197,21 +198,73 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given, when
             const int multiplicity = 42;
-            mockStatusResponse.Multiplicity.Returns(multiplicity);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.Multiplicity.Returns(multiplicity);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // then
             Assert.That(target.Multiplicity, Is.EqualTo(multiplicity));
-            _ = mockStatusResponse.Received(1).Multiplicity;
+            _ = mockAttributes.Received(1).Multiplicity;
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationFromStatusResponseCopiesSessionDuration()
+        {
+            // given
+            const int sessionDuration = 73;
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.MaxSessionDurationInMilliseconds, Is.EqualTo(sessionDuration));
+            _ = mockAttributes.Received(1).MaxSessionDurationInMilliseconds;
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationFromStatusResponseCopiesMaxEventsPerSession()
+        {
+            // given
+            const int eventsPerSession = 37;
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.MaxEventsPerSession, Is.EqualTo(eventsPerSession));
+            _ = mockAttributes.Received(1).MaxEventsPerSession;
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationFromStatusResponseCopiesSessionTimeout()
+        {
+            // given
+            const int sessionTimeout = 42;
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(sessionTimeout);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.SessionTimeoutInMilliseconds, Is.EqualTo(sessionTimeout));
+            _ = mockAttributes.Received(1).SessionTimeoutInMilliseconds;
+        }
+
+        [Test]
+        public void CreatingASessionConfigurationFromStatusResponseCopiesVisitStoreVersion()
+        {
+            // given
+            const int visitStoreVersion = 73;
+            mockAttributes.VisitStoreVersion.Returns(visitStoreVersion);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
+            _ = mockAttributes.Received(1).VisitStoreVersion;
         }
 
         [Test]
         public void SendingDataToTheServerIsAllowedIfCapturingIsEnabledAndMultiplicityIsGreaterThanZero()
         {
             // given
-            mockStatusResponse.Capture.Returns(true);
-            mockStatusResponse.Multiplicity.Returns(1);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(true);
+            mockAttributes.Multiplicity.Returns(1);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingDataAllowed;
@@ -224,9 +277,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingDataToTheServerIsNotAllowedIfCapturingIsDisabled()
         {
             // given
-            mockStatusResponse.Capture.Returns(false);
-            mockStatusResponse.Multiplicity.Returns(1);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(false);
+            mockAttributes.Multiplicity.Returns(1);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingDataAllowed;
@@ -239,9 +292,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingDataToTheServerIsNotAllowedIfCapturingIsEnabledButMultiplicityIsZero()
         {
             // given
-            mockStatusResponse.Capture.Returns(false);
-            mockStatusResponse.Multiplicity.Returns(0);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(false);
+            mockAttributes.Multiplicity.Returns(0);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingDataAllowed;
@@ -254,10 +307,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingCrashesToTheServerIsAllowedIfDataSendingIsAllowedAndCaptureCrashesIsEnabled()
         {
             // given
-            mockStatusResponse.Capture.Returns(true);
-            mockStatusResponse.Multiplicity.Returns(1);
-            mockStatusResponse.CaptureCrashes.Returns(true);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(true);
+            mockAttributes.Multiplicity.Returns(1);
+            mockAttributes.IsCaptureCrashes.Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingCrashesAllowed;
@@ -270,10 +323,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingCrashesToTheServerIsNotAllowedIfDataSendingIsNotAllowed()
         {
             // given
-            mockStatusResponse.Capture.Returns(false);
-            mockStatusResponse.Multiplicity.Returns(1);
-            mockStatusResponse.CaptureCrashes.Returns(true);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(false);
+            mockAttributes.Multiplicity.Returns(1);
+            mockAttributes.IsCaptureCrashes.Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingCrashesAllowed;
@@ -286,10 +339,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingCrashesToTheServerIsNotAllowedIfDataSendingIsAllowedButCaptureCrashesIsDisabled()
         {
             // given
-            mockStatusResponse.Capture.Returns(true);
-            mockStatusResponse.Multiplicity.Returns(1);
-            mockStatusResponse.CaptureCrashes.Returns(false);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(true);
+            mockAttributes.Multiplicity.Returns(1);
+            mockAttributes.IsCaptureCrashes.Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingCrashesAllowed;
@@ -302,10 +355,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingErrorToTheServerIsAllowedIfDataSendingIsAllowedAndCaptureErrorIsEnabled()
         {
             // given
-            mockStatusResponse.Capture.Returns(true);
-            mockStatusResponse.Multiplicity.Returns(1);
-            mockStatusResponse.CaptureErrors.Returns(true);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(true);
+            mockAttributes.Multiplicity.Returns(1);
+            mockAttributes.IsCaptureErrors.Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingErrorsAllowed;
@@ -318,10 +371,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingErrorToTheServerIsNotAllowedIfDataSendingIsNotAllowed()
         {
             // given
-            mockStatusResponse.Capture.Returns(false);
-            mockStatusResponse.Multiplicity.Returns(1);
-            mockStatusResponse.CaptureErrors.Returns(true);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(false);
+            mockAttributes.Multiplicity.Returns(1);
+            mockAttributes.IsCaptureErrors.Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingErrorsAllowed;
@@ -334,10 +387,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SendingErrorsToTheServerIsNotAllowedIfDataSendingIsAllowedButCaptureErrorsDisabled()
         {
             // given
-            mockStatusResponse.Capture.Returns(true);
-            mockStatusResponse.Multiplicity.Returns(1);
-            mockStatusResponse.CaptureErrors.Returns(false);
-            var target = ServerConfiguration.From(mockStatusResponse);
+            mockAttributes.IsCapture.Returns(true);
+            mockAttributes.Multiplicity.Returns(1);
+            mockAttributes.IsCaptureErrors.Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
 
             // when
             var obtained = target.IsSendingErrorsAllowed;
@@ -492,6 +545,70 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // then
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
+        }
+
+        [Test]
+        public void MergeTakesOverMaxSessionDuration()
+        {
+            // given
+            const int sessionDuration = 73;
+            var target = new ServerConfiguration.Builder(defaultValues)
+                .WithMaxSessionDurationInMilliseconds(37).Build();
+            var other = new ServerConfiguration.Builder()
+                .WithMaxSessionDurationInMilliseconds(sessionDuration).Build();
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.MaxSessionDurationInMilliseconds, Is.EqualTo(sessionDuration));
+        }
+
+        [Test]
+        public void MergeTakesOverMaxEventsPerSession()
+        {
+            // given
+            const int eventsPerSession = 73;
+            var target = new ServerConfiguration.Builder(defaultValues).WithMaxEventsPerSession(37).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithMaxEventsPerSession(eventsPerSession)
+                .Build();
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.MaxEventsPerSession, Is.EqualTo(eventsPerSession));
+        }
+
+        [Test]
+        public void MergeTakesOverSessionTimeout()
+        {
+            // given
+            const int sessionTimeout = 73;
+            var target = new ServerConfiguration.Builder(defaultValues).WithMaxSessionDurationInMilliseconds(37)
+                .Build();
+            var other = new ServerConfiguration.Builder().WithSessionTimeoutInMilliseconds(sessionTimeout).Build();
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.SessionTimeoutInMilliseconds, Is.EqualTo(sessionTimeout));
+        }
+
+        [Test]
+        public void MergeTakesOverVisitStoreVersion()
+        {
+            // given
+            const int visitStoreVersion = 73;
+            var target = new ServerConfiguration.Builder().WithVisitStoreVersion(37).Build();
+            var other = new ServerConfiguration.Builder().WithVisitStoreVersion(visitStoreVersion).Build();
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
         }
 
         #endregion

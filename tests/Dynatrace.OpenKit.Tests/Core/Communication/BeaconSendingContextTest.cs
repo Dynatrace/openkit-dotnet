@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
@@ -263,7 +264,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             long[] statusCheckTimes = {1234, 56789};
             var target = CreateSendingContext().Build();
 
-            foreach(var statusCheckTime in statusCheckTimes)
+            foreach (var statusCheckTime in statusCheckTimes)
             {
                 // when
                 target.LastStatusCheckTime = statusCheckTime;
@@ -648,8 +649,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void HandleStatusResponseClearsSessionDataIfResponseIsCaptureOff()
         {
             // given
-            var response = Substitute.For<IStatusResponse>();
-            response.Capture.Returns(false);
+            var responseAttributes = ResponseAttributes.WithUndefinedDefaults().WithCapture(false).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
 
             var sessionState = Substitute.For<ISessionState>();
             var session = Substitute.For<ISessionInternals>();
@@ -670,9 +676,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void HandleStatusResponseRemovesFinishedSessionsIfResponseIsCaptureOff()
         {
             // given
-            var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(StatusResponse.HttpOk);
-            response.Capture.Returns(false);
+            var responseAttributes = ResponseAttributes.WithUndefinedDefaults().WithCapture(false).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
 
             var sessionState = Substitute.For<ISessionState>();
             sessionState.IsFinished.Returns(true);
@@ -695,10 +705,14 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             const int sendInterval = 999;
-            var response = Substitute.For<IStatusResponse>();
-            response.Capture.Returns(true);
-            response.ResponseCode.Returns(StatusResponse.HttpOk);
-            response.SendInterval.Returns(sendInterval);
+            var responseAttributes = ResponseAttributes.WithUndefinedDefaults()
+                .WithSendIntervalInMilliseconds(sendInterval).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
 
             var session = Substitute.For<ISessionInternals>();
 
@@ -719,9 +733,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void HandleStatusResponseUpdatesCaptureStateToFalse()
         {
             // given
-            var response = Substitute.For<IStatusResponse>();
-            response.Capture.Returns(false);
-            response.ResponseCode.Returns(StatusResponse.HttpOk);
+            var responseAttributes = ResponseAttributes.WithUndefinedDefaults().WithCapture(false).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
 
             var sessionState = Substitute.For<ISessionState>();
             var session = Substitute.For<ISessionInternals>();
@@ -743,9 +761,13 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void HandleStatusResponseUpdatesCaptureStateToTrue()
         {
             // given
-            var response = Substitute.For<IStatusResponse>();
-            response.Capture.Returns(true);
-            response.ResponseCode.Returns(StatusResponse.HttpOk);
+            var responseAttributes = ResponseAttributes.WithUndefinedDefaults().WithCapture(true).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
 
             var session = Substitute.For<ISessionInternals>();
 
@@ -771,10 +793,13 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockHttpClientConfig.SslTrustManager.Returns(Substitute.For<ISSLTrustManager>());
 
             const int serverId = 73;
-            var response = Substitute.For<IStatusResponse>();
-            response.Capture.Returns(true);
-            response.ResponseCode.Returns(StatusResponse.HttpOk);
-            response.ServerId.Returns(serverId);
+            var responseAttributes = ResponseAttributes.WithUndefinedDefaults().WithServerId(serverId).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
 
             var target = Substitute.ForPartsOf<BeaconSendingContext>(
                 mockLogger,
@@ -809,6 +834,32 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(configCapture.BaseUrl, Is.EqualTo(mockHttpClientConfig.BaseUrl));
             Assert.That(configCapture.ApplicationId, Is.EqualTo(mockHttpClientConfig.ApplicationId));
             Assert.That(configCapture.SslTrustManager, Is.SameAs(mockHttpClientConfig.SslTrustManager));
+        }
+
+        [Test]
+        public void HandleStatusResponseMergesLastStatusResponse()
+        {
+            // given
+            const int beaconSize = 1234;
+            var responseAttributes = ResponseAttributes.WithJsonDefaults().WithMaxBeaconSizeInBytes(beaconSize).Build();
+            var response = StatusResponse.CreateSuccessResponse(
+                mockLogger,
+                responseAttributes,
+                StatusResponse.HttpOk,
+                new Dictionary<string, List<string>>()
+            );
+
+            var target = CreateSendingContext().Build();
+            var initialAttributes = target.LastResponseAttributes;
+
+            // when
+            target.HandleStatusResponse(response);
+            var obtained = target.LastResponseAttributes;
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(initialAttributes, Is.Not.EqualTo(obtained));
+            Assert.That(obtained.MaxBeaconSizeInBytes, Is.EqualTo(beaconSize));
         }
 
         [Test]
@@ -936,6 +987,62 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.EqualTo(serverId));
             _ = mockHttpClientConfig.Received(1).ServerId;
+        }
+
+
+        [Test]
+        public void UpdateResponseAttributesFromDoesNothingIfStatusResponseIsNull()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+            var initialAttributes = target.LastResponseAttributes;
+
+            // when
+            var obtained = target.UpdateLastResponseAttributesFrom(null);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(initialAttributes));
+        }
+
+        [Test]
+        public void UpdateResponseAttributesFromDoesNothingIfStatusResponseIsNotSuccessful()
+        {
+            // given
+            var response = Substitute.For<IStatusResponse>();
+            response.IsErroneousResponse.Returns(true);
+
+            var target = CreateSendingContext().Build();
+            var initialAttributes = target.LastResponseAttributes;
+
+            // when
+            var obtained = target.UpdateLastResponseAttributesFrom(response);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(initialAttributes));
+            _ = response.Received(1).IsErroneousResponse;
+        }
+
+        [Test]
+        public void UpdateResponseAttributesFromMergesResponseAttributesFromStatusResponse()
+        {
+            // given
+            const int serverId = 9999;
+            var attributes = ResponseAttributes.WithUndefinedDefaults().WithServerId(serverId).Build();
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseAttributes.Returns(attributes);
+            response.IsErroneousResponse.Returns(false);
+
+            var target = CreateSendingContext().Build();
+            var initialAttributes = target.LastResponseAttributes;
+
+            // when
+            var obtained = target.UpdateLastResponseAttributesFrom(response);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(target.LastResponseAttributes));
+            Assert.That(obtained, Is.Not.EqualTo(initialAttributes));
+            Assert.That(obtained, Is.Not.EqualTo(attributes));
+            Assert.That(obtained.ServerId, Is.EqualTo(serverId));
         }
 
         private TestBeaconSendingContextBuilder CreateSendingContext()

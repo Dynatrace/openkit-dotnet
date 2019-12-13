@@ -26,13 +26,16 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IHttpClient mockHttpClient;
         private IBeaconSendingContext mockContext;
         private IStatusResponse mockResponse;
+        private IResponseAttributes mockAttributes;
 
         [SetUp]
         public void Setup()
         {
+            mockAttributes = Substitute.For<IResponseAttributes>();
             mockResponse = Substitute.For<IStatusResponse>();
             mockResponse.ResponseCode.Returns(StatusResponse.HttpOk);
             mockResponse.IsErroneousResponse.Returns(false);
+            mockResponse.ResponseAttributes.Returns(mockAttributes);
 
             mockHttpClient = Substitute.For<IHttpClient>();
             mockHttpClient.SendStatusRequest().Returns(mockResponse);
@@ -303,7 +306,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void ASuccessfulStatusResponseSetsInitCompletedToTrueForCaptureOn()
         {
             // given
-            mockResponse.Capture.Returns(true);
+            mockAttributes.IsCapture.Returns(true);
             var target = new BeaconSendingInitState();
 
             // when
@@ -317,7 +320,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void ASuccessfulStatusResponseSetsInitCompletedToTrueForCaptureOff()
         {
             // given
-            mockResponse.Capture.Returns(false);
+            mockAttributes.IsCapture.Returns(false);
             var target = new BeaconSendingInitState();
 
             // when

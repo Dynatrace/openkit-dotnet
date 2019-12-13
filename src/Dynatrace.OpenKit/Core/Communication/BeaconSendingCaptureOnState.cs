@@ -103,7 +103,8 @@ namespace Dynatrace.OpenKit.Core.Communication
                 statusResponse = context.GetHttpClient().SendNewSessionRequest();
                 if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
-                    var newConfiguration = ServerConfiguration.From(statusResponse);
+                    var updatedAttributes = context.UpdateLastResponseAttributesFrom(statusResponse);
+                    var newConfiguration = ServerConfiguration.From(updatedAttributes);
                     session.UpdateServerConfiguration(newConfiguration);
                 }
                 else if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))

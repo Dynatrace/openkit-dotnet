@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using NSubstitute;
@@ -25,39 +24,43 @@ namespace Dynatrace.OpenKit.Protocol
     public class StatusResponseTest
     {
         private ILogger logger;
+        private IResponseAttributes attributes;
 
         [SetUp]
         public void SetUp()
         {
             logger = Substitute.For<ILogger>();
+            attributes = ResponseAttributes.WithJsonDefaults().Build();
         }
 
         [Test]
         public void IsErroneousResponseGivesTrueForErrorCodeEqualTo400()
         {
             // when, then
-            Assert.That(new StatusResponse(logger, "", 400, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+            Assert.That(StatusResponse.CreateErrorResponse(logger, 400).IsErroneousResponse, Is.True);
         }
 
         [Test]
         public void IsErroneousResponseGivesTrueForErrorCodeGreaterThan400()
         {
             // when, then
-            Assert.That(new StatusResponse(logger, "", 401, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.True);
+            Assert.That(StatusResponse.CreateErrorResponse(logger, 401).IsErroneousResponse, Is.True);
         }
 
         [Test]
         public void IsErroneousResponseGivesFalseForErrorCodeLessThan400()
         {
             // when, then
-            Assert.That(new StatusResponse(logger, "", 399, new Dictionary<string, List<string>>()).IsErroneousResponse, Is.False);
+            Assert.That(
+                StatusResponse.CreateSuccessResponse(logger, attributes, 399, new Dictionary<string, List<string>>())
+                    .IsErroneousResponse, Is.False);
         }
 
         [Test]
         public void ResponseCodeIsSet()
         {
             // given
-            Assert.That(new StatusResponse(logger, "", 418, new Dictionary<string, List<string>>()).ResponseCode, Is.EqualTo(418));
+            Assert.That(StatusResponse.CreateErrorResponse(logger, 418).ResponseCode, Is.EqualTo(418));
         }
 
         [Test]
@@ -66,19 +69,21 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var headers = new Dictionary<string, List<string>>
             {
-                { "X-Foo", new List<string> { "X-BAR" }  },
-                { "X-YZ", new List<string>() }
+                {"X-Foo", new List<string> {"X-BAR"}},
+                {"X-YZ", new List<string>()}
             };
 
             // then
-            Assert.That(new StatusResponse(logger, "", 418, headers).Headers, Is.EqualTo(headers));
+            Assert.That(StatusResponse.CreateSuccessResponse(logger, attributes, 418, headers).Headers,
+                Is.EqualTo(headers));
         }
 
         [Test]
         public void GetRetryAfterReturnsDefaultValueIfResponseKeyDoesNotExist()
         {
             // given
-            var target = new StatusResponse(logger, "", 429, new Dictionary<string, List<string>>());
+            var target =
+                StatusResponse.CreateSuccessResponse(logger, attributes, 429, new Dictionary<string, List<string>>());
 
             // when
             var obtained = target.GetRetryAfterInMilliseconds();
@@ -93,9 +98,9 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var responseHeaders = new Dictionary<string, List<string>>
             {
-                { StatusResponse.ResponseKeyRetryAfter, new List<string>{ "100", "200" } }
+                {StatusResponse.ResponseKeyRetryAfter, new List<string> {"100", "200"}}
             };
-            var target = new StatusResponse(logger, "", 429, responseHeaders);
+            var target = StatusResponse.CreateSuccessResponse(logger, attributes, 429, responseHeaders);
 
             // when
             var obtained = target.GetRetryAfterInMilliseconds();
@@ -110,9 +115,9 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var responseHeaders = new Dictionary<string, List<string>>
             {
-                { StatusResponse.ResponseKeyRetryAfter, new List<string>{ "a" } }
+                {StatusResponse.ResponseKeyRetryAfter, new List<string> {"a"}}
             };
-            var target = new StatusResponse(logger, "", 429, responseHeaders);
+            var target = StatusResponse.CreateSuccessResponse(logger, attributes, 429, responseHeaders);
 
             // when
             var obtained = target.GetRetryAfterInMilliseconds();
@@ -127,375 +132,96 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var responseHeaders = new Dictionary<string, List<string>>
             {
-                { StatusResponse.ResponseKeyRetryAfter, new List<string>{ "1234" } }
+                {StatusResponse.ResponseKeyRetryAfter, new List<string> {"1234"}}
             };
-            var target = new StatusResponse(logger, "", 429, responseHeaders);
+            var target = StatusResponse.CreateSuccessResponse(logger, attributes, 429, responseHeaders);
 
             // when
             var obtained = target.GetRetryAfterInMilliseconds();
-
 
             // then
             Assert.That(obtained, Is.EqualTo(1234L * 1000L));
         }
 
         [Test]
-        public void PassingNullResponseStringDoesNotThrow()
-        {
-            // then
-            Assert.That(() => new StatusResponse(logger, null, 200, new Dictionary<string, List<string>>()), Throws.Nothing);
-        }
-
-        [Test]
-        public void PassingEmptyResponseStringDoesNotThrow()
-        {
-            // then
-            Assert.That(() => new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>()), Throws.Nothing);
-        }
-
-        [Test]
-        public void DefaultCaptureIsOn()
+        public void ErrorResponseDefaultCaptureIsOn()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.Capture, Is.True);
+            Assert.That(target.ResponseAttributes.IsCapture, Is.True);
         }
 
         [Test]
-        public void DefaultSendIntervalIsMinusOne()
+        public void ErrorResponseDefaultSendIntervalIs120Sec()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.SendInterval, Is.EqualTo(-1));
+            Assert.That(target.ResponseAttributes.SendIntervalInMilliseconds, Is.EqualTo(120 * 1000)); // 120 sec
         }
 
         [Test]
-        public void DefaultMonitorNameIsNull()
+        public void ErrorResponseDefaultServerIdIsMinusOne()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.MonitorName, Is.Null);
+            Assert.That(target.ResponseAttributes.ServerId, Is.EqualTo(-1));
         }
 
         [Test]
-        public void DefaultServerIdIsMinusOne()
+        public void ErrorResponseDefaultMaxBeaconSizeIsThirtyKb()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.ServerId, Is.EqualTo(-1));
+            Assert.That(target.ResponseAttributes.MaxBeaconSizeInBytes, Is.EqualTo(30 * 1024));
         }
 
         [Test]
-        public void DefaultMaxBeaconSizeIsMinusOne()
+        public void ErrorResponseDefaultCaptureCrashesIsOn()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.MaxBeaconSize, Is.EqualTo(-1));
+            Assert.That(target.ResponseAttributes.IsCaptureCrashes, Is.True);
         }
 
         [Test]
-        public void DefaultCaptureCrashesIsOn()
+        public void ErrorResponseDefaultCaptureErrorsIsOn()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.CaptureCrashes, Is.True);
+            Assert.That(target.ResponseAttributes.IsCaptureErrors, Is.True);
         }
 
         [Test]
-        public void DefaultCaptureErrorsIsOn()
+        public void ErrorResponseDefaultMultiplicityIsOne()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target = StatusResponse.CreateErrorResponse(logger, 200);
 
             // then
-            Assert.That(target.CaptureErrors, Is.True);
+            Assert.That(target.ResponseAttributes.Multiplicity, Is.EqualTo(1));
         }
 
         [Test]
-        public void DefaultMultiplicityIsOne()
+        public void SuccessResponseGetResponseAttributesReturnsAttributesPassedInConstructor()
         {
             // given
-            var target = new StatusResponse(logger, string.Empty, 200, new Dictionary<string, List<string>>());
+            var target =
+                StatusResponse.CreateSuccessResponse(logger, attributes, 200, new Dictionary<string, List<string>>());
 
             // then
-            Assert.That(target.Multiplicity, Is.EqualTo(1));
-        }
-
-        [Test]
-        public void OddNumberOfTokensThrowsException()
-        {
-            // given
-            const string responseString = StatusResponse.ResponseKeyCapture + "=100"
-                + "&" + StatusResponse.ResponseKeyCaptureCrashes;
-
-            // when, then
-            Assert.That(() => new StatusResponse(logger, responseString, 200, new Dictionary<string, List<string>>()),
-                Throws.ArgumentException.With.Message.EqualTo("Invalid response; even number of tokens expected."));
-        }
-
-        [Test]
-        public void AmpersandIsNotAValidKeyValueSeparator()
-        {
-            // given
-            const string responseString = StatusResponse.ResponseKeyCapture + "&100";
-
-            // when, then
-            Assert.That(() => new StatusResponse(logger, responseString, 200, new Dictionary<string, List<string>>()),
-                Throws.ArgumentException.With.Message.EqualTo("Invalid response; even number of tokens expected."));
-        }
-
-        [Test]
-        public void CaptureIsTrueWhenItIsEqualToOne()
-        {
-            // given
-            var target = new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=1", 200, new Dictionary<string, List<string>>());
-
-            // then
-            Assert.That(target.Capture, Is.True);
-        }
-
-        [Test]
-        public void CaptureIsFalseWhenItIsNotEqualToOne()
-        {
-            // when it's a positive number greater than 1, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=2", 200, new Dictionary<string, List<string>>()).Capture, Is.False);
-
-            // and when it's zero, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=0", 200, new Dictionary<string, List<string>>()).Capture, Is.False);
-
-            // and when it's a negative number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=-2", 200, new Dictionary<string, List<string>>()).Capture, Is.False);
-        }
-
-        [Test]
-        public void ParsingInvalidNumericValueForCaptureThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCapture + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
-        }
-
-        [Test]
-        public void ParsingSendInterval()
-        {
-            // when it's a positive number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=1", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(1000));
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=1200", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(1200000));
-
-            // and when it's zero, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=0", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(0));
-
-            // and when it's a negative number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=-1", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(-1000));
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=-42", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(-42000));
-        }
-
-        [Test]
-        public void ParsingTooBigSendIntervalOverflows()
-        {
-            // when the value is positive, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=2147484", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(-2147483296));
-
-            // when the value is negative, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=-2147485", 200, new Dictionary<string, List<string>>()).SendInterval, Is.EqualTo(2147482296));
-        }
-
-        [Test]
-        public void ParsingInvalidSendIntervalThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeySendInterval + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
-        }
-
-        [Test]
-        public void ParsingMonitorNames()
-        {
-            // when it's a positive number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMonitorName + "=", 200, new Dictionary<string, List<string>>()).MonitorName, Is.EqualTo(string.Empty));
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMonitorName + "=foobar", 200, new Dictionary<string, List<string>>()).MonitorName, Is.EqualTo("foobar"));
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMonitorName + "=1234", 200, new Dictionary<string, List<string>>()).MonitorName, Is.EqualTo("1234"));
-        }
-
-        [Test]
-        public void ServerIdIsParsed()
-        {
-            // given
-            var target = new StatusResponse(logger, StatusResponse.ResponseKeyServerId + "=1234", 200, new Dictionary<string, List<string>>());
-
-            // then
-            Assert.That(target.ServerId, Is.EqualTo(1234));
-        }
-
-        [Test]
-        public void ParsingInvalidServerIdThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyServerId + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyServerId + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyServerId + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
-        }
-
-        [Test]
-        public void ParsingMaxBeaconSize()
-        {
-            // when it's a positive number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=1", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(1 * 1024));
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=1200", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(1200 * 1024));
-
-            // and when it's zero, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=0", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(0));
-
-            // and when it's a negative number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=-1", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(-1 * 1024));
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=-42", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(-42 * 1024));
-        }
-
-        [Test]
-        public void ParsingTooBigMaxBeaconSizeOverflows()
-        {
-            // when the value is positive, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=2097152", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(-2147483648));
-
-            // when the value is negative, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=-2097153", 200, new Dictionary<string, List<string>>()).MaxBeaconSize, Is.EqualTo(2147482624));
-        }
-
-        [Test]
-        public void ParsingInvalidMaxBeaconSizeThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyMaxBeaconSize + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
-        }
-
-        [Test]
-        public void CaptureErrorsIsTrueWhenItIsNotEqualToZero()
-        {
-            // when it's a positive number greater than 1, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=2", 200, new Dictionary<string, List<string>>()).CaptureErrors, Is.True);
-
-            // when it's one, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=1", 200, new Dictionary<string, List<string>>()).CaptureErrors, Is.True);
-
-            // and when it's a negative number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=-2", 200, new Dictionary<string, List<string>>()).CaptureErrors, Is.True);
-        }
-
-        [Test]
-        public void CaptureErrorsIsFalseWhenItIsEqualToZero()
-        {
-            // given
-            var target = new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=0", 200, new Dictionary<string, List<string>>());
-
-            // then
-            Assert.That(target.CaptureErrors, Is.False);
-        }
-
-        [Test]
-        public void ParsingInvalidNumericValueForCaptureErrorsThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCaptureErrors + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
-        }
-
-        [Test]
-        public void CaptureCrashesIsTrueWhenItIsNotEqualToZero()
-        {
-            // when it's a positive number greater than 1, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=2", 200, new Dictionary<string, List<string>>()).CaptureCrashes, Is.True);
-
-            // when it's one, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=1", 200, new Dictionary<string, List<string>>()).CaptureCrashes, Is.True);
-
-            // and when it's a negative number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=-2", 200, new Dictionary<string, List<string>>()).CaptureCrashes, Is.True);
-        }
-
-        [Test]
-        public void CaptureCrashesIsFalseWhenItIsEqualToZero()
-        {
-            // given
-            var target = new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=0", 200, new Dictionary<string, List<string>>());
-
-            // then
-            Assert.That(target.CaptureCrashes, Is.False);
-        }
-
-        [Test]
-        public void ParsingInvalidNumericValueForCaptureCrashesThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyCaptureCrashes + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
-        }
-
-        [Test]
-        public void ParsingMultiplicityWorks()
-        {
-            // when it's a positive number greater than 1, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=3", 200, new Dictionary<string, List<string>>()).Multiplicity, Is.EqualTo(3));
-
-            // when it's one, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=0", 200, new Dictionary<string, List<string>>()).Multiplicity, Is.EqualTo(0));
-
-            // and when it's a negative number, then
-            Assert.That(new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=-5", 200, new Dictionary<string, List<string>>()).Multiplicity, Is.EqualTo(-5));
-        }
-
-        [Test]
-        public void ParsingInvalidNumericValueForMultiplicityThrowsException()
-        {
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // when wrong format is used, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=a", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<FormatException>());
-
-            // and when numeric overflow (2^31 in this case) occurs, then
-            Assert.That(() => new StatusResponse(logger, StatusResponse.ResponseKeyMultiplicity + "=2147483648", 200, new Dictionary<string, List<string>>()), Throws.InstanceOf<OverflowException>());
+            Assert.That(target.ResponseAttributes, Is.SameAs(attributes));
         }
     }
 }

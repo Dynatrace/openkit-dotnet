@@ -161,6 +161,22 @@ namespace Dynatrace.OpenKit.Core.Communication
         void HandleStatusResponse(IStatusResponse statusResponse);
 
         /// <summary>
+        /// Updates the last known response attributes of this context from the given status response if the given status
+        /// response <see cref="BeaconSendingResponseUtil.IsSuccessfulResponse(IStatusResponse)"/> is successful}.
+        /// </summary>
+        /// <param name="statusResponse">the status response from which to update the last response attributes.</param>
+        /// <returns>
+        ///     in case the given status response was successful the updated response attributes are returned. Otherwise
+        ///     the current response attributes are returned.
+        /// </returns>
+        IResponseAttributes UpdateLastResponseAttributesFrom(IStatusResponse statusResponse);
+
+        /// <summary>
+        /// Returns the last attributes received as response from the server.
+        /// </summary>
+        IResponseAttributes LastResponseAttributes { get; }
+
+        /// <summary>
         /// Returns the current server ID to be used for creating new sessions.
         /// </summary>
         int CurrentServerId { get; }
