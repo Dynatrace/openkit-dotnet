@@ -18,6 +18,7 @@
   `WithApplicationVersion` on `AppMonOpenKitBuilder` / `DynatraceOpenKitBuilder` should be used instead.
 - Add OpenKit.createSession overload without IP address parameter.  
   The IP address is determined in this case on the server side.
+- Fix coveralls.io build
 
 ### Improvements
 - Reformatted text files to unix style line endings.
