@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.4..HEAD)
 
+### Changed
+- Fix coveralls.io build
+
 ## 1.4.4 [Release date: 2019-10-31]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.4)
 

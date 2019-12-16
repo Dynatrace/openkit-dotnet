@@ -2,12 +2,11 @@ param([string]$option = "Release")
 
 $workspace=(Get-Location).toString()
 
-if(Test-Path env.APPVEYOR_API_URL) {
+if ("$env:APPVEYOR" -ieq "true") {
     $format = "AppVeyor"
     $outputDir = $workspace
     $nunit3_console = "nunit3-console"
 } else {
-    $msbuild = "$env:MSBUILDEXE"
     $format = "nunit3"
     $outputDir = "$env:OUTPUTDIR"
     $nunit3_console = "$workspace\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe"
