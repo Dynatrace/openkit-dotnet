@@ -201,11 +201,6 @@ namespace Dynatrace.OpenKit.Protocol
             basicBeaconData = CreateBasicBeaconData();
         }
 
-        private static long NextRandomPositiveLong(IPrnGenerator randomGenerator)
-        {
-            return randomGenerator.NextLong(long.MaxValue) & 0x7fffffffffffffffL;
-        }
-
         private static long CreateDeviceId(IBeaconConfiguration configuration, IPrnGenerator randomGenerator)
         {
             if (configuration.PrivacyConfiguration.IsDeviceIdSendingAllowed)
@@ -213,7 +208,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return configuration.OpenKitConfiguration.DeviceId;
             }
 
-            return NextRandomPositiveLong(randomGenerator);
+            return randomGenerator.NextPositiveLong();
         }
 
         private static int DetermineSessionNumber(IBeaconConfiguration configuration, int beaconId)
@@ -272,6 +267,12 @@ namespace Dynatrace.OpenKit.Protocol
         void IBeacon.DisableCapture()
         {
             configuration.DisableCapture();
+        }
+
+        event ServerConfigurationUpdateCallback IBeacon.OnServerConfigurationUpdate
+        {
+            add => configuration.OnServerConfigurationUpdate += value;
+            remove => configuration.OnServerConfigurationUpdate -= value;
         }
 
         #endregion

@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Protocol
         MAX_SESSION_DURATION,
 
         /// <summary>
-        /// Maximum number of top level events after which a session is split.
+        /// Maximum number of top level actions after which a session is split.
         /// </summary>
         MAX_EVENTS_PER_SESSION,
 

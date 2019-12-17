@@ -19,6 +19,12 @@ using Dynatrace.OpenKit.Protocol;
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     /// <summary>
+    /// Specifies a callback which will be invoked when the server configuration is updated.
+    /// </summary>
+    /// <param name="serverConfig">the updated server configuration.</param>
+    public delegate void ServerConfigurationUpdateCallback(IServerConfiguration serverConfig);
+
+    /// <summary>
     /// This interface holds the relevant configuration for the <see cref="IBeacon"/>.
     /// </summary>
     internal interface IBeaconConfiguration
@@ -69,5 +75,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// Indicates whether the server configuration has been set before or not.
         /// </summary>
         bool IsServerConfigurationSet { get; }
+
+        /// <summary>
+        /// Represents an event which gets fired when the server configuration is updated.
+        /// </summary>
+        event ServerConfigurationUpdateCallback OnServerConfigurationUpdate;
     }
 }

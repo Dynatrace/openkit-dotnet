@@ -32,7 +32,7 @@ namespace Dynatrace.OpenKit.Protocol
         int MaxSessionDurationInMilliseconds { get; }
 
         /// <summary>
-        /// Returns the maximum number of top level events after which a session will be split.
+        /// Returns the maximum number of top level actions after which a session will be split.
         /// </summary>
         int MaxEventsPerSession { get; }
 

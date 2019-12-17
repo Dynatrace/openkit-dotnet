@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Providers
 
         private static readonly object SyncLock = new object();
 
-        public DefaultSessionIdProvider() : this(new DefaultPrnGenerator().NextInt(int.MaxValue)) { }
+        public DefaultSessionIdProvider() : this(new DefaultPrnGenerator().NextPositiveInt()) { }
 
         internal DefaultSessionIdProvider(int initialOffset)
         {

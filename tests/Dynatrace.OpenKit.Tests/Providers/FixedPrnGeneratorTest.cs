@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,31 @@
 // limitations under the License.
 //
 
-using System;
+using NSubstitute;
+using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    /// <summary>
-    /// Default implementation of PRNGenerator providing random numbers
-    /// </summary>
-    internal class DefaultPrnGenerator : IPrnGenerator
+    public class FixedPrnGeneratorTest
     {
-        public int NextPositiveInt()
+        [Test]
+        public void NextPositiveLongReturnsAlwaysTheSameNumber()
         {
-            return new Random().Next(int.MaxValue);
-        }
+            // given
+            const long randomNumber = 1234567890;
+            var mockRng = Substitute.For<IPrnGenerator>();
+            mockRng.NextPositiveLong().Returns(randomNumber, 1L, 2L, 4L, 5L);
 
-        public long NextPositiveLong()
-        {
-            return (long)(new Random().NextDouble() * long.MaxValue);
+            var target = new FixedPrnGenerator(mockRng);
+
+            for (var i = 0; i < 100; i++)
+            {
+                // when
+                var obtained = target.NextPositiveLong();
+
+                // then
+                Assert.That(obtained, Is.EqualTo(randomNumber));
+            }
         }
     }
 }

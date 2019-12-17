@@ -23,11 +23,10 @@ using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
-
     /// <summary>
     ///  Actual implementation of the IOpenKit interface.
     /// </summary>
-    public class OpenKit : OpenKitComposite, IOpenKit
+    public class OpenKit : OpenKitComposite, IOpenKit, ISessionCreatorInput
     {
         /// <summary>
         /// <see cref="ILogger"/> for tracing log messages.
@@ -133,9 +132,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             IBeaconCache beaconCache,
             IBeaconSender beaconSender,
             IBeaconCacheEvictor beaconCacheEvictor
-            )
+        )
         {
-
             this.logger = logger;
             this.privacyConfiguration = privacyConfiguration;
             this.openKitConfiguration = openKitConfiguration;
@@ -159,16 +157,17 @@ namespace Dynatrace.OpenKit.Core.Objects
             if (logger.IsInfoEnabled)
             {
                 logger.Info($"{typeof(OpenKit).Name} - {configuration.OpenKitType} " +
-                    $"OpenKit {OpenKitConstants.DefaultApplicationVersion} instantiated");
+                            $"OpenKit {OpenKitConstants.DefaultApplicationVersion} instantiated");
             }
+
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{typeof(OpenKit).Name} "
-                  + $"- applicationName={configuration.ApplicationName}"
-                  + $", applicationID={configuration.ApplicationId}"
-                  + $", deviceID={configuration.DeviceId}"
-                  + $", origDeviceID={configuration.OrigDeviceId}"
-                  + $", endpointURL={configuration.EndpointUrl}"
+                             + $"- applicationName={configuration.ApplicationName}"
+                             + $", applicationID={configuration.ApplicationId}"
+                             + $", deviceID={configuration.DeviceId}"
+                             + $", origDeviceID={configuration.OrigDeviceId}"
+                             + $", endpointURL={configuration.EndpointUrl}"
                 );
             }
         }
@@ -213,8 +212,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         public bool IsInitialized => beaconSender.IsInitialized;
 
         [Obsolete("Use the AbstractOpenKitBuilder to set the application version")]
-        public string ApplicationVersion {
-            set { /** nothing */ }
+        public string ApplicationVersion
+        {
+            set
+            {
+                /** nothing */
+            }
         }
 
         public ISession CreateSession(string clientIpAddress)
@@ -276,12 +279,13 @@ namespace Dynatrace.OpenKit.Core.Objects
                 {
                     return;
                 }
+
                 isShutdown = true;
             }
 
             // close all open children
             var childObjects = ThisComposite.GetCopyOfChildObjects();
-            foreach(var childObject in childObjects)
+            foreach (var childObject in childObjects)
             {
                 childObject.Dispose();
             }
@@ -301,6 +305,26 @@ namespace Dynatrace.OpenKit.Core.Objects
                 ThisComposite.RemoveChildFromList(childObject);
             }
         }
+
+        #endregion
+
+        #region ISessionCreatorInput implementation
+
+        ILogger ISessionCreatorInput.Logger => logger;
+
+        IOpenKitConfiguration ISessionCreatorInput.OpenKitConfiguration => openKitConfiguration;
+
+        IPrivacyConfiguration ISessionCreatorInput.PrivacyConfiguration => privacyConfiguration;
+
+        IBeaconCache ISessionCreatorInput.BeaconCache => beaconCache;
+
+        ISessionIdProvider ISessionCreatorInput.SessionIdProvider => sessionIdProvider;
+
+        IThreadIdProvider ISessionCreatorInput.ThreadIdProvider => threadIdProvider;
+
+        ITimingProvider ISessionCreatorInput.TimingProvider => timingProvider;
+
+        int ISessionCreatorInput.CurrentServerId => beaconSender.CurrentServerId;
 
         #endregion
     }

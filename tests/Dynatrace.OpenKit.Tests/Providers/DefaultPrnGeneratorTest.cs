@@ -27,7 +27,7 @@ namespace Dynatrace.OpenKit.Providers
             var randomGenerator = new DefaultPrnGenerator();
 
             //when
-            var randomNumber = randomGenerator.NextInt(int.MaxValue);
+            var randomNumber = randomGenerator.NextPositiveInt();
 
             // then
             Assert.That(randomNumber, Is.GreaterThanOrEqualTo(0));
@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit.Providers
             var randomGenerator = new DefaultPrnGenerator();
 
             //when
-            var randomNumber = randomGenerator.NextLong(long.MaxValue);
+            var randomNumber = randomGenerator.NextPositiveLong();
 
             // then
             Assert.That(randomNumber, Is.GreaterThanOrEqualTo(0));

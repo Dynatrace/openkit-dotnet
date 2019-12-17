@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,17 @@
 // limitations under the License.
 //
 
-using System;
-
-namespace Dynatrace.OpenKit.Providers
+namespace Dynatrace.OpenKit.Core.Objects
 {
     /// <summary>
-    /// Default implementation of PRNGenerator providing random numbers
+    /// Defines a creator for new sessions.
     /// </summary>
-    internal class DefaultPrnGenerator : IPrnGenerator
+    internal interface ISessionCreator
     {
-        public int NextPositiveInt()
-        {
-            return new Random().Next(int.MaxValue);
-        }
-
-        public long NextPositiveLong()
-        {
-            return (long)(new Random().NextDouble() * long.MaxValue);
-        }
+        /// <summary>
+        /// Returns a newly created <see cref="ISessionInternals"/>
+        /// </summary>
+        /// <param name="parent">the parent composite of the session to create.</param>
+        ISessionInternals CreateSession(IOpenKitComposite parent);
     }
 }

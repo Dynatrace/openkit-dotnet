@@ -233,5 +233,14 @@ namespace Dynatrace.OpenKit.Protocol
         void DisableCapture();
 
         #endregion
+
+        #region events
+
+        /// <summary>
+        /// Represents an event which will get fired when the server configuration is updated.
+        /// </summary>
+        event ServerConfigurationUpdateCallback OnServerConfigurationUpdate;
+
+        #endregion
     }
 }

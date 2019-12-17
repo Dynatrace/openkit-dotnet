@@ -117,6 +117,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             numRemainingNewSessionRequests--;
         }
 
+        IBeacon ISessionInternals.Beacon => beacon;
+
         #endregion
 
         public override void Dispose()

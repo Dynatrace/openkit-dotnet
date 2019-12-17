@@ -16,6 +16,7 @@
 
 using System;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Core.Objects;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -242,6 +243,39 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void UpdateServerConfigurationDoesInvokeCallbackIfCallbackIsSet()
+        {
+            // given
+            var sessionProxy = Substitute.For<ISessionProxy>();
+            var serverConfig = Substitute.For<IServerConfiguration>();
+            var target = CreateBeaconConfig();
+            target.OnServerConfigurationUpdate += sessionProxy.OnServerConfigurationUpdate;
+
+            // when
+            target.UpdateServerConfiguration(serverConfig);
+
+            // then
+            sessionProxy.Received(1).OnServerConfigurationUpdate(serverConfig);
+        }
+
+        [Test]
+        public void UpdateServerConfigurationDoesNotInvokeCallbackIfNoCallbackIsSet()
+        {
+            // given
+            var sessionProxy = Substitute.For<ISessionProxy>();
+            var serverConfig = Substitute.For<IServerConfiguration>();
+            var target = CreateBeaconConfig();
+            target.OnServerConfigurationUpdate += sessionProxy.OnServerConfigurationUpdate;
+            target.OnServerConfigurationUpdate -= sessionProxy.OnServerConfigurationUpdate;
+
+            // when
+            target.UpdateServerConfiguration(serverConfig);
+
+            // then
+            Assert.That(sessionProxy.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
         public void EnableCaptureSetsIsConfigurationSet()
         {
             // given
@@ -293,7 +327,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(obtained.IsCaptureEnabled, Is.Not.EqualTo(initialServerConfig.IsCaptureEnabled));
             Assert.That(obtained.IsCrashReportingEnabled, Is.EqualTo(initialServerConfig.IsCrashReportingEnabled));
             Assert.That(obtained.IsErrorReportingEnabled, Is.EqualTo(initialServerConfig.IsErrorReportingEnabled));
-            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(initialServerConfig.SendIntervalInMilliseconds));
+            Assert.That(obtained.SendIntervalInMilliseconds,
+                Is.EqualTo(initialServerConfig.SendIntervalInMilliseconds));
             Assert.That(obtained.ServerId, Is.EqualTo(initialServerConfig.ServerId));
             Assert.That(obtained.BeaconSizeInBytes, Is.EqualTo(initialServerConfig.BeaconSizeInBytes));
             Assert.That(obtained.Multiplicity, Is.EqualTo(initialServerConfig.Multiplicity));
@@ -350,7 +385,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(obtained.IsCaptureEnabled, Is.Not.EqualTo(initialServerConfig.IsCaptureEnabled));
             Assert.That(obtained.IsCrashReportingEnabled, Is.EqualTo(initialServerConfig.IsCrashReportingEnabled));
             Assert.That(obtained.IsErrorReportingEnabled, Is.EqualTo(initialServerConfig.IsErrorReportingEnabled));
-            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(initialServerConfig.SendIntervalInMilliseconds));
+            Assert.That(obtained.SendIntervalInMilliseconds,
+                Is.EqualTo(initialServerConfig.SendIntervalInMilliseconds));
             Assert.That(obtained.ServerId, Is.EqualTo(initialServerConfig.ServerId));
             Assert.That(obtained.BeaconSizeInBytes, Is.EqualTo(initialServerConfig.BeaconSizeInBytes));
             Assert.That(obtained.Multiplicity, Is.EqualTo(initialServerConfig.Multiplicity));

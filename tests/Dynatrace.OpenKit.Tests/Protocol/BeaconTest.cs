@@ -401,7 +401,7 @@ namespace Dynatrace.OpenKit.Protocol
             // when
             target.ReportValue(ActionId, valueName, value);
 
-             // then
+            // then
             mockBeaconCache.Received(1).AddEventData(
                 SessionId,                                // beacon ID
                 0,                                        // timestamp
@@ -447,7 +447,7 @@ namespace Dynatrace.OpenKit.Protocol
             // when
             target.ReportValue(ActionId, null, null);
 
-             // then
+            // then
             mockBeaconCache.Received(1).AddEventData(
                 SessionId,                                // beacon ID
                 0,                                        // timestamp
@@ -620,7 +620,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 14;
             const int responseCode = 15;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns((string) null);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -886,7 +886,8 @@ namespace Dynatrace.OpenKit.Protocol
             var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
 
             // when
-            webRequest.Start().SetBytesSent(sentBytes).SetBytesReceived(receivedBytes).Stop(-1); //stop will add the web request to the beacon
+            webRequest.Start().SetBytesSent(sentBytes).SetBytesReceived(receivedBytes)
+                .Stop(-1); //stop will add the web request to the beacon
 
             // then
             mockBeaconCache.Received(1).AddEventData(
@@ -937,7 +938,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var target = CreateBeacon().With(new BeaconCache(mockLogger)).WithIpAddress(ipAddress).Build();
 
-             var httpClient = Substitute.For<IHttpClient>();
+            var httpClient = Substitute.For<IHttpClient>();
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
                 .Returns(successResponse);
 
@@ -1376,7 +1377,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             _ = mockOpenKitConfiguration.Received(0).DeviceId;
-            mockRandomGenerator.Received(1).NextLong(long.MaxValue);
+            mockRandomGenerator.Received(1).NextPositiveLong();
         }
 
         [Test]
@@ -1396,25 +1397,6 @@ namespace Dynatrace.OpenKit.Protocol
             _ = mockOpenKitConfiguration.Received(1).DeviceId;
             Assert.That(mockRandomGenerator.ReceivedCalls(), Is.Empty);
             Assert.That(obtained, Is.EqualTo(deviceId));
-        }
-
-        [Test]
-        public void RandomDeviceIdCannotBeNegativeIfDeviceIdSendingIsDisallowed()
-        {
-            // given
-            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
-            mockRandomGenerator.NextLong(Arg.Any<long>()).Returns(-123456789);
-            mockPrivacyConfiguration.IsDeviceIdSendingAllowed.Returns(false);
-
-            var target = CreateBeacon().With(mockRandomGenerator).Build();
-
-            // when
-            var deviceId = target.DeviceId;
-
-            // then
-            mockRandomGenerator.Received(1).NextLong(Arg.Any<long>());
-            Assert.That(deviceId, Is.GreaterThanOrEqualTo(0L));
-            Assert.That(deviceId, Is.LessThanOrEqualTo(long.MaxValue));
         }
 
         [Test]
@@ -1930,14 +1912,42 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
                 $"&md={string.Empty}" +
-                $"&dl={(int)ConfigurationDefaults.DefaultCrashReportingLevel}" +
-                $"&cl={(int)ConfigurationDefaults.DefaultCrashReportingLevel}" +
+                $"&dl={(int) ConfigurationDefaults.DefaultCrashReportingLevel}" +
+                $"&cl={(int) ConfigurationDefaults.DefaultCrashReportingLevel}" +
                 "&tx=0" +
                 "&tv=0" +
                 $"&mp={Multiplicity}",
                 Arg.Any<int>(),
                 Arg.Any<char>()
             );
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateAttachesEventOnBeaconConfiguration()
+        {
+            // given
+            var sessionProxy = Substitute.For<ISessionProxy>();
+            var target = CreateBeacon().Build();
+
+            // when
+            target.OnServerConfigurationUpdate += sessionProxy.OnServerConfigurationUpdate;
+
+            // then
+            mockBeaconConfiguration.Received(1).OnServerConfigurationUpdate += sessionProxy.OnServerConfigurationUpdate;
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateDetachesEventOnBeaconConfiguration()
+        {
+            // given
+            var sessionProxy = Substitute.For<ISessionProxy>();
+            var target = CreateBeacon().Build();
+
+            // when
+            target.OnServerConfigurationUpdate -= sessionProxy.OnServerConfigurationUpdate;
+
+            // then
+            mockBeaconConfiguration.Received(1).OnServerConfigurationUpdate -= sessionProxy.OnServerConfigurationUpdate;
         }
 
         private TestBeaconBuilder CreateBeacon()

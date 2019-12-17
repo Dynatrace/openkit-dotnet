@@ -29,7 +29,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// testable.
     /// </para>
     /// </summary>
-    internal interface ISessionInternals : ISession, IOpenKitComposite
+    internal interface ISessionInternals : ISession, IOpenKitComposite, IOpenKitObject
     {
         /// <summary>
         /// Tests if the Session is empty or not
@@ -106,5 +106,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </para>
         /// </summary>
         void DecreaseNumRemainingSessionRequests();
+
+        /// <summary>
+        /// Returns the beacon associated with this session.
+        /// </summary>
+        IBeacon Beacon { get; }
     }
 }

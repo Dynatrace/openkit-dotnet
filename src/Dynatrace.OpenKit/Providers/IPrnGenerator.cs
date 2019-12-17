@@ -22,17 +22,13 @@ namespace Dynatrace.OpenKit.Providers
     public interface IPrnGenerator
     {
         /// <summary>
-        /// Provide a random int between 0 (inclusive) and upperBoundary (exclusive)
+        /// Provide a random int between 0 (inclusive) and <see cref="int.MaxValue"/> (exclusive)
         /// </summary>
-        /// <param name="upperBoundary">value of upper boundary</param>
-        /// <returns>random int value between 0 and upper boundary</returns>
-        int NextInt(int upperBoundary);
+        int NextPositiveInt();
 
         /// <summary>
-        /// Provide a random long between 0 (inclusive) and upperBoundary (exclusive)
-        /// </summary
-        /// <param name="upperBoundary">value of upper boundary</param>
-        /// <returns>random long value between 0 and upper Boundary</returns>
-        long NextLong(long upperBoundary);
+        /// Provide a positive random long between 0 (inclusive) and <see cref="long.MaxValue"/> (exclusive)
+        /// </summary>
+        long NextPositiveLong();
     }
 }

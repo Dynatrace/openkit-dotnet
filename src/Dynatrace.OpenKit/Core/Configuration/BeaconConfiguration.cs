@@ -24,6 +24,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private IServerConfiguration serverConfiguration;
 
         /// <summary>
+        /// callback when the server configuration is updated.
+        /// </summary>
+        private ServerConfigurationUpdateCallback serverConfigUpdateCallback;
+
+        /// <summary>
         /// Object for synchronization.
         /// </summary>
         private readonly  object lockObject = new object();
@@ -114,6 +119,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 {
                     serverConfiguration = serverConfiguration.Merge(newServerConfiguration);
                 }
+
+                serverConfigUpdateCallback?.Invoke(serverConfiguration);
             }
         }
 
@@ -158,6 +165,24 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 lock (lockObject)
                 {
                     return serverConfiguration != null;
+                }
+            }
+        }
+
+        event ServerConfigurationUpdateCallback IBeaconConfiguration.OnServerConfigurationUpdate
+        {
+            add
+            {
+                lock (lockObject)
+                {
+                    serverConfigUpdateCallback += value;
+                }
+            }
+                remove
+            {
+                lock (lockObject)
+                {
+                    serverConfigUpdateCallback -= value;
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +14,21 @@
 // limitations under the License.
 //
 
-using System;
-
 namespace Dynatrace.OpenKit.Providers
 {
-    /// <summary>
-    /// Default implementation of PRNGenerator providing random numbers
-    /// </summary>
-    internal class DefaultPrnGenerator : IPrnGenerator
+    public class FixedSessionIdProvider : ISessionIdProvider
     {
-        public int NextPositiveInt()
+
+        private readonly int sessionId;
+
+        public FixedSessionIdProvider(ISessionIdProvider sessionIdProvider)
         {
-            return new Random().Next(int.MaxValue);
+            sessionId = sessionIdProvider.GetNextSessionId();
         }
 
-        public long NextPositiveLong()
+        public int GetNextSessionId()
         {
-            return (long)(new Random().NextDouble() * long.MaxValue);
+            return sessionId;
         }
     }
 }

@@ -299,9 +299,9 @@ namespace Dynatrace.OpenKit.Protocol
             internal int MaxEventsPerSession { get; private set; }
 
             /// <summary>
-            /// Sets the maximum number of top level events after which a session is to be split.
+            /// Sets the maximum number of top level actions after which a session is to be split.
             /// </summary>
-            /// <param name="maxEventsPerSession">the maximum number of top level events</param>
+            /// <param name="maxEventsPerSession">the maximum number of top level actions</param>
             /// <returns></returns>
             public Builder WithMaxEventsPerSession(int maxEventsPerSession)
             {

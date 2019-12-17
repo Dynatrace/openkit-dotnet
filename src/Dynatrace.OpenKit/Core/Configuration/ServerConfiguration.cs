@@ -72,6 +72,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         #endregion
 
+        private readonly bool isSessionSplitByEventsEnabled;
+
         /// <summary>
         /// Creates a server configuration from the given builder.
         /// </summary>
@@ -87,6 +89,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Multiplicity = builder.Multiplicity;
             MaxSessionDurationInMilliseconds = builder.MaxSessionDurationInMilliseconds;
             MaxEventsPerSession = builder.MaxEventsPerSession;
+            isSessionSplitByEventsEnabled = builder.IsSessionSplitByEventsEnabled;
             SessionTimeoutInMilliseconds = builder.SessionTimeoutInMilliseconds;
             VisitStoreVersion = builder.VisitStoreVersion;
         }
@@ -123,6 +126,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public int MaxSessionDurationInMilliseconds { get; }
 
         public int MaxEventsPerSession { get; }
+
+        public bool IsSessionSplitByEventsEnabled => isSessionSplitByEventsEnabled && MaxEventsPerSession > 0;
 
         public int SessionTimeoutInMilliseconds { get; }
 
@@ -172,6 +177,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 Multiplicity = responseAttributes.Multiplicity;
                 MaxSessionDurationInMilliseconds = responseAttributes.MaxSessionDurationInMilliseconds;
                 MaxEventsPerSession = responseAttributes.MaxEventsPerSession;
+                IsSessionSplitByEventsEnabled =
+                    responseAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION);
                 SessionTimeoutInMilliseconds = responseAttributes.SessionTimeoutInMilliseconds;
                 VisitStoreVersion = responseAttributes.VisitStoreVersion;
             }
@@ -191,6 +198,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 Multiplicity = serverConfiguration.Multiplicity;
                 MaxSessionDurationInMilliseconds = serverConfiguration.MaxSessionDurationInMilliseconds;
                 MaxEventsPerSession = serverConfiguration.MaxEventsPerSession;
+                IsSessionSplitByEventsEnabled = serverConfiguration.IsSessionSplitByEventsEnabled;
                 SessionTimeoutInMilliseconds = serverConfiguration.SessionTimeoutInMilliseconds;
                 VisitStoreVersion = serverConfiguration.VisitStoreVersion;
             }
@@ -301,12 +309,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
+            internal bool IsSessionSplitByEventsEnabled { get; }
+
             internal int MaxEventsPerSession { get; private set; } = DefaultMaxEventsPerSession;
 
             /// <summary>
             /// Configures the maximum number of events after which the session gets split.
             /// </summary>
-            /// <param name="maxEventsPerSession">the maximum number of top level elements after which a session gets split</param>
+            /// <param name="maxEventsPerSession">the maximum number of top level actions after which a session gets split</param>
             /// <returns><code>this</code></returns>
             public Builder WithMaxEventsPerSession(int maxEventsPerSession)
             {

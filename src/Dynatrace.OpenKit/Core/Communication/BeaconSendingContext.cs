@@ -41,7 +41,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <summary>
         /// Configuration for storing the last valid server side configuration.
         ///
-        /// This filed is initialized in the constructor and must only be modified within the context of the
+        /// This field is initialized in the constructor and must only be modified within the context of the
         /// <see cref="BeaconSender">beacon sending thread</see>.
         /// </summary>
         private IServerConfiguration serverConfiguration;

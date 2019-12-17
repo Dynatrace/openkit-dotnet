@@ -25,6 +25,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private readonly IResponseAttributes defaultValues = ResponseAttributesDefaults.Undefined;
         private IResponseAttributes mockAttributes;
 
+        private IServerConfiguration mockServerConfig;
+
         [SetUp]
         public void SetUp()
         {
@@ -36,6 +38,24 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockAttributes.ServerId.Returns(ServerConfiguration.DefaultServerId);
             mockAttributes.MaxBeaconSizeInBytes.Returns(ServerConfiguration.DefaultBeaconSize);
             mockAttributes.Multiplicity.Returns(ServerConfiguration.DefaultMultiplicity);
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(ServerConfiguration.DefaultMaxSessionDuration);
+            mockAttributes.MaxEventsPerSession.Returns(ServerConfiguration.DefaultMaxEventsPerSession);
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(ServerConfiguration.DefaultSessionTimeout);
+            mockAttributes.VisitStoreVersion.Returns(ServerConfiguration.DefaultVisitStoreVersion);
+
+            mockServerConfig = Substitute.For<IServerConfiguration>();
+            mockServerConfig.IsCaptureEnabled.Returns(ServerConfiguration.DefaultCaptureEnabled);
+            mockServerConfig.IsCrashReportingEnabled.Returns(ServerConfiguration.DefaultCrashReportingEnabled);
+            mockServerConfig.IsErrorReportingEnabled.Returns(ServerConfiguration.DefaultErrorReportingEnabled);
+            mockServerConfig.SendIntervalInMilliseconds.Returns(ServerConfiguration.DefaultSendInterval);
+            mockServerConfig.ServerId.Returns(ServerConfiguration.DefaultServerId);
+            mockServerConfig.BeaconSizeInBytes.Returns(ServerConfiguration.DefaultBeaconSize);
+            mockServerConfig.Multiplicity.Returns(ServerConfiguration.DefaultMultiplicity);
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(ServerConfiguration.DefaultMaxSessionDuration);
+            mockServerConfig.MaxEventsPerSession.Returns(ServerConfiguration.DefaultMaxEventsPerSession);
+            mockServerConfig.IsSessionSplitByEventsEnabled.Returns(false);
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(ServerConfiguration.DefaultSessionTimeout);
+            mockServerConfig.VisitStoreVersion.Returns(ServerConfiguration.DefaultVisitStoreVersion);
         }
 
         #region test defaults
@@ -93,6 +113,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void InDefaultServerConfigurationMaxEventsPerSessionIsMinusOne()
         {
             Assert.That(ServerConfiguration.Default.MaxEventsPerSession, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void InDefaultServerConfigurationIsSessionSplitByEventsEnabledIsFalse()
+        {
+            Assert.That(ServerConfiguration.Default.IsSessionSplitByEventsEnabled, Is.False);
         }
 
         [Test]
@@ -230,6 +256,66 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.MaxEventsPerSession, Is.EqualTo(eventsPerSession));
             _ = mockAttributes.Received(1).MaxEventsPerSession;
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationFromStatusResponseHasSplitBySessionEnabledIfMaxEventsGreaterZero()
+        {
+            // given
+            const int eventsPerSession = 1;
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.True);
+            _ = mockAttributes.Received(1).MaxEventsPerSession;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDisabledIfMaxEventsZero()
+        {
+            // given
+            const int eventsPerSession = 0;
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+            _ = mockAttributes.Received(1).MaxEventsPerSession;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDisabledIfMaxEventsEventsSmallerZero()
+        {
+            // given
+            const int eventsPerSession = -1;
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+            _ = mockAttributes.Received(1).MaxEventsPerSession;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDisabledIfMaxEventsIsNotSet()
+        {
+            // given
+            const int eventsPerSession = 1;
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+            _ = mockAttributes.Received(1).MaxEventsPerSession;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION);
         }
 
         [Test]
@@ -391,6 +477,350 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockAttributes.Multiplicity.Returns(1);
             mockAttributes.IsCaptureErrors.Returns(false);
             var target = ServerConfiguration.From(mockAttributes);
+
+            // when
+            var obtained = target.IsSendingErrorsAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        #endregion
+
+        #region creating builder from server config
+
+        [Test]
+        public void BuilderFromServerConfigCopiesCaptureSettings()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(false);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsCaptureEnabled, Is.False);
+            _ = mockServerConfig.Received(1).IsCaptureEnabled;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesCrashReportingSettings()
+        {
+            // given
+            mockServerConfig.IsCrashReportingEnabled.Returns(false);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsCrashReportingEnabled, Is.False);
+            _ = mockServerConfig.Received(1).IsCrashReportingEnabled;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesErrorReportingSettings()
+        {
+            // given
+            mockServerConfig.IsErrorReportingEnabled.Returns(false);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsErrorReportingEnabled, Is.False);
+            _ = mockServerConfig.Received(1).IsErrorReportingEnabled;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesSendingIntervalSettings()
+        {
+            // given
+            mockServerConfig.SendIntervalInMilliseconds.Returns(1234);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(1234));
+            _ = mockServerConfig.Received(1).SendIntervalInMilliseconds;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesServerIdSettings()
+        {
+            // given
+            mockServerConfig.ServerId.Returns(42);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.ServerId, Is.EqualTo(42));
+            _ = mockServerConfig.Received(1).ServerId;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesBeaconSizeSettings()
+        {
+            // given
+            mockServerConfig.BeaconSizeInBytes.Returns(100 * 1024);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.BeaconSizeInBytes, Is.EqualTo(100 * 1024));
+            _ = mockServerConfig.Received(1).BeaconSizeInBytes;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesMultiplicitySettings()
+        {
+            // given
+            mockServerConfig.Multiplicity.Returns(7);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.Multiplicity, Is.EqualTo(7));
+            _ = mockServerConfig.Received(1).Multiplicity;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesSessionDuration()
+        {
+            // given
+            const int sessionDuration = 73;
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.MaxSessionDurationInMilliseconds, Is.EqualTo(sessionDuration));
+            _ = mockServerConfig.Received(1).MaxSessionDurationInMilliseconds;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesMaxEventsPerSession()
+        {
+            // given
+            const int eventsPerSession = 37;
+            mockServerConfig.MaxEventsPerSession.Returns(eventsPerSession);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.MaxEventsPerSession, Is.EqualTo(eventsPerSession));
+            _ = mockServerConfig.Received(1).MaxEventsPerSession;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionEnabledIfMaxEventsGreaterZero()
+        {
+            // given
+            const int eventsPerSession = 1;
+            mockServerConfig.MaxEventsPerSession.Returns(eventsPerSession);
+            mockServerConfig.IsSessionSplitByEventsEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.True);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDisabledIfMaxEventsZero()
+        {
+            // given
+            const int eventsPerSession = 0;
+            mockServerConfig.MaxEventsPerSession.Returns(eventsPerSession);
+            mockServerConfig.IsSessionSplitByEventsEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDisabledIfMaxEventsSmallerZero()
+        {
+            // given
+            const int eventsPerSession = -1;
+            mockServerConfig.MaxEventsPerSession.Returns(eventsPerSession);
+            mockServerConfig.IsSessionSplitByEventsEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDisabledIfMaxEventsIsNotSet()
+        {
+            // given
+            const int eventsPerSession = 1;
+            mockServerConfig.MaxEventsPerSession.Returns(eventsPerSession);
+            mockServerConfig.IsSessionSplitByEventsEnabled.Returns(false);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesSessionTimeout()
+        {
+            // given
+            const int sessionTimeout = 42;
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(sessionTimeout);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.SessionTimeoutInMilliseconds, Is.EqualTo(sessionTimeout));
+            _ = mockServerConfig.Received(1).SessionTimeoutInMilliseconds;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesVisitStoreVersion()
+        {
+            // given
+            const int visitStoreVersion = 73;
+            mockServerConfig.VisitStoreVersion.Returns(visitStoreVersion);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
+            _ = mockServerConfig.Received(1).VisitStoreVersion;
+        }
+
+        [Test]
+        public void
+            BuilderFromServerConfigSendingDataToTheServerIsAllowedIfCapturingIsEnabledAndMultiplicityIsGreaterThanZero()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(true);
+            mockServerConfig.Multiplicity.Returns(1);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingDataAllowed;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigSendingDataToTheServerIsNotAllowedIfCapturingIsDisabled()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(false);
+            mockServerConfig.Multiplicity.Returns(1);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingDataAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigSendingDataToTheServerIsNotAllowedIfCapturingIsEnabledButMultiplicityIsZero()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(true);
+            mockServerConfig.Multiplicity.Returns(0);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingDataAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void
+            BuilderFromServerConfigSendingCrashesToTheServerIsAllowedIfDataSendingIsAllowedAndCaptureCrashesIsEnabled()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(true);
+            mockServerConfig.Multiplicity.Returns(1);
+            mockServerConfig.IsCrashReportingEnabled.Returns(true);
+
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingCrashesAllowed;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigSendingCrashesToTheServerIsNotAllowedIfDataSendingIsNotAllowed()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(false);
+            mockServerConfig.Multiplicity.Returns(1);
+            mockServerConfig.IsCrashReportingEnabled.Returns(true);
+
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingCrashesAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void
+            BuilderFromServerConfigSendingCrashesToTheServerIsNotAllowedIfDataSendingIsAllowedButCaptureCrashesIsDisabled()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(true);
+            mockServerConfig.Multiplicity.Returns(1);
+            mockServerConfig.IsCrashReportingEnabled.Returns(false);
+
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingCrashesAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void
+            BuilderFromServerConfigSendingErrorToTheServerIsAllowedIfDataSendingIsAllowedAndCaptureErrorIsEnabled()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(true);
+            mockServerConfig.Multiplicity.Returns(1);
+            mockServerConfig.IsErrorReportingEnabled.Returns(true);
+
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingErrorsAllowed;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigSendingErrorToTheServerIsNotAllowedIfDataSendingIsNotAllowed()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(false);
+            mockServerConfig.Multiplicity.Returns(1);
+            mockServerConfig.IsErrorReportingEnabled.Returns(true);
+
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // when
+            var obtained = target.IsSendingErrorsAllowed;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void
+            BuilderFromServerConfigSendingErrorsToTheServerIsNotAllowedIfDataSendingIsAllowedButCaptureErrorsDisabled()
+        {
+            // given
+            mockServerConfig.IsCaptureEnabled.Returns(true);
+            mockServerConfig.Multiplicity.Returns(1);
+            mockServerConfig.IsErrorReportingEnabled.Returns(false);
+
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
 
             // when
             var obtained = target.IsSendingErrorsAllowed;
@@ -578,6 +1008,63 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // then
             Assert.That(obtained.MaxEventsPerSession, Is.EqualTo(eventsPerSession));
+        }
+
+        [Test]
+        public void MergeTakesOverIsSessionSplitByEventsEnabledWhenMaxEventsIsGreaterZeroAndAttributeIsSet()
+        {
+            // given
+            const int eventsPerSession = 73;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            var target = new ServerConfiguration.Builder().Build();
+            var other = ServerConfiguration.From(mockAttributes);
+
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitByEventsEnabled, Is.True);
+        }
+
+        [Test]
+        public void MergeTakesOverIsSessionSplitByEventsEnabledWhenMaxEventsIsSmallerZeroButAttributeIsSet()
+        {
+            // given
+            const int eventsPerSession = 0;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            var target = new ServerConfiguration.Builder().Build();
+            var other = ServerConfiguration.From(mockAttributes);
+
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitByEventsEnabled, Is.False);
+        }
+
+        [Test]
+        public void MergeTakesOverIsSessionSplitByEventsEnabledWhenMaxEventsIsGreaterZeroButAttributeIsNotSet()
+        {
+            // given
+            const int eventsPerSession = 73;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(false);
+            mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
+            var target = new ServerConfiguration.Builder().Build();
+            var other = ServerConfiguration.From(mockAttributes);
+
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitByEventsEnabled, Is.False);
         }
 
         [Test]
