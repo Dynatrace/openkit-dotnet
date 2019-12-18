@@ -15,7 +15,6 @@
 //
 
 using System;
-using System.Threading;
 
 namespace Dynatrace.OpenKit.Providers
 {
@@ -25,16 +24,7 @@ namespace Dynatrace.OpenKit.Providers
 
         public virtual long ProvideTimestampInMilliseconds()
         {
-            return (long)(DateTime.UtcNow - Jan1St1970).TotalMilliseconds;
-        }
-
-        public virtual void Sleep(int milliseconds)
-        {
-#if WINDOWS_UWP || NETSTANDARD1_1
-            System.Threading.Tasks.Task.Delay(milliseconds).Wait();
-#else
-            Thread.Sleep(milliseconds);
-#endif
+            return (long) (DateTime.UtcNow - Jan1St1970).TotalMilliseconds;
         }
     }
 }

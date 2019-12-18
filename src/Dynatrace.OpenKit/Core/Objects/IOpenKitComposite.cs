@@ -54,6 +54,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         IList<IOpenKitObject> GetCopyOfChildObjects();
 
         /// <summary>
+        /// Returns the current number of children held by this composite.
+        /// </summary>
+        int GetChildCount();
+
+        /// <summary>
         /// Abstract method to notify the composite about closing/ending a child object.
         ///
         /// <para>

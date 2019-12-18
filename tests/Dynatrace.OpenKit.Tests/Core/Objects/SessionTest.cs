@@ -320,7 +320,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.End();
 
             // then
-           mockBeacon.Received(1).EndSession();
+            mockBeacon.Received(1).EndSession();
         }
 
         [Test]
@@ -378,6 +378,52 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockLogger.Received(1).Debug("Session [sn=0] End()");
+        }
+
+        [Test]
+        public void TryEndEndsSessionIfNoMoreChildObjects()
+        {
+            // given
+            var target = CreateSession().Build();
+            var action = target.EnterAction("action");
+            var tracer = target.TraceWebRequest("https://localhost");
+
+            // when
+            var obtained = target.TryEnd();
+
+            // then
+            Assert.That(obtained, Is.False);
+            mockBeacon.Received(0).EndSession();
+
+            // and when
+            action.LeaveAction();
+            obtained = target.TryEnd();
+
+            // then
+            Assert.That(obtained, Is.False);
+            mockBeacon.Received(0).EndSession();
+
+            // and when
+            tracer.Stop(200);
+            obtained = target.TryEnd();
+
+            // then
+            Assert.That(obtained, Is.True);
+            mockBeacon.Received(1).EndSession();
+        }
+
+        [Test]
+        public void TryEndReturnsTrueIfSessionAlreadyEnded()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            var obtained = target.TryEnd();
+
+            // then
+            Assert.That(obtained, Is.True);
         }
 
         [Test]
@@ -605,8 +651,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.End();
 
             // then
-            Assert.That(((IActionInternals)rootActionOne).IsActionLeft, Is.True);
-            Assert.That(((IActionInternals)rootActionTwo).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals) rootActionOne).IsActionLeft, Is.True);
+            Assert.That(((IActionInternals) rootActionTwo).IsActionLeft, Is.True);
             Received.InOrder(() =>
                 {
                     rootActionOne.LeaveAction();
@@ -687,7 +733,8 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
-            mockLogger.Received(1).Warn($"Session [sn=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
+            mockLogger.Received(1)
+                .Warn($"Session [sn=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
         }
 
         [Test]

@@ -21,6 +21,7 @@ using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
@@ -58,6 +59,10 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// Provider for timing information.
         /// </summary>
         private readonly ITimingProvider timingProvider;
+        /// <summary>
+        /// instance for suspending the thread for a certain time span.
+        /// </summary>
+        private readonly IInterruptibleThreadSuspender threadSuspender;
 
         // container storing all sessions
         private readonly SynchronizedQueue<ISessionInternals> sessions = new SynchronizedQueue<ISessionInternals>();
@@ -80,9 +85,11 @@ namespace Dynatrace.OpenKit.Core.Communication
             ILogger logger,
             IHttpClientConfiguration httpClientConfiguration,
             IHttpClientProvider httpClientProvider,
-            ITimingProvider timingProvider
+            ITimingProvider timingProvider,
+            IInterruptibleThreadSuspender threadSuspender
         )
-            : this(logger, httpClientConfiguration, httpClientProvider, timingProvider, new BeaconSendingInitState())
+            : this(logger, httpClientConfiguration, httpClientProvider, timingProvider, threadSuspender,
+                new BeaconSendingInitState())
         {
         }
 
@@ -91,6 +98,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             IHttpClientConfiguration httpClientConfiguration,
             IHttpClientProvider httpClientProvider,
             ITimingProvider timingProvider,
+            IInterruptibleThreadSuspender threadSuspender,
             AbstractBeaconSendingState initialState
             )
         {
@@ -99,6 +107,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             serverConfiguration = ServerConfiguration.Default;
             HttpClientProvider = httpClientProvider;
             this.timingProvider = timingProvider;
+            this.threadSuspender = threadSuspender;
             LastResponseAttributes = ResponseAttributes.WithUndefinedDefaults().Build();
 
             CurrentState = initialState;
@@ -141,6 +150,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void RequestShutdown()
         {
             IsShutdownRequested = true;
+            threadSuspender.WakeUp();
         }
 
         public bool WaitForInit()
@@ -173,21 +183,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public void Sleep(int millis)
         {
-#if !NETCOREAPP1_0 || !NETCOREAPP1_1
-            timingProvider.Sleep(millis);
-#else
-            // in order to avoid long sleeps (netcore1.0 doesn't provide ThreadInterruptException for sleep)
-            const int sleepTimePerCycle = DEFAULT_SLEEP_TIME_MILLISECONDS;
-            while (millis > 0)
-            {
-                timingProvider.Sleep(Math.Min(sleepTimePerCycle, millis));
-                millis -= sleepTimePerCycle;
-                if (isShutdownRequested)
-                {
-                    break;
-                }
-            }
-#endif
+            threadSuspender.Sleep(millis);
         }
 
         public void DisableCaptureAndClear()

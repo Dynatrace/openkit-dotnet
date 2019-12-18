@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
@@ -31,6 +32,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IHttpClientConfiguration mockHttpClientConfig;
         private IHttpClientProvider mockHttpClientProvider;
         private ITimingProvider mockTimingProvider;
+        private IInterruptibleThreadSuspender mockThreadSuspender;
 
         [SetUp]
         public void Setup()
@@ -51,6 +53,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockHttpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
 
             mockTimingProvider = Substitute.For<ITimingProvider>();
+            mockThreadSuspender = Substitute.For<IInterruptibleThreadSuspender>();
         }
 
         [Test]
@@ -121,6 +124,19 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             Assert.True(target.IsShutdownRequested);
+        }
+
+        [Test]
+        public void RequestShutdownWakesUpThreadSuspender()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+
+            // when
+            target.RequestShutdown();
+
+            // then
+            mockThreadSuspender.Received(1).WakeUp();
         }
 
         [Test]
@@ -353,7 +369,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Sleep();
 
             // then
-            mockTimingProvider.Received(1).Sleep(BeaconSendingContext.DefaultSleepTimeMilliseconds);
+            mockThreadSuspender.Received(1).Sleep(BeaconSendingContext.DefaultSleepTimeMilliseconds);
         }
 
         [Test]
@@ -367,13 +383,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Sleep(expected);
 
             // then
-#if !NETCOREAPP1_0 || !NETCOREAPP1_1
-            mockTimingProvider.Received(1).Sleep(expected);
-#else
-            mockTimingProvider.Received(2).Sleep(Arg.Any<int>());
-            mockTimingProvider.Received(1).Sleep(1000);
-            mockTimingProvider.Received(1).Sleep(717);
-#endif
+            mockThreadSuspender.Received(1).Sleep(expected);
         }
 
         [Test]
@@ -386,36 +396,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Sleep(expected);
 
             // then
-#if !NETCOREAPP1_0 || !NETCOREAPP1_1
-            // normal sleep as thread interrupt exception exists
-            mockTimingProvider.Received(1).Sleep(expected);
-#else
-            // no interrupt exception exists, therefore "sliced" sleep break after first iteration
-            mockTimingProvider.Received(1).Sleep(Arg.Any<int>());
-            mockTimingProvider.Received(1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
-#endif
-        }
-
-        [Test]
-        public void CanSleepLonger()
-        {
-            // given
-            const int expected = 101717;
-            var target = CreateSendingContext().Build();
-            target.Sleep(expected);
-
-            // then
-#if !NETCOREAPP1_0 || !NETCOREAPP1_1
-            // normal sleep as thread interrupt exception exists
-            mockTimingProvider.Received(1).Sleep(expected);
-
-#else
-            // no interrupt exception exists, therefore "sliced" sleeps until total sleep amount
-            var expectedCount = (int)Math.Ceiling(expected / (double)BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
-            mockTimingProvider.Received(expectedCount).Sleep(Arg.Any<int>());
-            mockTimingProvider.Received(expectedCount - 1).Sleep(BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
-            mockTimingProvider.Received(1).Sleep(expected % BeaconSendingContext.DEFAULT_SLEEP_TIME_MILLISECONDS);
-#endif
+            mockThreadSuspender.Received(1).Sleep(expected);
         }
 
         [Test]
@@ -805,7 +786,8 @@ namespace Dynatrace.OpenKit.Core.Communication
                 mockLogger,
                 mockHttpClientConfig,
                 mockHttpClientProvider,
-                mockTimingProvider
+                mockTimingProvider,
+                mockThreadSuspender
             );
             Assert.That(mockHttpClientConfig.ReceivedCalls(), Is.Empty);
 
@@ -1052,6 +1034,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                     .With(mockHttpClientConfig)
                     .With(mockHttpClientProvider)
                     .With(mockTimingProvider)
+                    .With(mockThreadSuspender)
                 ;
         }
     }

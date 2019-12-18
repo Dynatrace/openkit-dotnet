@@ -19,7 +19,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
-    public class SessionProxy : OpenKitComposite, ISession
+    public class SessionProxy : OpenKitComposite, ISessionProxy
     {
         /// <summary>
         /// object used for synchronization
@@ -42,6 +42,16 @@ namespace Dynatrace.OpenKit.Core.Objects
         private readonly ISessionCreator sessionCreator;
 
         /// <summary>
+        /// sender of beacon data
+        /// </summary>
+        private readonly IBeaconSender beaconSender;
+
+        /// <summary>
+        /// watchdog to split sessions after idle/max timeout or to close split off session after a grace period
+        /// </summary>
+        private readonly ISessionWatchdog sessionWatchdog;
+
+        /// <summary>
         /// the current session instance
         /// </summary>
         private ISessionInternals currentSession;
@@ -50,6 +60,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// holds the number of received calls <see cref="EnterAction"/>
         /// </summary>
         private int topLevelActionCount;
+
+        /// <summary>
+        /// specifies the timestamp when the last top level event happened
+        /// </summary>
+        private long lastInteractionTime;
 
         /// <summary>
         /// the server configuration of the first session (will be initialized when the first session is updated with
@@ -62,13 +77,20 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private bool isFinished;
 
-        internal SessionProxy(ILogger logger, IOpenKitComposite parent, ISessionCreator sessionCreator)
+        internal SessionProxy(
+            ILogger logger,
+            IOpenKitComposite parent,
+            ISessionCreator sessionCreator,
+            IBeaconSender beaconSender,
+            ISessionWatchdog sessionWatchdog)
         {
             this.logger = logger;
             this.parent = parent;
             this.sessionCreator = sessionCreator;
+            this.beaconSender = beaconSender;
+            this.sessionWatchdog = sessionWatchdog;
 
-            currentSession = CreateSession();
+            currentSession = CreateSession(null);
         }
 
         /// <summary>
@@ -216,6 +238,20 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
+        /// <summary>
+        /// Indicates whether the session proxy was finished or is still open.
+        /// </summary>
+        public bool IsFinished
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return isFinished;
+                }
+            }
+        }
+
         #region OpenKitComposite overrides
 
         public override void Dispose()
@@ -228,6 +264,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             lock (lockObject)
             {
                 ThisComposite.RemoveChildFromList(childObject);
+                if (childObject is ISessionInternals session)
+                {
+                    sessionWatchdog.DequeueFromClosing(session);
+                }
             }
         }
 
@@ -244,13 +284,30 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
         }
 
+        internal long LastInteractionTime
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return lastInteractionTime;
+                }
+            }
+
+        }
+
         private ISessionInternals GetOrSplitCurrentSession()
         {
             if (IsSessionSplitRequired())
             {
-                currentSession = CreateSession();
-                currentSession.UpdateServerConfiguration(serverConfiguration);
+                var newSession = CreateSession(serverConfiguration);
                 topLevelActionCount = 0;
+
+                // try to close old session or wait half the max session duration and then close it forcefully
+                var closeGracePeriodInMillis = serverConfiguration.MaxSessionDurationInMilliseconds / 2;
+                sessionWatchdog.CloseOrEnqueueForClosing(currentSession, closeGracePeriodInMillis);
+
+                currentSession = newSession;
             }
 
             return currentSession;
@@ -266,19 +323,26 @@ namespace Dynatrace.OpenKit.Core.Objects
             return serverConfiguration.MaxEventsPerSession <= topLevelActionCount;
         }
 
-        private ISessionInternals CreateSession()
+        private ISessionInternals CreateSession(IServerConfiguration sessionServerConfig)
         {
             var session = sessionCreator.CreateSession(this);
             session.Beacon.OnServerConfigurationUpdate += OnServerConfigurationUpdate;
 
             ThisComposite.StoreChildInList(session);
 
+            if (sessionServerConfig != null)
+            {
+                session.UpdateServerConfiguration(sessionServerConfig);
+            }
+
+            beaconSender.AddSession(session);
+
             return session;
         }
 
         private void RecordTopLevelEventInteraction()
         {
-            // nothing for now
+            lastInteractionTime = currentSession.Beacon.CurrentTimestamp;
         }
 
         private void RecordTopLevelActionEvent()

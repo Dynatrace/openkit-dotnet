@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
@@ -21,7 +22,6 @@ using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
-
     /// <summary>
     ///  Actual implementation of the ISession interface.
     /// </summary>
@@ -57,12 +57,17 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private int numRemainingNewSessionRequests = MaxNewSessionRequests;
 
+        /// <summary>
+        /// the grace period after which the session gets closed by the session watchdog thread.
+        /// </summary>
+        private long splitByEventsGracePeriodEndTimeInMillis = -1;
+
 
         internal Session(
             ILogger logger,
             IOpenKitComposite parent,
             IBeacon beacon
-            )
+        )
         {
             state = new SessionState(this);
             this.logger = logger;
@@ -119,6 +124,31 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         IBeacon ISessionInternals.Beacon => beacon;
 
+        bool ISessionInternals.TryEnd()
+        {
+            lock (state)
+            {
+                if (state.IsFinishingOrFinished)
+                {
+                    return true;
+                }
+
+                if (ThisComposite.GetChildCount() == 0)
+                {
+                    End();
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        long ISessionInternals.SplitByEventsGracePeriodEndTimeInMillis
+        {
+            get => Interlocked.Read(ref splitByEventsGracePeriodEndTimeInMillis);
+            set => Interlocked.CompareExchange(ref splitByEventsGracePeriodEndTimeInMillis, value, -1);
+        }
+
         #endregion
 
         public override void Dispose()
@@ -135,6 +165,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Warn($"{this} EnterAction: actionName must not be null or empty");
                 return NullRootAction.Instance;
             }
+
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} EnterAction({actionName})");
@@ -161,6 +192,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Warn($"{this} IdentifyUser: userTag must not be null or empty");
                 return;
             }
+
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} IdentifyUser({userTag})");
@@ -182,6 +214,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Warn($"{this} ReportCrash: errorName must not be null or empty");
                 return;
             }
+
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} ReportCrash({errorName}, {reason}, {stacktrace})");
@@ -203,11 +236,13 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Warn($"{this} TraceWebRequest(String): url must not be null or empty");
                 return NullWebRequestTracer.Instance;
             }
+
             if (!WebRequestTracer.IsValidUrlScheme(url))
             {
                 logger.Warn($"{this} TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
                 return NullWebRequestTracer.Instance;
             }
+
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} TraceWebRequest({url})");
@@ -254,7 +289,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             state.MarkAsFinished();
 
             // last but not least update parent relation
-             parent.OnChildClosed(this);
+            parent.OnChildClosed(this);
         }
 
         #endregion

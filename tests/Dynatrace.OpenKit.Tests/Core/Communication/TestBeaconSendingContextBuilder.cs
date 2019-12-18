@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Communication
@@ -26,6 +27,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         private IHttpClientConfiguration httpClientConfig;
         private IHttpClientProvider httpClientProvider;
         private ITimingProvider timingProvider;
+        private IInterruptibleThreadSuspender threadSuspender;
         private AbstractBeaconSendingState initState;
 
         internal TestBeaconSendingContextBuilder With(ILogger logger)
@@ -58,6 +60,12 @@ namespace Dynatrace.OpenKit.Core.Communication
             return this;
         }
 
+        internal TestBeaconSendingContextBuilder With(IInterruptibleThreadSuspender suspender)
+        {
+            threadSuspender = suspender;
+            return this;
+        }
+
         internal IBeaconSendingContext Build()
         {
             if (initState == null)
@@ -66,7 +74,8 @@ namespace Dynatrace.OpenKit.Core.Communication
                     logger,
                     httpClientConfig,
                     httpClientProvider,
-                    timingProvider
+                    timingProvider,
+                    threadSuspender
                 );
             }
 
@@ -75,6 +84,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                 httpClientConfig,
                 httpClientProvider,
                 timingProvider,
+                threadSuspender,
                 initState
             );
         }

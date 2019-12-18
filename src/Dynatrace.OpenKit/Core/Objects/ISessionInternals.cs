@@ -64,6 +64,24 @@ namespace Dynatrace.OpenKit.Core.Objects
         ISessionState State { get; }
 
         /// <summary>
+        /// Tries to end the current session by checking if there are no more child objects (actions / web request
+        /// tracers) open. In case no more child objects are open, the session is ended, otherwise it is kept open.
+        /// </summary>
+        /// <returns>
+        /// <code>true</code> if the session was successfully ended (or was already ended before). <code>false</code>
+        /// in case there are / were still open child objects (actions / web request tracers).
+        /// </returns>
+        bool TryEnd();
+
+        /// <summary>
+        /// Represents the end time when the session is to be forcefully ended after a session is split by exceeding the
+        /// maximum top level event count was performed but the session could not be ended at that time due to open
+        /// child objects (actions, tracers). Such sessions will be automatically be closed by the
+        /// <see cref="SessionWatchdog"/> thread after this grace period is elapsed.
+        /// </summary>
+        long SplitByEventsGracePeriodEndTimeInMillis { get; set; }
+
+        /// <summary>
         /// Updates the <see cref="IBeacon"/> with the given <see cref="IServerConfiguration"/>.
         /// </summary>
         void UpdateServerConfiguration(IServerConfiguration serverConfiguration);

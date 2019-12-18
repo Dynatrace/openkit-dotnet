@@ -53,6 +53,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             return new List<IOpenKitObject>(children);
         }
 
+        int IOpenKitComposite.GetChildCount()
+        {
+            return children.Count;
+        }
+
         /// <summary>
         /// Abstract method to notify the composite about closing/ending a child object.
         ///

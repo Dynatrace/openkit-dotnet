@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
@@ -35,6 +34,8 @@ namespace Dynatrace.OpenKit.Core.Objects
         private IBeacon mockSplitBeacon2;
         private ISessionCreator mockSessionCreator;
         private IServerConfiguration mockServerConfiguration;
+        private IBeaconSender mockBeaconSender;
+        private ISessionWatchdog mockSessionWatchdog;
 
         [SetUp]
         public void SetUp()
@@ -61,6 +62,9 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockSessionCreator = Substitute.For<ISessionCreator>();
             mockSessionCreator.CreateSession(Arg.Any<IOpenKitComposite>())
                 .Returns(mockSession, mockSplitSession1, mockSplitSession2);
+
+            mockBeaconSender = Substitute.For<IBeaconSender>();
+            mockSessionWatchdog = Substitute.For<ISessionWatchdog>();
         }
 
         [Test]
@@ -74,6 +78,16 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void ANewlyCreatedSessionProxyIsNotFinished()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // then
+            Assert.That(target.IsFinished, Is.False);
+        }
+
+        [Test]
         public void InitiallyCreatedSessionRegistersServerConfigurationUpdateCallback()
         {
             // given, when
@@ -81,6 +95,16 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(1).OnServerConfigurationUpdate += target.OnServerConfigurationUpdate;
+        }
+
+        [Test]
+        public void InitiallyCreatedSessionIsAddedToTheBeaconSender()
+        {
+            // given
+            CreateSessionProxy();
+
+            // then
+            mockBeaconSender.Received(1).AddSession(mockSession);
         }
 
         #region enter action tests
@@ -172,6 +196,23 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(target.TopLevelActionCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void EnterActionSetsLastInterActionTime()
+        {
+            // given
+            const long timestamp = 17;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
+
+            var target = CreateSessionProxy();
+            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+
+            // when
+            target.EnterAction("test");
+
+            // then
+            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
         }
 
         [Test]
@@ -331,6 +372,61 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockSessionCreator.Received(3).CreateSession(target);
         }
 
+        [Test]
+        public void EnterActionCallsWatchdogToCloseOldSessionOnSplitByEvents()
+        {
+            // given
+            const int sessionDuration = 10;
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
+            mockServerConfiguration.MaxEventsPerSession.Returns(1);
+            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            target.EnterAction("some action");
+
+            // then
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            // and when
+            target.EnterAction("some other action");
+
+            // then
+            mockSessionCreator.Received(2).CreateSession(target);
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, sessionDuration / 2);
+        }
+
+        [Test]
+        public void EnterActionAddsSplitSessionToBeaconSenderOnSplitByEvents()
+        {
+            // given
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
+            mockServerConfiguration.MaxEventsPerSession.Returns(1);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            mockBeaconSender.Received(1).AddSession(mockSession);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            target.EnterAction("some action");
+
+            // then
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            // and when
+            target.EnterAction("some other action");
+
+            // then
+            mockSessionCreator.Received(2).CreateSession(target);
+            mockBeaconSender.Received(1).AddSession(mockSplitSession1);
+        }
+
         #endregion
 
         #region idntify user tests
@@ -419,6 +515,23 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void IdentifyUserSetsLastInterActionTime()
+        {
+            // given
+            const long timestamp = 17;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
+
+            var target = CreateSessionProxy();
+            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+
+            // when
+            target.IdentifyUser("Jane Doe");
+
+            // then
+            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
         }
 
         [Test]
@@ -553,6 +666,23 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReportCrashSetsLastInterActionTime()
+        {
+            // given
+            const long timestamp = 17;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
+
+            var target = CreateSessionProxy();
+            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+
+            // when
+            target.ReportCrash("errorName", "reason", "stacktrace");
+
+            // then
+            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
         }
 
         [Test]
@@ -698,6 +828,23 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void TraceWebRequestWithStringUrlSetsLastInterActionTime()
+        {
+            // given
+            const long timestamp = 17;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
+
+            var target = CreateSessionProxy();
+            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+
+            // when
+            target.TraceWebRequest("https://localhost");
+
+            // then
+            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
+        }
+
+        [Test]
         public void TraceWebRequestWithStringUrlDoesNotSplitSession()
         {
             // given
@@ -833,6 +980,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void OnChildClosedCallsDequeueOnSessionWatchdog()
+        {
+            // given
+            var target = CreateSessionProxy() as IOpenKitComposite;
+            var session = Substitute.For<ISessionInternals>();
+            target.StoreChildInList(session);
+
+            // when
+            target.OnChildClosed(session);
+
+            // then
+            mockSessionWatchdog.Received(1).DequeueFromClosing(session);
+        }
+
+        [Test]
         public void ToStringReturnsAppropriateResult()
         {
             // given
@@ -849,7 +1011,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private SessionProxy CreateSessionProxy()
         {
-            return new SessionProxy(mockLogger, mockParent, mockSessionCreator);
+            return new SessionProxy(mockLogger, mockParent, mockSessionCreator, mockBeaconSender, mockSessionWatchdog);
         }
     }
 }
