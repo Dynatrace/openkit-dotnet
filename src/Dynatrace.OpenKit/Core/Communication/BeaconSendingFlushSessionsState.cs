@@ -52,7 +52,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 if (!tooManyRequestsReceived && finishedSession.IsDataSendingAllowed)
                 {
-                    var statusResponse = finishedSession.SendBeacon(context.HttpClientProvider);
+                    var statusResponse = finishedSession.SendBeacon(context.HttpClientProvider, context);
                     if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
                     {
                         tooManyRequestsReceived = true;

@@ -21,21 +21,31 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Sends a status request and returns a status response
         /// </summary>
+        /// <param name="additionalParameters">
+        ///     additional parameters that will be send with the beacon request (can be <code>null</code>.
+        /// </param>
         /// <returns></returns>
-        IStatusResponse SendStatusRequest();
+        IStatusResponse SendStatusRequest(IAdditionalQueryParameters additionalParameters);
 
         /// <summary>
         /// Sends a beacon send request and returns a status response
         /// </summary>
         /// <param name="clientIpAddress"></param>
         /// <param name="data"></param>
+        /// <param name="additionalParameters">
+        ///     additional parameters that will be send with the beacon request (can be <code>null</code>.
+        /// </param>
         /// <returns></returns>
-        IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data);
+        IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data,
+            IAdditionalQueryParameters additionalParameters);
 
         /// <summary>
         /// Sends a special status request for a new session.
         /// </summary>
+        /// <param name="additionalParameters">
+        ///     additional parameters that will be send with the beacon request (can be <code>null</code>.
+        /// </param>
         /// <returns>Returns the status response.</returns>
-        IStatusResponse SendNewSessionRequest();
+        IStatusResponse SendNewSessionRequest(IAdditionalQueryParameters additionalParameters);
     }
 }

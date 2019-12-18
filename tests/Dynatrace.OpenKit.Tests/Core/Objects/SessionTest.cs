@@ -27,6 +27,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     {
         private ILogger mockLogger;
         private IBeacon mockBeacon;
+        private IAdditionalQueryParameters mockAdditionalParameters;
 
         [SetUp]
         public void SetUp()
@@ -36,6 +37,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockLogger.IsDebugEnabled.Returns(true);
 
             mockBeacon = Substitute.For<IBeacon>();
+            mockAdditionalParameters = Substitute.For<IAdditionalQueryParameters>();
         }
 
         [Test]
@@ -434,10 +436,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             var clientProvider = Substitute.For<IHttpClientProvider>();
 
             // when
-            target.SendBeacon(clientProvider);
+            target.SendBeacon(clientProvider, mockAdditionalParameters);
 
             // then
-            mockBeacon.Received(1).Send(clientProvider);
+            mockBeacon.Received(1).Send(clientProvider, mockAdditionalParameters);
         }
 
         [Test]

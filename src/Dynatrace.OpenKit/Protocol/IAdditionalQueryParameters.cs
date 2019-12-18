@@ -1,4 +1,4 @@
-﻿//
+//
 // Copyright 2018-2019 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,14 @@
 
 namespace Dynatrace.OpenKit.Protocol
 {
-    public static class ProtocolConstants
+    /// <summary>
+    /// Provides additional parameters that will be appended when a server request is sent.
+    /// </summary>
+    public interface IAdditionalQueryParameters
     {
-        // version constants
-        public const string OpenKitVersion = "7.0.0000";
-        public const int ProtocolVersion = 3;
-        public const int PlatformTypeOpenKit = 1;
-        public const string AgentTechnologyType = "okdotnet";
-        public const string ErrorTechnologyType = "c";
-        public const string ResponseType = "json";
+        /// <summary>
+        /// Returns the current timestamp of the configuration received by the server.
+        /// </summary>
+        long ConfigurationTimestamp { get; }
     }
 }

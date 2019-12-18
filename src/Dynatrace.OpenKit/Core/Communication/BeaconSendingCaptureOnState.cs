@@ -100,7 +100,7 @@ namespace Dynatrace.OpenKit.Core.Communication
                     continue;
                 }
 
-                statusResponse = context.GetHttpClient().SendNewSessionRequest();
+                statusResponse = context.GetHttpClient().SendNewSessionRequest(context);
                 if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                 {
                     var updatedAttributes = context.UpdateLastResponseAttributesFrom(statusResponse);
@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 if (session.IsDataSendingAllowed)
                 {
-                    statusResponse = session.SendBeacon(context.HttpClientProvider);
+                    statusResponse = session.SendBeacon(context.HttpClientProvider, context);
                     if (!BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
                     {
                         // something went wrong,
@@ -176,7 +176,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             {
                 if (session.IsDataSendingAllowed)
                 {
-                    statusResponse = session.SendBeacon(context.HttpClientProvider);
+                    statusResponse = session.SendBeacon(context.HttpClientProvider, context);
                     if (BeaconSendingResponseUtil.IsTooManyRequestsResponse(statusResponse))
                     {
                         // server is currently overloaded, return immediately

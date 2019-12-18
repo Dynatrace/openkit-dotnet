@@ -305,5 +305,11 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             return sessions.Remove(session);
         }
+
+        #region IAdditionalQueryParameters implementation
+
+        public long ConfigurationTimestamp => LastResponseAttributes.TimestampInMilliseconds;
+
+        #endregion
     }
 }

@@ -50,8 +50,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <see cref="IHttpClientProvider"/>.
         /// </summary>
         /// <param name="clientProvider">the HTTP client provider.</param>
+        /// <param name="additionalParameters">
+        /// additional parameters that will be appended to the beacon request (can be <code>null</code>)
+        /// </param>
         /// <returns>the response by the server.</returns>
-        IStatusResponse SendBeacon(IHttpClientProvider clientProvider);
+        IStatusResponse SendBeacon(IHttpClientProvider clientProvider, IAdditionalQueryParameters additionalParameters);
 
         /// <summary>
         /// Indicates whether sending data for this session is allowed or not.

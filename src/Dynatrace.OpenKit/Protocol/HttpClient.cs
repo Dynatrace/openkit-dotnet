@@ -63,6 +63,8 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string QueryKeyVersion = "va";
         internal const string QueryKeyPlatformType = "pt";
         internal const string QueryKeyAgentTechnologyType = "tt";
+        internal const string QueryKeyResponseType = "resp";
+        internal const string QueryKeyConfigTimestamp = "cts";
         internal const string QueryKeyNewSession = "ns";
 
         // additional reserved characters for URL encoding
@@ -93,22 +95,26 @@ namespace Dynatrace.OpenKit.Protocol
         public int ServerId { get; }
 
         // sends a status check request and returns a status response
-        public IStatusResponse SendStatusRequest()
+        public IStatusResponse SendStatusRequest(IAdditionalQueryParameters additionalParams)
         {
-            return SendRequest(RequestType.Status, monitorUrl, null, null, "GET")
+            var url = AppendAdditionalQueryParameters(monitorUrl, additionalParams);
+            return SendRequest(RequestType.Status, url, null, null, "GET")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }
 
         // sends a beacon send request and returns a status response
-        public IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data)
+        public IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data,
+            IAdditionalQueryParameters additionalParams)
         {
-            return SendRequest(RequestType.Beacon, monitorUrl, clientIpAddress, data, "POST")
+            var url = AppendAdditionalQueryParameters(monitorUrl, additionalParams);
+            return SendRequest(RequestType.Beacon, url, clientIpAddress, data, "POST")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }
 
-        public IStatusResponse SendNewSessionRequest()
+        public IStatusResponse SendNewSessionRequest(IAdditionalQueryParameters additionalParams)
         {
-            return SendRequest(RequestType.NewSession, newSessionUrl, null, null, "GET")
+            var url = AppendAdditionalQueryParameters(newSessionUrl, additionalParams);
+            return SendRequest(RequestType.NewSession, url, null, null, "GET")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }
 
@@ -238,6 +244,7 @@ namespace Dynatrace.OpenKit.Protocol
             AppendQueryParam(monitorUrlBuilder, QueryKeyPlatformType,
                 Convert.ToString(ProtocolConstants.PlatformTypeOpenKit));
             AppendQueryParam(monitorUrlBuilder, QueryKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
+            AppendQueryParam(monitorUrlBuilder, QueryKeyResponseType, ProtocolConstants.ResponseType);
 
             return monitorUrlBuilder.ToString();
         }
@@ -249,6 +256,19 @@ namespace Dynatrace.OpenKit.Protocol
             AppendQueryParam(newSessionUrlBuilder, QueryKeyNewSession, "1");
 
             return newSessionUrlBuilder.ToString();
+        }
+
+        private static string AppendAdditionalQueryParameters(string baseUrl, IAdditionalQueryParameters parameters)
+        {
+            if (parameters == null)
+            {
+                return baseUrl;
+            }
+
+            var builder = new StringBuilder(baseUrl);
+            AppendQueryParam(builder, QueryKeyConfigTimestamp, parameters.ConfigurationTimestamp.ToString());
+
+            return builder.ToString();
         }
 
         // helper method for appending query parameters

@@ -38,15 +38,18 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             mockSession1Open = Substitute.For<ISessionInternals>();
             mockSession1Open.IsDataSendingAllowed.Returns(true);
-            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(mockResponse);
+            mockSession1Open.SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>())
+                .Returns(mockResponse);
 
             mockSession2Open = Substitute.For<ISessionInternals>();
             mockSession2Open.IsDataSendingAllowed.Returns(true);
-            mockSession2Open.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(mockResponse);
+            mockSession2Open.SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>())
+                .Returns(mockResponse);
 
             mockSession3Closed = Substitute.For<ISessionInternals>();
             mockSession3Closed.IsDataSendingAllowed.Returns(true);
-            mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(mockResponse);
+            mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>())
+                .Returns(mockResponse);
 
             var mockHttpClient = Substitute.For<IHttpClient>();
             mockContext = Substitute.For<IBeaconSendingContext>();
@@ -126,9 +129,9 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(mockContext);
 
             // then
-            mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
-            mockSession2Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
-            mockSession3Closed.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession1Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>(), mockContext);
+            mockSession2Open.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>(), mockContext);
+            mockSession3Closed.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>(), mockContext);
         }
 
         [Test]
@@ -144,13 +147,16 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(mockContext);
 
             // then
-            mockSession1Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession1Open.Received(0)
+                .SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>());
             mockSession1Open.Received(1).ClearCapturedData();
 
-            mockSession2Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(0)
+                .SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>());
             mockSession2Open.Received(1).ClearCapturedData();
 
-            mockSession3Closed.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Closed.Received(0)
+                .SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>());
             mockSession3Closed.Received(1).ClearCapturedData();
         }
 
@@ -163,19 +169,22 @@ namespace Dynatrace.OpenKit.Core.Communication
             var response = Substitute.For<IStatusResponse>();
             response.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             response.IsErroneousResponse.Returns(true);
-            mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>()).Returns(response);
+            mockSession3Closed.SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>())
+                .Returns(response);
 
             // when
             target.Execute(mockContext);
 
             // then
-            mockSession3Closed.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession3Closed.Received(1).SendBeacon(Arg.Any<IHttpClientProvider>(), mockContext);
             mockSession3Closed.Received(1).ClearCapturedData();
 
-            mockSession1Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession1Open.Received(0)
+                .SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>());
             mockSession1Open.Received(1).ClearCapturedData();
 
-            mockSession2Open.Received(0).SendBeacon(Arg.Any<IHttpClientProvider>());
+            mockSession2Open.Received(0)
+                .SendBeacon(Arg.Any<IHttpClientProvider>(), Arg.Any<IAdditionalQueryParameters>());
             mockSession2Open.Received(1).ClearCapturedData();
         }
 

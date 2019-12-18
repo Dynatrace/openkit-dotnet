@@ -199,8 +199,11 @@ namespace Dynatrace.OpenKit.Protocol
         /// Sends the current state of the beacon to the <see cref="IHttpClient"/> of the given HTTP client provider.
         /// </summary>
         /// <param name="httpClientProvider">provider of the HTTP client to which to send the serialized beacon data.</param>
+        /// <param name="additionalParameters">
+        ///     additional parameters that will be send with the beacon request (can be <code>null</code>)
+        /// </param>
         /// <returns>the response of the sent beacon.</returns>
-        IStatusResponse Send(IHttpClientProvider httpClientProvider);
+        IStatusResponse Send(IHttpClientProvider httpClientProvider, IAdditionalQueryParameters additionalParameters);
 
         /// <summary>
         /// Clears all event/action data of this beacon.

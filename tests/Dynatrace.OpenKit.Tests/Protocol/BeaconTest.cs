@@ -44,6 +44,7 @@ namespace Dynatrace.OpenKit.Protocol
         private IOpenKitConfiguration mockOpenKitConfiguration;
         private IPrivacyConfiguration mockPrivacyConfiguration;
         private IServerConfiguration mockServerConfiguration;
+        private IAdditionalQueryParameters mockAdditionalQueryParameters;
 
         private ISessionIdProvider mockSessionIdProvider;
         private IThreadIdProvider mockThreadIdProvider;
@@ -99,6 +100,8 @@ namespace Dynatrace.OpenKit.Protocol
             mockBeaconConfiguration.ServerConfiguration.Returns(mockServerConfiguration);
             mockBeaconConfiguration.HttpClientConfiguration.Returns(mockHttpClientConfig);
 
+            mockAdditionalQueryParameters = Substitute.For<IAdditionalQueryParameters>();
+
             mockSessionIdProvider = Substitute.For<ISessionIdProvider>();
             mockSessionIdProvider.GetNextSessionId().Returns(SessionId);
 
@@ -133,7 +136,8 @@ namespace Dynatrace.OpenKit.Protocol
             string capturedIpAddress = null;
             mockLogger.IsWarnEnabled.Returns(true);
             var httpClient = Substitute.For<IHttpClient>();
-            httpClient.SendBeaconRequest(Arg.Do<string>(c => capturedIpAddress = c), Arg.Any<byte[]>())
+            httpClient.SendBeaconRequest(Arg.Do<string>(c => capturedIpAddress = c), Arg.Any<byte[]>(),
+                    Arg.Any<IAdditionalQueryParameters>())
                 .Returns(null as IStatusResponse);
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
@@ -152,11 +156,12 @@ namespace Dynatrace.OpenKit.Protocol
                 .Returns("dummy");
 
             // when
-            target.Send(httpClientProvider);
+            target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(capturedIpAddress, Is.Empty);
-            httpClient.Received(1).SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>());
+            httpClient.Received(1)
+                .SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
 
         [Test]
@@ -166,7 +171,8 @@ namespace Dynatrace.OpenKit.Protocol
             string capturedIpAddress = null;
             mockLogger.IsWarnEnabled.Returns(true);
             var httpClient = Substitute.For<IHttpClient>();
-            httpClient.SendBeaconRequest(Arg.Do<string>(c => capturedIpAddress = c), Arg.Any<byte[]>())
+            httpClient.SendBeaconRequest(Arg.Do<string>(c => capturedIpAddress = c), Arg.Any<byte[]>(),
+                    Arg.Any<IAdditionalQueryParameters>())
                 .Returns(null as IStatusResponse);
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
@@ -183,12 +189,13 @@ namespace Dynatrace.OpenKit.Protocol
                 .Returns("dummy");
 
             // when
-            target.Send(httpClientProvider);
+            target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(capturedIpAddress, Is.Not.Null);
             Assert.That(capturedIpAddress, Is.EqualTo(string.Empty));
-            httpClient.Received(1).SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>());
+            httpClient.Received(1)
+                .SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
 
         [Test]
@@ -917,7 +924,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // when
-            var response = target.Send(mockHttpClientProvider);
+            var response = target.Send(mockHttpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(response, Is.Null);
@@ -939,7 +946,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().With(new BeaconCache(mockLogger)).WithIpAddress(ipAddress).Build();
 
             var httpClient = Substitute.For<IHttpClient>();
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>())
                 .Returns(successResponse);
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
@@ -947,12 +954,12 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportCrash("errorName", "errorReason", "stackTrace");
-            var response = target.Send(httpClientProvider);
+            var response = target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(response, Is.Not.Null);
             Assert.That(response.ResponseCode, Is.EqualTo(responseCode));
-            httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>());
+            httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
 
         [Test]
@@ -965,7 +972,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().With(new BeaconCache(mockLogger)).WithIpAddress(ipAddress).Build();
 
             var httpClient = Substitute.For<IHttpClient>();
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>())
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>())
                 .Returns(StatusResponse.CreateErrorResponse(mockLogger, responseCode));
 
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
@@ -973,12 +980,12 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportCrash("errorName", "errorReason", "stackTrace");
-            var response = target.Send(httpClientProvider);
+            var response = target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(response, Is.Not.Null);
             Assert.That(response.ResponseCode, Is.EqualTo(responseCode));
-            httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>());
+            httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
 
         [Test]
@@ -1893,7 +1900,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // when
-            var response = target.Send(httpClientProvider);
+            var response = target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(response, Is.Null);

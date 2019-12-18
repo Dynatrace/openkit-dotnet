@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockResponse.ResponseAttributes.Returns(mockAttributes);
 
             mockHttpClient = Substitute.For<IHttpClient>();
-            mockHttpClient.SendStatusRequest().Returns(mockResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(mockResponse);
 
             mockContext = Substitute.For<IBeaconSendingContext>();
             mockContext.GetHttpClient().Returns(mockHttpClient);
@@ -159,7 +159,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var erroneousResponse = Substitute.For<IStatusResponse>();
             erroneousResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             erroneousResponse.IsErroneousResponse.Returns(true);
-            mockHttpClient.SendStatusRequest().Returns(erroneousResponse); // always return erroneous response
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(erroneousResponse); // always return erroneous response
             mockContext.IsShutdownRequested.Returns(_ => count++ > 40);
 
             var target = new BeaconSendingInitState();
@@ -238,7 +238,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
 
-            mockHttpClient.SendStatusRequest().Returns(errorResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(errorResponse);
             mockContext.IsShutdownRequested.Returns(false, false, false, false, false, true);
 
             var target = new BeaconSendingInitState();
@@ -265,7 +265,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var errorResponse = Substitute.For<IStatusResponse>();
             errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
-            mockHttpClient.SendStatusRequest().Returns(errorResponse); // always return erroneous response
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(errorResponse); // always return erroneous response
             mockContext.IsShutdownRequested.Returns(false, false, false, false, false, true);
 
             var target = new BeaconSendingInitState();
@@ -274,7 +274,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(mockContext);
 
             // then
-            mockHttpClient.Received(6).SendStatusRequest();
+            mockHttpClient.Received(6).SendStatusRequest(mockContext);
         }
 
         [Test]
@@ -284,7 +284,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var errorResponse = Substitute.For<IStatusResponse>();
             errorResponse.ResponseCode.Returns(StatusResponse.HttpBadRequest);
             errorResponse.IsErroneousResponse.Returns(true);
-            mockHttpClient.SendStatusRequest().Returns(errorResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(errorResponse);
             mockContext.IsShutdownRequested.Returns(false, false, true);
 
             var target = new BeaconSendingInitState();
@@ -297,7 +297,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.Received(1).NextState = Arg.Any<BeaconSendingTerminalState>(); // transition to terminal state
 
             mockContext.Received(3).GetHttpClient();
-            mockHttpClient.Received(3).SendStatusRequest();
+            mockHttpClient.Received(3).SendStatusRequest(mockContext);
 
             mockContext.Received(2).Sleep(Arg.Any<int>());
         }
@@ -369,7 +369,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             errorResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             errorResponse.IsErroneousResponse.Returns(true);
             errorResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
-            mockHttpClient.SendStatusRequest().Returns(errorResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(errorResponse);
             mockContext.IsShutdownRequested.Returns(false, true);
 
             var target = new BeaconSendingInitState();
@@ -390,7 +390,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             errorResponse.ResponseCode.Returns(StatusResponse.HttpTooManyRequests);
             errorResponse.IsErroneousResponse.Returns(true);
             errorResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
-            mockHttpClient.SendStatusRequest().Returns(errorResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(errorResponse);
             mockContext.IsShutdownRequested.Returns(false, true);
 
             var target = new BeaconSendingInitState();

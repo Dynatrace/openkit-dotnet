@@ -91,9 +91,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             beacon.ClearData();
         }
 
-        IStatusResponse ISessionInternals.SendBeacon(IHttpClientProvider clientProvider)
+        IStatusResponse ISessionInternals.SendBeacon(IHttpClientProvider clientProvider,
+            IAdditionalQueryParameters additionalParameters)
         {
-            return beacon.Send(clientProvider);
+            return beacon.Send(clientProvider, additionalParameters);
         }
 
         void ISessionInternals.UpdateServerConfiguration(IServerConfiguration serverConfiguration)

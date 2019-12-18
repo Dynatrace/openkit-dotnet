@@ -47,7 +47,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
 
             var httpClient = Substitute.For<IHttpClient>();
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>()).Returns(statusResponse);
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>())
+                .Returns(statusResponse);
 
             mockHttpClientProvider = Substitute.For<IHttpClientProvider>();
             mockHttpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
@@ -1025,6 +1026,37 @@ namespace Dynatrace.OpenKit.Core.Communication
             Assert.That(obtained, Is.Not.EqualTo(initialAttributes));
             Assert.That(obtained, Is.Not.EqualTo(attributes));
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
+        }
+
+        [Test]
+        public void ConfigurationTimestampReturnsZeroOnDefault()
+        {
+            // given
+            var target = CreateSendingContext().Build();
+
+            // when
+            var obtained = target.ConfigurationTimestamp;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(0L));
+        }
+
+        [Test]
+        public void ConfigurationTimestampReturnsValueFromResponseAttributes()
+        {
+            // given
+            const long timestamp = 1234;
+            var attributes = ResponseAttributes.WithUndefinedDefaults().WithTimestampInMilliseconds(timestamp).Build();
+            var response =
+                StatusResponse.CreateSuccessResponse(mockLogger, attributes, 200,
+                    new Dictionary<string, List<string>>());
+            var target = CreateSendingContext().Build();
+
+            // when
+            target.UpdateLastResponseAttributesFrom(response);
+
+            // then
+            Assert.That(target.ConfigurationTimestamp, Is.EqualTo(timestamp));
         }
 
         private TestBeaconSendingContextBuilder CreateSendingContext()

@@ -33,7 +33,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockResponse.IsErroneousResponse.Returns(false);
 
             mockHttpClient = Substitute.For<IHttpClient>();
-            mockHttpClient.SendStatusRequest().Returns(mockResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(mockResponse);
 
             mockContext = Substitute.For<IBeaconSendingContext>();
             mockContext.GetHttpClient().Returns(mockHttpClient);
@@ -113,7 +113,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             tooManyRequestsResponse.IsErroneousResponse.Returns(true);
             tooManyRequestsResponse.GetRetryAfterInMilliseconds().Returns(retryTimeout);
 
-            mockHttpClient.SendStatusRequest().Returns(tooManyRequestsResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(tooManyRequestsResponse);
             mockContext.IsCaptureOn.Returns(false);
 
             AbstractBeaconSendingState capturedState = null;
@@ -146,14 +146,14 @@ namespace Dynatrace.OpenKit.Core.Communication
         public void StatusRequestIsRetried()
         {
             // given
-            mockHttpClient.SendStatusRequest().Returns((StatusResponse)null); // always return null
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns((StatusResponse)null); // always return null
             var target = new BeaconSendingCaptureOffState();
 
             // when
             target.Execute(mockContext);
 
             // then
-            mockHttpClient.Received(6).SendStatusRequest();
+            mockHttpClient.Received(6).SendStatusRequest(mockContext);
         }
 
         [Test]

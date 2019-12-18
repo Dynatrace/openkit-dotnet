@@ -34,7 +34,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockResponse.IsErroneousResponse.Returns(false);
 
             mockHttpClient = Substitute.For<IHttpClient>();
-            mockHttpClient.SendStatusRequest().Returns(mockResponse);
+            mockHttpClient.SendStatusRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(mockResponse);
 
             mockContext = Substitute.For<IBeaconSendingContext>();
             mockContext.GetHttpClient().Returns(mockHttpClient);
@@ -58,7 +58,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.Received(1).GetHttpClient();
             mockContext.ReceivedWithAnyArgs(0).Sleep(0);
 
-            mockHttpClient.Received(1).SendStatusRequest();
+            mockHttpClient.Received(1).SendStatusRequest(mockContext);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.Received(4).GetHttpClient();
             mockContext.ReceivedWithAnyArgs(3).Sleep(0);
 
-            mockHttpClient.Received(4).SendStatusRequest();
+            mockHttpClient.Received(4).SendStatusRequest(mockContext);
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.Received(1).GetHttpClient();
             mockContext.ReceivedWithAnyArgs(0).Sleep(0);
 
-            mockHttpClient.Received(1).SendStatusRequest();
+            mockHttpClient.Received(1).SendStatusRequest(mockContext);
         }
 
         [Test]
@@ -114,7 +114,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             Assert.That(obtained, Is.SameAs(mockResponse));
             mockContext.Received(6).GetHttpClient();
-            mockHttpClient.Received(6).SendStatusRequest();
+            mockHttpClient.Received(6).SendStatusRequest(mockContext);
 
             Received.InOrder(() =>
             {
@@ -131,7 +131,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             mockContext.IsShutdownRequested.Returns(false);
-            mockHttpClient.SendStatusRequest().Returns((StatusResponse)null);
+            mockHttpClient.SendStatusRequest(mockContext).Returns((StatusResponse)null);
 
             // when
             var obtained = BeaconSendingRequestUtil.SendStatusRequest(mockContext, 3, 1000);
@@ -141,7 +141,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             mockContext.Received(4).GetHttpClient();
             mockContext.ReceivedWithAnyArgs(3).Sleep(0);
-            mockHttpClient.Received(4).SendStatusRequest();
+            mockHttpClient.Received(4).SendStatusRequest(mockContext);
         }
 
         [Test]
@@ -160,7 +160,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             mockContext.Received(1).GetHttpClient();
             mockContext.DidNotReceiveWithAnyArgs().Sleep(0);
-            mockHttpClient.Received(1).SendStatusRequest();
+            mockHttpClient.Received(1).SendStatusRequest(mockContext);
         }
     }
 }

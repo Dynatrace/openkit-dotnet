@@ -553,7 +553,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        IStatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider)
+        IStatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider, IAdditionalQueryParameters additionalParams)
         {
             var httpClient = httpClientProvider.CreateClient(configuration.HttpClientConfiguration);
             IStatusResponse response = null;
@@ -575,7 +575,7 @@ namespace Dynatrace.OpenKit.Protocol
                 var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 
                 // send the request
-                response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon);
+                response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon, additionalParams);
                 if (response == null || response.IsErroneousResponse)
                 {
                     // error happened - but don't know what exactly

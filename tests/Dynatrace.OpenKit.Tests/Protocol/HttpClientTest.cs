@@ -23,6 +23,7 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Util;
 using NSubstitute;
+using NSubstitute.ReturnsExtensions;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Protocol
@@ -35,13 +36,16 @@ namespace Dynatrace.OpenKit.Protocol
         private const int ServerId = 1;
         private const string ApplicationId = "ApplicationID";
 
+        private IAdditionalQueryParameters mockAdditionalParameters;
+
         private static readonly string MonitorUrl = BaseUrl
-            + "?" + HttpClient.RequestTypeMobile
-            + "&" + HttpClient.QueryKeyServerId + "=" + ServerId
-            + "&" + HttpClient.QueryKeyApplication + "=" + ApplicationId
-            + "&" + HttpClient.QueryKeyVersion + "=" + ProtocolConstants.OpenKitVersion
-            + "&" + HttpClient.QueryKeyPlatformType + "=" + ProtocolConstants.PlatformTypeOpenKit
-            + "&" + HttpClient.QueryKeyAgentTechnologyType + "=" + ProtocolConstants.AgentTechnologyType;
+            + $"?{HttpClient.RequestTypeMobile}"
+            + $"&{HttpClient.QueryKeyServerId}={ServerId}"
+            + $"&{HttpClient.QueryKeyApplication}={ApplicationId}"
+            + $"&{HttpClient.QueryKeyVersion}={ProtocolConstants.OpenKitVersion}"
+            + $"&{HttpClient.QueryKeyPlatformType}={ProtocolConstants.PlatformTypeOpenKit}"
+            + $"&{HttpClient.QueryKeyAgentTechnologyType}={ProtocolConstants.AgentTechnologyType}"
+            + $"&{HttpClient.QueryKeyResponseType}={ProtocolConstants.ResponseType}";
 
         private static readonly string NewSessionUrl = MonitorUrl
             + $"&{HttpClient.QueryKeyNewSession}=1";
@@ -89,6 +93,8 @@ namespace Dynatrace.OpenKit.Protocol
             // HTTPClient spy
             var httpConfiguration = HttpClientConfiguration.From(openKitConfig);
             spyClient = Substitute.ForPartsOf<StubHttpClient>(mockLogger, httpConfiguration);
+
+            mockAdditionalParameters = Substitute.For<IAdditionalQueryParameters>();
         }
 
         [Test]
@@ -101,7 +107,7 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -120,7 +126,7 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -140,10 +146,11 @@ namespace Dynatrace.OpenKit.Protocol
             };
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse { ResponseCode = 200, Headers = headers, Response = null });
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse
+                {ResponseCode = 200, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -164,10 +171,11 @@ namespace Dynatrace.OpenKit.Protocol
             };
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse { ResponseCode = 400, Headers = headers, Response = null });
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse
+                {ResponseCode = 400, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -183,10 +191,11 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).Do(x => throw new Exception("dummy"));
+            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty))
+                .Do(x => throw new Exception("dummy"));
 
             // when
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -205,7 +214,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseShort);
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -214,7 +223,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // and when
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseLong);
-            obtained = target.SendStatusRequest();
+            obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -231,10 +240,14 @@ namespace Dynatrace.OpenKit.Protocol
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(
-                new HttpClient.HttpResponse { ResponseCode = 200, Headers = new Dictionary<string, List<string>>(), Response = StatusResponse.Response + "&cp=a" });
+                new HttpClient.HttpResponse
+                {
+                    ResponseCode = 200, Headers = new Dictionary<string, List<string>>(),
+                    Response = StatusResponse.Response + "&cp=a"
+                });
 
             // when
-            var obtained = target.SendStatusRequest();
+            var obtained = target.SendStatusRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -254,7 +267,7 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -273,7 +286,7 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -293,10 +306,11 @@ namespace Dynatrace.OpenKit.Protocol
             };
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse { ResponseCode = 200, Headers = headers, Response = null });
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse
+                {ResponseCode = 200, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -317,10 +331,11 @@ namespace Dynatrace.OpenKit.Protocol
             };
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse { ResponseCode = 400, Headers = headers, Response = null });
+            spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(new HttpClient.HttpResponse
+                {ResponseCode = 400, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -336,10 +351,11 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
-            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).Do(x => throw new Exception("dummy"));
+            spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty))
+                .Do(x => throw new Exception("dummy"));
 
             // when
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -358,7 +374,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseShort);
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -367,7 +383,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // and when
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(InvalidStatusResponseLong);
-            obtained = target.SendNewSessionRequest();
+            obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -384,10 +400,14 @@ namespace Dynatrace.OpenKit.Protocol
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
             spyClient.DoGetRequest(string.Empty, string.Empty).ReturnsForAnyArgs(
-                new HttpClient.HttpResponse { ResponseCode = 200, Headers = new Dictionary<string, List<string>>(), Response = StatusResponse.Response + "&cp=a" });
+                new HttpClient.HttpResponse
+                {
+                    ResponseCode = 200, Headers = new Dictionary<string, List<string>>(),
+                    Response = StatusResponse.Response + "&cp=a"
+                });
 
             // when
-            var obtained = target.SendNewSessionRequest();
+            var obtained = target.SendNewSessionRequest(null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -407,7 +427,7 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when
-            var obtained = target.SendBeaconRequest("175.45.176.1", new byte[] { 0xba, 0xad, 0xbe, 0xef });
+            var obtained = target.SendBeaconRequest("175.45.176.1", new byte[] {0xba, 0xad, 0xbe, 0xef}, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -425,13 +445,14 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("175.45.176.1", null);
+            var obtained = target.SendBeaconRequest("175.45.176.1", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(200));
 
-            spyClient.Received(1).DoPostRequest(Arg.Is<string>(x => !string.IsNullOrEmpty(x)), Arg.Is<string>(x => !string.IsNullOrEmpty(x)), null);
+            spyClient.Received(1).DoPostRequest(Arg.Is<string>(x => !string.IsNullOrEmpty(x)),
+                Arg.Is<string>(x => !string.IsNullOrEmpty(x)), null);
         }
 
         [Test]
@@ -443,7 +464,8 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("175.45.176.1", Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"));
+            var obtained = target.SendBeaconRequest("175.45.176.1",
+                Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"), null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -463,7 +485,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("192.168.0.1", null);
+            var obtained = target.SendBeaconRequest("192.168.0.1", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -483,7 +505,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -505,10 +527,11 @@ namespace Dynatrace.OpenKit.Protocol
             };
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
-            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(new HttpClient.HttpResponse { ResponseCode = 200, Headers = headers, Response = null });
+            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(new HttpClient.HttpResponse
+                {ResponseCode = 200, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -529,10 +552,11 @@ namespace Dynatrace.OpenKit.Protocol
             };
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
-            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(new HttpClient.HttpResponse { ResponseCode = 400, Headers = headers, Response = null });
+            spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(new HttpClient.HttpResponse
+                {ResponseCode = 400, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -548,10 +572,11 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
-            spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).Do(x => throw new Exception("dummy"));
+            spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null))
+                .Do(x => throw new Exception("dummy"));
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -570,7 +595,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseShort);
-            var obtained = target.SendBeaconRequest("156.33.241.5", null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -579,7 +604,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // and when
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseLong);
-            obtained = target.SendBeaconRequest("156.33.241.5", null);
+            obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -596,10 +621,14 @@ namespace Dynatrace.OpenKit.Protocol
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(
-                new HttpClient.HttpResponse { ResponseCode = 200, Headers = new Dictionary<string, List<string>>(), Response = StatusResponse.Response + "&cp=a" });
+                new HttpClient.HttpResponse
+                {
+                    ResponseCode = 200, Headers = new Dictionary<string, List<string>>(),
+                    Response = StatusResponse.Response + "&cp=a"
+                });
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
 
 
             // then
@@ -608,6 +637,130 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(((StatusResponse)obtained).Headers, Is.Empty);
 
             spyClient.ReceivedWithAnyArgs(1).DoPostRequest(string.Empty, string.Empty, null);
+        }
+
+        [Test]
+        public void SendStatusRequestDoesNotAppendIfAdditionalQueryParametersAreNull()
+        {
+            // given
+            string capturedUrl = null;
+            spyClient.DoGetRequest(Arg.Do<string>(x => capturedUrl = x), Arg.Any<string>()).ReturnsNull();
+
+            // when
+            spyClient.SendStatusRequest(null);
+
+            // then
+            var expectedUrl = InitializeBaseUrl();
+            Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
+        }
+
+        [Test]
+        public void SendStatusRequestAppendsAdditionalQueryParameters()
+        {
+            // given
+            const long timestamp = 1234;
+            string capturedUrl = null;
+            mockAdditionalParameters.ConfigurationTimestamp.Returns(timestamp);
+            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>()).ReturnsNull();
+
+            // when
+            spyClient.SendStatusRequest(mockAdditionalParameters);
+
+            // then
+            var expectedUrl = InitializeBaseUrl();
+            AppendUrlParameter(expectedUrl, "cts", timestamp.ToString());
+            Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
+        }
+
+        [Test]
+        public void SendNewSessionRequestDoesNotAppendIfAdditionalQueryParametersAreNull()
+        {
+            // given
+            string capturedUrl = null;
+            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>()).ReturnsNull();
+
+            // when
+            spyClient.SendNewSessionRequest(null);
+
+            // then
+            var expectedUrl = InitializeBaseUrl();
+            AppendUrlParameter(expectedUrl, "ns", "1");
+            Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
+        }
+
+        [Test]
+        public void SendNewSessionRequestAppendsAdditionalQueryParameters()
+        {
+            // given
+            const long timestamp = 1234;
+            mockAdditionalParameters.ConfigurationTimestamp.Returns(timestamp);
+            string capturedUrl = null;
+            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>()).ReturnsNull();
+
+            // when
+            spyClient.SendNewSessionRequest(mockAdditionalParameters);
+
+            // then
+            var expectedUrl = InitializeBaseUrl();
+            AppendUrlParameter(expectedUrl, "ns", "1");
+            AppendUrlParameter(expectedUrl, "cts", timestamp.ToString());
+            Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
+        }
+
+        [Test]
+        public void SendBeaconRequestDoesNotAppendIfAdditionalQueryParametersAreNull()
+        {
+            // given
+            string capturedUrl = null;
+            spyClient.DoPostRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>(), Arg.Any<byte[]>())
+                .ReturnsNull();
+
+            // when
+            spyClient.SendBeaconRequest(null, null, null);
+
+            // then
+            var expectedUrl = InitializeBaseUrl();
+            Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
+        }
+
+        [Test]
+        public void SendBeaconRequestAppendsAdditionalQueryParameters()
+        {
+            // given
+            const long timestamp = 1234;
+            mockAdditionalParameters.ConfigurationTimestamp.Returns(timestamp);
+
+            string capturedUrl = null;
+            spyClient.DoPostRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>(), Arg.Any<byte[]>())
+                .ReturnsNull();
+
+            // when
+            spyClient.SendBeaconRequest(null, null, mockAdditionalParameters);
+
+            // then
+            var expectedUrl = InitializeBaseUrl();
+            AppendUrlParameter(expectedUrl, "cts", timestamp.ToString());
+            Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
+        }
+
+        private StringBuilder InitializeBaseUrl()
+        {
+            var builder = new StringBuilder();
+
+            builder.Append(BaseUrl).Append("?type=m");
+            AppendUrlParameter(builder, "srvid", ServerId.ToString());
+            AppendUrlParameter(builder, "app", ApplicationId);
+            AppendUrlParameter(builder, "va", ProtocolConstants.OpenKitVersion);
+            AppendUrlParameter(builder, "pt", ProtocolConstants.PlatformTypeOpenKit.ToString());
+            AppendUrlParameter(builder, "tt", ProtocolConstants.AgentTechnologyType);
+            AppendUrlParameter(builder, "resp", ProtocolConstants.ResponseType);
+
+            return builder;
+        }
+
+        private void AppendUrlParameter(StringBuilder builder, string key, string value)
+        {
+            builder.Append("&").Append(key).Append("=").Append(value);
         }
 
         /// <summary>

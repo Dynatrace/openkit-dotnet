@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Core.Communication
     /// <summary>
     /// State context for beacon sending
     /// </summary>
-    internal interface IBeaconSendingContext
+    internal interface IBeaconSendingContext : IAdditionalQueryParameters
     {
         /// <summary>
         /// Returns the HTTP client provider
