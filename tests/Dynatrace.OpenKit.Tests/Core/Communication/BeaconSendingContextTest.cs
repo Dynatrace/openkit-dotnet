@@ -291,7 +291,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void SendIntervalIsTakenFromDefaultServerConfig()
+        public void SendIntervalIsTakenFromDefaultResponseAttributes()
         {
             // given
             var target = CreateSendingContext().Build();
@@ -300,7 +300,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var obtained = target.SendInterval;
 
             // then
-            Assert.That(obtained, Is.EqualTo(ServerConfiguration.Default.SendIntervalInMilliseconds));
+            Assert.That(obtained, Is.EqualTo(ResponseAttributesDefaults.Undefined.SendIntervalInMilliseconds));
         }
 
         [Test]

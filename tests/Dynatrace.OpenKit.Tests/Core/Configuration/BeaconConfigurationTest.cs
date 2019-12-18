@@ -327,8 +327,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(obtained.IsCaptureEnabled, Is.Not.EqualTo(initialServerConfig.IsCaptureEnabled));
             Assert.That(obtained.IsCrashReportingEnabled, Is.EqualTo(initialServerConfig.IsCrashReportingEnabled));
             Assert.That(obtained.IsErrorReportingEnabled, Is.EqualTo(initialServerConfig.IsErrorReportingEnabled));
-            Assert.That(obtained.SendIntervalInMilliseconds,
-                Is.EqualTo(initialServerConfig.SendIntervalInMilliseconds));
             Assert.That(obtained.ServerId, Is.EqualTo(initialServerConfig.ServerId));
             Assert.That(obtained.BeaconSizeInBytes, Is.EqualTo(initialServerConfig.BeaconSizeInBytes));
             Assert.That(obtained.Multiplicity, Is.EqualTo(initialServerConfig.Multiplicity));
@@ -385,8 +383,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(obtained.IsCaptureEnabled, Is.Not.EqualTo(initialServerConfig.IsCaptureEnabled));
             Assert.That(obtained.IsCrashReportingEnabled, Is.EqualTo(initialServerConfig.IsCrashReportingEnabled));
             Assert.That(obtained.IsErrorReportingEnabled, Is.EqualTo(initialServerConfig.IsErrorReportingEnabled));
-            Assert.That(obtained.SendIntervalInMilliseconds,
-                Is.EqualTo(initialServerConfig.SendIntervalInMilliseconds));
             Assert.That(obtained.ServerId, Is.EqualTo(initialServerConfig.ServerId));
             Assert.That(obtained.BeaconSizeInBytes, Is.EqualTo(initialServerConfig.BeaconSizeInBytes));
             Assert.That(obtained.Multiplicity, Is.EqualTo(initialServerConfig.Multiplicity));
@@ -403,7 +399,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             serverConfig.IsCaptureEnabled.Returns(enableCapture);
             serverConfig.IsCrashReportingEnabled.Returns(true);
             serverConfig.IsErrorReportingEnabled.Returns(true);
-            serverConfig.SendIntervalInMilliseconds.Returns(999);
             serverConfig.ServerId.Returns(73);
             serverConfig.BeaconSizeInBytes.Returns(1024);
             serverConfig.Multiplicity.Returns(37);

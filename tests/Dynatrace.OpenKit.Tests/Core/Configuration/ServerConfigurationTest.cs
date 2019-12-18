@@ -31,31 +31,30 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void SetUp()
         {
             mockAttributes = Substitute.For<IResponseAttributes>();
-            mockAttributes.IsCapture.Returns(ServerConfiguration.DefaultCaptureEnabled);
-            mockAttributes.IsCaptureCrashes.Returns(ServerConfiguration.DefaultCrashReportingEnabled);
-            mockAttributes.IsCaptureErrors.Returns(ServerConfiguration.DefaultErrorReportingEnabled);
-            mockAttributes.SendIntervalInMilliseconds.Returns(ServerConfiguration.DefaultSendInterval);
-            mockAttributes.ServerId.Returns(ServerConfiguration.DefaultServerId);
-            mockAttributes.MaxBeaconSizeInBytes.Returns(ServerConfiguration.DefaultBeaconSize);
-            mockAttributes.Multiplicity.Returns(ServerConfiguration.DefaultMultiplicity);
-            mockAttributes.MaxSessionDurationInMilliseconds.Returns(ServerConfiguration.DefaultMaxSessionDuration);
-            mockAttributes.MaxEventsPerSession.Returns(ServerConfiguration.DefaultMaxEventsPerSession);
-            mockAttributes.SessionTimeoutInMilliseconds.Returns(ServerConfiguration.DefaultSessionTimeout);
-            mockAttributes.VisitStoreVersion.Returns(ServerConfiguration.DefaultVisitStoreVersion);
+            mockAttributes.IsCapture.Returns(defaultValues.IsCapture);
+            mockAttributes.IsCaptureCrashes.Returns(defaultValues.IsCaptureCrashes);
+            mockAttributes.IsCaptureErrors.Returns(defaultValues.IsCaptureErrors);
+            mockAttributes.SendIntervalInMilliseconds.Returns(defaultValues.SendIntervalInMilliseconds);
+            mockAttributes.ServerId.Returns(defaultValues.ServerId);
+            mockAttributes.MaxBeaconSizeInBytes.Returns(defaultValues.MaxBeaconSizeInBytes);
+            mockAttributes.Multiplicity.Returns(defaultValues.Multiplicity);
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(defaultValues.MaxSessionDurationInMilliseconds);
+            mockAttributes.MaxEventsPerSession.Returns(defaultValues.MaxEventsPerSession);
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(defaultValues.SessionTimeoutInMilliseconds);
+            mockAttributes.VisitStoreVersion.Returns(defaultValues.VisitStoreVersion);
 
             mockServerConfig = Substitute.For<IServerConfiguration>();
-            mockServerConfig.IsCaptureEnabled.Returns(ServerConfiguration.DefaultCaptureEnabled);
-            mockServerConfig.IsCrashReportingEnabled.Returns(ServerConfiguration.DefaultCrashReportingEnabled);
-            mockServerConfig.IsErrorReportingEnabled.Returns(ServerConfiguration.DefaultErrorReportingEnabled);
-            mockServerConfig.SendIntervalInMilliseconds.Returns(ServerConfiguration.DefaultSendInterval);
-            mockServerConfig.ServerId.Returns(ServerConfiguration.DefaultServerId);
-            mockServerConfig.BeaconSizeInBytes.Returns(ServerConfiguration.DefaultBeaconSize);
-            mockServerConfig.Multiplicity.Returns(ServerConfiguration.DefaultMultiplicity);
-            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(ServerConfiguration.DefaultMaxSessionDuration);
-            mockServerConfig.MaxEventsPerSession.Returns(ServerConfiguration.DefaultMaxEventsPerSession);
+            mockServerConfig.IsCaptureEnabled.Returns(defaultValues.IsCapture);
+            mockServerConfig.IsCrashReportingEnabled.Returns(defaultValues.IsCaptureCrashes);
+            mockServerConfig.IsErrorReportingEnabled.Returns(defaultValues.IsCaptureErrors);
+            mockServerConfig.ServerId.Returns(defaultValues.ServerId);
+            mockServerConfig.BeaconSizeInBytes.Returns(defaultValues.MaxBeaconSizeInBytes);
+            mockServerConfig.Multiplicity.Returns(defaultValues.Multiplicity);
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(defaultValues.MaxSessionDurationInMilliseconds);
+            mockServerConfig.MaxEventsPerSession.Returns(defaultValues.MaxEventsPerSession);
             mockServerConfig.IsSessionSplitByEventsEnabled.Returns(false);
-            mockServerConfig.SessionTimeoutInMilliseconds.Returns(ServerConfiguration.DefaultSessionTimeout);
-            mockServerConfig.VisitStoreVersion.Returns(ServerConfiguration.DefaultVisitStoreVersion);
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(defaultValues.SessionTimeoutInMilliseconds);
+            mockServerConfig.VisitStoreVersion.Returns(defaultValues.VisitStoreVersion);
         }
 
         #region test defaults
@@ -79,21 +78,15 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void InDefaultServerConfigurationSendIntervalIsMinusOne()
-        {
-            Assert.That(ServerConfiguration.Default.SendIntervalInMilliseconds, Is.EqualTo(-1));
-        }
-
-        [Test]
         public void InDefaultServerConfigurationServerIdIsMinusOne()
         {
             Assert.That(ServerConfiguration.Default.ServerId, Is.EqualTo(-1));
         }
 
         [Test]
-        public void InDefaultServerConfigurationBeaconSizeIsMinusOne()
+        public void InDefaultServerConfigurationBeaconSizeIsThirtyKb()
         {
-            Assert.That(ServerConfiguration.Default.BeaconSizeInBytes, Is.EqualTo(-1));
+            Assert.That(ServerConfiguration.Default.BeaconSizeInBytes, Is.EqualTo(30 * 1024));
         }
 
         [Test]
@@ -128,7 +121,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void InDefaultServerConfigurationVisitStoreVersionIsMinusOne()
+        public void InDefaultServerConfigurationVisitStoreVersionIsOne()
         {
             Assert.That(ServerConfiguration.Default.VisitStoreVersion, Is.EqualTo(1));
         }
@@ -138,14 +131,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
         #region test creation with 'From' method
 
         [Test]
-        public void CreatingAServerConfigurationFromNullStatusResponseGivesNull()
+        public void CreatingAServerConfigurationFromNullResponseAttributesGivesNull()
         {
             Assert.That(ServerConfiguration.From(null), Is.Null);
         }
 
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesCaptureSettings()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesCaptureSettings()
         {
             // given, when
             mockAttributes.IsCapture.Returns(false);
@@ -157,7 +150,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesCrashReportingSettings()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesCrashReportingSettings()
         {
             // given, when
             mockAttributes.IsCaptureCrashes.Returns(false);
@@ -169,7 +162,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesErrorReportingSettings()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesErrorReportingSettings()
         {
             // given, when
             mockAttributes.IsCaptureErrors.Returns(false);
@@ -181,20 +174,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesSendingIntervalSettings()
-        {
-            // given, when
-            const int sendInterval = 1234;
-            mockAttributes.SendIntervalInMilliseconds.Returns(sendInterval);
-            var target = ServerConfiguration.From(mockAttributes);
-
-            // then
-            Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
-            _ = mockAttributes.Received(1).SendIntervalInMilliseconds;
-        }
-
-        [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesServerIdSettings()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesServerIdSettings()
         {
             // given, when
             const int serverId = 73;
@@ -207,7 +187,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesBeaconSizeSettings()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesBeaconSizeSettings()
         {
             // given, when
             const int beaconSize = 37;
@@ -220,7 +200,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesMultiplicitySettings()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesMultiplicitySettings()
         {
             // given, when
             const int multiplicity = 42;
@@ -233,7 +213,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesSessionDuration()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesSessionDuration()
         {
             // given
             const int sessionDuration = 73;
@@ -246,7 +226,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesMaxEventsPerSession()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesMaxEventsPerSession()
         {
             // given
             const int eventsPerSession = 37;
@@ -259,7 +239,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseHasSplitBySessionEnabledIfMaxEventsGreaterZero()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionEnabledIfMaxEventsGreaterZero()
         {
             // given
             const int eventsPerSession = 1;
@@ -274,7 +254,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDisabledIfMaxEventsZero()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDisabledIfMaxEventsZero()
         {
             // given
             const int eventsPerSession = 0;
@@ -289,7 +269,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDisabledIfMaxEventsEventsSmallerZero()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDisabledIfMaxEventsEventsSmallerZero()
         {
             // given
             const int eventsPerSession = -1;
@@ -304,7 +284,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDisabledIfMaxEventsIsNotSet()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDisabledIfMaxEventsIsNotSet()
         {
             // given
             const int eventsPerSession = 1;
@@ -319,7 +299,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromStatusResponseCopiesSessionTimeout()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesSessionTimeout()
         {
             // given
             const int sessionTimeout = 42;
@@ -332,7 +312,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingASessionConfigurationFromStatusResponseCopiesVisitStoreVersion()
+        public void CreatingASessionConfigurationFromResponseAttributesCopiesVisitStoreVersion()
         {
             // given
             const int visitStoreVersion = 73;
@@ -523,18 +503,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.IsErrorReportingEnabled, Is.False);
             _ = mockServerConfig.Received(1).IsErrorReportingEnabled;
-        }
-
-        [Test]
-        public void BuilderFromServerConfigCopiesSendingIntervalSettings()
-        {
-            // given
-            mockServerConfig.SendIntervalInMilliseconds.Returns(1234);
-            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
-
-            // then
-            Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(1234));
-            _ = mockServerConfig.Received(1).SendIntervalInMilliseconds;
         }
 
         [Test]
@@ -837,8 +805,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void MergeTakesOverEnabledCapture()
         {
             // given
-            var target = new ServerConfiguration.Builder().WithCapture(false).Build();
-            var other = new ServerConfiguration.Builder().WithCapture(true).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithCapture(false).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithCapture(true).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -851,8 +819,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void MergeTakesOverDisabledCapture()
         {
             // given
-            var target = new ServerConfiguration.Builder().WithCapture(true).Build();
-            var other = new ServerConfiguration.Builder().WithCapture(false).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithCapture(true).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithCapture(false).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -865,8 +833,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void MergeTakesOverEnabledCrashReporting()
         {
             // given
-            var target = new ServerConfiguration.Builder().WithCrashReporting(false).Build();
-            var other = new ServerConfiguration.Builder().WithCrashReporting(true).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithCrashReporting(false).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithCrashReporting(true).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -879,8 +847,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void MergeTakesOverDisabledCrashReporting()
         {
             // given
-            var target = new ServerConfiguration.Builder().WithCrashReporting(true).Build();
-            var other = new ServerConfiguration.Builder().WithCrashReporting(false).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithCrashReporting(true).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithCrashReporting(false).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -893,8 +861,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void MergeTakesOverEnabledErrorReporting()
         {
             // given
-            var target = new ServerConfiguration.Builder().WithErrorReporting(false).Build();
-            var other = new ServerConfiguration.Builder().WithErrorReporting(true).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithErrorReporting(false).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithErrorReporting(true).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -907,8 +875,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void MergeTakesOverDisabledErrorReporting()
         {
             // given
-            var target = new ServerConfiguration.Builder().WithErrorReporting(true).Build();
-            var other = new ServerConfiguration.Builder().WithErrorReporting(false).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithErrorReporting(true).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithErrorReporting(false).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -918,27 +886,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverSendInterval()
-        {
-            // given
-            const int sendInterval = 73;
-            var target = new ServerConfiguration.Builder().WithSendingIntervalInMilliseconds(37).Build();
-            var other = new ServerConfiguration.Builder().WithSendingIntervalInMilliseconds(sendInterval).Build();
-
-            // when
-            var obtained = target.Merge(other);
-
-            // then
-            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
-        }
-
-        [Test]
         public void MergeTakesOverBeaconSize()
         {
             // given
             const int beaconSize = 73;
-            var target = new ServerConfiguration.Builder().WithBeaconSizeInBytes(37).Build();
-            var other = new ServerConfiguration.Builder().WithBeaconSizeInBytes(beaconSize).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithBeaconSizeInBytes(37).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithBeaconSizeInBytes(beaconSize).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -952,8 +905,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given
             const int multiplicity = 73;
-            var target = new ServerConfiguration.Builder().WithMultiplicity(multiplicity).Build();
-            var other = new ServerConfiguration.Builder().WithMultiplicity(37).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithMultiplicity(multiplicity).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithMultiplicity(37).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -967,8 +920,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given
             const int serverId = 73;
-            var target = new ServerConfiguration.Builder().WithServerId(serverId).Build();
-            var other = new ServerConfiguration.Builder().WithServerId(37).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithServerId(serverId).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithServerId(37).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -984,7 +937,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int sessionDuration = 73;
             var target = new ServerConfiguration.Builder(defaultValues)
                 .WithMaxSessionDurationInMilliseconds(37).Build();
-            var other = new ServerConfiguration.Builder()
+            var other = new ServerConfiguration.Builder(defaultValues)
                 .WithMaxSessionDurationInMilliseconds(sessionDuration).Build();
 
             // when
@@ -1017,7 +970,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int eventsPerSession = 73;
             mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
             mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
-            var target = new ServerConfiguration.Builder().Build();
+            var target = new ServerConfiguration.Builder(defaultValues).Build();
             var other = ServerConfiguration.From(mockAttributes);
 
             Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
@@ -1036,7 +989,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int eventsPerSession = 0;
             mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
             mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
-            var target = new ServerConfiguration.Builder().Build();
+            var target = new ServerConfiguration.Builder(defaultValues).Build();
             var other = ServerConfiguration.From(mockAttributes);
 
             Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
@@ -1055,7 +1008,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int eventsPerSession = 73;
             mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(false);
             mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
-            var target = new ServerConfiguration.Builder().Build();
+            var target = new ServerConfiguration.Builder(defaultValues).Build();
             var other = ServerConfiguration.From(mockAttributes);
 
             Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
@@ -1074,7 +1027,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int sessionTimeout = 73;
             var target = new ServerConfiguration.Builder(defaultValues).WithMaxSessionDurationInMilliseconds(37)
                 .Build();
-            var other = new ServerConfiguration.Builder().WithSessionTimeoutInMilliseconds(sessionTimeout).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithSessionTimeoutInMilliseconds(sessionTimeout)
+                .Build();
 
             // when
             var obtained = target.Merge(other);
@@ -1088,8 +1042,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             // given
             const int visitStoreVersion = 73;
-            var target = new ServerConfiguration.Builder().WithVisitStoreVersion(37).Build();
-            var other = new ServerConfiguration.Builder().WithVisitStoreVersion(visitStoreVersion).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(37).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(visitStoreVersion).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -1106,10 +1060,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void BuildPropagatesCaptureEnabledToInstance()
         {
             // given
-            const bool capture = !ServerConfiguration.DefaultCaptureEnabled;
+            var capture = !defaultValues.IsCapture;
 
             // when
-            var obtained = new ServerConfiguration.Builder().WithCapture(capture).Build();
+            var obtained = new ServerConfiguration.Builder(defaultValues).WithCapture(capture).Build();
 
             // then
             Assert.That(obtained.IsCaptureEnabled, Is.EqualTo(capture));
@@ -1119,10 +1073,10 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void BuildPropagatesCrashReportingEnabledToInstance()
         {
             // given
-            const bool crashReporting = !ServerConfiguration.DefaultCrashReportingEnabled;
+            var crashReporting = !defaultValues.IsCaptureCrashes;
 
             // when
-            var obtained = new ServerConfiguration.Builder().WithCrashReporting(crashReporting).Build();
+            var obtained = new ServerConfiguration.Builder(defaultValues).WithCrashReporting(crashReporting).Build();
 
             // then
             Assert.That(obtained.IsCrashReportingEnabled, Is.EqualTo(crashReporting));
@@ -1132,26 +1086,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void BuildPropagatesErrorReportingEnabledToInstance()
         {
             // given
-            const bool errorReporting = !ServerConfiguration.DefaultErrorReportingEnabled;
+            var errorReporting = !defaultValues.IsCaptureErrors;
 
             // when
-            var obtained = new ServerConfiguration.Builder().WithErrorReporting(errorReporting).Build();
+            var obtained = new ServerConfiguration.Builder(defaultValues).WithErrorReporting(errorReporting).Build();
 
             // then
             Assert.That(obtained.IsErrorReportingEnabled, Is.EqualTo(errorReporting));
-        }
-
-        [Test]
-        public void BuildPropagatesSendIntervalToInstance()
-        {
-            // given
-            const int sendInterval = 73;
-
-            // when
-            var obtained = new ServerConfiguration.Builder().WithSendingIntervalInMilliseconds(sendInterval).Build();
-
-            // then
-            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
         }
 
         [Test]
@@ -1161,7 +1102,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int serverId = 73;
 
             // when
-            var obtained = new ServerConfiguration.Builder().WithServerId(serverId).Build();
+            var obtained = new ServerConfiguration.Builder(defaultValues).WithServerId(serverId).Build();
 
             // then
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
@@ -1174,7 +1115,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int beaconSize = 73;
 
             // when
-            var obtained = new ServerConfiguration.Builder().WithBeaconSizeInBytes(beaconSize).Build();
+            var obtained = new ServerConfiguration.Builder(defaultValues).WithBeaconSizeInBytes(beaconSize).Build();
 
             // then
             Assert.That(obtained.BeaconSizeInBytes, Is.EqualTo(beaconSize));
@@ -1187,10 +1128,66 @@ namespace Dynatrace.OpenKit.Core.Configuration
             const int multiplicity = 73;
 
             // when
-            var obtained = new ServerConfiguration.Builder().WithMultiplicity(multiplicity).Build();
+            var obtained = new ServerConfiguration.Builder(defaultValues).WithMultiplicity(multiplicity).Build();
 
             // then
             Assert.That(obtained.Multiplicity, Is.EqualTo(multiplicity));
+        }
+
+        [Test]
+        public void BuildPropagatesMaxSessionDurationToInstance()
+        {
+            // given
+            const int sessionDuration = 73;
+
+            // when
+            var obtained = new ServerConfiguration.Builder(defaultValues)
+                .WithMaxSessionDurationInMilliseconds(sessionDuration).Build();
+
+            // then
+            Assert.That(obtained.MaxSessionDurationInMilliseconds, Is.EqualTo(sessionDuration));
+        }
+
+        [Test]
+        public void BuildPropagatesMaxEventsPerSessionToInstance()
+        {
+            // given
+            const int eventsPerSession = 73;
+
+            // when
+            var obtained = new ServerConfiguration.Builder(defaultValues)
+                .WithMaxEventsPerSession(eventsPerSession).Build();
+
+            // then
+            Assert.That(obtained.MaxEventsPerSession, Is.EqualTo(eventsPerSession));
+        }
+
+        [Test]
+        public void BuildPropagatesSessionTimeoutToInstance()
+        {
+            // given
+            const int sessionTimeout = 73;
+
+            // when
+            var obtained = new ServerConfiguration.Builder(defaultValues)
+                .WithSessionTimeoutInMilliseconds(sessionTimeout).Build();
+
+            // then
+            Assert.That(obtained.SessionTimeoutInMilliseconds, Is.EqualTo(sessionTimeout));
+        }
+
+        [Test]
+        public void BuildPropagatesVisitStoreVersionToInstance()
+        {
+            // given
+            const int visitStoreVersion = 73;
+
+            // when
+            var obtained = new ServerConfiguration.Builder(defaultValues)
+                .WithVisitStoreVersion(visitStoreVersion).Build();
+
+            // then
+            Assert.That(obtained.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
         }
 
         #endregion

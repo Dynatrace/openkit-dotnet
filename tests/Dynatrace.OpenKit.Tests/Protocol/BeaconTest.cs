@@ -38,7 +38,7 @@ namespace Dynatrace.OpenKit.Protocol
         private const long DeviceId = 456;
         private const int ThreadId = 1234567;
         private const int SessionId = 73;
-        private const int Multiplicity = ServerConfiguration.DefaultMultiplicity;
+        private const int Multiplicity = 1;
 
         private IBeaconConfiguration mockBeaconConfiguration;
         private IOpenKitConfiguration mockOpenKitConfiguration;

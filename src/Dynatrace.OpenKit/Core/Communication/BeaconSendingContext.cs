@@ -128,7 +128,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
-        public int SendInterval => serverConfiguration.SendIntervalInMilliseconds;
+        public int SendInterval => LastResponseAttributes.SendIntervalInMilliseconds;
         public bool IsCaptureOn => serverConfiguration.IsCaptureEnabled;
         public bool IsInTerminalState => CurrentState.IsTerminalState;
 

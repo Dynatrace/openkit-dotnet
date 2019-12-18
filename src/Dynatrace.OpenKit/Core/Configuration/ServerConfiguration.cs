@@ -23,54 +23,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
     /// </summary>
     public class ServerConfiguration : IServerConfiguration
     {
-        #region default values
+        private static readonly IResponseAttributes DefaultValues = ResponseAttributesDefaults.Undefined;
 
-        /// <summary>
-        /// Default server configuration instance.
-        /// </summary>
-        public static readonly IServerConfiguration Default = new Builder().Build();
-
-        /// <summary>
-        /// Capturing is enabled by default.
-        /// </summary>
-        public const bool DefaultCaptureEnabled = true;
-
-        /// <summary>
-        /// Crash reporting is enabled by default.
-        /// </summary>
-        public const bool DefaultCrashReportingEnabled = true;
-
-        /// <summary>
-        /// Error reporting is enabled by default.
-        /// </summary>
-        public const bool DefaultErrorReportingEnabled = true;
-
-        /// <summary>
-        /// Default send interval is not defined.
-        /// </summary>
-        public const int DefaultSendInterval = -1;
-
-        /// <summary>
-        /// Default server ID is not defined and depends on the backend.
-        /// </summary>
-        public const int DefaultServerId = -1;
-
-        /// <summary>
-        /// Default beacon size is not defined.
-        /// </summary>
-        public const int DefaultBeaconSize = -1;
-
-        /// <summary>
-        /// Default multiplicity is <code>1</code>.
-        /// </summary>
-        public const int DefaultMultiplicity = 1;
-
-        public const int DefaultMaxSessionDuration = -1;
-        public const int DefaultMaxEventsPerSession = -1;
-        public const int DefaultSessionTimeout = -1;
-        public const int DefaultVisitStoreVersion = 1;
-
-        #endregion
+        public static readonly  IServerConfiguration Default = From(DefaultValues);
 
         private readonly bool isSessionSplitByEventsEnabled;
 
@@ -83,7 +38,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             IsCaptureEnabled = builder.IsCaptureEnabled;
             IsCrashReportingEnabled = builder.IsCrashReportingEnabled;
             IsErrorReportingEnabled = builder.IsErrorReportingEnabled;
-            SendIntervalInMilliseconds = builder.SendIntervalInMilliseconds;
             ServerId = builder.ServerId;
             BeaconSizeInBytes = builder.BeaconSizeInBytes;
             Multiplicity = builder.Multiplicity;
@@ -114,8 +68,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public bool IsCrashReportingEnabled { get; }
 
         public bool IsErrorReportingEnabled { get; }
-
-        public int SendIntervalInMilliseconds { get; }
 
         public int ServerId { get; }
 
@@ -156,13 +108,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public class Builder
         {
             /// <summary>
-            /// Default constructor.
-            /// </summary>
-            public Builder()
-            {
-            }
-
-            /// <summary>
             /// Creates a new builder instance with pre-initialized fields from the given <see cref="IResponseAttributes"/>.
             /// </summary>
             /// <param name="responseAttributes">response attributes used for initializing this builder.</param>
@@ -171,7 +116,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 IsCaptureEnabled = responseAttributes.IsCapture;
                 IsCrashReportingEnabled = responseAttributes.IsCaptureCrashes;
                 IsErrorReportingEnabled = responseAttributes.IsCaptureErrors;
-                SendIntervalInMilliseconds = responseAttributes.SendIntervalInMilliseconds;
                 ServerId = responseAttributes.ServerId;
                 BeaconSizeInBytes = responseAttributes.MaxBeaconSizeInBytes;
                 Multiplicity = responseAttributes.Multiplicity;
@@ -192,7 +136,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 IsCaptureEnabled = serverConfiguration.IsCaptureEnabled;
                 IsCrashReportingEnabled = serverConfiguration.IsCrashReportingEnabled;
                 IsErrorReportingEnabled = serverConfiguration.IsErrorReportingEnabled;
-                SendIntervalInMilliseconds = serverConfiguration.SendIntervalInMilliseconds;
                 ServerId = serverConfiguration.ServerId;
                 BeaconSizeInBytes = serverConfiguration.BeaconSizeInBytes;
                 Multiplicity = serverConfiguration.Multiplicity;
@@ -203,7 +146,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 VisitStoreVersion = serverConfiguration.VisitStoreVersion;
             }
 
-            internal bool IsCaptureEnabled { get; private set; } = DefaultCaptureEnabled;
+            internal bool IsCaptureEnabled { get; private set; }
 
             /// <summary>
             /// Enables/disables capturing by setting <see cref="IsCaptureEnabled"/> to the corresponding value.
@@ -216,7 +159,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal bool IsCrashReportingEnabled { get; private set; } = DefaultCrashReportingEnabled;
+            internal bool IsCrashReportingEnabled { get; private set; }
 
             /// <summary>
             /// Enables/disables crash reporting by setting <see cref="IsCrashReportingEnabled"/> to the corresponding
@@ -230,7 +173,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal bool IsErrorReportingEnabled { get; private set; } = DefaultErrorReportingEnabled;
+            internal bool IsErrorReportingEnabled { get; private set; }
 
             /// <summary>
             /// Enables/disables error reporting by setting <see cref="IsErrorReportingEnabled"/> to the corresponding
@@ -244,20 +187,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int SendIntervalInMilliseconds { get; private set; } = DefaultSendInterval;
-
-            /// <summary>
-            /// Configures the send interval.
-            /// </summary>
-            /// <param name="sendIntervalInMilliseconds">the send interval in milliseconds.</param>
-            /// <returns><code>this</code></returns>
-            public Builder WithSendingIntervalInMilliseconds(int sendIntervalInMilliseconds)
-            {
-                SendIntervalInMilliseconds = sendIntervalInMilliseconds;
-                return this;
-            }
-
-            internal int ServerId { get; private set; } = DefaultServerId;
+            internal int ServerId { get; private set; }
 
             /// <summary>
             /// Configures the server ID.
@@ -270,7 +200,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int BeaconSizeInBytes { get; private set; } = DefaultBeaconSize;
+            internal int BeaconSizeInBytes { get; private set; }
 
             /// <summary>
             /// Configures the beacon size in bytes.
@@ -283,7 +213,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int Multiplicity { get; private set; } = DefaultMultiplicity;
+            internal int Multiplicity { get; private set; }
 
             /// <summary>
             /// Configures the multiplicity factor.
@@ -296,7 +226,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int MaxSessionDurationInMilliseconds { get; private set; } = DefaultMaxSessionDuration;
+            internal int MaxSessionDurationInMilliseconds { get; private set; }
 
             /// <summary>
             /// Configures the maximum duration after which the session gets split.
@@ -311,7 +241,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             internal bool IsSessionSplitByEventsEnabled { get; }
 
-            internal int MaxEventsPerSession { get; private set; } = DefaultMaxEventsPerSession;
+            internal int MaxEventsPerSession { get; private set; }
 
             /// <summary>
             /// Configures the maximum number of events after which the session gets split.
@@ -324,7 +254,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int SessionTimeoutInMilliseconds { get; private set; } = DefaultSessionTimeout;
+            internal int SessionTimeoutInMilliseconds { get; private set; }
 
             /// <summary>
             /// Configures the idle timeout after which a session gets split.
@@ -337,7 +267,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal int VisitStoreVersion { get; private set; } = DefaultVisitStoreVersion;
+            internal int VisitStoreVersion { get; private set; }
 
             /// <summary>
             /// Configures the version of the visit store that is to be used.

@@ -37,11 +37,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         bool IsErrorReportingEnabled { get; }
 
         /// <summary>
-        /// Returns the send interval in milliseconds.
-        /// </summary>
-        int SendIntervalInMilliseconds { get; }
-
-        /// <summary>
         /// Returns the ID of the server which is communicated with.
         /// </summary>
         int ServerId { get; }
