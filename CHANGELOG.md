@@ -5,6 +5,8 @@
 ### Added
 - Support for parsing JSON
 - Technology type support for error and crashes
+- Support for session splitting. Sessions are split transparently after either the maximum session duration,
+  the idle timeout or the number of top level actions are exceeded.
 
 ### Changed
 - On OpenKitBuilder creation device ID is parsed from the given string. Non-numeric
