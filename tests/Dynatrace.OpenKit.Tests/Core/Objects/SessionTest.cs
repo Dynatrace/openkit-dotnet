@@ -428,6 +428,37 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.True);
         }
 
+        [Test()]
+        public void TryEndMarksSessionStateAsWasTriedForEndingIfSessionNotClosable()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.EnterAction("action");
+
+            // when
+            var obtained = target.TryEnd();
+
+            // then
+            Assert.That(obtained, Is.False);
+            Assert.That(target.State.WasTriedForEnding, Is.True);
+            Assert.That(target.State.IsFinished, Is.False);
+        }
+
+        [Test]
+        public void TryEndDoesNotMarkSessionStateAsWasTriedForEndingIfSessionIsClosable()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            var obtained = target.TryEnd();
+
+            // then
+            Assert.That(obtained, Is.True);
+            Assert.That(target.State.WasTriedForEnding, Is.False);
+            Assert.That(target.State.IsFinished, Is.True);
+        }
+
         [Test]
         public void SendBeaconForwardsCallToBeacon()
         {
@@ -503,6 +534,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(target.State.IsConfigured, Is.False);
             Assert.That(target.State.IsConfiguredAndFinished, Is.False);
             Assert.That(target.State.IsConfiguredAndOpen, Is.False);
+        }
+
+        [Test]
+        public void ANewlyCreatedSessionIsNotInStateAsWasTriedForEnding()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when, then
+            Assert.That(target.State.WasTriedForEnding, Is.False);
         }
 
         [Test]
@@ -780,6 +821,71 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(target.GetCopyOfChildObjects(), Is.Empty);
+        }
+
+        [Test]
+        public void OnChildClosedEndsSessionWithoutChildrenIfInStateWasTriedForEnding()
+        {
+            // given
+            var mockParent = Substitute.For<IOpenKitComposite>();
+            var target = CreateSession().With(mockParent).Build();
+            var childObject = Substitute.For<IOpenKitObject>();
+            target.StoreChildInList(childObject);
+
+            var wasClosed = target.TryEnd();
+            Assert.That(wasClosed, Is.False);
+            var state = target.State;
+            Assert.That(state.WasTriedForEnding, Is.True);
+            Assert.That(state.IsFinished, Is.False);
+
+            // when
+            target.OnChildClosed(childObject);
+
+            // then
+            Assert.That(state.IsFinished, Is.True);
+            mockParent.Received(1).OnChildClosed(target);
+        }
+
+        [Test]
+        public void OnChildClosedDoesNotEndSessionWithChildrenIfInStateWasTriedForEnding()
+        {
+            // given
+            var mockParent = Substitute.For<IOpenKitComposite>();
+            var target = CreateSession().With(mockParent).Build();
+            var childObjectOne = Substitute.For<IOpenKitObject>();
+            var childObjectTwo = Substitute.For<IOpenKitObject>();
+            target.StoreChildInList(childObjectOne);
+            target.StoreChildInList(childObjectTwo);
+
+            var wasClosed = target.TryEnd();
+            Assert.That(wasClosed, Is.False);
+            var state = target.State;
+            Assert.That(state.WasTriedForEnding, Is.True);
+            Assert.That(state.IsFinished, Is.False);
+
+            // when
+            target.OnChildClosed(childObjectOne);
+
+            // then
+            Assert.That(state.IsFinished, Is.False);
+            mockParent.Received(0).OnChildClosed(Arg.Any<IOpenKitObject>());
+        }
+
+        [Test]
+        public void OnChildClosedDoesNotEndSessionIfNotInStateWasTriedForEnding()
+        {
+            // given
+            var mockParent = Substitute.For<IOpenKitComposite>();
+            var target = CreateSession().With(mockParent).Build();
+            var childObject = Substitute.For<IOpenKitObject>();
+            target.StoreChildInList(childObject);
+
+            // when
+            target.OnChildClosed(childObject);
+
+            // then
+            Assert.That(target.State.IsFinished, Is.False);
+            mockParent.Received(0).OnChildClosed(Arg.Any<IOpenKitObject>());
         }
 
         [Test]

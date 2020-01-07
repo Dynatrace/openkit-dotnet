@@ -140,6 +140,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return true;
                 }
 
+                state.MarkAsWasTriedForEnding();
                 return false;
             }
         }
@@ -303,6 +304,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             lock (state)
             {
                 ThisComposite.RemoveChildFromList(childObject);
+
+                if (state.WasTriedForEnding && ThisComposite.GetChildCount() == 0)
+                {
+                    End();
+                }
             }
         }
 
@@ -321,10 +327,22 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             private bool isFinishing;
             private bool isFinished;
+            private bool wasTriedForEnding;
 
             internal SessionState(Session session)
             {
                 this.session = session;
+            }
+
+            public bool WasTriedForEnding
+            {
+                get
+                {
+                    lock (this)
+                    {
+                        return wasTriedForEnding;
+                    }
+                }
             }
 
 
@@ -402,6 +420,14 @@ namespace Dynatrace.OpenKit.Core.Objects
                 lock (this)
                 {
                     isFinished = true;
+                }
+            }
+
+            internal void MarkAsWasTriedForEnding()
+            {
+                lock (this)
+                {
+                    wasTriedForEnding = true;
                 }
             }
         }

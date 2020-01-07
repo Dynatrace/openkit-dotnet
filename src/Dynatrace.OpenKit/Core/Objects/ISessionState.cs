@@ -47,5 +47,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </para>
         /// </summary>
         bool IsFinished { get; }
+
+        /// <summary>
+        /// Indicates that the session was tried for ending/closing but could not be closed due to still open Actions or
+        /// Web Requests.
+        /// </summary>
+        bool WasTriedForEnding { get; }
     }
 }
