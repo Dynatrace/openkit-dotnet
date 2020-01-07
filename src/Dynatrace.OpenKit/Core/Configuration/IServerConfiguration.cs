@@ -62,6 +62,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         int MaxSessionDurationInMilliseconds { get; }
 
         /// <summary>
+        /// Returns <code>true</code> if session splitting when exceeding the maximum session duration is enabled,
+        /// <code>false</code> otherwise.
+        /// </summary>
+        bool IsSessionSplitBySessionDurationEnabled { get; }
+
+        /// <summary>
         /// Returns the maximum number of top level actions after which a session is to be split.
         /// </summary>
         int MaxEventsPerSession { get; }
@@ -76,6 +82,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// Returns the idle timeout after which a session is to be split.
         /// </summary>
         int SessionTimeoutInMilliseconds { get; }
+
+        /// <summary>
+        /// Returns <code>true</code> if session splitting by exceeding the idle timeout is enabled, <code>false</code>
+        /// otherwise.
+        /// </summary>
+        bool IsSessionSplitByIdleTimeoutEnabled { get; }
 
         /// <summary>
         /// Returns the version of the visit store that is being used.

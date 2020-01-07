@@ -27,7 +27,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public static readonly  IServerConfiguration Default = From(DefaultValues);
 
+        /// <summary>
+        /// indicator whether session splitting by events is enabled or not.
+        /// </summary>
         private readonly bool isSessionSplitByEventsEnabled;
+        /// <summary>
+        /// indicator whether session splitting by exceeding the maximum session duration is enabled or not.
+        /// </summary>
+        private readonly bool isSessionSplitBySessionDurationEnabled;
+        /// <summary>
+        /// indicator whether session splitting by exceeding the idle timeout is enabled or not.
+        /// </summary>
+        private readonly bool isSessionSplitByIdleTimeoutEnabled;
 
         /// <summary>
         /// Creates a server configuration from the given builder.
@@ -42,9 +53,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
             BeaconSizeInBytes = builder.BeaconSizeInBytes;
             Multiplicity = builder.Multiplicity;
             MaxSessionDurationInMilliseconds = builder.MaxSessionDurationInMilliseconds;
+            isSessionSplitBySessionDurationEnabled = builder.IsSessionSplitBySessionDurationEnabled;
             MaxEventsPerSession = builder.MaxEventsPerSession;
             isSessionSplitByEventsEnabled = builder.IsSessionSplitByEventsEnabled;
             SessionTimeoutInMilliseconds = builder.SessionTimeoutInMilliseconds;
+            isSessionSplitByIdleTimeoutEnabled = builder.IsSessionSplitByIdleTimeoutEnabled;
             VisitStoreVersion = builder.VisitStoreVersion;
         }
 
@@ -77,11 +90,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public int MaxSessionDurationInMilliseconds { get; }
 
+        public bool IsSessionSplitBySessionDurationEnabled =>
+            isSessionSplitBySessionDurationEnabled && MaxSessionDurationInMilliseconds > 0;
+
         public int MaxEventsPerSession { get; }
 
         public bool IsSessionSplitByEventsEnabled => isSessionSplitByEventsEnabled && MaxEventsPerSession > 0;
 
         public int SessionTimeoutInMilliseconds { get; }
+
+        public bool IsSessionSplitByIdleTimeoutEnabled =>
+            isSessionSplitByIdleTimeoutEnabled && SessionTimeoutInMilliseconds > 0;
 
         public int VisitStoreVersion { get; }
 
@@ -103,6 +122,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             builder.WithSessionTimeoutInMilliseconds(SessionTimeoutInMilliseconds);
             builder.WithVisitStoreVersion(VisitStoreVersion);
             builder.IsSessionSplitByEventsEnabled = IsSessionSplitByEventsEnabled;
+            builder.IsSessionSplitBySessionDurationEnabled = IsSessionSplitBySessionDurationEnabled;
+            builder.IsSessionSplitByIdleTimeoutEnabled = IsSessionSplitByIdleTimeoutEnabled;
 
             return builder.Build();
         }
@@ -124,11 +145,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 ServerId = responseAttributes.ServerId;
                 BeaconSizeInBytes = responseAttributes.MaxBeaconSizeInBytes;
                 Multiplicity = responseAttributes.Multiplicity;
+
                 MaxSessionDurationInMilliseconds = responseAttributes.MaxSessionDurationInMilliseconds;
+                IsSessionSplitBySessionDurationEnabled =
+                    responseAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION);
+
                 MaxEventsPerSession = responseAttributes.MaxEventsPerSession;
                 IsSessionSplitByEventsEnabled =
                     responseAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION);
+
                 SessionTimeoutInMilliseconds = responseAttributes.SessionTimeoutInMilliseconds;
+                IsSessionSplitByIdleTimeoutEnabled =
+                    responseAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT);
+
                 VisitStoreVersion = responseAttributes.VisitStoreVersion;
             }
 
@@ -144,10 +173,16 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 ServerId = serverConfiguration.ServerId;
                 BeaconSizeInBytes = serverConfiguration.BeaconSizeInBytes;
                 Multiplicity = serverConfiguration.Multiplicity;
+
                 MaxSessionDurationInMilliseconds = serverConfiguration.MaxSessionDurationInMilliseconds;
+                IsSessionSplitBySessionDurationEnabled = serverConfiguration.IsSessionSplitBySessionDurationEnabled;
+
                 MaxEventsPerSession = serverConfiguration.MaxEventsPerSession;
                 IsSessionSplitByEventsEnabled = serverConfiguration.IsSessionSplitByEventsEnabled;
+
                 SessionTimeoutInMilliseconds = serverConfiguration.SessionTimeoutInMilliseconds;
+                IsSessionSplitByIdleTimeoutEnabled = serverConfiguration.IsSessionSplitByIdleTimeoutEnabled;
+
                 VisitStoreVersion = serverConfiguration.VisitStoreVersion;
             }
 
@@ -231,6 +266,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
+            internal bool IsSessionSplitBySessionDurationEnabled { get; set; }
             internal int MaxSessionDurationInMilliseconds { get; private set; }
 
             /// <summary>
@@ -245,7 +281,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
 
             internal bool IsSessionSplitByEventsEnabled { get; set; }
-
             internal int MaxEventsPerSession { get; private set; }
 
             /// <summary>
@@ -259,6 +294,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
+            internal bool IsSessionSplitByIdleTimeoutEnabled { get; set; }
             internal int SessionTimeoutInMilliseconds { get; private set; }
 
             /// <summary>

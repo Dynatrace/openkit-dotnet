@@ -103,6 +103,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void InDefaultServerConfigurationIsSessionSplitBySessionDurationEnabledIsFalse()
+        {
+            Assert.That(ServerConfiguration.Default.IsSessionSplitBySessionDurationEnabled, Is.False);
+        }
+
+        [Test]
         public void InDefaultServerConfigurationMaxEventsPerSessionIsMinusOne()
         {
             Assert.That(ServerConfiguration.Default.MaxEventsPerSession, Is.EqualTo(-1));
@@ -121,6 +127,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void InDefaultServerConfigurationIsSessionSplitByIdleTimeoutEnabledIsFalse()
+        {
+            Assert.That(ServerConfiguration.Default.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+        }
+
+        [Test]
         public void InDefaultServerConfigurationVisitStoreVersionIsOne()
         {
             Assert.That(ServerConfiguration.Default.VisitStoreVersion, Is.EqualTo(1));
@@ -135,7 +147,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             Assert.That(ServerConfiguration.From(null), Is.Null);
         }
-
 
         [Test]
         public void CreatingAServerConfigurationFromResponseAttributesCopiesCaptureSettings()
@@ -226,6 +237,68 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void
+            CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDurationEnabledIfMaxSessionDurationGreaterZero()
+        {
+            // given
+            const int sessionDuration = 1;
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.True);
+            _ = mockAttributes.Received(1).MaxSessionDurationInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDurationDisabledIfMaxDurationZero()
+        {
+            // given
+            const int sessionDuration = 0;
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+            _ = mockAttributes.Received(1).MaxSessionDurationInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION);
+        }
+
+        [Test]
+        public void
+            CreatingAServerConfigurationStatusResponseHasSplitBySessionDurationDisabledIfMaxDurationEventsSmallerZero()
+        {
+            // given
+            const int sessionDuration = -1;
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+            _ = mockAttributes.Received(1).MaxSessionDurationInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitBySessionDurationDisabledIfMaxDurationIsNotSet()
+        {
+            // given
+            const int sessionDuration = 1;
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+            _ = mockAttributes.Received(1).MaxSessionDurationInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION);
+        }
+
+        [Test]
         public void CreatingAServerConfigurationFromResponseAttributesCopiesMaxEventsPerSession()
         {
             // given
@@ -239,7 +312,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionEnabledIfMaxEventsGreaterZero()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitByEventsEnabledIfMaxEventsGreaterZero()
         {
             // given
             const int eventsPerSession = 1;
@@ -254,7 +327,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDisabledIfMaxEventsZero()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitByEventsDisabledIfMaxEventsZero()
         {
             // given
             const int eventsPerSession = 0;
@@ -269,7 +342,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDisabledIfMaxEventsEventsSmallerZero()
+        public void
+            CreatingAServerConfigurationFromResponseAttributesHasSplitByEventsDisabledIfMaxEventsEventsSmallerZero()
         {
             // given
             const int eventsPerSession = -1;
@@ -284,7 +358,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingAServerConfigurationFromResponseAttributesHasSplitBySessionDisabledIfMaxEventsIsNotSet()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitByEventsDisabledIfMaxEventsIsNotSet()
         {
             // given
             const int eventsPerSession = 1;
@@ -309,6 +383,66 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.SessionTimeoutInMilliseconds, Is.EqualTo(sessionTimeout));
             _ = mockAttributes.Received(1).SessionTimeoutInMilliseconds;
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitByIdleTimeoutEnabledIfTimeoutGreaterZero()
+        {
+            // given
+            const int idleTimeout = 1;
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.True);
+            _ = mockAttributes.Received(1).SessionTimeoutInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitByIdleTimeoutDisabledIfTimeoutZero()
+        {
+            // given
+            const int idleTimeout = 0;
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+            _ = mockAttributes.Received(1).SessionTimeoutInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitByIdleTimeoutDisabledIfTimeoutSmallerZero()
+        {
+            // given
+            const int idleTimeout = -1;
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT).Returns(true);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+            _ = mockAttributes.Received(1).SessionTimeoutInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT);
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationStatusResponseHasSplitByIdleTimeoutDisabledIfTimeoutIsNotSet()
+        {
+            // given
+            const int idleTimeout = 1;
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT).Returns(false);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+            _ = mockAttributes.Received(1).SessionTimeoutInMilliseconds;
+            mockAttributes.Received(1).IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT);
         }
 
         [Test]
@@ -555,6 +689,58 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDurationEnabledIfMaxEventsGreaterZero()
+        {
+            // given
+            const int sessionDuration = 1;
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfig.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.True);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDurationDisabledIfMaxEventsZero()
+        {
+            // given
+            const int sessionDuration = 0;
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfig.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDurationDisabledIfMaxEventsEventsSmallerZero()
+        {
+            // given
+            const int sessionDuration = -1;
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfig.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitBySessionDurationDisabledIfMaxEventsIsNotSet()
+        {
+            // given
+            const int sessionDuration = 1;
+            mockServerConfig.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfig.IsSessionSplitBySessionDurationEnabled.Returns(false);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+        }
+
+        [Test]
         public void BuilderFromServerConfigCopiesMaxEventsPerSession()
         {
             // given
@@ -568,7 +754,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void BuilderFromServerConfigHasSplitBySessionEnabledIfMaxEventsGreaterZero()
+        public void BuilderFromServerConfigHasSplitByEventsEnabledIfMaxEventsGreaterZero()
         {
             // given
             const int eventsPerSession = 1;
@@ -581,7 +767,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void BuilderFromServerConfigHasSplitBySessionDisabledIfMaxEventsZero()
+        public void BuilderFromServerConfigHasSplitByEventsDisabledIfMaxEventsZero()
         {
             // given
             const int eventsPerSession = 0;
@@ -594,7 +780,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void BuilderFromServerConfigHasSplitBySessionDisabledIfMaxEventsSmallerZero()
+        public void BuilderFromServerConfigHasSplitByEventsDisabledIfMaxEventsSmallerZero()
         {
             // given
             const int eventsPerSession = -1;
@@ -607,7 +793,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void BuilderFromServerConfigHasSplitBySessionDisabledIfMaxEventsIsNotSet()
+        public void BuilderFromServerConfigHasSplitByEventsDisabledIfMaxEventsIsNotSet()
         {
             // given
             const int eventsPerSession = 1;
@@ -630,6 +816,58 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.SessionTimeoutInMilliseconds, Is.EqualTo(sessionTimeout));
             _ = mockServerConfig.Received(1).SessionTimeoutInMilliseconds;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitByIdleTimeoutEnabledIfMaxEventsGreaterZero()
+        {
+            // given
+            const int idleTimeout = 1;
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfig.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.True);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitByIdleTimeoutDisabledIfMaxEventsZero()
+        {
+            // given
+            const int idleTimeout = 0;
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfig.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitByIdleTimeoutDisabledIfMaxEventsEventsSmallerZero()
+        {
+            // given
+            const int idleTimeout = -1;
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfig.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+        }
+
+        [Test]
+        public void BuilderFromServerConfigHasSplitByIdleTimeoutDisabledIfMaxEventsIsNotSet()
+        {
+            // given
+            const int idleTimeout = 1;
+            mockServerConfig.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfig.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
         }
 
         [Test]
@@ -948,6 +1186,66 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void MergeKeepsIsSessionSplitBySessionDurationEnabledWhenMaxEventsIsGreaterZeroAndAttributeIsSet()
+        {
+            // given
+            const int sessionDuration = 73;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(true);
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = new ServerConfiguration.Builder(defaultValues).Build();
+
+            Assert.That(other.IsSessionSplitBySessionDurationEnabled, Is.False);
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.True);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitBySessionDurationEnabled, Is.True);
+        }
+
+        [Test]
+        public void MergeKeepsIsSessionSplitBySessionDurationEnabledWhenMaxEventsIsSmallerZeroButAttributeIsSet()
+        {
+            // given
+            const int sessionDuration = 0;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(true);
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = Substitute.For<IServerConfiguration>();
+            other.IsSessionSplitBySessionDurationEnabled.Returns(true);
+
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitBySessionDurationEnabled, Is.False);
+        }
+
+        [Test]
+        public void MergeKeepsIsSessionSplitBySessionDurationEnabledWhenMaxEventsIsGreaterZeroButAttributeIsNotSet()
+        {
+            // given
+            const int sessionDuration = 73;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(false);
+            mockAttributes.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = Substitute.For<IServerConfiguration>();
+            other.IsSessionSplitBySessionDurationEnabled.Returns(true);
+
+            Assert.That(target.IsSessionSplitBySessionDurationEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitBySessionDurationEnabled, Is.False);
+        }
+
+        [Test]
         public void MergeKeepsOriginalMaxEventsPerSession()
         {
             // given
@@ -1041,11 +1339,72 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void MergeKeepsIsSessionSplitByIdleTimeoutEnabledWhenMaxEventsIsGreaterZeroAndAttributeIsSet()
+        {
+            // given
+            int idleTimeout = 73;
+            mockAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT).Returns(true);
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = new ServerConfiguration.Builder(defaultValues).Build();
+
+            Assert.That(other.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.True);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitByIdleTimeoutEnabled, Is.True);
+        }
+
+        [Test]
+        public void MergeKeepsIsSessionSplitByIdleTimeoutEnabledWhenMaxEventsIsSmallerZeroButAttributeIsSet()
+        {
+            // given
+            const int idleTimeout = 0;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(true);
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = Substitute.For<IServerConfiguration>();
+            other.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+        }
+
+        [Test]
+        public void MergeKeepsIsSessionSplitByIdleTimeoutEnabledWhenMaxEventsIsGreaterZeroButAttributeIsNotSet()
+        {
+            // given
+            const int idleTimeout = 73;
+            mockAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION).Returns(false);
+            mockAttributes.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = Substitute.For<IServerConfiguration>();
+            other.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+
+            Assert.That(target.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.IsSessionSplitByIdleTimeoutEnabled, Is.False);
+        }
+
+        [Test]
         public void MergeKeepsOriginalVisitStoreVersion()
         {
             // given
             const int visitStoreVersion = 73;
-            var target = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(visitStoreVersion).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(visitStoreVersion)
+                .Build();
             var other = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(37).Build();
 
             // when
