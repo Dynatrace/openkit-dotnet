@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Providers
@@ -23,18 +24,20 @@ namespace Dynatrace.OpenKit.Providers
     internal class DefaultHttpClientProvider : IHttpClientProvider
     {
         private readonly ILogger logger;
+        private readonly IInterruptibleThreadSuspender threadSuspender;
 
-        public DefaultHttpClientProvider(ILogger logger)
+        public DefaultHttpClientProvider(ILogger logger, IInterruptibleThreadSuspender threadSuspender)
         {
             this.logger = logger;
+            this.threadSuspender = threadSuspender;
         }
 
         public IHttpClient CreateClient(IHttpClientConfiguration configuration)
         {
 #if NET40 || NET35
-            return new HttpClientWebClient(logger, configuration); // HttpClient is not available in .NET 3.5 and 4.0
+            return new HttpClientWebClient(logger, configuration, threadSuspender); // HttpClient is not available in .NET 3.5 and 4.0
 #else
-            return new HttpClientHttpClient(logger, configuration);
+            return new HttpClientHttpClient(logger, configuration, threadSuspender);
 #endif
         }
     }

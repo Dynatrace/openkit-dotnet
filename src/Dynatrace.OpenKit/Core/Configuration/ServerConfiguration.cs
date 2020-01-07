@@ -95,9 +95,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
         {
             var builder = new Builder(other);
 
-            // take everything from other instance except multiplicity and server ID.
+            // settings from this
             builder.WithMultiplicity(Multiplicity);
             builder.WithServerId(ServerId);
+            builder.WithMaxSessionDurationInMilliseconds(MaxSessionDurationInMilliseconds);
+            builder.WithMaxEventsPerSession(MaxEventsPerSession);
+            builder.WithSessionTimeoutInMilliseconds(SessionTimeoutInMilliseconds);
+            builder.WithVisitStoreVersion(VisitStoreVersion);
+            builder.IsSessionSplitByEventsEnabled = IsSessionSplitByEventsEnabled;
 
             return builder.Build();
         }
@@ -239,7 +244,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 return this;
             }
 
-            internal bool IsSessionSplitByEventsEnabled { get; }
+            internal bool IsSessionSplitByEventsEnabled { get; set; }
 
             internal int MaxEventsPerSession { get; private set; }
 

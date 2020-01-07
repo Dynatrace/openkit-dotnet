@@ -32,6 +32,17 @@ namespace Dynatrace.OpenKit.Protocol
         int SessionNumber { get; }
 
         /// <summary>
+        /// Returns the sequence number of the session.
+        ///
+        /// <para>
+        /// The session sequence number is a consecutive number which is increased when a session is split due to
+        /// exceeding the maximum number of allowed events. The split session will have the same session number but an
+        /// increased session sequence number.
+        /// </para>
+        /// </summary>
+        int SessionSequenceNumber { get; }
+
+        /// <summary>
         /// Returns the device ID associated to this beacon.
         /// </summary>
         long DeviceId { get; }

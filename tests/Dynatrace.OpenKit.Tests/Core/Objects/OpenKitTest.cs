@@ -38,6 +38,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         private IBeaconCache mockBeaconCache;
         private IBeaconSender mockBeaconSender;
         private IBeaconCacheEvictor mockBeaconCacheEvictor;
+        private ISessionWatchdog mockSessionWatchdog;
 
         [SetUp]
         public void SetUp()
@@ -64,6 +65,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockBeaconCache = Substitute.For<IBeaconCache>();
             mockBeaconSender = Substitute.For<IBeaconSender>();
             mockBeaconCacheEvictor = Substitute.For<IBeaconCacheEvictor>();
+            mockSessionWatchdog = Substitute.For<ISessionWatchdog>();
         }
 
         [Test]
@@ -90,6 +92,19 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeaconSender.Received(1).Initialize();
+        }
+
+        [Test]
+        public void InitializeInitializesSessionWatchdog()
+        {
+            // given
+            var target = CreateOpenKit().Build();
+
+            // when
+            target.Initialize();
+
+            // then
+            mockSessionWatchdog.Received(1).Initialize();
         }
 
         [Test]
@@ -184,6 +199,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void ShutdownShutsDownSessionWatchdog()
+        {
+            // given
+            var target = CreateOpenKit().Build();
+
+            // when
+            target.Shutdown();
+
+            // then
+            mockSessionWatchdog.Received(1).Shutdown();
+        }
+
+        [Test]
         public void ShutdownDisposesAllChildObjects()
         {
             // given
@@ -254,7 +282,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void CreateSessionReturnsSessionObject()
+        public void CreateSessionReturnsSessionProxyObject()
         {
             // given
             var target = CreateOpenKit().Build();
@@ -263,11 +291,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.CreateSession("127.0.0.1");
 
             // then
-            Assert.That(obtained, Is.Not.Null.And.InstanceOf<Session>());
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<SessionProxy>());
         }
 
         [Test]
-        public void CreateSessionWithoutIpAddressReturnsSessionObject()
+        public void CreateSessionWithoutIpAddressReturnsSessionProxyObject()
         {
             // given
             var target = CreateOpenKit().Build();
@@ -276,7 +304,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.CreateSession();
 
             // then
-            Assert.That(obtained, Is.Not.Null.And.InstanceOf<Session>());
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<SessionProxy>());
         }
 
         [Test]
@@ -401,6 +429,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     .With(mockBeaconCache)
                     .With(mockBeaconSender)
                     .With(mockBeaconCacheEvictor)
+                    .With(mockSessionWatchdog)
                 ;
         }
     }

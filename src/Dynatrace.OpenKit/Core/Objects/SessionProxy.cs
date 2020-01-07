@@ -361,6 +361,10 @@ namespace Dynatrace.OpenKit.Core.Objects
                 {
                     serverConfiguration = serverConfig;
                 }
+                else
+                {
+                    serverConfiguration = serverConfiguration.Merge(serverConfig);
+                }
             }
         }
 
@@ -368,7 +372,8 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public override string ToString()
         {
-            return $"{GetType().Name}";
+            var beacon = currentSession.Beacon;
+            return $"{GetType().Name} [sn={beacon.SessionNumber}, seq={beacon.SessionSequenceNumber}]";
         }
     }
 }

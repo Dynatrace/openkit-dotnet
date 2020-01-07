@@ -79,12 +79,15 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly string newSessionUrl;
 
         private readonly ILogger logger;
+        private readonly IInterruptibleThreadSuspender threadSuspender;
 
         #region constructors
 
-        protected HttpClient(ILogger logger, IHttpClientConfiguration configuration)
+        protected HttpClient(ILogger logger, IHttpClientConfiguration configuration,
+            IInterruptibleThreadSuspender threadSuspender)
         {
             this.logger = logger;
+            this.threadSuspender = threadSuspender;
             ServerId = configuration.ServerId;
             monitorUrl = BuildMonitorUrl(configuration.BaseUrl, configuration.ApplicationId, ServerId);
             newSessionUrl = BuildNewSessionUrl(configuration.BaseUrl, configuration.ApplicationId, ServerId);
@@ -201,11 +204,8 @@ namespace Dynatrace.OpenKit.Protocol
                     {
                         throw;
                     }
-#if WINDOWS_UWP || NETSTANDARD1_1
-                    System.Threading.Tasks.Task.Delay(RetrySleepTime).Wait();
-#else
-                    Thread.Sleep(RetrySleepTime);
-#endif
+
+                    threadSuspender.Sleep(RetrySleepTime);
                 }
             }
         }

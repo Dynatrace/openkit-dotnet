@@ -330,13 +330,15 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             // given
             const int maxEventCount = 3;
-            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
-            mockServerConfiguration.MaxEventsPerSession.Returns(maxEventCount);
+            var serverConfig = ServerConfiguration.From(ResponseAttributes.WithUndefinedDefaults()
+                    .WithMaxEventsPerSession(maxEventCount).Build());
+
+            Assert.That(serverConfig.IsSessionSplitByEventsEnabled, Is.True);
 
             var target = CreateSessionProxy();
             mockSessionCreator.Received(1).CreateSession(target);
 
-            target.OnServerConfigurationUpdate(mockServerConfiguration);
+            target.OnServerConfigurationUpdate(serverConfig);
 
             var ignoredServerConfig = Substitute.For<IServerConfiguration>();
             ignoredServerConfig.IsSessionSplitByEventsEnabled.Returns(true);
@@ -998,13 +1000,15 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ToStringReturnsAppropriateResult()
         {
             // given
+            mockBeacon.SessionNumber.Returns(37);
+            mockBeacon.SessionSequenceNumber.Returns(73);
             var target = CreateSessionProxy();
 
             // when
             var obtained = target.ToString();
 
             // then
-            Assert.That(obtained, Is.EqualTo("SessionProxy"));
+            Assert.That(obtained, Is.EqualTo($"SessionProxy [sn=37, seq=73]"));
         }
 
         #endregion

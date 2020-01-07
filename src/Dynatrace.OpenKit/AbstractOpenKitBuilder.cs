@@ -19,6 +19,7 @@ using System.Globalization;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Protocol.SSL;
 
@@ -286,7 +287,8 @@ namespace Dynatrace.OpenKit
         /// <returns></returns>
         public IOpenKit Build()
         {
-            var openKit = new Core.Objects.OpenKit(this);
+            var initializer = new OpenKitInitializer(this);
+            var openKit = new Core.Objects.OpenKit(initializer);
             openKit.Initialize();
 
             return openKit;

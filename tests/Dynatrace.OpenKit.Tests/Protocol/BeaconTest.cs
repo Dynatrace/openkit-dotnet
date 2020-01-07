@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
@@ -24,6 +25,7 @@ using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Util;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
+using NSubstitute.ReturnsExtensions;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Protocol
@@ -292,6 +294,65 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"_{ThreadId}"                                 // thread ID
                 + $"_{sequenceNumber}"                           // sequence number
                 ));
+        }
+
+        [Test]
+        public void CreateTagDoesNotAppendSessionSequenceNumberForVisitStoreVersionsLowerTwo()
+        {
+            const int tracerSeqNo = 42;
+            const int sessionSeqNo = 73;
+            for (var version = 1; version > -2; version--)
+            {
+                // given
+                mockServerConfiguration.VisitStoreVersion.Returns(version);
+                var target = CreateBeacon().WithSessionSequenceNumber(sessionSeqNo).Build();
+
+                // when
+                var obtained = target.CreateTag(ActionId, tracerSeqNo);
+
+                // then
+                Assert.That(obtained, Is.EqualTo(
+                    "MT"                                         // tag prefix
+                    + $"_{ProtocolConstants.ProtocolVersion}"    // protocol version
+                    + $"_{ServerId}"                             // server ID
+                    + $"_{DeviceId}"                             // device ID percent encoded
+                    + $"_{SessionId}"                            // session number
+                    + $"_{AppId}"                                // application ID
+                    + $"_{ActionId}"                             // parent action ID
+                    + $"_{ThreadId}"                             // thread ID
+                    + $"_{tracerSeqNo}"                          // sequence number
+                ));
+            }
+        }
+
+        [Test]
+        public void CreateTagAddsSessionSequenceNumberForVisitStoreVersionHigherOne()
+        {
+            const int tracerSeqNo = 42;
+            const int sessionSeqNo = 73;
+            for (var version = 2; version < 5; version++)
+            {
+                // given
+                mockServerConfiguration.VisitStoreVersion.Returns(version);
+                var target = CreateBeacon().WithSessionSequenceNumber(sessionSeqNo).Build();
+
+                // when
+                var obtained = target.CreateTag(ActionId, tracerSeqNo);
+
+                // then
+                Assert.That(obtained, Is.EqualTo(
+                    "MT"                                         // tag prefix
+                    + $"_{ProtocolConstants.ProtocolVersion}"    // protocol version
+                    + $"_{ServerId}"                             // server ID
+                    + $"_{DeviceId}"                             // device ID percent encoded
+                    + $"_{SessionId}"                            // session number
+                    + $"-{sessionSeqNo}"                         // session sequence number
+                    + $"_{AppId}"                                // application ID
+                    + $"_{ActionId}"                             // parent action ID
+                    + $"_{ThreadId}"                             // thread ID
+                    + $"_{tracerSeqNo}"                          // sequence number
+                ));
+            }
         }
 
         [Test]
@@ -986,6 +1047,52 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(response, Is.Not.Null);
             Assert.That(response.ResponseCode, Is.EqualTo(responseCode));
             httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
+        }
+
+        [Test]
+        public void BeaconDataPrefix()
+        {
+            // given
+            const int sessionSequence = 1213;
+            const int visitStoreVersion = 9;
+            const string appVersion = "1111";
+            const string ipAddress = "192.168.0.1";
+            mockOpenKitConfiguration.ApplicationVersion.Returns(appVersion);
+            mockOpenKitConfiguration.OperatingSystem.Returns("system");
+            mockOpenKitConfiguration.Manufacturer.Returns("manufacturer");
+            mockOpenKitConfiguration.ModelId.Returns("model");
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .ReturnsNull();
+            mockServerConfiguration.VisitStoreVersion.Returns(visitStoreVersion);
+            var target = CreateBeacon().WithIpAddress(ipAddress).WithSessionSequenceNumber(sessionSequence).Build();
+
+            // when
+            target.Send(Substitute.For<IHttpClientProvider>(), null);
+
+            // then
+            var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion}" +
+                $"&va={ProtocolConstants.OpenKitVersion}" +
+                $"&ap={AppId}" +
+                $"&an={AppName}" +
+                $"&vn={appVersion}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit}" +
+                $"&tt={ProtocolConstants.AgentTechnologyType}" +
+                $"&vi={DeviceId}" +
+                $"&sn={SessionId}" +
+                $"&ss={sessionSequence}" +
+                $"&ip={ipAddress}" +
+                "&os=system" +
+                "&mf=manufacturer" +
+                "&md=model" +
+                "&dl=2" +
+                "&cl=2" +
+                $"&vs={visitStoreVersion}" +
+                "&tx=0" +
+                "&tv=0" +
+                $"&mp={Multiplicity}";
+
+            mockBeaconCache.Received(1)
+                .GetNextBeaconChunk(SessionId, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
         }
 
         [Test]
@@ -1915,12 +2022,14 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
                 $"&vi={DeviceId}" +
                 $"&sn={SessionId}" +
+                "&ss=0" +
                 "&ip=127.0.0.1" +
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
                 $"&md={string.Empty}" +
                 $"&dl={(int) ConfigurationDefaults.DefaultCrashReportingLevel}" +
                 $"&cl={(int) ConfigurationDefaults.DefaultCrashReportingLevel}" +
+                "&vs=0" +
                 "&tx=0" +
                 "&tv=0" +
                 $"&mp={Multiplicity}",

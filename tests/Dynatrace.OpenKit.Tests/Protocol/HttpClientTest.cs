@@ -21,9 +21,9 @@ using System.IO.Compression;
 using System.Text;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Util;
 using NSubstitute;
-using NSubstitute.ReturnsExtensions;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Protocol
@@ -90,9 +90,11 @@ namespace Dynatrace.OpenKit.Protocol
             openKitConfig.ApplicationId.Returns(ApplicationId);
             openKitConfig.TrustManager.Returns(trustManager);
 
+            var threadSuspender = Substitute.For<IInterruptibleThreadSuspender>();
+
             // HTTPClient spy
             var httpConfiguration = HttpClientConfiguration.From(openKitConfig);
-            spyClient = Substitute.ForPartsOf<StubHttpClient>(mockLogger, httpConfiguration);
+            spyClient = Substitute.ForPartsOf<StubHttpClient>(mockLogger, httpConfiguration, threadSuspender);
 
             mockAdditionalParameters = Substitute.For<IAdditionalQueryParameters>();
         }
@@ -644,7 +646,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             string capturedUrl = null;
-            spyClient.DoGetRequest(Arg.Do<string>(x => capturedUrl = x), Arg.Any<string>()).ReturnsNull();
+            spyClient.DoGetRequest(Arg.Do<string>(x => capturedUrl = x), Arg.Any<string>())
+                .Returns(CreateSuccessHttpResponse());
 
             // when
             spyClient.SendStatusRequest(null);
@@ -661,7 +664,8 @@ namespace Dynatrace.OpenKit.Protocol
             const long timestamp = 1234;
             string capturedUrl = null;
             mockAdditionalParameters.ConfigurationTimestamp.Returns(timestamp);
-            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>()).ReturnsNull();
+            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>())
+                .Returns(CreateSuccessHttpResponse());
 
             // when
             spyClient.SendStatusRequest(mockAdditionalParameters);
@@ -677,7 +681,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             string capturedUrl = null;
-            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>()).ReturnsNull();
+            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>())
+                .Returns(CreateSuccessHttpResponse());
 
             // when
             spyClient.SendNewSessionRequest(null);
@@ -695,7 +700,8 @@ namespace Dynatrace.OpenKit.Protocol
             const long timestamp = 1234;
             mockAdditionalParameters.ConfigurationTimestamp.Returns(timestamp);
             string capturedUrl = null;
-            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>()).ReturnsNull();
+            spyClient.DoGetRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>())
+                .Returns(CreateSuccessHttpResponse());
 
             // when
             spyClient.SendNewSessionRequest(mockAdditionalParameters);
@@ -713,7 +719,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             string capturedUrl = null;
             spyClient.DoPostRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>(), Arg.Any<byte[]>())
-                .ReturnsNull();
+                .Returns(CreateSuccessHttpResponse());
 
             // when
             spyClient.SendBeaconRequest(null, null, null);
@@ -732,7 +738,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             string capturedUrl = null;
             spyClient.DoPostRequest(Arg.Do<string>(u => capturedUrl = u), Arg.Any<string>(), Arg.Any<byte[]>())
-                .ReturnsNull();
+                .Returns(CreateSuccessHttpResponse());
 
             // when
             spyClient.SendBeaconRequest(null, null, mockAdditionalParameters);
@@ -763,12 +769,19 @@ namespace Dynatrace.OpenKit.Protocol
             builder.Append("&").Append(key).Append("=").Append(value);
         }
 
+        private HttpClient.HttpResponse CreateSuccessHttpResponse()
+        {
+            return new HttpClient.HttpResponse
+                {ResponseCode = 200, Headers = new Dictionary<string, List<string>>(), Response = null};
+        }
+
         /// <summary>
         /// Stub class for NSubstitute to work.
         /// </summary>
         public class StubHttpClient : HttpClient
         {
-            public StubHttpClient(ILogger logger, HttpClientConfiguration configuration) : base(logger, configuration)
+            public StubHttpClient(ILogger logger, IHttpClientConfiguration configuration,
+                IInterruptibleThreadSuspender threadSuspender) : base(logger, configuration, threadSuspender)
             {
             }
 

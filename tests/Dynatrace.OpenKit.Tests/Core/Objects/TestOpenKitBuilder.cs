@@ -33,6 +33,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         private IBeaconCache beaconCache;
         private IBeaconSender beaconSender;
         private IBeaconCacheEvictor beaconCacheEvictor;
+        private ISessionWatchdog sessionWatchdog;
 
         public TestOpenKitBuilder()
         {
@@ -45,6 +46,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             beaconCache = Substitute.For<IBeaconCache>();
             beaconSender = Substitute.For<IBeaconSender>();
             beaconCacheEvictor = Substitute.For<IBeaconCacheEvictor>();
+            sessionWatchdog = Substitute.For<ISessionWatchdog>();
         }
 
         internal TestOpenKitBuilder With(ILogger logger)
@@ -101,19 +103,27 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
+        internal TestOpenKitBuilder With(ISessionWatchdog watchdog)
+        {
+            sessionWatchdog = watchdog;
+            return this;
+        }
+
         internal OpenKit Build()
         {
-            return new OpenKit(
-                logger,
-                privacyConfig,
-                openKitConfig,
-                timingProvider,
-                threadIdProvider,
-                sessionIdProvider,
-                beaconCache,
-                beaconSender,
-                beaconCacheEvictor
-            );
+            var initializer = Substitute.For<IOpenKitInitializer>();
+            initializer.Logger.Returns(logger);
+            initializer.PrivacyConfiguration.Returns(privacyConfig);
+            initializer.OpenKitConfiguration.Returns(openKitConfig);
+            initializer.TimingProvider.Returns(timingProvider);
+            initializer.ThreadIdProvider.Returns(threadIdProvider);
+            initializer.SessionIdProvider.Returns(sessionIdProvider);
+            initializer.BeaconCache.Returns(beaconCache);
+            initializer.BeaconCacheEvictor.Returns(beaconCacheEvictor);
+            initializer.BeaconSender.Returns(beaconSender);
+            initializer.SessionWatchdog.Returns(sessionWatchdog);
+
+            return new OpenKit(initializer);
         }
     }
 }

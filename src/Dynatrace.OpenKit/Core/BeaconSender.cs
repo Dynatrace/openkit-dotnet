@@ -46,11 +46,12 @@ namespace Dynatrace.OpenKit.Core
             ILogger logger,
             IHttpClientConfiguration httpClientConfiguration,
             IHttpClientProvider clientProvider,
-            ITimingProvider timingProvider)
+            ITimingProvider timingProvider,
+            IInterruptibleThreadSuspender threadSuspender)
         {
             this.logger = logger;
             context = new BeaconSendingContext(logger, httpClientConfiguration, clientProvider, timingProvider,
-                new InterruptibleThreadSuspender());
+                threadSuspender);
         }
 
         public bool IsInitialized => context.IsInitialized;

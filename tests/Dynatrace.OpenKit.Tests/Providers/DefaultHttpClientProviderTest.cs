@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -24,11 +25,13 @@ namespace Dynatrace.OpenKit.Providers
     public class DefaultHttpClientProviderTest
     {
         private ILogger mockLogger;
+        private IInterruptibleThreadSuspender mockThreadSuspender;
 
         [SetUp]
         public void SetUp()
         {
             mockLogger = Substitute.For<ILogger>();
+            mockThreadSuspender = Substitute.For<IInterruptibleThreadSuspender>();
         }
 
         [Test]
@@ -39,7 +42,7 @@ namespace Dynatrace.OpenKit.Providers
             httpClientConfig.BaseUrl.Returns("https://localhost:9999/1");
             httpClientConfig.ApplicationId.Returns("some cryptic appId");
 
-            var target = new DefaultHttpClientProvider(mockLogger);
+            var target = new DefaultHttpClientProvider(mockLogger, mockThreadSuspender);
 
             // when
             var obtained = target.CreateClient(httpClientConfig);

@@ -931,14 +931,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverMaxSessionDuration()
+        public void MergeKeepsOriginalMaxSessionDuration()
         {
             // given
             const int sessionDuration = 73;
             var target = new ServerConfiguration.Builder(defaultValues)
-                .WithMaxSessionDurationInMilliseconds(37).Build();
-            var other = new ServerConfiguration.Builder(defaultValues)
                 .WithMaxSessionDurationInMilliseconds(sessionDuration).Build();
+            var other = new ServerConfiguration.Builder(defaultValues)
+                .WithMaxSessionDurationInMilliseconds(37).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -948,13 +948,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverMaxEventsPerSession()
+        public void MergeKeepsOriginalMaxEventsPerSession()
         {
             // given
             const int eventsPerSession = 73;
-            var target = new ServerConfiguration.Builder(defaultValues).WithMaxEventsPerSession(37).Build();
-            var other = new ServerConfiguration.Builder(defaultValues).WithMaxEventsPerSession(eventsPerSession)
+            var target = new ServerConfiguration.Builder(defaultValues).WithMaxEventsPerSession(eventsPerSession)
                 .Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithMaxEventsPerSession(37).Build();
 
             // when
             var obtained = target.Merge(other);
@@ -964,16 +964,17 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverIsSessionSplitByEventsEnabledWhenMaxEventsIsGreaterZeroAndAttributeIsSet()
+        public void MergeKeepsIsSessionSplitByEventsEnabledWhenMaxEventsIsGreaterZeroAndAttributeIsSet()
         {
             // given
             const int eventsPerSession = 73;
             mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
             mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
-            var target = new ServerConfiguration.Builder(defaultValues).Build();
-            var other = ServerConfiguration.From(mockAttributes);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = new ServerConfiguration.Builder(defaultValues).Build();
 
-            Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
+            Assert.That(other.IsSessionSplitByEventsEnabled, Is.False);
+            Assert.That(target.IsSessionSplitByEventsEnabled, Is.True);
 
             // when
             var obtained = target.Merge(other);
@@ -983,14 +984,15 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverIsSessionSplitByEventsEnabledWhenMaxEventsIsSmallerZeroButAttributeIsSet()
+        public void MergeKeepsIsSessionSplitByEventsEnabledWhenMaxEventsIsSmallerZeroButAttributeIsSet()
         {
             // given
             const int eventsPerSession = 0;
             mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(true);
             mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
-            var target = new ServerConfiguration.Builder(defaultValues).Build();
-            var other = ServerConfiguration.From(mockAttributes);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = Substitute.For<IServerConfiguration>();
+            other.IsSessionSplitByEventsEnabled.Returns(true);
 
             Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
 
@@ -1002,14 +1004,15 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverIsSessionSplitByEventsEnabledWhenMaxEventsIsGreaterZeroButAttributeIsNotSet()
+        public void MergeKeepsIsSessionSplitByEventsEnabledWhenMaxEventsIsGreaterZeroButAttributeIsNotSet()
         {
             // given
             const int eventsPerSession = 73;
             mockAttributes.IsAttributeSet(ResponseAttribute.MAX_EVENTS_PER_SESSION).Returns(false);
             mockAttributes.MaxEventsPerSession.Returns(eventsPerSession);
-            var target = new ServerConfiguration.Builder(defaultValues).Build();
-            var other = ServerConfiguration.From(mockAttributes);
+            var target = ServerConfiguration.From(mockAttributes);
+            var other = Substitute.For<IServerConfiguration>();
+            other.IsSessionSplitByEventsEnabled.Returns(true);
 
             Assert.That(target.IsSessionSplitByEventsEnabled, Is.False);
 
@@ -1021,13 +1024,13 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverSessionTimeout()
+        public void MergeKeepsOriginalSessionTimeout()
         {
             // given
             const int sessionTimeout = 73;
-            var target = new ServerConfiguration.Builder(defaultValues).WithMaxSessionDurationInMilliseconds(37)
+            var target = new ServerConfiguration.Builder(defaultValues).WithSessionTimeoutInMilliseconds(sessionTimeout)
                 .Build();
-            var other = new ServerConfiguration.Builder(defaultValues).WithSessionTimeoutInMilliseconds(sessionTimeout)
+            var other = new ServerConfiguration.Builder(defaultValues).WithMaxSessionDurationInMilliseconds(37)
                 .Build();
 
             // when
@@ -1038,12 +1041,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void MergeTakesOverVisitStoreVersion()
+        public void MergeKeepsOriginalVisitStoreVersion()
         {
             // given
             const int visitStoreVersion = 73;
-            var target = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(37).Build();
-            var other = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(visitStoreVersion).Build();
+            var target = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(visitStoreVersion).Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithVisitStoreVersion(37).Build();
 
             // when
             var obtained = target.Merge(other);

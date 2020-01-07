@@ -41,10 +41,12 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyAgentTechnologyType = "tt";
         private const string BeaconKeyVisitorId = "vi";
         private const string BeaconKeySessionNumber = "sn";
+        private const string BeaconKeySessionSequence = "ss";
         private const string BeaconKeyClientIpAddress = "ip";
         private const string BeaconKeyMultiplicity = "mp";
         private const string BeaconKeyDataCollectionLevel = "dl";
         private const string BeaconKeyCrashReportingLevel = "cl";
+        private const string BeaconKeyVisitStoreVersion = "vs";
 
         // device data constants
         private const string BeaconKeyDeviceOs = "os";
@@ -117,85 +119,42 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Creates a new instance of type Beacon
         /// </summary>
-        /// <param name="logger">Logger for logging messages</param>
-        /// <param name="beaconCache">Cache storing beacon related data</param>
+        /// <param name="initializer">provider of relevant parameters to initialize / create the beacon</param>
         /// <param name="configuration">OpenKit related configuration</param>
-        /// <param name="clientIpAddress">The client's IP address</param>
-        /// <param name="sessionIdProvider">Provider for session IDs</param>
-        /// <param name="threadIdProvider">Provider for retrieving thread id</param>
-        /// <param name="timingProvider">Provider for time related methods</param>
-        internal Beacon(
-            ILogger logger,
-            IBeaconCache beaconCache,
-            IBeaconConfiguration configuration,
-            string clientIpAddress,
-            ISessionIdProvider sessionIdProvider,
-            IThreadIdProvider threadIdProvider,
-            ITimingProvider timingProvider
-            )
-            : this(
-                logger,
-                beaconCache,
-                configuration,
-                clientIpAddress,
-                sessionIdProvider,
-                threadIdProvider,
-                timingProvider,
-                new DefaultPrnGenerator()
-                )
+        internal Beacon(IBeaconInitializer initializer, IBeaconConfiguration configuration)
         {
-        }
+            beaconCache = initializer.BeaconCache;
 
-        /// <summary>
-        /// Creates a new instance of type Beacon
-        /// </summary>
-        /// <param name="logger">Logger for logging messages</param>
-        /// <param name="beaconCache">Cache storing beacon related data</param>
-        /// <param name="configuration">OpenKit related configuration</param>
-        /// <param name="clientIpAddress">The client's IP address</param>
-        /// <param name="sessionIdProvider">Provider for session IDs</param>
-        /// <param name="threadIdProvider">Provider for retrieving thread id</param>
-        /// <param name="timingProvider">Provider for time related methods</param>
-        /// <param name="randomNumberGenerator">Random number generator</param>
-        internal Beacon(
-            ILogger logger,
-            IBeaconCache beaconCache,
-            IBeaconConfiguration configuration,
-            string clientIpAddress,
-            ISessionIdProvider sessionIdProvider,
-            IThreadIdProvider threadIdProvider,
-            ITimingProvider timingProvider,
-            IPrnGenerator randomNumberGenerator
-            )
-        {
-            this.beaconCache = beaconCache;
-            beaconId = sessionIdProvider.GetNextSessionId();
+            beaconId = initializer.SessionIdProvider.GetNextSessionId();
             SessionNumber = DetermineSessionNumber(configuration, beaconId);
+            SessionSequenceNumber = initializer.SessionSequenceNumber;
 
-            this.timingProvider = timingProvider;
             this.configuration = configuration;
-            this.threadIdProvider = threadIdProvider;
+            threadIdProvider = initializer.ThreadIdProvider;
+            timingProvider = initializer.TimingProvider;
             sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
-            DeviceId = CreateDeviceId(configuration, randomNumberGenerator);
+            DeviceId = CreateDeviceId(configuration, initializer.RandomNumberGenerator);
 
-            if (clientIpAddress == null)
+            var ipAddress = initializer.ClientIpAddress;
+            if (ipAddress == null)
             {
                 // A client IP address, which is a null, is valid.
                 // The real IP address is determined on the server side.
-                this.clientIpAddress = string.Empty;
+                clientIpAddress = string.Empty;
             }
-            else if (InetAddressValidator.IsValidIP(clientIpAddress))
+            else if (InetAddressValidator.IsValidIP(ipAddress))
             {
-                this.clientIpAddress = clientIpAddress;
+                clientIpAddress = ipAddress;
             }
             else
             {
+                var logger = initializer.Logger;
                 if (logger.IsWarnEnabled)
                 {
-                    logger.Warn($"Beacon: Client IP address validation failed: {clientIpAddress}");
+                    logger.Warn($"Beacon: Client IP address validation failed: {ipAddress}");
                 }
-                this.clientIpAddress = string.Empty;
+                clientIpAddress = string.Empty;
             }
 
             basicBeaconData = CreateBasicBeaconData();
@@ -227,6 +186,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         #region IBeacon implementation
         public int SessionNumber { get; }
+
+        public int SessionSequenceNumber { get; }
 
         public long DeviceId { get; }
 
@@ -279,7 +240,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         #region internal methods
 
-        string IBeacon.CreateTag(int parentActionId, int sequenceNo)
+        string IBeacon.CreateTag(int parentActionId, int tracerSeqNo)
         {
             if (!configuration.PrivacyConfiguration.IsWebRequestTracingAllowed)
             {
@@ -288,16 +249,27 @@ namespace Dynatrace.OpenKit.Protocol
 
             var openKitConfig = configuration.OpenKitConfiguration;
             var httpConfiguration = configuration.HttpClientConfiguration;
-            return $"{WebRequestTagPrefix}_"
-                + $"{ProtocolConstants.ProtocolVersion}_"
-                + $"{httpConfiguration.ServerId}_"
-                + $"{DeviceId}_"
-                + $"{SessionNumber}_"
-                + $"{openKitConfig.ApplicationIdPercentEncoded}_"
-                + $"{parentActionId}_"
-                + $"{threadIdProvider.ThreadId}_"
-                + $"{sequenceNo}";
+            var builder = new StringBuilder();
+
+            builder.Append(WebRequestTagPrefix);
+            builder.Append("_").Append(ProtocolConstants.ProtocolVersion);
+            builder.Append("_").Append(httpConfiguration.ServerId);
+            builder.Append("_").Append(DeviceId);
+            builder.Append("_").Append(SessionNumber);
+            if (VisitStoreVersion > 1)
+            {
+                builder.Append("-").Append(SessionSequenceNumber);
+            }
+
+            builder.Append("_").Append(openKitConfig.ApplicationIdPercentEncoded);
+            builder.Append("_").Append(parentActionId);
+            builder.Append("_").Append(threadIdProvider.ThreadId);
+            builder.Append("_").Append(tracerSeqNo);
+
+            return builder.ToString();
         }
+
+        private int VisitStoreVersion => configuration.ServerConfiguration.VisitStoreVersion;
 
         void IBeacon.AddAction(IActionInternals action)
         {
@@ -677,6 +649,7 @@ namespace Dynatrace.OpenKit.Protocol
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyVisitorId, DeviceId);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeySessionNumber, SessionNumber);
+            AddKeyValuePair(basicBeaconBuilder, BeaconKeySessionSequence, SessionSequenceNumber);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyClientIpAddress, clientIpAddress);
 
             // platform information
@@ -696,6 +669,8 @@ namespace Dynatrace.OpenKit.Protocol
             var builder = new StringBuilder();
 
             builder.Append(immutableBasicBeaconData);
+            AddKeyValuePair(builder, BeaconKeyVisitStoreVersion, VisitStoreVersion);
+
             builder.Append(BeaconDataDelimiter);
 
             // append timestamp data

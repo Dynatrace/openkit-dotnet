@@ -19,6 +19,7 @@
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.API;
 using System.Collections.Generic;
+using Dynatrace.OpenKit.Core.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -27,11 +28,14 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private static bool _remoteCertificateValidationCallbackInitialized = false;
 
-        public HttpClientWebClient(ILogger logger, IHttpClientConfiguration configuration) : base(logger, configuration)
+        public HttpClientWebClient(ILogger logger, IHttpClientConfiguration configuration,
+            IInterruptibleThreadSuspender threadSuspender)
+            : base(logger, configuration, threadSuspender)
         {
             if (!_remoteCertificateValidationCallbackInitialized)
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SslTrustManager?.ServerCertificateValidationCallback;
+                System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+                    configuration.SslTrustManager?.ServerCertificateValidationCallback;
                 _remoteCertificateValidationCallbackInitialized = true;
             }
         }

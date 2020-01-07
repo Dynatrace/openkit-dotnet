@@ -29,6 +29,7 @@ namespace Dynatrace.OpenKit.Protocol
         private IBeaconConfiguration configuration;
         private string clientIpAddress;
         private ISessionIdProvider sessionIdProvider;
+        private int sessionSequenceNumber;
         private IThreadIdProvider threadIdProvider;
         private ITimingProvider timingProvider;
         private IPrnGenerator randomGenerator;
@@ -41,6 +42,7 @@ namespace Dynatrace.OpenKit.Protocol
             sessionIdProvider = Substitute.For<ISessionIdProvider>();
             threadIdProvider = Substitute.For<IThreadIdProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
+            randomGenerator = Substitute.For<IPrnGenerator>();
         }
 
         internal TestBeaconBuilder With(ILogger logger)
@@ -73,6 +75,12 @@ namespace Dynatrace.OpenKit.Protocol
             return this;
         }
 
+        internal TestBeaconBuilder WithSessionSequenceNumber(int sessionSeqNo)
+        {
+            sessionSequenceNumber = sessionSeqNo;
+            return this;
+        }
+
         internal TestBeaconBuilder With(IThreadIdProvider provider)
         {
             threadIdProvider = provider;
@@ -93,29 +101,17 @@ namespace Dynatrace.OpenKit.Protocol
 
         internal IBeacon Build()
         {
-            if (randomGenerator != null)
-            {
-                return new Beacon(
-                    logger,
-                    beaconCache,
-                    configuration,
-                    clientIpAddress,
-                    sessionIdProvider,
-                    threadIdProvider,
-                    timingProvider,
-                    randomGenerator
-                );
-            }
+            var initializer = Substitute.For<IBeaconInitializer>();
+            initializer.Logger.Returns(logger);
+            initializer.BeaconCache.Returns(beaconCache);
+            initializer.ClientIpAddress.Returns(clientIpAddress);
+            initializer.SessionIdProvider.Returns(sessionIdProvider);
+            initializer.SessionSequenceNumber.Returns(sessionSequenceNumber);
+            initializer.ThreadIdProvider.Returns(threadIdProvider);
+            initializer.TimingProvider.Returns(timingProvider);
+            initializer.RandomNumberGenerator.Returns(randomGenerator);
 
-            return new Beacon(
-                logger,
-                beaconCache,
-                configuration,
-                clientIpAddress,
-                sessionIdProvider,
-                threadIdProvider,
-                timingProvider
-            );
+            return new Beacon(initializer, configuration);
         }
     }
 }

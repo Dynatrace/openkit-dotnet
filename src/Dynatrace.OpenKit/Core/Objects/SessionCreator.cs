@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using System;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
@@ -23,63 +22,60 @@ using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
-    public class SessionCreator : ISessionCreator
+    public class SessionCreator : ISessionCreator, IBeaconInitializer
     {
-        // log message reporter
-        private readonly ILogger logger;
         // OpenKit related configuration
         private readonly IOpenKitConfiguration openKitConfiguration;
         // privacy related configuration
         private readonly IPrivacyConfiguration privacyConfiguration;
 
-        private readonly IThreadIdProvider threadIdProvider;
-        private readonly ITimingProvider timingProvider;
 
-        private readonly IBeaconCache beaconCache;
-
-        private readonly string clientIpAddress;
         private readonly int serverId;
-
-        private readonly ISessionIdProvider sessionIdProvider;
-        private readonly IPrnGenerator randomNumberGenerator;
 
         internal SessionCreator(ISessionCreatorInput input, string clientIpAddress)
         {
-            logger = input.Logger;
+            Logger = input.Logger;
             openKitConfiguration = input.OpenKitConfiguration;
             privacyConfiguration = input.PrivacyConfiguration;
-            beaconCache = input.BeaconCache;
-            threadIdProvider = input.ThreadIdProvider;
-            timingProvider = input.TimingProvider;
-            this.clientIpAddress = clientIpAddress;
+            BeaconCache = input.BeaconCache;
+            ThreadIdProvider = input.ThreadIdProvider;
+            TimingProvider = input.TimingProvider;
+            ClientIpAddress = clientIpAddress;
 
             serverId = input.CurrentServerId;
-            sessionIdProvider = new FixedSessionIdProvider(input.SessionIdProvider);
-            randomNumberGenerator = new FixedPrnGenerator(new DefaultPrnGenerator());
+            SessionIdProvider = new FixedSessionIdProvider(input.SessionIdProvider);
+            RandomNumberGenerator = new FixedPrnGenerator(new DefaultPrnGenerator());
         }
 
         ISessionInternals ISessionCreator.CreateSession(IOpenKitComposite parent)
         {
             var configuration = BeaconConfiguration.From(openKitConfiguration, privacyConfiguration, serverId);
-            var beacon = new Beacon(
-                logger,
-                beaconCache,
-                configuration,
-                clientIpAddress,
-                sessionIdProvider,
-                threadIdProvider,
-                timingProvider,
-                randomNumberGenerator
-            );
+            var beacon = new Beacon(this, configuration);
 
-            var session = new Session(logger, parent, beacon);
+            var session = new Session(Logger, parent, beacon);
             SessionSequenceNumber++;
 
             return session;
         }
 
-        internal int SessionSequenceNumber { get; private set; }
+        #region IBeaconInitializer implementation
 
-        internal IPrnGenerator RandomNumberGenerator => randomNumberGenerator;
+        public ILogger Logger { get; }
+
+        public IBeaconCache BeaconCache { get; }
+
+        public string ClientIpAddress { get; }
+
+        public ISessionIdProvider SessionIdProvider { get; }
+
+        public int SessionSequenceNumber { get; private set; }
+
+        public IThreadIdProvider ThreadIdProvider { get; }
+
+        public ITimingProvider TimingProvider { get; }
+
+        public IPrnGenerator RandomNumberGenerator { get; }
+
+        #endregion
     }
 }

@@ -19,6 +19,7 @@
 using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -27,7 +28,9 @@ namespace Dynatrace.OpenKit.Protocol
     {
         private readonly IHttpClientConfiguration configuration;
 
-        public HttpClientHttpClient(ILogger logger, IHttpClientConfiguration configuration) : base(logger, configuration)
+        public HttpClientHttpClient(ILogger logger, IHttpClientConfiguration configuration,
+            IInterruptibleThreadSuspender threadSuspender)
+            : base(logger, configuration, threadSuspender)
         {
             this.configuration = configuration;
         }
