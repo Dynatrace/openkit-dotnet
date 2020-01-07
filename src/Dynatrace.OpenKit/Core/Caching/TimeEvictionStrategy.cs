@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Caching
@@ -76,8 +77,8 @@ namespace Dynatrace.OpenKit.Core.Caching
         private void DoExecute()
         {
             // first get a snapshot of all inserted beacons
-            var beaconIDs = beaconCache.BeaconIDs;
-            if (beaconIDs.Count == 0)
+            var beaconKeys = beaconCache.BeaconKeys;
+            if (beaconKeys.Count == 0)
             {
                 // no beacons - set last run timestamp and return immediately
                 LastRunTimestamp = timingProvider.ProvideTimestampInMilliseconds();
@@ -89,16 +90,15 @@ namespace Dynatrace.OpenKit.Core.Caching
             var smallestAllowedBeaconTimestamp = currentTimestamp - configuration.MaxRecordAge;
 
             // iterate over the previously obtained set and evict for each beacon
-            using (IEnumerator<int> beaconIdIterator = beaconIDs.GetEnumerator())
+            using (IEnumerator<BeaconKey> beaconKeyIterator = beaconKeys.GetEnumerator())
             {
-                while (!isShutdownFunc() && beaconIdIterator.MoveNext())
+                while (!isShutdownFunc() && beaconKeyIterator.MoveNext())
                 {
-                    var beaconId = beaconIdIterator.Current;
-                    var numRecordsRemoved = beaconCache.EvictRecordsByAge(beaconId, smallestAllowedBeaconTimestamp);
+                    var beaconKey = beaconKeyIterator.Current;
+                    var numRecordsRemoved = beaconCache.EvictRecordsByAge(beaconKey, smallestAllowedBeaconTimestamp);
                     if (numRecordsRemoved > 0 && logger.IsDebugEnabled)
                     {
-                        logger.Debug(GetType().Name + " - Removed " + numRecordsRemoved +
-                                     " records from Beacon with ID " + beaconId);
+                        logger.Debug($"{GetType().Name} - Removed {numRecordsRemoved} records from Beacon with key {beaconKey}");
                     }
                 }
             }

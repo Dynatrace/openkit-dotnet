@@ -144,6 +144,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // given
             var configuration = MockBeaconCacheConfig(0L, 1000L, 2000L);
             var target = CreateTimeEvictionStrategyWith(configuration);
+            var key = new BeaconKey(0, 0);
 
             mockLogger.IsInfoEnabled.Returns(true);
 
@@ -153,7 +154,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             _ = mockLogger.Received(1).IsInfoEnabled;
             mockLogger.ReceivedWithAnyArgs(1).Info(string.Empty);
-            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
+            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(key, 0L);
 
             // and when executing a second time
             mockLogger.ClearReceivedCalls();
@@ -162,7 +163,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             _ = mockLogger.DidNotReceive().IsInfoEnabled;
             mockLogger.DidNotReceiveWithAnyArgs().Info(string.Empty);
-            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
+            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(key, 0L);
         }
 
         [Test]
@@ -171,6 +172,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // given
             var configuration = MockBeaconCacheConfig(0L, 1000L, 2000L);
             var target = CreateTimeEvictionStrategyWith(configuration);
+            var key = new BeaconKey(0, 0);
 
             mockLogger.IsInfoEnabled.Returns(false);
 
@@ -180,7 +182,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             _ = mockLogger.Received(1).IsInfoEnabled;
             mockLogger.DidNotReceiveWithAnyArgs().Info(string.Empty);
-            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
+            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(key, 0L);
 
             // and when executing a second time
             target.Execute();
@@ -188,7 +190,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             // then
             _ = mockLogger.Received(2).IsInfoEnabled;
             mockLogger.DidNotReceiveWithAnyArgs().Info(string.Empty);
-            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
+            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(key, 0L);
         }
 
         [Test]
@@ -221,17 +223,18 @@ namespace Dynatrace.OpenKit.Core.Caching
             // given
             var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
             var target = CreateTimeEvictionStrategyWith(configuration);
+            var key = new BeaconKey(0, 0);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2000L);
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int>());
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey>());
 
             // when
             target.Execute();
 
             // then verify interactions
-            _ = mockBeaconCache.Received(1).BeaconIDs;
+            _ = mockBeaconCache.Received(1).BeaconKeys;
             mockTimingProvider.Received(3).ProvideTimestampInMilliseconds();
-            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(0, 0L);
+            mockBeaconCache.DidNotReceiveWithAnyArgs().EvictRecordsByAge(key, 0L);
 
             // also ensure that the last run timestamp was updated
             Assert.That(target.LastRunTimestamp, Is.EqualTo(2000L));
@@ -244,17 +247,19 @@ namespace Dynatrace.OpenKit.Core.Caching
             // given
             var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
             var target = CreateTimeEvictionStrategyWith(configuration);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 1, 42 });
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
 
             // when
             target.Execute();
 
             // then verify interactions
-            _ = mockBeaconCache.Received(1).BeaconIDs;
-            mockBeaconCache.Received(1).EvictRecordsByAge(1, 2099L - configuration.MaxRecordAge);
-            mockBeaconCache.Received(1).EvictRecordsByAge(42, 2099L - configuration.MaxRecordAge);
+            _ = mockBeaconCache.Received(1).BeaconKeys;
+            mockBeaconCache.Received(1).EvictRecordsByAge(keyOne, 2099L - configuration.MaxRecordAge);
+            mockBeaconCache.Received(1).EvictRecordsByAge(keyTwo, 2099L - configuration.MaxRecordAge);
             mockTimingProvider.Received(3).ProvideTimestampInMilliseconds();
 
             // also ensure that the last run timestamp was updated
@@ -267,12 +272,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             // given
             var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
             var target = CreateTimeEvictionStrategyWith(configuration);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
 
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 1, 42 });
-            mockBeaconCache.EvictRecordsByAge(1, Arg.Any<long>()).Returns(2);
-            mockBeaconCache.EvictRecordsByAge(42, Arg.Any<long>()).Returns(5);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
+            mockBeaconCache.EvictRecordsByAge(keyOne, Arg.Any<long>()).Returns(2);
+            mockBeaconCache.EvictRecordsByAge(keyTwo, Arg.Any<long>()).Returns(5);
 
             mockLogger.IsDebugEnabled.Returns(true);
 
@@ -281,8 +288,8 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // then verify that the logger was invoked
             _ = mockLogger.Received(2).IsDebugEnabled;
-            mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 2 records from Beacon with ID 1");
-            mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 5 records from Beacon with ID 42");
+            mockLogger.Received(1).Debug($"{target.GetType().Name} - Removed 2 records from Beacon with key {keyOne}");
+            mockLogger.Received(1).Debug($"{target.GetType().Name} - Removed 5 records from Beacon with key {keyTwo}");
         }
 
         [Test]
@@ -293,11 +300,13 @@ namespace Dynatrace.OpenKit.Core.Caching
             isShutdownFunc = () => shutdown;
             var configuration = MockBeaconCacheConfig(1000L, 1000L, 2000L);
             var target = CreateTimeEvictionStrategyWith(configuration);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
 
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(1000L, 2099L);
 
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 1, 42 });
-            mockBeaconCache.EvictRecordsByAge(Arg.Any<int>(), Arg.Any<long>())
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
+            mockBeaconCache.EvictRecordsByAge(Arg.Any<BeaconKey>(), Arg.Any<long>())
                 .Returns(x =>
                 {
                     shutdown = true;
@@ -308,8 +317,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.Execute();
 
             // then verify interactions
-            _ = mockBeaconCache.Received(1).BeaconIDs;
-            mockBeaconCache.Received(1).EvictRecordsByAge(Arg.Any<int>(), 2099L - configuration.MaxRecordAge);
+            _ = mockBeaconCache.Received(1).BeaconKeys;
+            mockBeaconCache.Received(1).EvictRecordsByAge(Arg.Any<BeaconKey>(), 2099L - configuration.MaxRecordAge);
         }
 
         private TimeEvictionStrategy CreateTimeEvictionStrategyWith(IBeaconCacheConfiguration config)

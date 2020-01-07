@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Caching
@@ -26,13 +27,13 @@ namespace Dynatrace.OpenKit.Core.Caching
     {
         private readonly ILogger logger;
         private readonly ReaderWriterLockSlim globalCacheLock = new ReaderWriterLockSlim();
-        private readonly IDictionary<int, BeaconCacheEntry> beacons = new Dictionary<int, BeaconCacheEntry>();
+        private readonly IDictionary<BeaconKey, BeaconCacheEntry> beacons = new Dictionary<BeaconKey, BeaconCacheEntry>();
         private long cacheSizeInBytes = 0;
 
         private EventHandler recordsAdded;
         private readonly object recordsAddedLock = new object();
 
-        public HashSet<int> BeaconIDs => CopyBeaconIDs();
+        public HashSet<BeaconKey> BeaconKeys => CopyBeaconKeys();
 
         public long NumBytesInCache => Interlocked.Read(ref cacheSizeInBytes);
 
@@ -59,14 +60,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             }
         }
 
-        public void AddActionData(int beaconId, long timestamp, string data)
+        public void AddActionData(BeaconKey beaconKey, long timestamp, string data)
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " AddActionData(sn=" + beaconId + ", timestamp=" + timestamp + ", data='" + data + "')");
+                logger.Debug($"{GetType().Name} AddActionData(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo}, timestamp={timestamp}, data='{data}')");
             }
             // get a reference to the cache entry
-            var entry = GetCachedEntryOrInsert(beaconId);
+            var entry = GetCachedEntryOrInsert(beaconKey);
 
             // add action data for that beacon
             var record = new BeaconCacheRecord(timestamp, data);
@@ -88,14 +89,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             OnDataAdded();
         }
 
-        public void AddEventData(int beaconId, long timestamp, string data)
+        public void AddEventData(BeaconKey beaconKey, long timestamp, string data)
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " AddEventData(sn=" + beaconId + ", timestamp=" + timestamp + ", data='" + data + "')");
+                logger.Debug($"{GetType().Name} AddEventData(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo} timestamp={timestamp}, data='{data}')");
             }
             // get a reference to the cache entry
-            var entry = GetCachedEntryOrInsert(beaconId);
+            var entry = GetCachedEntryOrInsert(beaconKey);
 
             // add event data for that beacon
             var record = new BeaconCacheRecord(timestamp, data);
@@ -117,20 +118,20 @@ namespace Dynatrace.OpenKit.Core.Caching
             OnDataAdded();
         }
 
-        public void DeleteCacheEntry(int beaconId)
+        public void DeleteCacheEntry(BeaconKey beaconKey)
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " DeleteCacheEntry(sn=" + beaconId + ")");
+                logger.Debug($"{GetType().Name} DeleteCacheEntry(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo})");
             }
             BeaconCacheEntry entry = null;
             try
             {
                 globalCacheLock.EnterWriteLock();
-                if (beacons.ContainsKey(beaconId))
+                if (beacons.ContainsKey(beaconKey))
                 {
-                    entry = beacons[beaconId];
-                    beacons.Remove(beaconId);
+                    entry = beacons[beaconKey];
+                    beacons.Remove(beaconKey);
                 }
             }
             finally
@@ -144,9 +145,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             }
         }
 
-        public int EvictRecordsByAge(int beaconId, long minTimestamp)
+        public int EvictRecordsByAge(BeaconKey beaconKey, long minTimestamp)
         {
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
                 // already removed
@@ -166,16 +167,15 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if(logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " EvictRecordsByAge(sn=" + beaconId + ", minTimestamp=" + minTimestamp + ") has evicted "
-                     + numRecordsRemoved + " records");
+                logger.Debug($"{GetType().Name} EvictRecordsByAge(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo}, minTimestamp={minTimestamp}) has evicted {numRecordsRemoved} records");
             }
 
             return numRecordsRemoved;
         }
 
-        public int EvictRecordsByNumber(int beaconId, int numRecords)
+        public int EvictRecordsByNumber(BeaconKey beaconKey, int numRecords)
         {
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
                 // already removed
@@ -195,19 +195,18 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug(GetType().Name + " EvictRecordsByNumber(sn=" + beaconId + ", numRecords=" + numRecords + ") has evicted "
-                    + numRecordsRemoved + " records");
+                logger.Debug($"{GetType().Name} EvictRecordsByNumber(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo}, numRecords={numRecords}) has evicted {numRecordsRemoved} records");
             }
 
             return numRecordsRemoved;
         }
 
-        public virtual string GetNextBeaconChunk(int beaconId, string chunkPrefix, int maxSize, char delimiter)
+        public virtual string GetNextBeaconChunk(BeaconKey beaconKey, string chunkPrefix, int maxSize, char delimiter)
         {
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
-                // a cache entry for the given beaconID does not exist
+                // a cache entry for the given beaconKey does not exist
                 return null;
             }
 
@@ -234,9 +233,9 @@ namespace Dynatrace.OpenKit.Core.Caching
             return entry.GetChunk(chunkPrefix, maxSize, delimiter);
         }
 
-        public bool IsEmpty(int beaconId)
+        public bool IsEmpty(BeaconKey beaconKey)
         {
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
                 // already removed
@@ -257,24 +256,24 @@ namespace Dynatrace.OpenKit.Core.Caching
             return isEmpty;
         }
 
-        public void RemoveChunkedData(int beaconId)
+        public void RemoveChunkedData(BeaconKey beaconKey)
         {
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
-                // a cache entry for the given beaconID does not exist
+                // a cache entry for the given beaconKey does not exist
                 return;
             }
 
             entry.RemoveDataMarkedForSending();
         }
 
-        public void ResetChunkedData(int beaconId)
+        public void ResetChunkedData(BeaconKey beaconKey)
         {
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
-                // a cache entry for the given beaconID does not exist
+                // a cache entry for the given beaconKey does not exist
                 return;
             }
 
@@ -299,14 +298,14 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        /// Get cached <see cref="BeaconCacheEntry"/> or insert new one if nothing exists for given <paramref name="beaconId"/>.
+        /// Get cached <see cref="BeaconCacheEntry"/> or insert new one if nothing exists for given <paramref name="beaconKey"/>.
         /// </summary>
-        /// <param name="beaconId">The beacon id to search for.</param>
+        /// <param name="beaconKey">The beacon key to search for.</param>
         /// <returns>The already cached entry or newly created one.</returns>
-        private BeaconCacheEntry GetCachedEntryOrInsert(int beaconId)
+        private BeaconCacheEntry GetCachedEntryOrInsert(BeaconKey beaconKey)
         {
             // get the appropriate cache entry
-            var entry = GetCachedEntry(beaconId);
+            var entry = GetCachedEntry(beaconKey);
 
             if (entry == null)
             {
@@ -314,15 +313,15 @@ namespace Dynatrace.OpenKit.Core.Caching
                 {
                     // does not exist, and needs to be inserted
                     globalCacheLock.EnterWriteLock();
-                    if (!beacons.ContainsKey(beaconId))
+                    if (!beacons.ContainsKey(beaconKey))
                     {
                         // double check since this could have been added in the mean time
                         entry = new BeaconCacheEntry();
-                        beacons.Add(beaconId, entry);
+                        beacons.Add(beaconKey, entry);
                     }
                     else
                     {
-                        entry = beacons[beaconId];
+                        entry = beacons[beaconKey];
                     }
                 }
                 finally
@@ -335,11 +334,11 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        /// Get cached <see cref="BeaconCacheEntry"/> or <code>null</code> if nothing exists for given <paramref name="beaconId"/>.
+        /// Get cached <see cref="BeaconCacheEntry"/> or <code>null</code> if nothing exists for given <paramref name="beaconKey"/>.
         /// </summary>
-        /// <param name="beaconId">The beacon id to search for.</param>
+        /// <param name="beaconKey">The beacon key to search for.</param>
         /// <returns>The cached entry or <code>null</code>.</returns>
-        private BeaconCacheEntry GetCachedEntry(int beaconId)
+        private BeaconCacheEntry GetCachedEntry(BeaconKey beaconKey)
         {
             BeaconCacheEntry entry = null;
 
@@ -347,7 +346,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             try
             {
                 globalCacheLock.EnterReadLock();
-                if (beacons.TryGetValue(beaconId, out BeaconCacheEntry result))
+                if (beacons.TryGetValue(beaconKey, out BeaconCacheEntry result))
                 {
                     entry = result;
                 }
@@ -374,14 +373,14 @@ namespace Dynatrace.OpenKit.Core.Caching
             handler?.Invoke(this, new EventArgs());
         }
 
-        private HashSet<int> CopyBeaconIDs()
+        private HashSet<BeaconKey> CopyBeaconKeys()
         {
-            HashSet<int> result;
+            HashSet<BeaconKey> result;
 
             try
             {
                 globalCacheLock.EnterReadLock();
-                result = new HashSet<int>(beacons.Keys);
+                result = new HashSet<BeaconKey>(beacons.Keys);
             }
             finally
             {
@@ -394,55 +393,55 @@ namespace Dynatrace.OpenKit.Core.Caching
         #region for testing purposes
 
         /// <summary>
-        /// Get events stored for given <paramref name="beaconId"/>
+        /// Get events stored for given <paramref name="beaconKey"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconId">The beacon ID for which to get the stored events.</param>
-        /// <returns>Events stored for given <paramref name="beaconId"/></returns>
-        internal IList<BeaconCacheRecord> GetEvents(int beaconId)
+        /// <param name="beaconKey">The beacon key for which to get the stored events.</param>
+        /// <returns>Events stored for given <paramref name="beaconKey"/></returns>
+        internal IList<BeaconCacheRecord> GetEvents(BeaconKey beaconKey)
         {
-            return GetCachedEntry(beaconId)?.EventData?.AsReadOnly();
+            return GetCachedEntry(beaconKey)?.EventData?.AsReadOnly();
         }
 
         /// <summary>
-        /// Get actions stored for given <paramref name="beaconId"/>
+        /// Get actions stored for given <paramref name="beaconKey"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconId">The beacon ID for which to get the stored actions.</param>
-        /// <returns>Actions stored for given <paramref name="beaconId"/></returns>
-        internal IList<BeaconCacheRecord> GetActions(int beaconId)
+        /// <param name="beaconKey">The beacon key for which to get the stored actions.</param>
+        /// <returns>Actions stored for given <paramref name="beaconKey"/></returns>
+        internal IList<BeaconCacheRecord> GetActions(BeaconKey beaconKey)
         {
-            return GetCachedEntry(beaconId)?.ActionData?.AsReadOnly();
+            return GetCachedEntry(beaconKey)?.ActionData?.AsReadOnly();
         }
 
         /// <summary>
-        /// Get events being sent for given <paramref name="beaconId"/>
+        /// Get events being sent for given <paramref name="beaconKey"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconId">The beacon ID for which to get the events being sent.</param>
-        /// <returns>Events being sent for given <paramref name="beaconId"/></returns>
-        internal IList<BeaconCacheRecord> GetEventsBeingSent(int beaconId)
+        /// <param name="beaconKey">The beacon key for which to get the events being sent.</param>
+        /// <returns>Events being sent for given <paramref name="beaconKey"/></returns>
+        internal IList<BeaconCacheRecord> GetEventsBeingSent(BeaconKey beaconKey)
         {
-            return GetCachedEntry(beaconId)?.EventDataBeingSent?.AsReadOnly();
+            return GetCachedEntry(beaconKey)?.EventDataBeingSent?.AsReadOnly();
         }
 
         /// <summary>
-        /// Get actions being sent for given <paramref name="beaconId"/>
+        /// Get actions being sent for given <paramref name="beaconKey"/>
         /// </summary>
         /// <remarks>
         /// This method is only for testing purposes and is not thread safe.
         /// </remarks>
-        /// <param name="beaconId">The beacon ID for which to get the actions being sent.</param>
-        /// <returns>Actions being sent for given <paramref name="beaconId"/></returns>
-        internal IList<BeaconCacheRecord> GetActionsBeingSent(int beaconId)
+        /// <param name="beaconKey">The beacon key for which to get the actions being sent.</param>
+        /// <returns>Actions being sent for given <paramref name="beaconKey"/></returns>
+        internal IList<BeaconCacheRecord> GetActionsBeingSent(BeaconKey beaconKey)
         {
-            return GetCachedEntry(beaconId)?.ActionDataBeingSent?.AsReadOnly();
+            return GetCachedEntry(beaconKey)?.ActionDataBeingSent?.AsReadOnly();
         }
 
         #endregion for testing purposes

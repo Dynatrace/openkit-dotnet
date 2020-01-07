@@ -192,15 +192,17 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeUpperBound + 1,
                 configuration.CacheSizeUpperBound + 1,
                 0L);
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
+            var keyOne = new BeaconKey(42, 0);
+            var keyTwo = new BeaconKey(1, 0);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
 
             // when executing the first time
             target.Execute();
 
             // then
             _ = mockBeaconCache.Received(5).NumBytesInCache;
-            mockBeaconCache.Received(1).EvictRecordsByNumber(1, 1);
-            mockBeaconCache.Received(1).EvictRecordsByNumber(42, 1);
+            mockBeaconCache.Received(1).EvictRecordsByNumber(keyTwo, 1);
+            mockBeaconCache.Received(1).EvictRecordsByNumber(keyOne, 1);
         }
 
         [Test]
@@ -215,9 +217,11 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeUpperBound + 1,
                 configuration.CacheSizeUpperBound + 1,
                 0L);
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
-            mockBeaconCache.EvictRecordsByNumber(1, Arg.Any<int>()).Returns(5);
-            mockBeaconCache.EvictRecordsByNumber(42, Arg.Any<int>()).Returns(1);
+            var keyOne = new BeaconKey(42, 0);
+            var keyTwo = new BeaconKey(1, 0);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
+            mockBeaconCache.EvictRecordsByNumber(keyTwo, Arg.Any<int>()).Returns(5);
+            mockBeaconCache.EvictRecordsByNumber(keyOne, Arg.Any<int>()).Returns(1);
 
             mockLogger.IsDebugEnabled.Returns(true);
 
@@ -226,8 +230,8 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // then
             _ = mockLogger.Received(3).IsDebugEnabled;
-            mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 5 records from Beacon with ID 1");
-            mockLogger.Received(1).Debug(target.GetType().Name + " - Removed 1 records from Beacon with ID 42");
+            mockLogger.Received(1).Debug($"{target.GetType().Name} - Removed 1 records from Beacon with key {keyOne}");
+            mockLogger.Received(1).Debug($"{target.GetType().Name} - Removed 5 records from Beacon with key {keyTwo}");
         }
 
         [Test]
@@ -242,9 +246,11 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeUpperBound + 1,
                 configuration.CacheSizeUpperBound + 1,
                 0L);
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
-            mockBeaconCache.EvictRecordsByNumber(1, Arg.Any<int>()).Returns(5);
-            mockBeaconCache.EvictRecordsByNumber(42, Arg.Any<int>()).Returns(1);
+            var keyOne = new BeaconKey(42, 0);
+            var keyTwo = new BeaconKey(1, 0);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
+            mockBeaconCache.EvictRecordsByNumber(keyTwo, Arg.Any<int>()).Returns(5);
+            mockBeaconCache.EvictRecordsByNumber(keyOne, Arg.Any<int>()).Returns(1);
 
             mockLogger.IsDebugEnabled.Returns(false);
 
@@ -273,7 +279,9 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeLowerBound, // stops already
                 0L); // just for safety
 
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
+            var keyOne = new BeaconKey(42, 0);
+            var keyTwo = new BeaconKey(1, 0);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
 
 
             // when executing the first time
@@ -281,14 +289,13 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // then
             _ = mockBeaconCache.Received(8).NumBytesInCache;
-            mockBeaconCache.Received(2).EvictRecordsByNumber(1, 1);
-            mockBeaconCache.Received(2).EvictRecordsByNumber(42, 1);
+            mockBeaconCache.Received(2).EvictRecordsByNumber(keyTwo, 1);
+            mockBeaconCache.Received(2).EvictRecordsByNumber(keyOne, 1);
         }
 
         [Test]
         public void ExecuteEvictionStopsIfThreadGetsInterruptedBetweenTwoBeacons()
         {
-
             // given
             var shutdown = false;
             isShutdownFunc = () => shutdown;
@@ -305,8 +312,10 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeLowerBound, // stops already
                 0L); // just for safety
 
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
-            mockBeaconCache.EvictRecordsByNumber(Arg.Any<int>(), 1).Returns(x =>
+            var keyOne = new BeaconKey(42, 0);
+            var keyTwo = new BeaconKey(1, 0);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
+            mockBeaconCache.EvictRecordsByNumber(Arg.Any<BeaconKey>(), 1).Returns(x =>
             {
                 shutdown = true;
                 return 5;
@@ -317,7 +326,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             // then
             _ = mockBeaconCache.Received(3).NumBytesInCache;
-            mockBeaconCache.Received(1).EvictRecordsByNumber(Arg.Any<int>(), 1);
+            mockBeaconCache.Received(1).EvictRecordsByNumber(Arg.Any<BeaconKey>(), 1);
         }
 
         [Test]
@@ -336,14 +345,16 @@ namespace Dynatrace.OpenKit.Core.Caching
                 configuration.CacheSizeLowerBound, // stops already (second iteration)
                 0L); // just for safety
 
-            mockBeaconCache.BeaconIDs.Returns(new HashSet<int> { 42, 1 });
+            var keyOne = new BeaconKey(42, 0);
+            var keyTwo = new BeaconKey(1, 0);
+            mockBeaconCache.BeaconKeys.Returns(new HashSet<BeaconKey> { keyOne, keyTwo });
 
             // when executing
             target.Execute();
 
             // then
             _ = mockBeaconCache.Received(8).NumBytesInCache;
-            mockBeaconCache.Received(3).EvictRecordsByNumber(Arg.Any<int>(), 1);
+            mockBeaconCache.Received(3).EvictRecordsByNumber(Arg.Any<BeaconKey>(), 1);
         }
 
         private SpaceEvictionStrategy CreateSpaceEvictionStrategyWith(IBeaconCacheConfiguration config)

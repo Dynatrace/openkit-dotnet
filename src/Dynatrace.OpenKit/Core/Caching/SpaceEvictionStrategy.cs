@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -86,6 +87,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                     // suppress any further log output
                     infoShown = true;
                 }
+
                 return;
             }
 
@@ -100,34 +102,34 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// </summary>
         private void DoExecute()
         {
-            var removedRecordsPerBeacon = new Dictionary<int, int>();
+            var removedRecordsPerBeacon = new Dictionary<BeaconKey, int>();
 
             while (!isShutdownFunc() && beaconCache.NumBytesInCache > configuration.CacheSizeLowerBound)
             {
-                var beaconIDs = beaconCache.BeaconIDs;
-                using (IEnumerator<int> iterator = beaconIDs.GetEnumerator())
+                var beaconKeys = beaconCache.BeaconKeys;
+                using (IEnumerator<BeaconKey> iterator = beaconKeys.GetEnumerator())
                 {
                     while (!isShutdownFunc() && iterator.MoveNext() &&
                            beaconCache.NumBytesInCache > configuration.CacheSizeLowerBound)
                     {
-                        var beaconId = iterator.Current;
+                        var beaconKey = iterator.Current;
 
-                        // remove 1 record from Beacon cache for given beaconID
+                        // remove 1 record from Beacon cache for given beaconKey
                         // the result is the number of records removed, which might be in range [0, numRecords=1]
-                        var numRecordsRemoved = beaconCache.EvictRecordsByNumber(beaconId, 1);
+                        var numRecordsRemoved = beaconCache.EvictRecordsByNumber(beaconKey, 1);
 
                         if (!logger.IsDebugEnabled)
                         {
                             continue;
                         }
 
-                        if (!removedRecordsPerBeacon.ContainsKey(beaconId))
+                        if (!removedRecordsPerBeacon.ContainsKey(beaconKey))
                         {
-                            removedRecordsPerBeacon.Add(beaconId, numRecordsRemoved);
+                            removedRecordsPerBeacon.Add(beaconKey, numRecordsRemoved);
                         }
                         else
                         {
-                            removedRecordsPerBeacon[beaconId] += numRecordsRemoved;
+                            removedRecordsPerBeacon[beaconKey] += numRecordsRemoved;
                         }
                     }
                 }
@@ -137,7 +139,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 foreach (var entry in removedRecordsPerBeacon)
                 {
-                    logger.Debug(GetType().Name + " - Removed " + entry.Value + " records from Beacon with ID " + entry.Key);
+                    logger.Debug($"{GetType().Name} - Removed {entry.Value} records from Beacon with key {entry.Key}");
                 }
             }
         }

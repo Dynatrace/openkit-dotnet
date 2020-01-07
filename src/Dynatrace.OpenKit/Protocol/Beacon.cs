@@ -112,7 +112,7 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly IBeaconConfiguration configuration;
 
         private readonly IBeaconCache beaconCache;
-        private readonly int beaconId;
+        private readonly BeaconKey beaconKey;
 
         #region constructors
 
@@ -125,9 +125,10 @@ namespace Dynatrace.OpenKit.Protocol
         {
             beaconCache = initializer.BeaconCache;
 
-            beaconId = initializer.SessionIdProvider.GetNextSessionId();
-            SessionNumber = DetermineSessionNumber(configuration, beaconId);
+            var beaconId = initializer.SessionIdProvider.GetNextSessionId();
             SessionSequenceNumber = initializer.SessionSequenceNumber;
+            beaconKey = new BeaconKey(beaconId, SessionSequenceNumber);
+            SessionNumber = DetermineSessionNumber(configuration, beaconId);
 
             this.configuration = configuration;
             threadIdProvider = initializer.ThreadIdProvider;
@@ -191,7 +192,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         public long DeviceId { get; }
 
-        public bool IsEmpty => beaconCache.IsEmpty(beaconId);
+        public bool IsEmpty => beaconCache.IsEmpty(beaconKey);
 
         /// <summary>
         /// create next ID
@@ -537,7 +538,7 @@ namespace Dynatrace.OpenKit.Protocol
                 // subtract 1024 to ensure that the chunk does not exceed the send size configured on server side?
                 // i guess that was the original intention, but i'm not sure about this
                 // TODO stefan.eberl - This is a quite uncool algorithm and should be improved, avoid subtracting some "magic" number
-                var chunk = beaconCache.GetNextBeaconChunk(beaconId, prefix, configuration.ServerConfiguration.BeaconSizeInBytes - 1024, BeaconDataDelimiter);
+                var chunk = beaconCache.GetNextBeaconChunk(beaconKey, prefix, configuration.ServerConfiguration.BeaconSizeInBytes - 1024, BeaconDataDelimiter);
                 if (string.IsNullOrEmpty(chunk))
                 {
                     // no data added so far or no data to send
@@ -552,12 +553,12 @@ namespace Dynatrace.OpenKit.Protocol
                 {
                     // error happened - but don't know what exactly
                     // reset the previously retrieved chunk (restore it in internal cache) & retry another time
-                    beaconCache.ResetChunkedData(beaconId);
+                    beaconCache.ResetChunkedData(beaconKey);
                     break;
                 }
 
                 // worked -> remove previously retrieved chunk from cache
-                beaconCache.RemoveChunkedData(beaconId);
+                beaconCache.RemoveChunkedData(beaconKey);
             }
 
             return response;
@@ -566,7 +567,7 @@ namespace Dynatrace.OpenKit.Protocol
         void IBeacon.ClearData()
         {
             // remove all cached data for this Beacon from the cache
-            beaconCache.DeleteCacheEntry(beaconId);
+            beaconCache.DeleteCacheEntry(beaconKey);
         }
 
         #endregion
@@ -582,7 +583,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (ThisBeacon.IsCaptureEnabled)
             {
-                beaconCache.AddActionData(beaconId, timestamp, actionBuilder.ToString());
+                beaconCache.AddActionData(beaconKey, timestamp, actionBuilder.ToString());
             }
         }
 
@@ -595,7 +596,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (ThisBeacon.IsCaptureEnabled)
             {
-                beaconCache.AddEventData(beaconId, timestamp, eventBuilder.ToString());
+                beaconCache.AddEventData(beaconKey, timestamp, eventBuilder.ToString());
             }
         }
 

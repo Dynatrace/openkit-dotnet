@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Protocol;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -38,7 +39,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             var target = new BeaconCache(logger);
 
             // then
-            Assert.That(target.BeaconIDs, Is.Empty);
+            Assert.That(target.BeaconKeys, Is.Empty);
             Assert.That(target.NumBytesInCache, Is.EqualTo(0L));
         }
 
@@ -47,21 +48,23 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(2, 0);
 
             // when adding beacon with id 1
-            target.AddEventData(1, 1000L, "a");
+            target.AddEventData(keyOne, 1000L, "a");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
-            Assert.That(target.GetEvents(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { keyOne }));
+            Assert.That(target.GetEvents(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
 
             // and when adding beacon with id 2
-            target.AddEventData(2, 1100L, "b");
+            target.AddEventData(keyTwo, 1100L, "b");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1, 2 }));
-            Assert.That(target.GetEvents(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
-            Assert.That(target.GetEvents(2), Is.EqualTo(new[] { new BeaconCacheRecord(1100L, "b") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { keyOne, keyTwo }));
+            Assert.That(target.GetEvents(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
+            Assert.That(target.GetEvents(keyTwo), Is.EqualTo(new[] { new BeaconCacheRecord(1100L, "b") }));
         }
 
         [Test]
@@ -69,20 +72,21 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            BeaconKey key = new BeaconKey(1, 0);
 
             // when adding beacon with id 1
-            target.AddEventData(1, 1000L, "a");
+            target.AddEventData(key, 1000L, "a");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
-            Assert.That(target.GetEvents(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { key }));
+            Assert.That(target.GetEvents(key), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a") }));
 
             // and when adding other data with beacon id 1
-            target.AddEventData(1, 1100L, "bc");
+            target.AddEventData(key, 1100L, "bc");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
-            Assert.That(target.GetEvents(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1100L, "bc") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { key }));
+            Assert.That(target.GetEvents(key), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1100L, "bc") }));
         }
 
         [Test]
@@ -90,11 +94,13 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
 
             // when adding some data
-            target.AddEventData(1, 1000L, "a");
-            target.AddEventData(42, 1000L, "z");
-            target.AddEventData(1, 1000L, "iii");
+            target.AddEventData(keyOne, 1000L, "a");
+            target.AddEventData(keyTwo, 1000L, "z");
+            target.AddEventData(keyOne, 1000L, "iii");
 
             // then
             Assert.That(target.NumBytesInCache, Is.EqualTo(new BeaconCacheRecord(1000L, "a").DataSizeInBytes
@@ -107,19 +113,21 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(666, 0);
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
 
             // when adding an element
-            target.AddEventData(1, 1000L, "a");
+            target.AddEventData(keyOne, 1000L, "a");
 
             // then verify event got raised
             Assert.That(notifyCount, Is.EqualTo(1));
 
             // when adding some more data
-            target.AddEventData(1, 1100L, "b");
-            target.AddEventData(666, 1200L, "xyz");
+            target.AddEventData(keyOne, 1100L, "b");
+            target.AddEventData(keyTwo, 1200L, "xyz");
 
             // then verify event got raised another two times
             Assert.That(notifyCount, Is.EqualTo(3));
@@ -130,21 +138,23 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(2, 0);
 
             // when adding beacon with id 1
-            target.AddActionData(1, 1000L, "a");
+            target.AddActionData(keyOne, 1000L, "a");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
-            Assert.That(target.GetActions(1), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { keyOne }));
+            Assert.That(target.GetActions(keyOne), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a") }));
 
             // and when adding beacon with id 2
-            target.AddActionData(2, 1100L, "b");
+            target.AddActionData(keyTwo, 1100L, "b");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1, 2 }));
-            Assert.That(target.GetActions(1), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a") }));
-            Assert.That(target.GetActions(2), Is.EqualTo(new [] { new BeaconCacheRecord(1100L, "b") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { keyOne, keyTwo }));
+            Assert.That(target.GetActions(keyOne), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a") }));
+            Assert.That(target.GetActions(keyTwo), Is.EqualTo(new [] { new BeaconCacheRecord(1100L, "b") }));
         }
 
         [Test]
@@ -152,20 +162,21 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var key = new BeaconKey(1, 0);
 
             // when adding beacon with id 1
-            target.AddActionData(1, 1000L, "a");
+            target.AddActionData(key, 1000L, "a");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
-            Assert.That(target.GetActions(1), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { key }));
+            Assert.That(target.GetActions(key), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a") }));
 
             // and when adding other data with beacon id 1
-            target.AddActionData(1, 1100L, "bc");
+            target.AddActionData(key, 1100L, "bc");
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1 }));
-            Assert.That(target.GetActions(1), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1100L, "bc") }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { key }));
+            Assert.That(target.GetActions(key), Is.EqualTo(new [] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1100L, "bc") }));
         }
 
         [Test]
@@ -173,11 +184,13 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
 
             // when adding some data
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(42, 1000L, "z");
-            target.AddActionData(1, 1000L, "iii");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyTwo, 1000L, "z");
+            target.AddActionData(keyOne, 1000L, "iii");
 
             // then
             Assert.That(target.NumBytesInCache, Is.EqualTo(new BeaconCacheRecord(1000L, "a").DataSizeInBytes
@@ -190,19 +203,21 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             // given
             var target = new BeaconCache(logger);
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
 
             // when adding an element
-            target.AddActionData(1, 1000L, "a");
+            target.AddActionData(keyOne, 1000L, "a");
 
             // then verify event was raised
             Assert.That(notifyCount, Is.EqualTo(1));
 
             // when adding some more data
-            target.AddActionData(1, 1100L, "b");
-            target.AddActionData(666, 1200L, "xyz");
+            target.AddActionData(keyOne, 1100L, "b");
+            target.AddActionData(keyTwo, 1200L, "xyz");
 
             // then verify event got raised another two times
             Assert.That(notifyCount, Is.EqualTo(3));
@@ -212,35 +227,41 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntryRemovesTheGivenBeacon()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(42, 1000L, "z");
-            target.AddEventData(1, 1000L, "iii");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyTwo, 1000L, "z");
+            target.AddEventData(keyOne, 1000L, "iii");
 
             // when removing beacon with id 1
-            target.DeleteCacheEntry(1);
+            target.DeleteCacheEntry(keyOne);
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 42 }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { keyTwo }));
 
             // and when removing beacon with id 42
-            target.DeleteCacheEntry(42);
+            target.DeleteCacheEntry(keyTwo);
 
             // then
-            Assert.That(target.BeaconIDs, Is.Empty);
+            Assert.That(target.BeaconKeys, Is.Empty);
         }
 
         [Test]
         public void DeleteCacheEntryDecrementsCacheSize()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(42, 1000L, "z");
-            target.AddEventData(1, 1000L, "iii");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyTwo, 1000L, "z");
+            target.AddEventData(keyOne, 1000L, "iii");
 
             // when deleting entry with beacon id 42
-            target.DeleteCacheEntry(42);
+            target.DeleteCacheEntry(keyTwo);
 
             // then
             Assert.That(target.NumBytesInCache, Is.EqualTo(new BeaconCacheRecord(1000L, "a").DataSizeInBytes
@@ -251,17 +272,20 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntryDoesNotRaiseEvent()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(42, 1000L, "z");
-            target.AddEventData(1, 1000L, "iii");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyTwo, 1000L, "z");
+            target.AddEventData(keyOne, 1000L, "iii");
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
 
             // when deleting both entries
-            target.DeleteCacheEntry(1);
-            target.DeleteCacheEntry(42);
+            target.DeleteCacheEntry(keyOne);
+            target.DeleteCacheEntry(keyTwo);
 
             // then
             Assert.That(notifyCount, Is.EqualTo(0));
@@ -271,10 +295,14 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void DeleteCacheEntriesDoesNothingIfGivenBeaconIdIsNotInCache()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+            var keyThree = new BeaconKey(666, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(42, 1000L, "z");
-            target.AddEventData(1, 1000L, "iii");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyTwo, 1000L, "z");
+            target.AddEventData(keyOne, 1000L, "iii");
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
@@ -282,10 +310,10 @@ namespace Dynatrace.OpenKit.Core.Caching
             var cachedSize = target.NumBytesInCache;
 
             // when
-            target.DeleteCacheEntry(666);
+            target.DeleteCacheEntry(keyThree);
 
             // then
-            Assert.That(target.BeaconIDs, Is.EqualTo(new HashSet<int> { 1, 42 }));
+            Assert.That(target.BeaconKeys, Is.EqualTo(new HashSet<BeaconKey> { keyOne, keyTwo }));
             Assert.That(target.NumBytesInCache, Is.EqualTo(cachedSize));
             Assert.That(notifyCount, Is.EqualTo(0));
         }
@@ -294,13 +322,17 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetNextBeaconChunkReturnsNullIfGivenBeaconIdDoesNotExist()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+            var keyThree = new BeaconKey(666, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(42, 1000L, "z");
-            target.AddEventData(1, 1000L, "iii");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyTwo, 1000L, "z");
+            target.AddEventData(keyOne, 1000L, "iii");
 
             // when
-            var obtained = target.GetNextBeaconChunk(666, "", 1024, '&');
+            var obtained = target.GetNextBeaconChunk(keyThree, "", 1024, '&');
 
             // then
             Assert.That(obtained, Is.Null);
@@ -310,38 +342,44 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetNextBeaconChunkCopiesDataForSending()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddActionData(42, 2000L, "z");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddActionData(keyTwo, 2000L, "z");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when
-            var obtained = target.GetNextBeaconChunk(1, "prefix", 0, '&');
+            var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 0, '&');
 
             // then
             Assert.That(obtained, Is.EqualTo("prefix"));
 
-            Assert.That(target.GetActions(1), Is.Empty);
-            Assert.That(target.GetEvents(1), Is.Empty);
-            Assert.That(target.GetActionsBeingSent(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
-            Assert.That(target.GetEventsBeingSent(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") }));
+            Assert.That(target.GetActions(keyOne), Is.Empty);
+            Assert.That(target.GetEvents(keyOne), Is.Empty);
+            Assert.That(target.GetActionsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
+            Assert.That(target.GetEventsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") }));
         }
 
         [Test]
         public void GetNextBeaconChunkDecreasesBeaconCacheSize()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddActionData(42, 2000L, "z");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddActionData(keyTwo, 2000L, "z");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when
-            target.GetNextBeaconChunk(1, "prefix", 0, '&');
+            target.GetNextBeaconChunk(keyOne, "prefix", 0, '&');
 
             // cache stats are also adjusted
             Assert.That(target.NumBytesInCache, Is.EqualTo(new BeaconCacheRecord(2000L, "z").DataSizeInBytes));
@@ -351,132 +389,145 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void GetNextBeaconChunkRetrievesNextChunk()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddActionData(42, 2000L, "z");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddActionData(keyTwo, 2000L, "z");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when retrieving the first chunk
-            var obtained = target.GetNextBeaconChunk(1, "prefix", 10, '&');
+            var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
 
             // then
             Assert.That(obtained, Is.EqualTo("prefix&b&jjj"));
 
             // then
-            Assert.That(target.GetActionsBeingSent(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
+            Assert.That(target.GetActionsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
             var expectedEventRecords = new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") };
             foreach (var record in expectedEventRecords)
             {
                 record.MarkForSending();
             }
-            Assert.That(target.GetEventsBeingSent(1), Is.EqualTo(expectedEventRecords));
+            Assert.That(target.GetEventsBeingSent(keyOne), Is.EqualTo(expectedEventRecords));
         }
 
         [Test]
         public void RemoveChunkedDataClearsAlreadyRetrievedChunks()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddActionData(42, 2000L, "z");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddActionData(keyTwo, 2000L, "z");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when retrieving the first chunk and removing retrieved chunks
-            var obtained = target.GetNextBeaconChunk(1, "prefix", 10, '&');
-            target.RemoveChunkedData(1);
+            var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
+            target.RemoveChunkedData(keyOne);
 
             // then
             Assert.That(obtained, Is.EqualTo("prefix&b&jjj"));
 
-            Assert.That(target.GetActionsBeingSent(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
-            Assert.That(target.GetEventsBeingSent(1), Is.Empty);
+            Assert.That(target.GetActionsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
+            Assert.That(target.GetEventsBeingSent(keyOne), Is.Empty);
 
             // when retrieving the second chunk and removing retrieved chunks
-            obtained = target.GetNextBeaconChunk(1, "prefix", 10, '&');
-            target.RemoveChunkedData(1);
+            obtained = target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
+            target.RemoveChunkedData(keyOne);
 
             // then
             Assert.That(obtained, Is.EqualTo("prefix&a&iii"));
 
-            Assert.That(target.GetActionsBeingSent(1), Is.Empty);
-            Assert.That(target.GetEventsBeingSent(1), Is.Empty);
+            Assert.That(target.GetActionsBeingSent(keyOne), Is.Empty);
+            Assert.That(target.GetEventsBeingSent(keyOne), Is.Empty);
         }
 
         [Test]
         public void RemoveChunkedDataDoesNothingIfCalledWithNonExistingBeaconId()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(42, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddActionData(42, 2000L, "z");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddActionData(keyTwo, 2000L, "z");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when retrieving the first chunk and removing the wrong beacon chunk
-            target.GetNextBeaconChunk(1, "prefix", 10, '&');
-            target.RemoveChunkedData(2);
+            target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
+            target.RemoveChunkedData(keyTwo);
 
             // then
-            Assert.That(target.GetActionsBeingSent(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
+            Assert.That(target.GetActionsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
             var expectedEventRecords = new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") };
             foreach (var record in expectedEventRecords)
             {
                 record.MarkForSending();
             }
-            Assert.That(target.GetEventsBeingSent(1), Is.EqualTo(expectedEventRecords));
+            Assert.That(target.GetEventsBeingSent(keyOne), Is.EqualTo(expectedEventRecords));
         }
 
         [Test]
         public void ResetChunkedRestoresData()
         {
             // given
+            var key = new BeaconKey(1, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(key, 1000L, "a");
+            target.AddActionData(key, 1001L, "iii");
+            target.AddEventData(key, 1000L, "b");
+            target.AddEventData(key, 1001L, "jjj");
 
             // do same step we'd do when we send the
-            target.GetNextBeaconChunk(1, "prefix", 10, '&');
+            target.GetNextBeaconChunk(key, "prefix", 10, '&');
 
             // data has been copied, but still add some new event & action data
-            target.AddActionData(1, 6666L, "123");
-            target.AddEventData(1, 6666L, "987");
+            target.AddActionData(key, 6666L, "123");
+            target.AddEventData(key, 6666L, "987");
 
             // and when resetting the previously copied data
-            target.ResetChunkedData(1);
+            target.ResetChunkedData(key);
 
             // then
-            Assert.That(target.GetActionsBeingSent(1), Is.Null);
-            Assert.That(target.GetEventsBeingSent(1), Is.Null);
-            Assert.That(target.GetActions(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii"), new BeaconCacheRecord(6666L, "123") }));
-            Assert.That(target.GetEvents(1), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj"), new BeaconCacheRecord(6666L, "987") }));
+            Assert.That(target.GetActionsBeingSent(key), Is.Null);
+            Assert.That(target.GetEventsBeingSent(key), Is.Null);
+            Assert.That(target.GetActions(key), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii"), new BeaconCacheRecord(6666L, "123") }));
+            Assert.That(target.GetEvents(key), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj"), new BeaconCacheRecord(6666L, "987") }));
         }
 
         [Test]
         public void ResetChunkedRestoresCacheSize()
         {
             // given
+            var key = new BeaconKey(1, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(key, 1000L, "a");
+            target.AddActionData(key, 1001L, "iii");
+            target.AddEventData(key, 1000L, "b");
+            target.AddEventData(key, 1001L, "jjj");
 
             // do same step we'd do when we send the
-            target.GetNextBeaconChunk(1, "prefix", 10, '&');
+            target.GetNextBeaconChunk(key, "prefix", 10, '&');
 
             // data has been copied, but still add some new event & action data
-            target.AddActionData(1, 6666L, "123");
-            target.AddEventData(1, 6666L, "987");
+            target.AddActionData(key, 6666L, "123");
+            target.AddEventData(key, 6666L, "987");
 
             // and when resetting the previously copied data
-            target.ResetChunkedData(1);
+            target.ResetChunkedData(key);
 
             // then
             Assert.That(target.NumBytesInCache, Is.EqualTo(28L));
@@ -486,24 +537,26 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ResetChunkedRaisesEvent()
         {
             // given
+            var key = new BeaconKey(1, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(key, 1000L, "a");
+            target.AddActionData(key, 1001L, "iii");
+            target.AddEventData(key, 1000L, "b");
+            target.AddEventData(key, 1001L, "jjj");
 
             // do same step we'd do when we send the
-            target.GetNextBeaconChunk(1, "prefix", 10, '&');
+            target.GetNextBeaconChunk(key, "prefix", 10, '&');
 
             // data has been copied, but still add some new event & action data
-            target.AddActionData(1, 6666L, "123");
-            target.AddEventData(1, 6666L, "987");
+            target.AddActionData(key, 6666L, "123");
+            target.AddEventData(key, 6666L, "987");
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
 
             // and when resetting the previously copied data
-            target.ResetChunkedData(1);
+            target.ResetChunkedData(key);
 
             // then
             Assert.That(notifyCount, Is.EqualTo(1));
@@ -513,24 +566,27 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void ResetChunkedDoesNothingIfEntryDoesNotExist()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(666, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // do same step we'd do when we send the
-            target.GetNextBeaconChunk(1, "prefix", 10, '&');
+            target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
 
             // data has been copied, but still add some new event & action data
-            target.AddActionData(1, 6666L, "123");
-            target.AddEventData(1, 6666L, "987");
+            target.AddActionData(keyOne, 6666L, "123");
+            target.AddEventData(keyOne, 6666L, "987");
 
             var notifyCount = 0;
             target.RecordAdded += (s, a) => { notifyCount += 1; };
 
             // and when resetting the previously copied data
-            target.ResetChunkedData(666);
+            target.ResetChunkedData(keyTwo);
 
             // then
             Assert.That(target.NumBytesInCache, Is.EqualTo(12L));
@@ -540,16 +596,18 @@ namespace Dynatrace.OpenKit.Core.Caching
         [Test]
         public void EvictRecordsByAgeDoesNothingAndReturnsZeroIfBeaconIdDoesNotExist()
         {
-
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(666, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when
-            var obtained = target.EvictRecordsByAge(666, 0);
+            var obtained = target.EvictRecordsByAge(keyTwo, 0);
 
             // then
             Assert.That(obtained, Is.EqualTo(0));
@@ -559,14 +617,16 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void EvictRecordsByAge()
         {
             // given
+            var key = new BeaconKey(1, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(key, 1000L, "a");
+            target.AddActionData(key, 1001L, "iii");
+            target.AddEventData(key, 1000L, "b");
+            target.AddEventData(key, 1001L, "jjj");
 
             // when
-            var obtained = target.EvictRecordsByAge(1, 1001);
+            var obtained = target.EvictRecordsByAge(key, 1001);
 
             // then
             Assert.That(obtained, Is.EqualTo(2));
@@ -576,14 +636,17 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void EvictRecordsByNumberDoesNothingAndReturnsZeroIfBeaconIdDoesNotExist()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(666, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // when
-            var obtained = target.EvictRecordsByNumber(666, 100);
+            var obtained = target.EvictRecordsByNumber(keyTwo, 100);
 
             // then
             Assert.That(obtained, Is.EqualTo(0));
@@ -592,16 +655,17 @@ namespace Dynatrace.OpenKit.Core.Caching
         [Test]
         public void EvictRecordsByNumber()
         {
-
             // given
+            var key = new BeaconKey(1, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(key, 1000L, "a");
+            target.AddActionData(key, 1001L, "iii");
+            target.AddEventData(key, 1000L, "b");
+            target.AddEventData(key, 1001L, "jjj");
 
             // when
-            var obtained = target.EvictRecordsByNumber(1, 2);
+            var obtained = target.EvictRecordsByNumber(key, 2);
 
             // then
             Assert.That(obtained, Is.EqualTo(2));
@@ -611,42 +675,47 @@ namespace Dynatrace.OpenKit.Core.Caching
         public void IsEmptyGivesTrueIfBeaconDoesNotExistInCache()
         {
             // given
+            var keyOne = new BeaconKey(1, 0);
+            var keyTwo = new BeaconKey(666, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddActionData(1, 1001L, "iii");
-            target.AddEventData(1, 1000L, "b");
-            target.AddEventData(1, 1001L, "jjj");
+            target.AddActionData(keyOne, 1000L, "a");
+            target.AddActionData(keyOne, 1001L, "iii");
+            target.AddEventData(keyOne, 1000L, "b");
+            target.AddEventData(keyOne, 1001L, "jjj");
 
             // then
-            Assert.That(target.IsEmpty(666), Is.True);
+            Assert.That(target.IsEmpty(keyTwo), Is.True);
         }
 
         [Test]
         public void IsEmptyGivesFalseIfBeaconDataSizeIsNotEqualToZero()
         {
-
             // given
+            var key = new BeaconKey(1, 0);
+
             var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddEventData(1, 1000L, "b");
+            target.AddActionData(key, 1000L, "a");
+            target.AddEventData(key, 1000L, "b");
 
             // then
-            Assert.That(target.IsEmpty(1), Is.False);
+            Assert.That(target.IsEmpty(key), Is.False);
         }
 
         [Test]
         public void IsEmptyGivesTrueIfBeaconDoesNotContainActiveData()
         {
-
             // given
-            var target = new BeaconCache(logger);
-            target.AddActionData(1, 1000L, "a");
-            target.AddEventData(1, 1000L, "b");
+            var key = new BeaconKey(1, 0);
 
-            target.GetNextBeaconChunk(1, "prefix", 0, '&');
+            var target = new BeaconCache(logger);
+            target.AddActionData(key, 1000L, "a");
+            target.AddEventData(key, 1000L, "b");
+
+            target.GetNextBeaconChunk(key, "prefix", 0, '&');
 
             // then
-            Assert.That(target.IsEmpty(1), Is.True);
+            Assert.That(target.IsEmpty(key), Is.True);
         }
     }
 }

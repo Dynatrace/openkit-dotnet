@@ -40,6 +40,7 @@ namespace Dynatrace.OpenKit.Protocol
         private const long DeviceId = 456;
         private const int ThreadId = 1234567;
         private const int SessionId = 73;
+        private const int SessionSeqNo = 13;
         private const int Multiplicity = 1;
 
         private IBeaconConfiguration mockBeaconConfiguration;
@@ -154,7 +155,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             mockLogger.Received(1).Warn($"Beacon: Client IP address validation failed: {ipAddress}");
 
-            mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .Returns("dummy");
 
             // when
@@ -187,7 +188,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             mockLogger.Received(0).Warn(Arg.Any<string>());
 
-            mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .Returns("dummy");
 
             // when
@@ -373,7 +374,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddActionData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.ACTION.ToInt()}"          // event type
                 + $"&na={actionName}"                     // action name
@@ -398,7 +399,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.SESSION_END.ToInt()}"     // event type
                 + $"&it={ThreadId}"                       // thread ID
@@ -421,7 +422,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.VALUE_INT.ToInt()}"       // event type
                 + $"&na={valueName}"                      // action name
@@ -446,7 +447,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.VALUE_DOUBLE.ToInt()}"    // event type
                 + $"&na={valueName}"                      // action name
@@ -471,7 +472,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.VALUE_STRING.ToInt()}"    // event type
                 + $"&na={valueName}"                      // action name
@@ -495,7 +496,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.VALUE_STRING.ToInt()}"    // event type
                 + $"&na={valueName}"                      // action name
@@ -517,7 +518,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.VALUE_STRING.ToInt()}"    // event type
                 + $"&it={ThreadId}"                       // thread ID
@@ -539,7 +540,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.NAMED_EVENT.ToInt()}"     // event type
                 + $"&na={eventName}"                      // action name
@@ -561,7 +562,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.NAMED_EVENT.ToInt()}"     // event type
                 + $"&it={ThreadId}"                       // thread ID
@@ -586,7 +587,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.ERROR.ToInt()}"           // event type
                 + $"&na={errorName}"                      // action name
@@ -612,7 +613,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.ERROR.ToInt()}"           // event type
                 + $"&it={ThreadId}"                       // thread ID
@@ -639,7 +640,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.CRASH.ToInt()}"           // event type
                 + $"&na={errorName}"                      // action name
@@ -666,7 +667,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.CRASH.ToInt()}"           // event type
                 + $"&na={errorName}"                      // action name
@@ -698,7 +699,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&it={ThreadId}"                       // thread ID
@@ -726,7 +727,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
              mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.IDENTIFY_USER.ToInt()}"   // event type
                 + $"&na={userId}"                         // number bytes received
@@ -748,7 +749,7 @@ namespace Dynatrace.OpenKit.Protocol
 
              // then
              mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.IDENTIFY_USER.ToInt()}"   // event type
                 + $"&it={ThreadId}"                       // thread ID
@@ -775,7 +776,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -806,7 +807,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -836,7 +837,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -866,7 +867,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -897,7 +898,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -927,7 +928,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -959,7 +960,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                SessionId,                                // beacon ID
+                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
                 0,                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
                 + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
@@ -1061,7 +1062,7 @@ namespace Dynatrace.OpenKit.Protocol
             mockOpenKitConfiguration.OperatingSystem.Returns("system");
             mockOpenKitConfiguration.Manufacturer.Returns("manufacturer");
             mockOpenKitConfiguration.ModelId.Returns("model");
-            mockBeaconCache.GetNextBeaconChunk(Arg.Any<int>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .ReturnsNull();
             mockServerConfiguration.VisitStoreVersion.Returns(visitStoreVersion);
             var target = CreateBeacon().WithIpAddress(ipAddress).WithSessionSequenceNumber(sessionSequence).Build();
@@ -1092,7 +1093,8 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&mp={Multiplicity}";
 
             mockBeaconCache.Received(1)
-                .GetNextBeaconChunk(SessionId, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
+                .GetNextBeaconChunk(new BeaconKey(SessionId, sessionSequence), expectedPrefix, Arg.Any<int>(),
+                    Arg.Any<char>());
         }
 
         [Test]
@@ -1114,15 +1116,16 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportCrash("SomeCrash", "SomeReason", "SomeStacktrace");
             target.EndSession();
 
-            Assert.That(beaconCache.GetActions(target.SessionNumber), Is.Not.Empty);
-            Assert.That(beaconCache.GetEvents(target.SessionNumber), Is.Not.Empty);
+            var beaconKey = new BeaconKey(SessionId, SessionSeqNo);
+            Assert.That(beaconCache.GetActions(beaconKey), Is.Not.Empty);
+            Assert.That(beaconCache.GetEvents(beaconKey), Is.Not.Empty);
 
             // when
             target.ClearData();
 
             // then
-            Assert.That(beaconCache.GetActions(target.SessionNumber), Is.Null);
-            Assert.That(beaconCache.GetEvents(target.SessionNumber), Is.Null);
+            Assert.That(beaconCache.GetActions(beaconKey), Is.Null);
+            Assert.That(beaconCache.GetEvents(beaconKey), Is.Null);
         }
 
         [Test]
@@ -1353,7 +1356,7 @@ namespace Dynatrace.OpenKit.Protocol
             _ = webRequestTracer.Received(1).BytesSent;
             _ = webRequestTracer.Received(1).ResponseCode;
             Assert.That(target.IsEmpty, Is.False);
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1475,7 +1478,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.IdentifyUser("test user");
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1573,7 +1576,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1623,7 +1626,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.AddAction(action);
 
             // then
-            mockBeaconCache.Received(1).AddActionData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddActionData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1665,7 +1668,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.EndSession();
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1693,7 +1696,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportError(ActionId, "error", 42, "the answer");
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1737,7 +1740,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportValue(ActionId, "test int value", 13);
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1779,7 +1782,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportValue(ActionId, "test double value", 2.71);
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1821,7 +1824,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportValue(ActionId, "test string value", "test data");
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1849,7 +1852,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportEvent(ActionId, "test event");
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1862,7 +1865,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.StartSession();
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
         }
 
         [Test]
@@ -1876,7 +1879,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.StartSession();
 
             // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<int>(), Arg.Any<long>(), Arg.Any<string>());
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
             Assert.That(mockPrivacyConfiguration.ReceivedCalls(), Is.Empty);
         }
 
@@ -1982,8 +1985,8 @@ namespace Dynatrace.OpenKit.Protocol
         public void UseInternalBeaconIdForAccessingBeaconCacheWhenSessionNumberReportingDisallowed()
         {
             // given
-            const int beaconId = 73;
-            mockSessionIdProvider.GetNextSessionId().Returns(beaconId);
+            var beaconKey = new BeaconKey(99, SessionSeqNo);
+            mockSessionIdProvider.GetNextSessionId().Returns(beaconKey.BeaconId);
             mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(false);
 
             var target = CreateBeacon().Build();
@@ -1993,7 +1996,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(target.SessionNumber, Is.EqualTo(1));
-            mockBeaconCache.Received(1).DeleteCacheEntry(beaconId);
+            mockBeaconCache.Received(1).DeleteCacheEntry(beaconKey);
         }
 
         [Test]
@@ -2012,7 +2015,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(response, Is.Null);
             mockBeaconCache.Received(1).GetNextBeaconChunk(
-                Arg.Any<int>(),
+                Arg.Any<BeaconKey>(),
                 $"vv={ProtocolConstants.ProtocolVersion}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
                 $"&ap={AppId}" +
@@ -2022,7 +2025,7 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
                 $"&vi={DeviceId}" +
                 $"&sn={SessionId}" +
-                "&ss=0" +
+                $"&ss={SessionSeqNo}" +
                 "&ip=127.0.0.1" +
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
@@ -2076,6 +2079,7 @@ namespace Dynatrace.OpenKit.Protocol
                     .With(mockSessionIdProvider)
                     .With(mockThreadIdProvider)
                     .With(mockTimingProvider)
+                    .WithSessionSequenceNumber(SessionSeqNo)
                 ;
         }
 

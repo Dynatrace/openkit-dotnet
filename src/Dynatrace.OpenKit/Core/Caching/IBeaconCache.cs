@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Dynatrace.OpenKit.Protocol;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -33,13 +34,13 @@ namespace Dynatrace.OpenKit.Core.Caching
         event EventHandler RecordAdded;
 
         /// <summary>
-        /// Get a <code>HashSet</code> of currently inserted Beacon IDs.
+        /// Get a <code>HashSet</code> of currently inserted Beacon Keys.
         /// </summary>
         /// <remarks>
-        /// The return value is a snapshot of currently inserted Beacon IDs.
+        /// The return value is a snapshot of currently inserted Beacon Keys.
         /// All changes made after this call are not reflected in the returned structure.
         /// </remarks>
-        HashSet<int> BeaconIDs { get; }
+        HashSet<BeaconKey> BeaconKeys { get; }
 
         /// <summary>
         /// Get number of bytes currently stored in cache.
@@ -47,26 +48,26 @@ namespace Dynatrace.OpenKit.Core.Caching
         long NumBytesInCache { get; }
 
         /// <summary>
-        /// Add event data for a given <paramref name="beaconId"/> to this cache.
+        /// Add event data for a given <paramref name="beaconKey"/> to this cache.
         /// </summary>
-        /// <param name="beaconId">The beacon's ID (aka Session ID) for which to add event data.</param>
+        /// <param name="beaconKey">The beacon's key (aka Session ID and Session seq. no.) for which to add event data.</param>
         /// <param name="timestamp">The data's timestamp.</param>
         /// <param name="data">Serialized event data to add.</param>
-        void AddEventData(int beaconId, long timestamp, string data);
+        void AddEventData(BeaconKey beaconKey, long timestamp, string data);
 
         /// <summary>
-        /// Add action data for a given <paramref name="beaconId"/> to this cache.
+        /// Add action data for a given <paramref name="beaconKey"/> to this cache.
         /// </summary>
-        /// <param name="beaconId">The beacon's ID (aka Session ID) for which to add event data.</param>
+        /// <param name="beaconKey">The beacon's key (aka Session ID and Session seq. no.) for which to add event data.</param>
         /// <param name="timestamp">The data's timestamp.</param>
         /// <param name="data">Serialized event data to add.</param>
-        void AddActionData(int beaconId, long timestamp, string data);
+        void AddActionData(BeaconKey beaconKey, long timestamp, string data);
 
         /// <summary>
-        /// Delete a cache entry for a given <paramref name="beaconId"/>
+        /// Delete a cache entry for a given <paramref name="beaconKey"/>
         /// </summary>
-        /// <param name="beaconId">The beacon's ID (aka Session ID) which to delete.</param>
-        void DeleteCacheEntry(int beaconId);
+        /// <param name="beaconKey">The beacon's key (aka Session ID and Session seq. no.) which to delete.</param>
+        void DeleteCacheEntry(BeaconKey beaconKey);
 
         /// <summary>
         /// Get the next chunk for sending to the backend.
@@ -74,28 +75,28 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <remarks>
         /// Note: This method must only be invoked from the beacon sending thread.
         /// </remarks>
-        /// <param name="beaconId">The beacon id for which to get the next chunk.</param>
+        /// <param name="beaconKey">The beacon key for which to get the next chunk.</param>
         /// <param name="chunkPrefix">Prefix to append to the beginning of the chunk.</param>
         /// <param name="maxSize">Maximum chunk size. As soon as chunk's size >= maxSize result is returned.</param>
         /// <param name="delimiter">Delimiter between consecutive chunks.</param>
         /// <returns>
-        /// <code>null</code> if given <code>beaconID</code> does not exist, an mepty string, if there is no more data to send
+        /// <code>null</code> if given <code>beaconKey</code> does not exist, an empty string, if there is no more data to send
         /// or the next chunk to send.
         /// </returns>
-        string GetNextBeaconChunk(int beaconId, string chunkPrefix, int maxSize, char delimiter);
+        string GetNextBeaconChunk(BeaconKey beaconKey, string chunkPrefix, int maxSize, char delimiter);
 
         /// <summary>
         /// Remove all data that was previously included in chunks.
         /// </summary>
         /// <remarks>
-        /// This method must be called, when data retrieved via <see cref="GetNextBeaconChunk(int, string, int, char)"/> was
-        /// successfully sent to the backend, otherwise subsequent calls to <see cref="GetNextBeaconChunk(int, string, int, char)"/>
+        /// This method must be called, when data retrieved via <see cref="GetNextBeaconChunk(BeaconKey, string, int, char)"/> was
+        /// successfully sent to the backend, otherwise subsequent calls to <see cref="GetNextBeaconChunk(BeaconKey, string, int, char)"/>
         /// will retrieve the same data again and again.
         ///
         /// Note: This method must only be invoked from the beacon sending thread.
         /// </remarks>
-        /// <param name="beaconId">The beacon id for which to remove already chunked data.</param>
-        void RemoveChunkedData(int beaconId);
+        /// <param name="beaconKey">The beacon key for which to remove already chunked data.</param>
+        void RemoveChunkedData(BeaconKey beaconKey);
 
         /// <summary>
         /// Reset all data that was previously included in chunks.
@@ -103,30 +104,30 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <remarks>
         /// Note: This method must only be invoked from the beacon sending thread.
         /// </remarks>
-        /// <param name="beaconId">The beacon id for which to remove already chunked data.</param>
-        void ResetChunkedData(int beaconId);
+        /// <param name="beaconKey">The beacon key for which to remove already chunked data.</param>
+        void ResetChunkedData(BeaconKey beaconKey);
 
         /// <summary>
         /// Evict <see cref="BeaconCacheRecord"/> by age for a given beacon.
         /// </summary>
-        /// <param name="beaconId">Beacon identifier.</param>
+        /// <param name="beaconKey">The key identifying a beacon.</param>
         /// <param name="minTimestamp">The minimum timestamp allowed.</param>
         /// <returns>The number of evicted cache records.</returns>
-        int EvictRecordsByAge(int beaconId, long minTimestamp);
+        int EvictRecordsByAge(BeaconKey beaconKey, long minTimestamp);
 
         /// <summary>
         /// Evict <see cref="BeaconCacheRecord"/> by number for given beacon.
         /// </summary>
-        /// <param name="beaconId">Beacon identifier.</param>
+        /// <param name="beaconKey">The key identifying a beacon.</param>
         /// <param name="numRecords"></param>
         /// <returns></returns>
-        int EvictRecordsByNumber(int beaconId, int numRecords);
+        int EvictRecordsByNumber(BeaconKey beaconKey, int numRecords);
 
         /// <summary>
-        /// Tests if an cached entry for <paramref name="beaconId"/> is empty.
+        /// Tests if an cached entry for <paramref name="beaconKey"/> is empty.
         /// </summary>
-        /// <param name="beaconId">The beacon's identifier</param>
+        /// <param name="beaconKey">The key identifying a beacon</param>
         /// <returns><code>true</code> if the cached entry is empty, <code>false</code> otherwise.</returns>
-        bool IsEmpty(int beaconId);
+        bool IsEmpty(BeaconKey beaconKey);
     }
 }
