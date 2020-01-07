@@ -14,8 +14,6 @@
 // limitations under the License.
 //
 
-using System;
-using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
@@ -96,6 +94,16 @@ namespace Dynatrace.OpenKit.Core
         void ISessionWatchdog.DequeueFromClosing(ISessionInternals session)
         {
             context.DequeueFromClosing(session);
+        }
+
+        void ISessionWatchdog.AddToSplitByTimeout(ISessionProxy sessionProxy)
+        {
+            context.AddToSplitByTimeout(sessionProxy);
+        }
+
+        void ISessionWatchdog.RemoveFromSplitByTimeout(ISessionProxy sessionProxy)
+        {
+            context.RemoveFromSplitByTimeout(sessionProxy);
         }
     }
 }

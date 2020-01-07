@@ -96,7 +96,6 @@ namespace Dynatrace.OpenKit.Protocol
         private int nextSequenceNumber;
 
         // session number & start time
-        private readonly long sessionStartTime;
 
         // client IP address
         private readonly string clientIpAddress;
@@ -133,7 +132,7 @@ namespace Dynatrace.OpenKit.Protocol
             this.configuration = configuration;
             threadIdProvider = initializer.ThreadIdProvider;
             timingProvider = initializer.TimingProvider;
-            sessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
+            SessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
             DeviceId = CreateDeviceId(configuration, initializer.RandomNumberGenerator);
 
@@ -203,6 +202,8 @@ namespace Dynatrace.OpenKit.Protocol
         /// create next sequence number
         /// </summary>
         public int NextSequenceNumber => Interlocked.Increment(ref nextSequenceNumber);
+
+        public long SessionStartTime { get; }
 
         /// <summary>
         /// Get the current timestamp in milliseconds by delegating to TimingProvider
@@ -313,7 +314,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, 0L);
 
-            AddEventData(sessionStartTime, eventBuilder);
+            AddEventData(SessionStartTime, eventBuilder);
         }
 
         void IBeacon.EndSession()
@@ -689,7 +690,7 @@ namespace Dynatrace.OpenKit.Protocol
             var timestampBuilder = new StringBuilder();
 
             AddKeyValuePair(timestampBuilder, BeaconKeyTransmissionTime, timingProvider.ProvideTimestampInMilliseconds());
-            AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, sessionStartTime);
+            AddKeyValuePair(timestampBuilder, BeaconKeySessionStartTime, SessionStartTime);
 
             return timestampBuilder.ToString();
         }
@@ -794,7 +795,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         private long GetTimeSinceBeaconCreation(long timestamp)
         {
-            return timestamp - sessionStartTime;
+            return timestamp - SessionStartTime;
         }
 
         #endregion

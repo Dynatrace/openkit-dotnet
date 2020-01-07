@@ -28,7 +28,7 @@ namespace Dynatrace.OpenKit.Core
         private ISessionWatchdogContext mockContext;
         private ISessionInternals mockSession;
 
-        private  ManualResetEvent threadEvent;
+        private ManualResetEvent threadEvent;
 
         [SetUp]
         public void SetUp()
@@ -39,7 +39,7 @@ namespace Dynatrace.OpenKit.Core
             mockContext = Substitute.For<ISessionWatchdogContext>();
             mockSession = Substitute.For<ISessionInternals>();
 
-             threadEvent = new ManualResetEvent(false);
+            threadEvent = new ManualResetEvent(false);
         }
 
         [Test]
@@ -139,6 +139,34 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             mockContext.Received(1).DequeueFromClosing(mockSession);
+        }
+
+        [Test]
+        public void AddToSplitByTimeoutDelegatesToSessionWatchdogContext()
+        {
+            // given
+            var mockSessionProxy = Substitute.For<ISessionProxy>();
+            var target = CreateWatchdog() as ISessionWatchdog;
+
+            // when
+            target.AddToSplitByTimeout(mockSessionProxy);
+
+            // then
+            mockContext.Received(1).AddToSplitByTimeout(mockSessionProxy);
+        }
+
+        [Test]
+        public void RemoveFromSplitByTimeoutDelegatesToSessionWatchdogContext()
+        {
+            // given
+            var mockSessionProxy = Substitute.For<ISessionProxy>();
+            var target = CreateWatchdog() as ISessionWatchdog;
+
+            // when
+            target.RemoveFromSplitByTimeout(mockSessionProxy);
+
+            // then
+            mockContext.Received(1).RemoveFromSplitByTimeout(mockSessionProxy);
         }
 
         private SessionWatchdog CreateWatchdog()

@@ -28,7 +28,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         private readonly IOpenKitConfiguration openKitConfiguration;
         // privacy related configuration
         private readonly IPrivacyConfiguration privacyConfiguration;
-
+        // provider for continuously retrieving new session IDs
+        private readonly ISessionIdProvider continuousSessionIdProvider;
+        // provider for continuously retrieving new random numbers.
+        private readonly IPrnGenerator continuousRandomNumberGenerator;
+        // provider which  will always return the same session ID
+        // provider which will always return the same random number.
 
         private readonly int serverId;
 
@@ -43,8 +48,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             ClientIpAddress = clientIpAddress;
 
             serverId = input.CurrentServerId;
-            SessionIdProvider = new FixedSessionIdProvider(input.SessionIdProvider);
-            RandomNumberGenerator = new FixedPrnGenerator(new DefaultPrnGenerator());
+            continuousSessionIdProvider = input.SessionIdProvider;
+            continuousRandomNumberGenerator = new DefaultPrnGenerator();
+
+            InitializeFixedNumberProviders();
+        }
+
+        private void InitializeFixedNumberProviders()
+        {
+            SessionIdProvider = new FixedSessionIdProvider(continuousSessionIdProvider);
+            RandomNumberGenerator = new FixedPrnGenerator(continuousRandomNumberGenerator);
         }
 
         ISessionInternals ISessionCreator.CreateSession(IOpenKitComposite parent)
@@ -58,6 +71,12 @@ namespace Dynatrace.OpenKit.Core.Objects
             return session;
         }
 
+        void ISessionCreator.Reset()
+        {
+            SessionSequenceNumber = 0;
+            InitializeFixedNumberProviders();
+        }
+
         #region IBeaconInitializer implementation
 
         public ILogger Logger { get; }
@@ -66,7 +85,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public string ClientIpAddress { get; }
 
-        public ISessionIdProvider SessionIdProvider { get; }
+        public ISessionIdProvider SessionIdProvider { get; private set; }
 
         public int SessionSequenceNumber { get; private set; }
 
@@ -74,7 +93,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public ITimingProvider TimingProvider { get; }
 
-        public IPrnGenerator RandomNumberGenerator { get; }
+        public IPrnGenerator RandomNumberGenerator { get; private set; }
 
         #endregion
     }

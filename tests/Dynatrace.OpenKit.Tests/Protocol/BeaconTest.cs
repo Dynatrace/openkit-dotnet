@@ -249,6 +249,20 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void SessionStartTime()
+        {
+            // given
+            const long startTime = 73;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(startTime, 1L);
+
+            // when
+            var target = CreateBeacon().Build();
+
+            // then
+            Assert.That(target.SessionStartTime, Is.EqualTo(startTime));
+        }
+
+        [Test]
         public void CreateTag()
         {
             // given

@@ -23,14 +23,16 @@ namespace Dynatrace.OpenKit.Providers
     /// </summary>
     internal class DefaultPrnGenerator : IPrnGenerator
     {
+        private readonly Random random = new Random();
+
         public int NextPositiveInt()
         {
-            return new Random().Next(int.MaxValue);
+            return random.Next(int.MaxValue);
         }
 
         public long NextPositiveLong()
         {
-            return (long)(new Random().NextDouble() * long.MaxValue);
+            return (long)(random.NextDouble() * long.MaxValue);
         }
     }
 }

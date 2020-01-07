@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -33,6 +34,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         private ISessionInternals mockSplitSession2;
         private IBeacon mockSplitBeacon2;
         private ISessionCreator mockSessionCreator;
+        private ITimingProvider mockTimingProvider;
         private IServerConfiguration mockServerConfiguration;
         private IBeaconSender mockBeaconSender;
         private ISessionWatchdog mockSessionWatchdog;
@@ -45,6 +47,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockLogger.IsWarnEnabled.Returns(true);
 
             mockParent = Substitute.For<IOpenKitComposite>();
+            mockTimingProvider = Substitute.For<ITimingProvider>();
             mockServerConfiguration = Substitute.For<IServerConfiguration>();
 
             mockBeacon = Substitute.For<IBeacon>();
@@ -105,6 +108,20 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeaconSender.Received(1).AddSession(mockSession);
+        }
+
+        [Test]
+        public void InitiallyCreatedSessionProvidesStartTimeAsLastInteractionTime()
+        {
+            // given
+            const int startTime = 73;
+            mockBeacon.SessionStartTime.Returns(startTime);
+
+            // when
+            var target = CreateSessionProxy();
+
+            // then
+            Assert.That(target.LastInteractionTime, Is.EqualTo(startTime));
         }
 
         #region enter action tests
@@ -202,17 +219,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void EnterActionSetsLastInterActionTime()
         {
             // given
-            const long timestamp = 17;
-            mockBeacon.CurrentTimestamp.Returns(timestamp);
+            const long sessionCreationTime = 13;
+            const long lastInteractionTime = 17;
+            mockBeacon.SessionStartTime.Returns(sessionCreationTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime);
 
             var target = CreateSessionProxy();
-            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(sessionCreationTime));
 
             // when
             target.EnterAction("test");
 
             // then
-            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
         }
 
         [Test]
@@ -331,7 +350,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             // given
             const int maxEventCount = 3;
             var serverConfig = ServerConfiguration.From(ResponseAttributes.WithUndefinedDefaults()
-                    .WithMaxEventsPerSession(maxEventCount).Build());
+                .WithMaxEventsPerSession(maxEventCount).Build());
 
             Assert.That(serverConfig.IsSessionSplitByEventsEnabled, Is.True);
 
@@ -523,17 +542,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void IdentifyUserSetsLastInterActionTime()
         {
             // given
-            const long timestamp = 17;
-            mockBeacon.CurrentTimestamp.Returns(timestamp);
+            const long sessionCreationTime = 13;
+            const long lastInteractionTime = 17;
+            mockBeacon.SessionStartTime.Returns(sessionCreationTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime);
 
             var target = CreateSessionProxy();
-            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(sessionCreationTime));
 
             // when
             target.IdentifyUser("Jane Doe");
 
             // then
-            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
         }
 
         [Test]
@@ -674,17 +695,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void ReportCrashSetsLastInterActionTime()
         {
             // given
-            const long timestamp = 17;
-            mockBeacon.CurrentTimestamp.Returns(timestamp);
+            const long sessionCreationTime = 13;
+            const long lastInteractionTime = 17;
+            mockBeacon.SessionStartTime.Returns(sessionCreationTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime);
 
             var target = CreateSessionProxy();
-            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(sessionCreationTime));
 
             // when
             target.ReportCrash("errorName", "reason", "stacktrace");
 
             // then
-            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
         }
 
         [Test]
@@ -833,17 +856,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void TraceWebRequestWithStringUrlSetsLastInterActionTime()
         {
             // given
-            const long timestamp = 17;
-            mockBeacon.CurrentTimestamp.Returns(timestamp);
+            const long sessionCreationTime = 13;
+            const long lastInteractionTime = 17;
+            mockBeacon.SessionStartTime.Returns(sessionCreationTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime);
 
             var target = CreateSessionProxy();
-            Assert.That(target.LastInteractionTime, Is.EqualTo(0L));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(sessionCreationTime));
 
             // when
             target.TraceWebRequest("https://localhost");
 
             // then
-            Assert.That(target.LastInteractionTime, Is.EqualTo(timestamp));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
         }
 
         [Test]
@@ -943,6 +968,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void EndRemovesSessionProxyFromSessionWatchdog()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.End();
+
+            // then
+            mockSessionWatchdog.Received(1).RemoveFromSplitByTimeout(target);
+        }
+
+        [Test]
         public void DisposeSessionEndsTheSession()
         {
             // given
@@ -953,6 +991,309 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockParent.Received(1).OnChildClosed(target);
+        }
+
+        #endregion
+
+        #region split session by time
+
+        [Test]
+        public void SplitSessionByTimeReturnsMinusOneIfSessionProxyIsFinished()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.End();
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(-1L));
+            mockSessionCreator.Received(1).CreateSession(target);
+        }
+
+        [Test]
+        public void SplitSessionByTimeReturnsMinusOneIfServerConfigurationIsNotSet()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(-1L));
+            mockSessionCreator.Received(1).CreateSession(target);
+        }
+
+        [Test]
+        public void SplitByTimeDoesNotPerformSplitIfNeitherSplitByIdleTimeoutNorSplitByDurationEnabled()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(-1L));
+            mockSessionCreator.Received(1).CreateSession(target);
+        }
+
+        [Test]
+        public void SplitByTimeSplitsCurrentSessionIfIdleTimeoutReached()
+        {
+            // given
+            const long lastInteractionTimeSessionOne = 60;
+            const int idleTimeout = 10; // time to split: last interaction + idle => 70
+            const long currentTime = 70;
+            const long sessionTwoCreationTime = 80;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTimeSessionOne, currentTime);
+            mockSplitBeacon1.SessionStartTime.Returns(sessionTwoCreationTime);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            target.IdentifyUser("test"); // update last interaction time
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTimeSessionOne));
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            mockSession.Received(1).End();
+            mockSessionCreator.Received(1).Reset();
+            mockSessionCreator.Received(2).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(sessionTwoCreationTime + idleTimeout));
+        }
+
+        [Test]
+        public void SplitByTimeSplitsCurrentSessionIfIdleTimeoutExceeded()
+        {
+            // given
+            const long lastInteractionTimeSessionOne = 60;
+            const int idleTimeout = 10; // time to split: last interaction + idle => 70
+            const long currentTime = 80;
+            const long sessionTwoCreationTime = 90;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTimeSessionOne, currentTime);
+            mockSplitBeacon1.SessionStartTime.Returns(sessionTwoCreationTime);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            target.IdentifyUser("test"); // update last interaction time
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTimeSessionOne));
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            mockSession.Received(1).End();
+            mockSessionCreator.Received(1).Reset();
+            mockSessionCreator.Received(2).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(sessionTwoCreationTime + idleTimeout));
+        }
+
+        [Test]
+        public void SplitByTimeDoesNotSplitCurrentSessionIfIdleTimeoutNotExpired()
+        {
+            // given
+            const long lastInteractionTime = 60;
+            const int idleTimeout = 20; // time to split: list interaction + idle => 80
+            const long currentTime = 70;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime, currentTime);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            target.IdentifyUser("test"); // update last interaction time
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            Assert.That(obtained, Is.EqualTo(lastInteractionTime + idleTimeout));
+            mockSessionCreator.Received(1).CreateSession(target);
+        }
+
+        [Test]
+        public void SplitByTimeSplitsCurrentSessionIfMaxDurationReached()
+        {
+            // given
+            const long startTimeFirstSession = 60;
+            const int sessionDuration = 10; // split time: session start + duration = 70
+            const long currentTime = 70;
+            const long startTimeSecondSession = 80;
+
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+            mockBeacon.SessionStartTime.Returns(startTimeFirstSession);
+            mockSplitBeacon1.SessionStartTime.Returns(startTimeSecondSession);
+
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            mockSession.Received(1).End();
+            mockSessionCreator.Received(1).Reset();
+            mockSessionCreator.Received(2).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(startTimeSecondSession + sessionDuration));
+        }
+
+        [Test]
+        public void SplitByTimeSplitsCurrentSessionIfMaxDurationExceeded()
+        {
+            // given
+            const long startTimeFirstSession = 60;
+            const int sessionDuration = 10; // split time: session start + duration => 70
+            const long currentTime = 80;
+            const long startTimeSecondSession = 90;
+
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+            mockBeacon.SessionStartTime.Returns(startTimeFirstSession);
+            mockSplitBeacon1.SessionStartTime.Returns(startTimeSecondSession);
+
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            mockSession.Received(1).End();
+            mockSessionCreator.Received(1).Reset();
+            mockSessionCreator.Received(2).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(startTimeSecondSession + sessionDuration));
+        }
+
+        [Test]
+        public void SplitByTimeDoesNotSplitCurrentSessionIfMaxDurationNotReached()
+        {
+            // given
+            const long sessionStartTime = 60;
+            const int sessionDuration = 20; // split time: start time + duration => 80
+            const long currentTime = 70;
+
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+            mockBeacon.SessionStartTime.Returns(sessionStartTime);
+
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            mockSessionCreator.Received(1).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(sessionStartTime + sessionDuration));
+        }
+
+        [Test]
+        public void SplitBySessionTimeReturnsIdleSplitTimeWhenBeforeSessionDurationSplitTime()
+        {
+            // given
+            const long sessionStartTime = 50;
+            const int sessionDuration = 40; // duration split time: start time + duration => 90
+            const long lastInteractionTime = 60;
+            const int idleTimeout = 20; // idle split time: last interaction + idle => 80
+            const long currentTime = 70;
+
+            mockBeacon.SessionStartTime.Returns(sessionStartTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime, currentTime);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            target.IdentifyUser("test"); // update last interaction time
+
+            // when
+            long obtained = target.SplitSessionByTime();
+
+            // then
+            mockSessionCreator.Received(1).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(lastInteractionTime + idleTimeout));
+        }
+
+        [Test]
+        public void SplitBySessionTimeReturnsDurationSplitTimeWhenBeforeIdleSplitTime()
+        {
+            // given
+            const long sessionStartTime = 50;
+            const int sessionDuration = 30; // duration split time: start time + duration => 80
+            const long lastInteractionTime = 60;
+            const int idleTimeout = 50; // idle split time: last interaction + idle => 110
+            const long currentTime = 70;
+
+            mockBeacon.SessionStartTime.Returns(sessionStartTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime, currentTime);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
+            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            target.IdentifyUser("test"); // update last interaction time
+
+            // when
+            var obtained = target.SplitSessionByTime();
+
+            // then
+            mockSessionCreator.Received(1).CreateSession(target);
+            Assert.That(obtained, Is.EqualTo(sessionStartTime + sessionDuration));
         }
 
         #endregion
@@ -997,6 +1338,113 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void OnServerConfigurationUpdateTakesOverServerConfigurationOnFirstCall()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
+            mockServerConfiguration.MaxEventsPerSession.Returns(1);
+
+            Assert.That(target.ServerConfiguration, Is.Null);
+
+            // when
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // then
+            Assert.That(target.ServerConfiguration, Is.EqualTo(mockServerConfiguration));
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateMergesServerConfigurationOnConsecutiveCalls()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            var mockFirstConfig = Substitute.For<IServerConfiguration>();
+            var mockSecondConfig = Substitute.For<IServerConfiguration>();
+
+            // when
+            target.OnServerConfigurationUpdate(mockFirstConfig);
+
+            // then
+            mockFirstConfig.Received(0).Merge(Arg.Any<IServerConfiguration>());
+            _ = mockFirstConfig.Received(1).IsSessionSplitBySessionDurationEnabled;
+            _ = mockFirstConfig.Received(1).IsSessionSplitByIdleTimeoutEnabled;
+
+            // and when
+            target.OnServerConfigurationUpdate(mockSecondConfig);
+
+            // then
+            mockFirstConfig.Received(1).Merge(mockSecondConfig);
+            Assert.That(mockSecondConfig.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateAddsSessionProxyToWatchdogIfSplitByDurationEnabled()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
+
+            // when
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // then
+            mockSessionWatchdog.Received(1).AddToSplitByTimeout(target);
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateAddsSessionProxyToWatchdogIfSplitByIdleTimeoutEnabled()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+
+            // when
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // then
+            mockSessionWatchdog.Received(1).AddToSplitByTimeout(target);
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateDoesNotAddSessionProxyToWatchdogIfSplitByIdleTimeoutAndDurationDisabled()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            // when
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // then
+            Assert.That(mockSessionWatchdog.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void OnServerConfigurationUpdateDoesNotAddSessionProxyToWatchdogOnConsecutiveCalls()
+        {
+            // given
+            var target = CreateSessionProxy();
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            var mockServerConfigTwo = Substitute.For<IServerConfiguration>();
+            mockServerConfigTwo.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfigTwo.IsSessionSplitBySessionDurationEnabled.Returns(true);
+
+            // when
+            target.OnServerConfigurationUpdate(mockServerConfigTwo);
+
+            // then
+            Assert.That(mockSessionWatchdog.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
         public void ToStringReturnsAppropriateResult()
         {
             // given
@@ -1015,7 +1463,8 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private SessionProxy CreateSessionProxy()
         {
-            return new SessionProxy(mockLogger, mockParent, mockSessionCreator, mockBeaconSender, mockSessionWatchdog);
+            return new SessionProxy(mockLogger, mockParent, mockSessionCreator, mockTimingProvider, mockBeaconSender,
+                mockSessionWatchdog);
         }
     }
 }

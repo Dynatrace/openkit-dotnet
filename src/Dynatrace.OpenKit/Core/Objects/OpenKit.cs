@@ -202,7 +202,8 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 var sessionCreator = new SessionCreator(this, clientIpAddress);
-                var sessionProxy = new SessionProxy(logger, this, sessionCreator, beaconSender, sessionWatchdog);
+                var sessionProxy = new SessionProxy(logger, this, sessionCreator, timingProvider, beaconSender,
+                    sessionWatchdog);
 
                 ThisComposite.StoreChildInList(sessionProxy);
 

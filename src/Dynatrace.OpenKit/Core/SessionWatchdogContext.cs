@@ -40,6 +40,7 @@ namespace Dynatrace.OpenKit.Core
         /// provider of the current time and for suspending the thread for a certain amount of time.
         /// </summary>
         private readonly ITimingProvider timingProvider;
+
         /// <summary>
         /// instance for suspending the current thread for a given amount of time
         /// </summary>
@@ -51,6 +52,12 @@ namespace Dynatrace.OpenKit.Core
         private readonly SynchronizedQueue<ISessionInternals> sessionsToClose =
             new SynchronizedQueue<ISessionInternals>();
 
+        /// <summary>
+        /// holds all session proxies which are to be split after expiration of either session duration or idle timeout.
+        /// </summary>
+        private readonly SynchronizedQueue<ISessionProxy> sessionsToSplitByTimeout =
+            new SynchronizedQueue<ISessionProxy>();
+
         public SessionWatchdogContext(ITimingProvider timingProvider, IInterruptibleThreadSuspender threadSuspender)
         {
             this.timingProvider = timingProvider;
@@ -61,32 +68,66 @@ namespace Dynatrace.OpenKit.Core
 
         public void Execute()
         {
-            var sleepTime = CloseExpiredSessions();
+            var durationToNextCloseInMillis = CloseExpiredSessions();
+            var durationToNextSplitInMillis = SplitTimedOutSessions();
 
+            var sleepTime = Math.Min(durationToNextCloseInMillis, durationToNextSplitInMillis);
             if (!threadSuspender.Sleep(sleepTime))
             {
                 ThisContext.RequestShutdown();
             }
         }
 
+        private int SplitTimedOutSessions()
+        {
+            var sleepTimeInMillis = DefaultSleepTimeInMillis;
+            var sessionProxiesToRemove = new List<ISessionProxy>();
+            var allSessionProxies = sessionsToSplitByTimeout.ToList();
+            foreach (var sessionProxy in allSessionProxies)
+            {
+                var nextSessionSplitInMillis = sessionProxy.SplitSessionByTime();
+                if (nextSessionSplitInMillis < 0)
+                {
+                    sessionProxiesToRemove.Add(sessionProxy);
+                    continue;
+                }
+
+                var nowInMillis = timingProvider.ProvideTimestampInMilliseconds();
+                var durationToNextSplit = (int) (nextSessionSplitInMillis - nowInMillis);
+                if (durationToNextSplit < 0)
+                {
+                    continue;
+                }
+
+                sleepTimeInMillis = Math.Min(sleepTimeInMillis, durationToNextSplit);
+            }
+
+            foreach (var sessionProxy in sessionProxiesToRemove)
+            {
+                sessionsToSplitByTimeout.Remove(sessionProxy);
+            }
+
+            return sleepTimeInMillis;
+        }
+
         private int CloseExpiredSessions()
         {
-            var sleepTime = DefaultSleepTimeInMillis;
+            var sleepTimeInMillis = DefaultSleepTimeInMillis;
             var closableSessions = new List<ISessionInternals>();
             var allSessions = sessionsToClose.ToList();
             foreach (var session in allSessions)
             {
-                var now = timingProvider.ProvideTimestampInMilliseconds();
-                var gracePeriodEndTime = session.SplitByEventsGracePeriodEndTimeInMillis;
-                var isGracePeriodExpired = gracePeriodEndTime <= now;
+                var nowInMillis = timingProvider.ProvideTimestampInMilliseconds();
+                var gracePeriodEndTimeInMillis = session.SplitByEventsGracePeriodEndTimeInMillis;
+                var isGracePeriodExpired = gracePeriodEndTimeInMillis <= nowInMillis;
                 if (isGracePeriodExpired)
                 {
                     closableSessions.Add(session);
                     continue;
                 }
 
-                var sleepTimeToGracePeriodEnd = (int) (gracePeriodEndTime - now);
-                sleepTime = Math.Min(sleepTime, sleepTimeToGracePeriodEnd);
+                var sleepTimeToGracePeriodEndInMillis = (int) (gracePeriodEndTimeInMillis - nowInMillis);
+                sleepTimeInMillis = Math.Min(sleepTimeInMillis, sleepTimeToGracePeriodEndInMillis);
             }
 
             foreach (var session in closableSessions)
@@ -95,7 +136,7 @@ namespace Dynatrace.OpenKit.Core
                 session.End();
             }
 
-            return sleepTime;
+            return sleepTimeInMillis;
         }
 
         void ISessionWatchdogContext.RequestShutdown()
@@ -127,5 +168,22 @@ namespace Dynatrace.OpenKit.Core
         {
             return sessionsToClose;
         }
+
+        void ISessionWatchdogContext.AddToSplitByTimeout(ISessionProxy sessionProxy)
+        {
+            if (sessionProxy.IsFinished)
+            {
+                return;
+            }
+
+            sessionsToSplitByTimeout.Put(sessionProxy);
+        }
+
+        void ISessionWatchdogContext.RemoveFromSplitByTimeout(ISessionProxy sessionProxy)
+        {
+            sessionsToSplitByTimeout.Remove(sessionProxy);
+        }
+
+        internal SynchronizedQueue<ISessionProxy> SessionsToSplitByTimeout => sessionsToSplitByTimeout;
     }
 }

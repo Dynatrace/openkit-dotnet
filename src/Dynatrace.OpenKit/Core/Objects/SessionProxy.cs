@@ -14,8 +14,10 @@
 // limitations under the License.
 //
 
+using System;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -40,6 +42,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// creator for new sessions
         /// </summary>
         private readonly ISessionCreator sessionCreator;
+
+        /// <summary>
+        /// provider to obtain the current time
+        /// </summary>
+        private readonly ITimingProvider timingProvider;
 
         /// <summary>
         /// sender of beacon data
@@ -81,12 +88,14 @@ namespace Dynatrace.OpenKit.Core.Objects
             ILogger logger,
             IOpenKitComposite parent,
             ISessionCreator sessionCreator,
+            ITimingProvider timingProvider,
             IBeaconSender beaconSender,
             ISessionWatchdog sessionWatchdog)
         {
             this.logger = logger;
             this.parent = parent;
             this.sessionCreator = sessionCreator;
+            this.timingProvider = timingProvider;
             this.beaconSender = beaconSender;
             this.sessionWatchdog = sessionWatchdog;
 
@@ -120,7 +129,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return NullRootAction.Instance;
                 }
 
-                var session = GetOrSplitCurrentSession();
+                var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelActionEvent();
                 return session.EnterAction(actionName);
             }
@@ -146,7 +155,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return;
                 }
 
-                var session = GetOrSplitCurrentSession();
+                var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelEventInteraction();
                 session.IdentifyUser(userTag);
             }
@@ -172,7 +181,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return;
                 }
 
-                var session = GetOrSplitCurrentSession();
+                var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelEventInteraction();
                 session.ReportCrash(errorName, reason, stacktrace);
             }
@@ -204,7 +213,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return NullWebRequestTracer.Instance;
                 }
 
-                var session = GetOrSplitCurrentSession();
+                var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelEventInteraction();
                 return session.TraceWebRequest(url);
             }
@@ -234,6 +243,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
 
             parent.OnChildClosed(this);
+            sessionWatchdog.RemoveFromSplitByTimeout(this);
         }
 
         #endregion
@@ -273,6 +283,10 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
+        /// <summary>
+        /// Returns the number of top level actions which were made to the current session. Intended to be used by unit
+        /// tests only.
+        /// </summary>
         internal int TopLevelActionCount
         {
             get
@@ -284,6 +298,9 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
         }
 
+        /// <summary>
+        /// Returns the time when the last top level event was called. Intended to be used by unit tests only.
+        /// </summary>
         internal long LastInteractionTime
         {
             get
@@ -293,12 +310,16 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return lastInteractionTime;
                 }
             }
-
         }
 
-        private ISessionInternals GetOrSplitCurrentSession()
+        /// <summary>
+        /// Returns the server configuration of this session proxy. Intended to be used by unit tests only.
+        /// </summary>
+        internal IServerConfiguration ServerConfiguration => serverConfiguration;
+
+        private ISessionInternals GetOrSplitCurrentSessionByEvents()
         {
-            if (IsSessionSplitRequired())
+            if (IsSessionSplitByEventsRequired())
             {
                 var newSession = CreateSession(serverConfiguration);
                 topLevelActionCount = 0;
@@ -313,7 +334,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             return currentSession;
         }
 
-        private bool IsSessionSplitRequired()
+        /// <summary>
+        /// Checks if the maximum number of top level actions is reached and session splitting by events needs to be
+        /// performed.
+        /// </summary>
+        private bool IsSessionSplitByEventsRequired()
         {
             if (serverConfiguration == null || !serverConfiguration.IsSessionSplitByEventsEnabled)
             {
@@ -323,12 +348,89 @@ namespace Dynatrace.OpenKit.Core.Objects
             return serverConfiguration.MaxEventsPerSession <= topLevelActionCount;
         }
 
+        public long SplitSessionByTime()
+        {
+            lock (lockObject)
+            {
+                if (IsFinished)
+                {
+                    return -1;
+                }
+
+                var nextSplitTime = CalculateNextSplitTime();
+                var now = timingProvider.ProvideTimestampInMilliseconds();
+                if (nextSplitTime < 0 || now < nextSplitTime)
+                {
+                    return nextSplitTime;
+                }
+
+                currentSession.End();
+
+                sessionCreator.Reset();
+                currentSession = CreateSession(serverConfiguration);
+
+                return CalculateNextSplitTime();
+            }
+        }
+
+        /// <summary>
+        /// Calculates and returns the next point in time when the session is to be split. The returned time might
+        /// either be,
+        /// <list type="bullet">
+        /// <item>the time when the session expires after the max. session duration elapsed.</item>
+        /// <item>the time when the session expires after being idle.</item>
+        /// </list>
+        /// , depending on what happens earlier.
+        /// </summary>
+        private long CalculateNextSplitTime()
+        {
+            if (serverConfiguration == null)
+            {
+                return -1;
+            }
+
+            var splitByIdleTimeout = serverConfiguration.IsSessionSplitByIdleTimeoutEnabled;
+            var splitBySessionDuration = serverConfiguration.IsSessionSplitBySessionDurationEnabled;
+
+            var idleTimeout = lastInteractionTime + serverConfiguration.SessionTimeoutInMilliseconds;
+            var sessionMaxTime = currentSession.Beacon.SessionStartTime +
+                                 serverConfiguration.MaxSessionDurationInMilliseconds;
+
+            if (splitByIdleTimeout && splitBySessionDuration)
+            {
+                return Math.Min(idleTimeout, sessionMaxTime);
+            }
+            else if (splitByIdleTimeout)
+            {
+                return idleTimeout;
+            }
+            else if (splitBySessionDuration)
+            {
+                return sessionMaxTime;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Creates a new session and adds it to the beacon sender. In case the given server configuration si not null,
+        /// the new session will be initialized with this server configuration.
+        /// The top level action count is reset to zero and the last interaction time is set to the current timestamp.
+        /// </summary>
+        /// <param name="sessionServerConfig">
+        /// the server configuration with which the session will be initialized. Can be <code>null</code>.
+        /// </param>
+        /// <returns>the newly created session.</returns>
         private ISessionInternals CreateSession(IServerConfiguration sessionServerConfig)
         {
             var session = sessionCreator.CreateSession(this);
-            session.Beacon.OnServerConfigurationUpdate += OnServerConfigurationUpdate;
+            var beacon = session.Beacon;
+            beacon.OnServerConfigurationUpdate += OnServerConfigurationUpdate;
 
             ThisComposite.StoreChildInList(session);
+
+            lastInteractionTime = beacon.SessionStartTime;
+            topLevelActionCount = 0;
 
             if (sessionServerConfig != null)
             {
@@ -342,7 +444,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private void RecordTopLevelEventInteraction()
         {
-            lastInteractionTime = currentSession.Beacon.CurrentTimestamp;
+            lastInteractionTime = timingProvider.ProvideTimestampInMilliseconds();
         }
 
         private void RecordTopLevelActionEvent()
@@ -357,13 +459,18 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             lock (lockObject)
             {
-                if (serverConfiguration == null)
-                {
-                    serverConfiguration = serverConfig;
-                }
-                else
+                if (serverConfiguration != null)
                 {
                     serverConfiguration = serverConfiguration.Merge(serverConfig);
+                    return;
+                }
+
+                serverConfiguration = serverConfig;
+
+                if (serverConfig.IsSessionSplitBySessionDurationEnabled ||
+                    serverConfig.IsSessionSplitByIdleTimeoutEnabled)
+                {
+                    sessionWatchdog.AddToSplitByTimeout(this);
                 }
             }
         }

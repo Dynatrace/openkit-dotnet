@@ -162,7 +162,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.CreateSession(mockParent);
 
             // then
-            Assert.That(obtained,  Is.Not.Null);
+            Assert.That(obtained, Is.Not.Null);
         }
 
         [Test]
@@ -179,9 +179,9 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtainedThree = target.CreateSession(mockParent);
 
             // then
-            Assert.That(obtainedOne.Beacon.SessionNumber,  Is.EqualTo(SessionId));
-            Assert.That(obtainedTwo.Beacon.SessionNumber,  Is.EqualTo(SessionId));
-            Assert.That(obtainedThree.Beacon.SessionNumber,  Is.EqualTo(SessionId));
+            Assert.That(obtainedOne.Beacon.SessionNumber, Is.EqualTo(SessionId));
+            Assert.That(obtainedTwo.Beacon.SessionNumber, Is.EqualTo(SessionId));
+            Assert.That(obtainedThree.Beacon.SessionNumber, Is.EqualTo(SessionId));
         }
 
         [Test]
@@ -200,9 +200,9 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtainedThree = targetExplicit.CreateSession(mockParent);
 
             // then
-            Assert.That(obtainedOne.Beacon.DeviceId,  Is.EqualTo(randomizedDeviceId));
-            Assert.That(obtainedTwo.Beacon.DeviceId,  Is.EqualTo(randomizedDeviceId));
-            Assert.That(obtainedThree.Beacon.DeviceId,  Is.EqualTo(randomizedDeviceId));
+            Assert.That(obtainedOne.Beacon.DeviceId, Is.EqualTo(randomizedDeviceId));
+            Assert.That(obtainedTwo.Beacon.DeviceId, Is.EqualTo(randomizedDeviceId));
+            Assert.That(obtainedThree.Beacon.DeviceId, Is.EqualTo(randomizedDeviceId));
         }
 
         [Test]
@@ -212,19 +212,108 @@ namespace Dynatrace.OpenKit.Core.Objects
             var target = CreateSessionCreator();
             ISessionCreator targetExplicit = target;
 
-            Assert.That(target.SessionSequenceNumber,  Is.EqualTo(0));
+            Assert.That(target.SessionSequenceNumber, Is.EqualTo(0));
 
             // when
             targetExplicit.CreateSession(mockParent);
 
             // then
-            Assert.That(target.SessionSequenceNumber,  Is.EqualTo(1));
+            Assert.That(target.SessionSequenceNumber, Is.EqualTo(1));
 
             // and when
             targetExplicit.CreateSession(mockParent);
 
             // then
-            Assert.That(target.SessionSequenceNumber,  Is.EqualTo(2));
+            Assert.That(target.SessionSequenceNumber, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ResetResetsSessionSequenceNumber()
+        {
+            // given
+            var target = CreateSessionCreator();
+            ISessionCreator targetExplicit = target;
+
+
+            for (var i = 0; i < 5; i++)
+            {
+                // when
+                var session = targetExplicit.CreateSession(mockParent);
+
+                // then
+                Assert.That(session.Beacon.SessionSequenceNumber, Is.EqualTo(i));
+            }
+
+            // and when
+            targetExplicit.Reset();
+
+            // then
+            Assert.That(target.SessionSequenceNumber, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ResetMakesFixedSessionIdProviderToUseNextSessionId()
+        {
+            // given
+            const int sessionIdBeforeReset = 17;
+            const int sessionIdAfterReset = 42;
+            mockSessionIdProvider.GetNextSessionId().Returns(sessionIdBeforeReset, sessionIdAfterReset);
+            mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(true);
+
+            var target = CreateSessionCreator();
+            ISessionCreator targetExplicit = target;
+
+            // when
+            for (var i = 0; i < 5; i++)
+            {
+                var session = targetExplicit.CreateSession(mockParent);
+                var beacon = session.Beacon;
+
+                // then
+                Assert.That(beacon.SessionNumber, Is.EqualTo(sessionIdBeforeReset));
+                Assert.That(beacon.SessionSequenceNumber, Is.EqualTo(i));
+            }
+
+            // and when
+            targetExplicit.Reset();
+
+            // then
+            for (var i = 0; i < 5; i++)
+            {
+                var session = targetExplicit.CreateSession(mockParent);
+                var beacon = session.Beacon;
+
+                // then
+                Assert.That(beacon.SessionNumber, Is.EqualTo(sessionIdAfterReset));
+                Assert.That(beacon.SessionSequenceNumber, Is.EqualTo(i));
+            }
+        }
+
+        [Test]
+        public void ResetMakesFixedRandomNumberGeneratorToUseNextRandomNumber()
+        {
+            // given
+            var target = CreateSessionCreator();
+            ISessionCreator targetExplicit = target;
+            var randomNumberBeforeReset = target.RandomNumberGenerator.NextPositiveLong();
+
+            // when
+            for (var i = 0; i < 5; i++)
+            {
+                // then
+                Assert.That(target.RandomNumberGenerator.NextPositiveLong(), Is.EqualTo(randomNumberBeforeReset));
+            }
+
+            // and when
+            targetExplicit.Reset();
+            var randomNumberAfterReset = target.RandomNumberGenerator.NextPositiveLong();
+
+            // then
+            Assert.That(randomNumberBeforeReset, Is.Not.EqualTo(randomNumberAfterReset));
+            for (var i = 0; i < 5; i++)
+            {
+                Assert.That(target.RandomNumberGenerator.NextPositiveLong(), Is.EqualTo(randomNumberAfterReset));
+            }
         }
 
         private SessionCreator CreateSessionCreator()

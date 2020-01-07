@@ -77,7 +77,7 @@ namespace Dynatrace.OpenKit.Protocol
         int ServerId { get; }
 
         /// <summary>
-        /// Returns the timestamp of this attributes which were returned from the server.
+        /// Returns the timestamp of the attributes which were returned from the server.
         /// <para>
         ///     The timestamp is the duration from January, 1st
         /// </para>

@@ -19,7 +19,6 @@ using Dynatrace.OpenKit.Core.Communication;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
-using System.Threading;
 using Dynatrace.OpenKit.Core.Util;
 
 namespace Dynatrace.OpenKit.Core

@@ -21,7 +21,7 @@ namespace Dynatrace.OpenKit.Core
     /// <summary>
     /// This session watchdog is responsible to perform certain actions for a session at a specific point in time.
     ///
-    /// Currently the wollowing actions are performed:
+    /// Currently the following actions are performed:
     /// <list type="bullet">
     ///     <item>
     ///         <see cref="ISessionInternals"/> which could not be finished after session splitting are waited for
@@ -57,5 +57,18 @@ namespace Dynatrace.OpenKit.Core
         /// </summary>
         /// <param name="session">the session to be removed.</param>
         void DequeueFromClosing(ISessionInternals session);
+
+        /// <summary>
+        /// Adds the given session proxy so that it will be automatically split the underlying session when the idle
+        /// timeout or the maximum session duration is reached.
+        /// </summary>
+        /// <param name="sessionProxy">the session proxy to be added.</param>
+        void AddToSplitByTimeout(ISessionProxy sessionProxy);
+
+        /// <summary>
+        /// Removes the given session proxy from automatically splitting it after idle or session max duration expired.
+        /// </summary>
+        /// <param name="sessionProxy">the session proxy to be removed.</param>
+        void RemoveFromSplitByTimeout(ISessionProxy sessionProxy);
     }
 }

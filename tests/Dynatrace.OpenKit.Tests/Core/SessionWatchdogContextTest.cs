@@ -27,6 +27,7 @@ namespace Dynatrace.OpenKit.Core
         private ITimingProvider mockTimingProvider;
         private IInterruptibleThreadSuspender mockThreadSuspender;
         private ISessionInternals mockSession;
+        private ISessionProxy mockSessionProxy;
 
         [SetUp]
         public void SetUp()
@@ -36,6 +37,8 @@ namespace Dynatrace.OpenKit.Core
 
             mockThreadSuspender = Substitute.For<IInterruptibleThreadSuspender>();
             mockThreadSuspender.Sleep(Arg.Any<int>()).Returns(true);
+
+            mockSessionProxy = Substitute.For<ISessionProxy>();
         }
 
         [Test]
@@ -56,6 +59,16 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             Assert.That(target.GetSessionsToClose().Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void OnDefaultSessionsToSplitByTimeoutIsEmpty()
+        {
+            // given
+            var target = CreateContext();
+
+            // then
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(0));
         }
 
         [Test]
@@ -124,6 +137,55 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
+        public void AddToSplitByTimeOutAddsSessionProxyIfNotFinished()
+        {
+            // given
+            mockSessionProxy.IsFinished.Returns(false);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+
+            // when
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // then
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void AddToSplitByTimeOutDoesNotAddSessionProxyIfFinished()
+        {
+            // given
+            mockSessionProxy.IsFinished.Returns(true);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+
+            // when
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // then
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void RemoveFromSplitByTimeoutRemovesSessionProxy()
+        {
+            // given
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(1));
+
+            // when
+            targetExplicit.RemoveFromSplitByTimeout(mockSessionProxy);
+
+            // then
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(0));
+        }
+
+        [Test]
         public void ExecuteEndsSessionsWithExpiredGracePeriod()
         {
             // given
@@ -184,19 +246,6 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
-        public void ExecuteSleepsDefaultTimeIfNoSessionToCloseExists()
-        {
-            // given
-            var target = CreateContext();
-
-            // when
-            target.Execute();
-
-            // then
-            mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
-        }
-
-        [Test]
         public void ExecuteSleepsDefaultTimeIfSessionIsExpiredAndNoFurtherNonExpiredSessions()
         {
             // given
@@ -246,19 +295,226 @@ namespace Dynatrace.OpenKit.Core
         }
 
         [Test]
-        public void ExecuteDoesNotSleepLongerThanDefaultSleepTime()
+        public void ExecuteRemovesSessionProxyIfNextSplitTimeIsNegative()
         {
             // given
-            mockSession.TryEnd().Returns(false);
+            mockSessionProxy.SplitSessionByTime().Returns(-1L);
 
-            var target = CreateContext() as ISessionWatchdogContext;
-            target.CloseOrEnqueueForClosing(mockSession, SessionWatchdogContext.DefaultSleepTimeInMillis + 10);
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ExecuteDoesNotRemoveSessionProxyIfNextSplitTimeIsNegative()
+        {
+            // given
+            mockSessionProxy.SplitSessionByTime().Returns(10L);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            Assert.That(target.SessionsToSplitByTimeout.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ExecuteSleepsDefaultTimeIfSessionProxySplitTimeIsNegativeAndNoFurtherSessionProxyExists()
+        {
+            // given
+            mockSessionProxy.SplitSessionByTime().Returns(-1L);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
+        }
+
+        [Test]
+        public void ExecuteSleepsDefaultTimeIfSleepDurationToNextSplitIsNegativeAndNoFurtherSessionProxyExists()
+        {
+            // given
+            mockSessionProxy.SplitSessionByTime().Returns(10L);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(20L);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
+        }
+
+        [Test]
+        public void ExecuteSleepsDurationToNextSplitByTimeout()
+        {
+            // given
+            const int nextSplitTime = 100;
+            const int currentTime = 50;
+            mockSessionProxy.SplitSessionByTime().Returns(nextSplitTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockThreadSuspender.Received(1).Sleep(nextSplitTime - currentTime);
+        }
+
+        [Test]
+        public void ExecuteDoesNotSleepLongerThanDefaultSleepTimeForDurationToNextSplitByTime()
+        {
+            // given
+            var nextSplitTime = SessionWatchdogContext.DefaultSleepTimeInMillis + 20;
+            const long currentTime = 5;
+            mockSessionProxy.SplitSessionByTime().Returns(nextSplitTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
+        }
+
+        [Test]
+        public void ExecuteSleepsMinimumTimeToNextSplitByTime()
+        {
+            // given
+            const int nextSplitTimeProxy1 = 120;
+            const int nextSplitTimeProxy2 = 100;
+            const int currentTime = 50;
+
+            mockSessionProxy.SplitSessionByTime().Returns(nextSplitTimeProxy1);
+
+            var mockSessionProxy2 = Substitute.For<ISessionProxy>();
+            mockSessionProxy2.SplitSessionByTime().Returns(nextSplitTimeProxy2);
+
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy2);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockSessionProxy2.Received(1).SplitSessionByTime();
+            mockThreadSuspender.Received(1).Sleep(nextSplitTimeProxy2 - currentTime);
+        }
+
+        [Test]
+        public void ExecuteSleepsDefaultTimeIfNoSessionToCloseAndNoSessionProxyToSplitExists()
+        {
+            // given
+            var target = CreateContext();
 
             // when
             target.Execute();
 
             // then
             mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
+        }
+
+        [Test]
+        public void ExecuteSleepsMinimumDurationToNextSplitByTime()
+        {
+            // given
+            const int gracePeriod = 150;
+            const int nextSessionProxySplitTime = 100;
+            const int currentTime = 50;
+            mockSessionProxy.SplitSessionByTime().Returns(nextSessionProxySplitTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.CloseOrEnqueueForClosing(mockSession, gracePeriod);
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockSession.Received(0).End();
+            mockThreadSuspender.Received(1).Sleep(nextSessionProxySplitTime - currentTime);
+        }
+
+        [Test]
+        public void ExecuteSleepsMinimumDurationToNextGracePeriodEnd()
+        {
+            // given
+            const int gracePeriod = 100;
+            const int nextSessionProxySplitTime = 200;
+            const int currentTime = 50;
+            mockSessionProxy.SplitSessionByTime().Returns(nextSessionProxySplitTime);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(currentTime);
+
+            var target = CreateContext();
+            ISessionWatchdogContext targetExplicit = target;
+            targetExplicit.CloseOrEnqueueForClosing(mockSession, gracePeriod);
+            targetExplicit.AddToSplitByTimeout(mockSessionProxy);
+
+            // when
+            target.Execute();
+
+            // then
+            mockSessionProxy.Received(1).SplitSessionByTime();
+            mockSession.Received(0).End();
+            mockThreadSuspender.Received(1).Sleep(gracePeriod);
+        }
+
+        [Test]
+        public void ExecuteDoesNotSleepLongerThanDefaultSleepTimeForDurationToNextSessionClose()
+        {
+            {
+                // given
+                mockSession.TryEnd().Returns(false);
+
+                var target = CreateContext() as ISessionWatchdogContext;
+                target.CloseOrEnqueueForClosing(mockSession, SessionWatchdogContext.DefaultSleepTimeInMillis + 10);
+
+                // when
+                target.Execute();
+
+                // then
+                mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
+            }
         }
 
         [Test]

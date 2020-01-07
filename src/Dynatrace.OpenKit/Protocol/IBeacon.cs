@@ -63,6 +63,11 @@ namespace Dynatrace.OpenKit.Protocol
         int NextSequenceNumber { get; }
 
         /// <summary>
+        /// Returns the time when the session was started (in milliseconds).
+        /// </summary>
+        long SessionStartTime { get; }
+
+        /// <summary>
         /// Returns the current timestamp.
         /// </summary>
         long CurrentTimestamp { get; }

@@ -26,5 +26,16 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         /// <param name="parent">the parent composite of the session to create.</param>
         ISessionInternals CreateSession(IOpenKitComposite parent);
+
+        /// <summary>
+        /// Resets the internal state fo this session creator. A reset includes the following:
+        ///
+        /// <list type="bullt">
+        /// <item>resetting the consecutive session sequence number which is increased every time a session is created.</item>
+        /// <item>use a new session ID (which will stay the same for all newly created sessions).</item>
+        /// <item>use a new randomized number (which will stay the same for all newly created sessions).</item>
+        /// </list>
+        /// </summary>
+        void Reset();
     }
 }
