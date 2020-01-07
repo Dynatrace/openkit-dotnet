@@ -428,7 +428,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(obtained, Is.True);
         }
 
-        [Test()]
+        [Test]
         public void TryEndMarksSessionStateAsWasTriedForEndingIfSessionNotClosable()
         {
             // given

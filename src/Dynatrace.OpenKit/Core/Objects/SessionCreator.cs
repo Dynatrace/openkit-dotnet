@@ -32,8 +32,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         private readonly ISessionIdProvider continuousSessionIdProvider;
         // provider for continuously retrieving new random numbers.
         private readonly IPrnGenerator continuousRandomNumberGenerator;
-        // provider which  will always return the same session ID
-        // provider which will always return the same random number.
 
         private readonly int serverId;
 

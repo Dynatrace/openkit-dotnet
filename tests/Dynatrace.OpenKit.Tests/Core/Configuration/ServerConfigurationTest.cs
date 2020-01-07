@@ -342,8 +342,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void
-            CreatingAServerConfigurationFromResponseAttributesHasSplitByEventsDisabledIfMaxEventsEventsSmallerZero()
+        public void CreatingAServerConfigurationFromResponseAttributesHasSplitByEventsDisabledIfMaxEventsEventsSmallerZero()
         {
             // given
             const int eventsPerSession = -1;
