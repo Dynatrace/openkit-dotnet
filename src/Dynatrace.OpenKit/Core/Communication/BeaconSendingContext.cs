@@ -40,18 +40,27 @@ namespace Dynatrace.OpenKit.Core.Communication
         private readonly ILogger logger;
 
         /// <summary>
+        /// synchronization object for updating and reading server configuration and last response attributes
+        /// </summary>
+        private readonly object lockObject = new object();
+
+        /// <summary>
         /// Configuration for storing the last valid server side configuration.
-        ///
-        /// This field is initialized in the constructor and must only be modified within the context of the
-        /// <see cref="BeaconSender">beacon sending thread</see>.
         /// </summary>
         private IServerConfiguration serverConfiguration;
 
         /// <summary>
+        /// Represents the last attributes received as response from the server.
+        /// <para>
+        /// This field will be initially filled with the first response from the server when OpenKit initializes.
+        /// Subsequent server responses (e.g. from session requests) will update the last server response by merging
+        /// received fields.
+        /// </para>
+        /// </summary>
+        private IResponseAttributes lastResponseAttributes;
+
+        /// <summary>
         /// Configuration storing the last valid HTTP client configuration, independent of a session.
-        ///
-        /// This field is initialized in the constructor and must only be modified within the context of the
-        /// <see cref="BeaconSender">beacon sending thread</see>
         /// </summary>
         private IHttpClientConfiguration httpClientConfiguration;
 
@@ -108,7 +117,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             HttpClientProvider = httpClientProvider;
             this.timingProvider = timingProvider;
             this.threadSuspender = threadSuspender;
-            LastResponseAttributes = ResponseAttributes.WithUndefinedDefaults().Build();
+            lastResponseAttributes = ResponseAttributes.WithUndefinedDefaults().Build();
 
             CurrentState = initialState;
         }
@@ -128,8 +137,28 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
-        public int SendInterval => LastResponseAttributes.SendIntervalInMilliseconds;
-        public bool IsCaptureOn => serverConfiguration.IsCaptureEnabled;
+        public int SendInterval
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return lastResponseAttributes.SendIntervalInMilliseconds;
+                }
+            }
+        }
+
+        public bool IsCaptureOn
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return serverConfiguration.IsCaptureEnabled;
+                }
+            }
+        }
+
         public bool IsInTerminalState => CurrentState.IsTerminalState;
 
         public void ExecuteCurrentState()
@@ -194,9 +223,12 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         private void DisableCapture()
         {
-            serverConfiguration = new ServerConfiguration.Builder(serverConfiguration)
-                .WithCapture(false)
-                .Build();
+            lock (lockObject)
+            {
+                serverConfiguration = new ServerConfiguration.Builder(serverConfiguration)
+                    .WithCapture(false)
+                    .Build();
+            }
         }
 
         public void HandleStatusResponse(IStatusResponse statusResponse)
@@ -207,40 +239,59 @@ namespace Dynatrace.OpenKit.Core.Communication
                 return;
             }
 
-            var updatedAttributes = UpdateLastResponseAttributesFrom(statusResponse);
-            serverConfiguration = new ServerConfiguration.Builder(updatedAttributes).Build();
+            UpdateFrom(statusResponse);
 
             if (!IsCaptureOn)
             {
                 // capture was turned off
                 ClearAllSessionData();
             }
-
-            var serverId = serverConfiguration.ServerId;
-            if (serverId != httpClientConfiguration.ServerId)
-            {
-                httpClientConfiguration = CreateHttpClientConfigurationWith(serverId);
-            }
         }
 
-        public IResponseAttributes UpdateLastResponseAttributesFrom(IStatusResponse statusResponse)
+        public IResponseAttributes UpdateFrom(IStatusResponse statusResponse)
         {
-            if (BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
+            lock (lockObject)
             {
-                LastResponseAttributes = LastResponseAttributes.Merge(statusResponse.ResponseAttributes);
-            }
+                if (!BeaconSendingResponseUtil.IsSuccessfulResponse(statusResponse))
+                {
+                    return lastResponseAttributes;
+                }
 
-            return LastResponseAttributes;
+                lastResponseAttributes = lastResponseAttributes.Merge(statusResponse.ResponseAttributes);
+
+                serverConfiguration = new ServerConfiguration.Builder(lastResponseAttributes).Build();
+
+                var serverId = serverConfiguration.ServerId;
+                if (serverId != httpClientConfiguration.ServerId)
+                {
+                    httpClientConfiguration = CreateHttpClientConfigurationWith(serverId);
+                }
+
+                return lastResponseAttributes;
+            }
         }
 
-        /// <summary>
-        /// This property will be subsequently updated from every successful server response (e.g. from session
-        /// requests) by merging the received attributes.
-        /// <para>
-        /// Modification of this field must only happen within the context of the BeaconSending thread.
-        /// </para>
-        /// </summary>
-        public IResponseAttributes LastResponseAttributes { get; private set; }
+        public IResponseAttributes LastResponseAttributes
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return lastResponseAttributes;
+                }
+            }
+        }
+
+        public IServerConfiguration LastServerConfiguration
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return serverConfiguration;
+                }
+            }
+        }
 
         internal virtual IHttpClientConfiguration CreateHttpClientConfigurationWith(int serverId)
         {
@@ -308,7 +359,16 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         #region IAdditionalQueryParameters implementation
 
-        public long ConfigurationTimestamp => LastResponseAttributes.TimestampInMilliseconds;
+        public long ConfigurationTimestamp
+        {
+            get
+            {
+                lock (lockObject)
+                {
+                    return lastResponseAttributes.TimestampInMilliseconds;
+                }
+            }
+        }
 
         #endregion
     }

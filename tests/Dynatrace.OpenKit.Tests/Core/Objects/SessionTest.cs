@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
@@ -497,6 +498,22 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             _ = mockBeacon.Received(1).IsEmpty;
+        }
+
+        [Test]
+        public void InitializeServerConfigurationForwardsCallToBeacon()
+        {
+            // given
+            var target = CreateSession().Build();
+            var mockServerConfiguration = Substitute.For<IServerConfiguration>();
+
+            // when
+            target.InitializeServerConfiguration(mockServerConfiguration);
+
+            // then
+            mockBeacon.Received(1).StartSession();
+            mockBeacon.Received(1).InitializeServerConfiguration(mockServerConfiguration);
+            Assert.That(mockBeacon.ReceivedCalls().Count(), Is.EqualTo(2));
         }
 
         [Test]

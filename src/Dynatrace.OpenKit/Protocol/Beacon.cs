@@ -212,6 +212,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         bool IBeacon.IsCaptureEnabled => configuration.ServerConfiguration.IsCaptureEnabled;
 
+        void IBeacon.InitializeServerConfiguration(IServerConfiguration serverConfiguration)
+        {
+            configuration.InitializeServerConfiguration(serverConfiguration);
+        }
+
         void IBeacon.UpdateServerConfiguration(IServerConfiguration serverConfiguration)
         {
             configuration.UpdateServerConfiguration(serverConfiguration);

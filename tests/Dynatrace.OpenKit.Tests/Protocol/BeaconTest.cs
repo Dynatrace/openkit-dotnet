@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
@@ -1910,6 +1909,21 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void InitializeServerConfigurationDelegatesToBeacon()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            var serverConfig = Substitute.For<IServerConfiguration>();
+
+            // when
+            target.InitializeServerConfiguration(serverConfig);
+
+            // then
+            mockBeaconConfiguration.Received(1).InitializeServerConfiguration(serverConfig);
+            Assert.That(serverConfig.ReceivedCalls(), Is.Empty);
         }
 
         [Test]

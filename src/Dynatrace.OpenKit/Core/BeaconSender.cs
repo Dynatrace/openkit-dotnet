@@ -101,6 +101,11 @@ namespace Dynatrace.OpenKit.Core
         }
 
         /// <summary>
+        /// Returns the last known server configuration.
+        /// </summary>
+        public IServerConfiguration LastServerConfiguration => context.LastServerConfiguration;
+
+        /// <summary>
         /// Returns the current server ID to be used for creating new sessions.
         /// </summary>
         public int CurrentServerId => context.CurrentServerId;

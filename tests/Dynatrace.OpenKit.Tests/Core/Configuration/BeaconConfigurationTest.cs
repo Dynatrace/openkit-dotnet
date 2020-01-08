@@ -137,6 +137,100 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void InitializeServerConfigurationDoesNotSetIsServerConfigurationSet()
+        {
+            // given
+            var serverConfig = Substitute.For<IServerConfiguration>();
+            var target = CreateBeaconConfig();
+
+            // when
+            target.InitializeServerConfiguration(serverConfig);
+
+            // then
+            Assert.That(target.IsServerConfigurationSet, Is.False);
+            Assert.That(serverConfig.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void InitializeServerConfigurationSetsServerConfiguration()
+        {
+            // given
+            var serverConfig = Substitute.For<IServerConfiguration>();
+            var target = CreateBeaconConfig();
+
+            // when
+            target.InitializeServerConfiguration(serverConfig);
+
+            // then
+            Assert.That(target.ServerConfiguration, Is.EqualTo(serverConfig));
+        }
+
+        [Test]
+        public void InitializeServerConfigurationWithNullConfigurationDoesNothing()
+        {
+            // given
+            var updateCallback = Substitute.For<ServerConfigurationUpdateCallback>();
+            var target = CreateBeaconConfig();
+            target.OnServerConfigurationUpdate += updateCallback;
+
+            // when
+            target.InitializeServerConfiguration(null);
+
+            // then
+            Assert.That(updateCallback.ReceivedCalls(), Is.Empty);
+            Assert.That(target.ServerConfiguration, Is.EqualTo(ServerConfiguration.Default));
+        }
+
+        [Test]
+        public void InitializeServerConfigurationWithDefaultConfigurationDoesNothing()
+        {
+            // given
+            var updateCallback = Substitute.For<ServerConfigurationUpdateCallback>();
+            var target = CreateBeaconConfig();
+            target.OnServerConfigurationUpdate += updateCallback;
+
+            // when
+            target.InitializeServerConfiguration(ServerConfiguration.Default);
+
+            // then
+            Assert.That(updateCallback.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void InitializeServerConfigurationDoesNotSetServerConfigurationIfAlreadySet()
+        {
+            // given
+            var updatedServerConfig = Substitute.For<IServerConfiguration>();
+            var initialServerConfig = Substitute.For<IServerConfiguration>();
+
+            var target = CreateBeaconConfig();
+            target.UpdateServerConfiguration(updatedServerConfig);
+            Assert.That(target.IsServerConfigurationSet,  Is.True);
+
+            // when
+            target.InitializeServerConfiguration(initialServerConfig);
+
+            // then
+            Assert.That(target.ServerConfiguration,  Is.EqualTo(updatedServerConfig));
+        }
+
+        [Test]
+        public void InitializeServerConfigurationDoesInvokeCallbackIfCallbackIsSet()
+        {
+            // given
+            var serverConfig = Substitute.For<IServerConfiguration>();
+            var callback = Substitute.For<ServerConfigurationUpdateCallback>();
+            var target = CreateBeaconConfig();
+            target.OnServerConfigurationUpdate += callback;
+
+            // when
+            target.InitializeServerConfiguration(serverConfig);
+
+            // then
+            callback.Received(1).Invoke(serverConfig);
+        }
+
+        [Test]
         public void UpdateServerConfigurationSetsIsServerConfigurationSet()
         {
             // given

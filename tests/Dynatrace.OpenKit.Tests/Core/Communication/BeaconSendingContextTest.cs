@@ -974,21 +974,21 @@ namespace Dynatrace.OpenKit.Core.Communication
 
 
         [Test]
-        public void UpdateResponseAttributesFromDoesNothingIfStatusResponseIsNull()
+        public void UpdateFromDoesNothingIfStatusResponseIsNull()
         {
             // given
             var target = CreateSendingContext().Build();
             var initialAttributes = target.LastResponseAttributes;
 
             // when
-            var obtained = target.UpdateLastResponseAttributesFrom(null);
+            var obtained = target.UpdateFrom(null);
 
             // then
             Assert.That(obtained, Is.EqualTo(initialAttributes));
         }
 
         [Test]
-        public void UpdateResponseAttributesFromDoesNothingIfStatusResponseIsNotSuccessful()
+        public void UpdateFromDoesNothingIfStatusResponseIsNotSuccessful()
         {
             // given
             var response = Substitute.For<IStatusResponse>();
@@ -998,7 +998,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var initialAttributes = target.LastResponseAttributes;
 
             // when
-            var obtained = target.UpdateLastResponseAttributesFrom(response);
+            var obtained = target.UpdateFrom(response);
 
             // then
             Assert.That(obtained, Is.EqualTo(initialAttributes));
@@ -1006,7 +1006,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
-        public void UpdateResponseAttributesFromMergesResponseAttributesFromStatusResponse()
+        public void UpdateFromMergesResponseAttributesFromStatusResponse()
         {
             // given
             const int serverId = 9999;
@@ -1019,7 +1019,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var initialAttributes = target.LastResponseAttributes;
 
             // when
-            var obtained = target.UpdateLastResponseAttributesFrom(response);
+            var obtained = target.UpdateFrom(response);
 
             // then
             Assert.That(obtained, Is.EqualTo(target.LastResponseAttributes));
@@ -1053,7 +1053,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var target = CreateSendingContext().Build();
 
             // when
-            target.UpdateLastResponseAttributesFrom(response);
+            target.UpdateFrom(response);
 
             // then
             Assert.That(target.ConfigurationTimestamp, Is.EqualTo(timestamp));

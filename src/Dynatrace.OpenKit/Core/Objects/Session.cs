@@ -97,6 +97,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             return beacon.Send(clientProvider, additionalParameters);
         }
 
+        void ISessionInternals.InitializeServerConfiguration(IServerConfiguration initialServerConfig)
+        {
+            beacon.InitializeServerConfiguration(initialServerConfig);
+        }
+
         void ISessionInternals.UpdateServerConfiguration(IServerConfiguration serverConfiguration)
         {
             beacon.UpdateServerConfiguration(serverConfiguration);

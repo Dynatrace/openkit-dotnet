@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
@@ -169,12 +170,17 @@ namespace Dynatrace.OpenKit.Core.Communication
         ///     in case the given status response was successful the updated response attributes are returned. Otherwise
         ///     the current response attributes are returned.
         /// </returns>
-        IResponseAttributes UpdateLastResponseAttributesFrom(IStatusResponse statusResponse);
+        IResponseAttributes UpdateFrom(IStatusResponse statusResponse);
 
         /// <summary>
         /// Returns the last attributes received as response from the server.
         /// </summary>
         IResponseAttributes LastResponseAttributes { get; }
+
+        /// <summary>
+        /// Returns the last known <see cref="IServerConfiguration"/>.
+        /// </summary>
+        IServerConfiguration LastServerConfiguration { get; }
 
         /// <summary>
         /// Returns the current server ID to be used for creating new sessions.

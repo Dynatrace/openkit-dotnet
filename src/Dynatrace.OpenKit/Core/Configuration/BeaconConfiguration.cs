@@ -24,6 +24,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private IServerConfiguration serverConfiguration;
 
         /// <summary>
+        /// indicator if the <see cref="IServerConfiguration"/> was set or not
+        /// </summary>
+        private bool isServerConfigurationSet;
+
+        /// <summary>
         /// callback when the server configuration is updated.
         /// </summary>
         private ServerConfigurationUpdateCallback serverConfigUpdateCallback;
@@ -101,6 +106,29 @@ namespace Dynatrace.OpenKit.Core.Configuration
             }
         }
 
+        void IBeaconConfiguration.InitializeServerConfiguration(IServerConfiguration initialServerConfiguration)
+        {
+            if (initialServerConfiguration == null
+                || initialServerConfiguration == Configuration.ServerConfiguration.Default)
+            {
+                // ignore DEFAULT configuration since server configuration update does not take over certain attributes
+                // when merging and the configuration already exists.
+                return;
+            }
+
+            lock (lockObject)
+            {
+                if (isServerConfigurationSet)
+                {
+                    return;
+                }
+
+                serverConfiguration = initialServerConfiguration;
+
+                NotifyServerConfigurationUpdate(serverConfiguration);
+            }
+        }
+
         void IBeaconConfiguration.UpdateServerConfiguration(IServerConfiguration newServerConfiguration)
         {
             if (newServerConfiguration == null)
@@ -120,12 +148,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
                     serverConfiguration = serverConfiguration.Merge(newServerConfiguration);
                 }
 
-                serverConfigUpdateCallback?.Invoke(serverConfiguration);
+                isServerConfigurationSet = true;
+
+                NotifyServerConfigurationUpdate(serverConfiguration);
             }
         }
 
+        private void NotifyServerConfigurationUpdate(IServerConfiguration serverConfig)
+        {
+            serverConfigUpdateCallback?.Invoke(serverConfig);
+        }
+
         /// <summary>
-        /// Enables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// Enables capturing and sets <see cref="IsServerConfigurationSet"/>.
         /// </summary>
         public void EnableCapture()
         {
@@ -133,7 +168,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         /// <summary>
-        /// Disables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// Disables capturing and sets <see cref="IsServerConfigurationSet"/>.
         /// </summary>
         public void DisableCapture()
         {
@@ -152,6 +187,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 serverConfiguration = new ServerConfiguration.Builder(currentServerConfig)
                     .WithCapture(captureState)
                     .Build();
+
+                isServerConfigurationSet = true;
             }
         }
 
@@ -164,7 +201,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             {
                 lock (lockObject)
                 {
-                    return serverConfiguration != null;
+                    return isServerConfigurationSet;
                 }
             }
         }
@@ -178,7 +215,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                     serverConfigUpdateCallback += value;
                 }
             }
-                remove
+            remove
             {
                 lock (lockObject)
                 {

@@ -85,6 +85,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         long SplitByEventsGracePeriodEndTimeInMillis { get; set; }
 
         /// <summary>
+        /// Initializes the <see cref="IBeacon"/> with the given <see cref="IServerConfiguration"/>.
+        /// </summary>
+        /// <param name="initialServerConfig"></param>
+        void InitializeServerConfiguration(IServerConfiguration initialServerConfig);
+
+        /// <summary>
         /// Updates the <see cref="IBeacon"/> with the given <see cref="IServerConfiguration"/>.
         /// </summary>
         void UpdateServerConfiguration(IServerConfiguration serverConfiguration);

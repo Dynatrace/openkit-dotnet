@@ -227,6 +227,12 @@ namespace Dynatrace.OpenKit.Protocol
         void ClearData();
 
         /// <summary>
+        /// Initializes the beacon with the given {@link ServerConfiguration}.
+        /// </summary>
+        /// <param name="serverConfiguration">the server configuration which will be used for initialization.</param>
+        void InitializeServerConfiguration(IServerConfiguration serverConfiguration);
+
+        /// <summary>
         /// Updates this beacon with the given <see cref="IServerConfiguration"/>
         /// </summary>
         /// <param name="serverConfiguration">the server configuration which will be used to update this beacon.</param>

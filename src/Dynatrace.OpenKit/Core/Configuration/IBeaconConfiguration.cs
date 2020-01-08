@@ -50,6 +50,14 @@ namespace Dynatrace.OpenKit.Core.Configuration
         IServerConfiguration ServerConfiguration { get; }
 
         /// <summary>
+        ///  Initializes this beacon configuration with the given server configuration. This will not set
+        /// <see cref="IsServerConfigurationSet"/> to <code>true</code> so that new session requests to the server will
+        /// still be done. In case the <see cref="IsServerConfigurationSet"/> was already set, this method does nothing.
+        /// </summary>
+        /// <param name="initialServerConfiguration">the server configuration to initialize this beacon configuration with.</param>
+        void InitializeServerConfiguration(IServerConfiguration initialServerConfiguration);
+
+        /// <summary>
         /// Updates the server configuration.
         ///
         /// <para>
@@ -62,12 +70,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         void UpdateServerConfiguration(IServerConfiguration newServerConfiguration);
 
         /// <summary>
-        /// Enables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// Enables capturing and sets <see cref="IsServerConfigurationSet"/>.
         /// </summary>
         void EnableCapture();
 
         /// <summary>
-        /// Disables capturing and implicitly sets <see cref="IsServerConfigurationSet"/>.
+        /// Disables capturing and sets <see cref="IsServerConfigurationSet"/>.
         /// </summary>
         void DisableCapture();
 

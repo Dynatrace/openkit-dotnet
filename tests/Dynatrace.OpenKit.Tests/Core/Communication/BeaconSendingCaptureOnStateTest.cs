@@ -119,8 +119,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             mockContext.GetHttpClient().Returns(mockClient);
             mockContext.GetAllNotConfiguredSessions()
                 .Returns(new List<ISessionInternals> {mockSession5New, mockSession6New});
-            mockContext.UpdateLastResponseAttributesFrom(Arg.Any<StatusResponse>())
-                .Returns(successResponse.ResponseAttributes);
+            mockContext.UpdateFrom(Arg.Any<StatusResponse>()).Returns(successResponse.ResponseAttributes);
             mockClient.SendNewSessionRequest(Arg.Any<IAdditionalQueryParameters>())
                 .Returns(successResponse,
                     StatusResponse.CreateErrorResponse(mockLogger, StatusResponse.HttpBadRequest));
@@ -157,7 +156,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             var sessionRequestResponse = Substitute.For<IStatusResponse>();
             sessionRequestResponse.ResponseAttributes.Returns(responseAttributes);
 
-            mockContext.UpdateLastResponseAttributesFrom(Arg.Any<IStatusResponse>()).Returns(responseAttributes);
+            mockContext.UpdateFrom(Arg.Any<IStatusResponse>()).Returns(responseAttributes);
 
             var mockClient = Substitute.For<IHttpClient>();
             mockClient.SendNewSessionRequest(Arg.Any<IAdditionalQueryParameters>()).Returns(sessionRequestResponse);
@@ -173,7 +172,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(mockContext);
 
             // then
-            mockContext.Received(1).UpdateLastResponseAttributesFrom(sessionRequestResponse);
+            mockContext.Received(1).UpdateFrom(sessionRequestResponse);
             mockSession5New.Received(1).UpdateServerConfiguration(Arg.Any<IServerConfiguration>());
 
             Assert.That(captureConfig, Is.Not.Null);

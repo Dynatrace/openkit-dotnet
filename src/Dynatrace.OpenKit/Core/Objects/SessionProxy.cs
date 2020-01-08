@@ -99,7 +99,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             this.beaconSender = beaconSender;
             this.sessionWatchdog = sessionWatchdog;
 
-            currentSession = CreateSession(null);
+            var currentServerConfig = beaconSender.LastServerConfiguration;
+            currentSession = CreateInitialSession(currentServerConfig);
         }
 
         /// <summary>
@@ -321,7 +322,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (IsSessionSplitByEventsRequired())
             {
-                var newSession = CreateSession(serverConfiguration);
+                var newSession = CreateSplitSession(serverConfiguration);
                 topLevelActionCount = 0;
 
                 // try to close old session or wait half the max session duration and then close it forcefully
@@ -367,7 +368,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 currentSession.End();
 
                 sessionCreator.Reset();
-                currentSession = CreateSession(serverConfiguration);
+                currentSession = CreateSplitSession(serverConfiguration);
 
                 return CalculateNextSplitTime();
             }
@@ -412,16 +413,40 @@ namespace Dynatrace.OpenKit.Core.Objects
             return -1;
         }
 
+        private ISessionInternals CreateInitialSession(IServerConfiguration initialServerConfig)
+        {
+            return CreateSession(initialServerConfig, null);
+        }
+
+        private ISessionInternals CreateSplitSession(IServerConfiguration updatedServerConfig)
+        {
+            return CreateSession(null, updatedServerConfig);
+        }
+
         /// <summary>
-        /// Creates a new session and adds it to the beacon sender. In case the given server configuration si not null,
-        /// the new session will be initialized with this server configuration.
-        /// The top level action count is reset to zero and the last interaction time is set to the current timestamp.
+        /// Creates a new session and adds it to the beacon sender. The top level action count is reset to zero and the
+        /// last interaction time is set to the current timestamp.
+        /// <para>
+        /// In case the given <code>initialServerConfig</code> is not null, the new session will be initialized with
+        /// this server configuration. The created session however will not be in state
+        /// <see cref="ISessionState.IsConfigured">configured</see>, meaning new session requests will be performed for
+        /// this session.
+        /// </para>
+        /// <para>
+        /// In case the given <code>updatedServerConfig</code> is not null, the new session will be updated with this
+        /// server configuration. The created session will be in state
+        /// <see cref="ISessionState.IsConfigured">configured</see>, meaning new session requests will be omitted.
+        /// </para>
         /// </summary>
-        /// <param name="sessionServerConfig">
-        /// the server configuration with which the session will be initialized. Can be <code>null</code>.
+        /// <param name="initialServerConfig">
+        /// the server configuration with which the session will be initialized. Can be <code>null</code>
+        /// </param>
+        /// <param name="updatedServerConfig">
+        /// the server configuration with which the session will be updated. Can be <code>null</code>.
         /// </param>
         /// <returns>the newly created session.</returns>
-        private ISessionInternals CreateSession(IServerConfiguration sessionServerConfig)
+        private ISessionInternals CreateSession(IServerConfiguration initialServerConfig,
+            IServerConfiguration updatedServerConfig)
         {
             var session = sessionCreator.CreateSession(this);
             var beacon = session.Beacon;
@@ -432,9 +457,14 @@ namespace Dynatrace.OpenKit.Core.Objects
             lastInteractionTime = beacon.SessionStartTime;
             topLevelActionCount = 0;
 
-            if (sessionServerConfig != null)
+            if (initialServerConfig != null)
             {
-                session.UpdateServerConfiguration(sessionServerConfig);
+                session.InitializeServerConfiguration(initialServerConfig);
+            }
+
+            if (updatedServerConfig != null)
+            {
+                session.UpdateServerConfiguration(updatedServerConfig);
             }
 
             beaconSender.AddSession(session);

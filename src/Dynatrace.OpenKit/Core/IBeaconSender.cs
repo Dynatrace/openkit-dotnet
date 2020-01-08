@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 
 namespace Dynatrace.OpenKit.Core
@@ -30,6 +31,8 @@ namespace Dynatrace.OpenKit.Core
         bool WaitForInitCompletion(int timeoutMillis);
 
         void Shutdown();
+
+        IServerConfiguration LastServerConfiguration { get; }
 
         int CurrentServerId { get; }
 

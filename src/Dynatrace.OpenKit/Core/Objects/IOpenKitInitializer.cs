@@ -62,7 +62,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         IBeaconCache BeaconCache { get; }
 
         /// <summary>
-        /// Eviction thread to prevent beacon cache form overflowing.
+        /// Eviction thread to prevent beacon cache from overflowing.
         /// </summary>
         IBeaconCacheEvictor BeaconCacheEvictor { get; }
 

@@ -81,6 +81,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void InitiallyCreatedSessionIsInitializedWithServerConfiguration()
+        {
+            // given
+            var initialServerConfig = Substitute.For<IServerConfiguration>();
+            mockBeaconSender.LastServerConfiguration.Returns(initialServerConfig);
+
+            // when
+            var target = CreateSessionProxy();
+
+            // then
+            mockSessionCreator.Received(1).CreateSession(target);
+            mockSession.Received(1).InitializeServerConfiguration(initialServerConfig);
+        }
+
+        [Test]
         public void ANewlyCreatedSessionProxyIsNotFinished()
         {
             // given
