@@ -21,11 +21,11 @@ using Dynatrace.OpenKit.Core;
 using System.Threading;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
-using System.Collections.ObjectModel;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.API;
 using System.Linq;
+using System.Globalization;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -50,9 +50,6 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyVisitorID = "vi";
         private const string BeaconKeySessionNumber = "sn";
         private const string BeaconKeyClientIPAddress = "ip";
-        private const string BeaconKeyMultiplicity = "mp";
-        private const string BeaconKeyDataCollectionLevel = "dl";
-        private const string BeaconKeyCrashReportingLevel = "cl";
 
         // device data constants
         private const string BeaconKeyDeviceOS = "os";
@@ -106,11 +103,11 @@ namespace Dynatrace.OpenKit.Protocol
         private int nextSequenceNumber = 0;
 
         // session number & start time
-        private int sessionNumber;
-        private long sessionStartTime;
+        private readonly int sessionNumber;
+        private readonly long sessionStartTime;
 
         // client IP address
-        private string clientIPAddress;
+        private readonly string clientIPAddress;
 
         // providers
         private readonly IThreadIDProvider threadIDProvider;
@@ -248,19 +245,18 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="parentAction"></param>
         /// <param name="sequenceNo"></param>
         /// <returns></returns>
-        public string CreateTag(Action parentAction, int sequenceNo)
-        {
-            
-            return $"{WebRequestTagPrefix}_"
-                + $"{ProtocolVersion}_"
-                + $"{httpConfiguration.ServerID}_"
-                + $"{configuration.DeviceID}_"
-                + $"{sessionNumber}_"
-                + $"{configuration.ApplicationIDPercentEncoded}_"
-                + $"{parentAction.ID}_"
-                + $"{threadIDProvider.ThreadID}_"
-                + $"{sequenceNo}";
-        }
+        public string CreateTag(Action parentAction, int sequenceNo) => string.Format(
+            CultureInfo.InvariantCulture,
+            "{0}_{1:d}_{2:d}_{3:d}_{4:d}_{5:d}_{6:d}_{7:d}_{8:d}",
+            WebRequestTagPrefix,
+            ProtocolVersion,
+            httpConfiguration.ServerID,
+            configuration.DeviceID,
+            sessionNumber,
+            configuration.ApplicationIDPercentEncoded,
+            parentAction.ID,
+            threadIDProvider.ThreadID,
+            sequenceNo);
 
         /// <summary>
         /// add an Action to this Beacon
@@ -549,32 +545,6 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
-        // helper method for beacon sending with retries
-        private StatusResponse SendBeaconRequest(IHTTPClient httpClient, byte[] beaconData, int numRetries)
-        {
-            StatusResponse response = null;
-            var retry = 0;
-            var retrySleepMillis = INITIAL_RETRY_SLEEP_TIME_MILLISECONDS;
-
-            while (true)
-            {
-                response = httpClient.SendBeaconRequest(clientIPAddress, beaconData);
-                if (response != null || (retry >= numRetries))
-                {
-                    // success OR max retry count reached
-                    break;
-                }
-
-                timingProvider.Sleep(retrySleepMillis);
-                retrySleepMillis *= 2;
-                retry++;
-            }
-
-            return response;
-        }
-
-        // helper method for building events
-
         /// <summary>
         /// Serialization helper for event data.
         /// </summary>
@@ -673,21 +643,21 @@ namespace Dynatrace.OpenKit.Protocol
         private void AddKeyValuePair(StringBuilder builder, string key, long longValue)
         {
             AppendKey(builder, key);
-            builder.Append(longValue);
+            builder.Append(longValue.ToString(CultureInfo.InvariantCulture));
         }
 
         // helper method for adding key/value pairs with int values
         private void AddKeyValuePair(StringBuilder builder, string key, int intValue)
         {
             AppendKey(builder, key);
-            builder.Append(intValue);
+            builder.Append(intValue.ToString(CultureInfo.InvariantCulture));
         }
 
         // helper method for adding key/value pairs with double values
         private void AddKeyValuePair(StringBuilder builder, string key, double doubleValue)
         {
             AppendKey(builder, key);
-            builder.Append(doubleValue);
+            builder.Append(doubleValue.ToString(CultureInfo.InvariantCulture));
         }
 
         // helper method for appending a key
