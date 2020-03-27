@@ -21,8 +21,8 @@ namespace Dynatrace.OpenKit
 {
     public class TestConfiguration : OpenKitConfiguration
     {
-        public TestConfiguration()
-            : base(OpenKitType.DYNATRACE, "", "", 0, "", new Providers.TestSessionIDProvider(), 
+        public TestConfiguration(string applicationName = "", string applicationID = "", long deviceID = 0, string endpointURL = "")
+            : base(OpenKitType.DYNATRACE, applicationName, applicationID, deviceID, endpointURL, new Providers.TestSessionIDProvider(), 
                   new SSLStrictTrustManager(), new Core.Device("", "", ""), "", 
                   new BeaconCacheConfiguration(
                     BeaconCacheConfiguration.DEFAULT_MAX_RECORD_AGE_IN_MILLIS,

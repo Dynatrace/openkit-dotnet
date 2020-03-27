@@ -38,6 +38,7 @@ namespace Dynatrace.OpenKit.Protocol
             // ensure it's restored in TearDown
             // reason - some number formatting behaves different in German
             var newCulture = new CultureInfo("de-AT");
+            newCulture.NumberFormat.NegativeSign = "~"; // use tilde for negative numbers
             currentCulture = CultureInfo.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = newCulture;
             
@@ -247,14 +248,14 @@ namespace Dynatrace.OpenKit.Protocol
         public void CanCreateWebRequestTag()
         {
             // given
-            var target = new Beacon(Substitute.For<ILogger>(), new BeaconCache(), new TestConfiguration(), "127.0.0.1", threadIdProvider, timingProvider);
+            var target = new Beacon(Substitute.For<ILogger>(), new BeaconCache(), new TestConfiguration(applicationID: "app-id"), "127.0.0.1", threadIdProvider, timingProvider);
             var action = new Action(target, "TestAction", new SynchronizedQueue<IAction>());
 
             // when
             var obtained = target.CreateTag(action, 42);
 
             // then
-            Assert.That(obtained, Is.EqualTo("MT_3_-1_0_1__1_0_42"));
+            Assert.That(obtained, Is.EqualTo("MT_3_-1_0_1_app-id_1_0_42"));
         }
 
         [Test]
@@ -265,11 +266,11 @@ namespace Dynatrace.OpenKit.Protocol
             var action = new Action(target, "TestAction", new SynchronizedQueue<IAction>());
 
             // when
-            target.ReportValue(action, "key", 42);
+            target.ReportValue(action, "key", -42);
 
             // then
             Assert.That(target.EventDataList.Count, Is.EqualTo(1));
-            Assert.That(target.EventDataList[0], Is.EqualTo("et=12&na=key&it=0&pa=1&s0=2&t0=0&vl=42"));
+            Assert.That(target.EventDataList[0], Is.EqualTo("et=12&na=key&it=0&pa=1&s0=2&t0=0&vl=-42"));
         }
 
         [Test]

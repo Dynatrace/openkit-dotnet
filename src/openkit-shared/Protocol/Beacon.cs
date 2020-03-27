@@ -247,7 +247,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <returns></returns>
         public string CreateTag(Action parentAction, int sequenceNo) => string.Format(
             CultureInfo.InvariantCulture,
-            "{0}_{1:d}_{2:d}_{3:d}_{4:d}_{5:d}_{6:d}_{7:d}_{8:d}",
+            "{0}_{1:d}_{2:d}_{3:d}_{4:d}_{5}_{6:d}_{7:d}_{8:d}",
             WebRequestTagPrefix,
             ProtocolVersion,
             httpConfiguration.ServerID,
