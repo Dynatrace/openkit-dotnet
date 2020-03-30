@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Util;
@@ -98,25 +97,25 @@ namespace Dynatrace.OpenKit.Protocol
         public int ServerId { get; }
 
         // sends a status check request and returns a status response
-        public IStatusResponse SendStatusRequest(IAdditionalQueryParameters additionalParams)
+        public IStatusResponse SendStatusRequest(IAdditionalQueryParameters additionalParameters)
         {
-            var url = AppendAdditionalQueryParameters(monitorUrl, additionalParams);
+            var url = AppendAdditionalQueryParameters(monitorUrl, additionalParameters);
             return SendRequest(RequestType.Status, url, null, null, "GET")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }
 
         // sends a beacon send request and returns a status response
         public IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data,
-            IAdditionalQueryParameters additionalParams)
+            IAdditionalQueryParameters additionalParameters)
         {
-            var url = AppendAdditionalQueryParameters(monitorUrl, additionalParams);
+            var url = AppendAdditionalQueryParameters(monitorUrl, additionalParameters);
             return SendRequest(RequestType.Beacon, url, clientIpAddress, data, "POST")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }
 
-        public IStatusResponse SendNewSessionRequest(IAdditionalQueryParameters additionalParams)
+        public IStatusResponse SendNewSessionRequest(IAdditionalQueryParameters additionalParameters)
         {
-            var url = AppendAdditionalQueryParameters(newSessionUrl, additionalParams);
+            var url = AppendAdditionalQueryParameters(newSessionUrl, additionalParameters);
             return SendRequest(RequestType.NewSession, url, null, null, "GET")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }

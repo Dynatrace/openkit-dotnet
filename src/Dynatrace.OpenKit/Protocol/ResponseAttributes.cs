@@ -114,22 +114,22 @@ namespace Dynatrace.OpenKit.Protocol
 
         #region Merge
 
-        public IResponseAttributes Merge(IResponseAttributes attributes)
+        public IResponseAttributes Merge(IResponseAttributes responseAttributes)
         {
             var builder = new Builder(this);
 
-            ApplyBeaconSize(builder, attributes);
-            ApplySessionDuration(builder, attributes);
-            ApplyEventsPerSession(builder, attributes);
-            ApplySessionTimeout(builder, attributes);
-            ApplySendInterval(builder, attributes);
-            ApplyVisitStoreVersion(builder, attributes);
-            ApplyCapture(builder, attributes);
-            ApplyCaptureCrashes(builder, attributes);
-            ApplyCaptureErrors(builder, attributes);
-            ApplyMultiplicity(builder, attributes);
-            ApplyServerId(builder, attributes);
-            ApplyTimestamp(builder, attributes);
+            ApplyBeaconSize(builder, responseAttributes);
+            ApplySessionDuration(builder, responseAttributes);
+            ApplyEventsPerSession(builder, responseAttributes);
+            ApplySessionTimeout(builder, responseAttributes);
+            ApplySendInterval(builder, responseAttributes);
+            ApplyVisitStoreVersion(builder, responseAttributes);
+            ApplyCapture(builder, responseAttributes);
+            ApplyCaptureCrashes(builder, responseAttributes);
+            ApplyCaptureErrors(builder, responseAttributes);
+            ApplyMultiplicity(builder, responseAttributes);
+            ApplyServerId(builder, responseAttributes);
+            ApplyTimestamp(builder, responseAttributes);
 
             return builder.Build();
         }

@@ -354,7 +354,7 @@ namespace Dynatrace.OpenKit.Protocol
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty)).DoNotCallBase();
             spyClient.WhenForAnyArgs(x => x.DoGetRequest(string.Empty, string.Empty))
-                .Do(x => throw new Exception("dummy"));
+                .Throw(new Exception("dummy"));
 
             // when
             var obtained = target.SendNewSessionRequest(null);
@@ -575,7 +575,7 @@ namespace Dynatrace.OpenKit.Protocol
             HttpClient target = spyClient;
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null)).DoNotCallBase();
             spyClient.WhenForAnyArgs(x => x.DoPostRequest(string.Empty, string.Empty, null))
-                .Do(x => throw new Exception("dummy"));
+                .Throw(new Exception("dummy"));
 
             // when
             var obtained = target.SendBeaconRequest("156.33.241.5", null, null);

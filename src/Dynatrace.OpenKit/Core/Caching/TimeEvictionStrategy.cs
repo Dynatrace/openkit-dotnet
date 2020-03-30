@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Core.Caching

@@ -14,8 +14,6 @@
 // limitations under the License.
 //
 
-using System.Threading;
-
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
@@ -36,7 +34,7 @@ namespace Dynatrace.OpenKit.Providers
 #if WINDOWS_UWP || NETSTANDARD1_1
             System.Environment.CurrentManagedThreadId & 0x7fffffff;
 #else
-            Thread.CurrentThread.ManagedThreadId & 0x7fffffff;
+            System.Threading.Thread.CurrentThread.ManagedThreadId & 0x7fffffff;
 #endif
     }
 }

@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Dynatrace.OpenKit.Core.Configuration;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit

@@ -25,7 +25,6 @@ using Dynatrace.OpenKit.Util.Json.Objects;
 using Dynatrace.OpenKit.Util.Json.Parser;
 using NSubstitute;
 using NUnit.Framework;
-using NUnit.Framework.Interfaces;
 
 namespace Dynatrace.OpenKit.Core.Util.Json
 {

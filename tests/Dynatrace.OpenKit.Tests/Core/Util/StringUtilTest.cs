@@ -15,7 +15,6 @@
 //
 
 using NUnit.Framework;
-using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Util
 {

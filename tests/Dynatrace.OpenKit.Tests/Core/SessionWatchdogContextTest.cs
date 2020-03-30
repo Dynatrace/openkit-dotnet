@@ -502,19 +502,17 @@ namespace Dynatrace.OpenKit.Core
         [Test]
         public void ExecuteDoesNotSleepLongerThanDefaultSleepTimeForDurationToNextSessionClose()
         {
-            {
-                // given
-                mockSession.TryEnd().Returns(false);
+            // given
+            mockSession.TryEnd().Returns(false);
 
-                var target = CreateContext() as ISessionWatchdogContext;
-                target.CloseOrEnqueueForClosing(mockSession, SessionWatchdogContext.DefaultSleepTimeInMillis + 10);
+            var target = CreateContext() as ISessionWatchdogContext;
+            target.CloseOrEnqueueForClosing(mockSession, SessionWatchdogContext.DefaultSleepTimeInMillis + 10);
 
-                // when
-                target.Execute();
+            // when
+            target.Execute();
 
-                // then
-                mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
-            }
+            // then
+            mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
         }
 
         [Test]
