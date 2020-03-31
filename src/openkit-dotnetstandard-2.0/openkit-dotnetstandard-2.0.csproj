@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
-    <AssemblyName>openkit-1.3.3-dotnetstandard-2.0</AssemblyName>
+    <AssemblyName>openkit-1.3.4-SNAPSHOT-dotnetstandard-2.0</AssemblyName>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>Debug;Release;Coverage</Configurations>
     <SignAssembly>true</SignAssembly>
