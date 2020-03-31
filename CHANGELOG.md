@@ -1,6 +1,14 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.2...release/1.2)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.2.3...release/1.2)
+
+## 1.2.3 [Release date: 2020-03-31]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.2.3)
+
+### Changed
+- Fixed issue with reporting localized beacon data  
+  Integer and floating point numbers might have been reported with the thread's locale
+  causing issues with session properties.
 
 ## 1.2.2 [Release date: 2018-02-15]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.2.2)
