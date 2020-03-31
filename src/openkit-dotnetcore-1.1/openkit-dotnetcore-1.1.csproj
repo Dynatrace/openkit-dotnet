@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
-	<AssemblyName>openkit-1.1.5-SNAPSHOT-dotnetcore-1.1</AssemblyName>
+	<AssemblyName>openkit-1.1.5-dotnetcore-1.1</AssemblyName>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
 	<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>Debug;Release;Coverage</Configurations>
