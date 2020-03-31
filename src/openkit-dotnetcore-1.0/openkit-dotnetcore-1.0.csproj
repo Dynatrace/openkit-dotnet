@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-    <AssemblyName>openkit-1.0.4-dotnetcore-1.0</AssemblyName>
+    <AssemblyName>openkit-1.0.5-SNAPSHOT-dotnetcore-1.0</AssemblyName>
     <RootNamespace>Dynatrace.OpenKit</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <SignAssembly>true</SignAssembly>
