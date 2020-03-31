@@ -1,9 +1,15 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.4..HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.5..HEAD)
+
+## 1.4.5 [Release date: 2020-03-31]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.5)
 
 ### Changed
 - Fix coveralls.io build
+- Fixed issue with reporting localized beacon data  
+  Integer and floating point numbers might have been reported with the thread's locale
+  causing issues with session properties.
 
 ## 1.4.4 [Release date: 2019-10-31]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v1.4.4)
