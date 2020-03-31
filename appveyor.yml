@@ -79,7 +79,7 @@ deploy:
 - provider: GitHub
   release: $(APPVEYOR_REPO_TAG_NAME)
   auth_token:
-    secure: SMt+UW9Ruxn51BbZho/uvBEHmWaJ7fFFpmu0p/HTZaFdCD9z87xleqf4XgRmM6qn
+    secure: mxynsUNmMXQIFy33Dst6UwmyI2Q1O/nGmrMt0cTVkAc0tT6bBfFFtqpohGs14jAo
   repository: Dynatrace/openkit-dotnet
   prerelease: false
   on:
