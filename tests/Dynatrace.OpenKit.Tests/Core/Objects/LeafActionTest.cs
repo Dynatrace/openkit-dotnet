@@ -63,6 +63,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             const int parentId = 37;
             mockBeacon.NextId.Returns(id);
             mockBeacon.SessionNumber.Returns(SessionId);
+            mockBeacon.SessionSequenceNumber.Returns(0);
             mockRootAction.ActionId.Returns(parentId);
 
             var target = CreateLeafAction();
@@ -71,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.ToString();
 
             // then
-            Assert.That(obtained, Is.EqualTo($"{typeof(LeafAction).Name} [sn={SessionId}, id={id}, name={ActionName}, pa={parentId}]"));
+            Assert.That(obtained, Is.EqualTo($"{typeof(LeafAction).Name} [sn={SessionId}, seq=0, id={id}, name={ActionName}, pa={parentId}]"));
         }
 
         private LeafAction CreateLeafAction()

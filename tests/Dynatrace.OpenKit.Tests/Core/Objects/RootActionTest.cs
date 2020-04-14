@@ -204,6 +204,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             const int sessionNumber = 42;
             const int id = 73;
             mockBeacon.SessionNumber.Returns(sessionNumber);
+            mockBeacon.SessionSequenceNumber.Returns(0);
             mockBeacon.NextId.Returns(id);
             var target = CreateRootAction();
 
@@ -211,7 +212,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.ToString();
 
             // then
-            Assert.That(obtained, Is.EqualTo($"{typeof(RootAction).Name} [sn={sessionNumber}, id={id}, name={RootActionName}]"));
+            Assert.That(obtained, Is.EqualTo($"{typeof(RootAction).Name} [sn={sessionNumber}, seq=0, id={id}, name={RootActionName}]"));
         }
 
         private IRootActionInternals CreateRootAction()

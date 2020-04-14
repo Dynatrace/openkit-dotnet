@@ -239,7 +239,7 @@ namespace Dynatrace.OpenKit.Util.Json.Reader
             if (numCharactersToReset > bufferSize)
             {
                 throw new InvalidOperationException(
-                    $"Cannot reset beyond {bufferSize} positions. Tried to reset {numCharactersToReset} positions");
+                    $"Cannot reset beyond {bufferSize.ToInvariantString()} positions. Tried to reset {numCharactersToReset.ToInvariantString()} positions");
             }
 
             currentReadIndex = markedReaderIndex;

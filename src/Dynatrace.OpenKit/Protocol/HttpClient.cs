@@ -22,6 +22,7 @@ using System.Text;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -237,11 +238,10 @@ namespace Dynatrace.OpenKit.Protocol
             monitorUrlBuilder.Append('?');
             monitorUrlBuilder.Append(RequestTypeMobile);
 
-            AppendQueryParam(monitorUrlBuilder, QueryKeyServerId, serverId.ToString());
+            AppendQueryParam(monitorUrlBuilder, QueryKeyServerId, serverId.ToInvariantString());
             AppendQueryParam(monitorUrlBuilder, QueryKeyApplication, applicationId);
             AppendQueryParam(monitorUrlBuilder, QueryKeyVersion, ProtocolConstants.OpenKitVersion);
-            AppendQueryParam(monitorUrlBuilder, QueryKeyPlatformType,
-                Convert.ToString(ProtocolConstants.PlatformTypeOpenKit));
+            AppendQueryParam(monitorUrlBuilder, QueryKeyPlatformType, ProtocolConstants.PlatformTypeOpenKit.ToInvariantString());
             AppendQueryParam(monitorUrlBuilder, QueryKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
             AppendQueryParam(monitorUrlBuilder, QueryKeyResponseType, ProtocolConstants.ResponseType);
 

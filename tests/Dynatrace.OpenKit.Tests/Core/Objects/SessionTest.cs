@@ -53,7 +53,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
-            mockLogger.Received(1).Warn("Session [sn=0] EnterAction: actionName must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] EnterAction: actionName must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -68,7 +68,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null.And.TypeOf<NullRootAction>());
-            mockLogger.Received(1).Warn("Session [sn=0] EnterAction: actionName must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] EnterAction: actionName must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -131,7 +131,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.EnterAction(actionName);
 
             // then
-            mockLogger.Received(1).Debug($"Session [sn=0] EnterAction({actionName})");
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] EnterAction({actionName})");
         }
 
         [Test]
@@ -145,7 +145,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
-            mockLogger.Received(1).Warn("Session [sn=0] IdentifyUser: userTag must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] IdentifyUser: userTag must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -160,7 +160,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
-            mockLogger.Received(1).Warn("Session [sn=0] IdentifyUser: userTag must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] IdentifyUser: userTag must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -206,7 +206,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.IdentifyUser(userTag);
 
             // then
-            mockLogger.Received(1).Debug($"Session [sn=0] IdentifyUser({userTag})");
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] IdentifyUser({userTag})");
         }
 
         [Test]
@@ -223,7 +223,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
-            mockLogger.Received(1).Warn("Session [sn=0] ReportCrash: errorName must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] ReportCrash: errorName must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -241,7 +241,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(0).ReportCrash(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
-            mockLogger.Received(1).Warn("Session [sn=0] ReportCrash: errorName must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] ReportCrash: errorName must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -307,7 +307,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.ReportCrash(errorName, errorReason, stacktrace);
 
             // then
-            mockLogger.Received(1).Debug($"Session [sn=0] ReportCrash({errorName}, {errorReason}, {stacktrace})");
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportCrash({errorName}, {errorReason}, {stacktrace})");
         }
 
         [Test]
@@ -370,8 +370,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void
-            EndLogsInvocation()
+        public void EndLogsInvocation()
         {
             // given
             var target = CreateSession().Build();
@@ -380,7 +379,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.End();
 
             // then
-            mockLogger.Received(1).Debug("Session [sn=0] End()");
+            mockLogger.Received(1).Debug("Session [sn=0, seq=0] End()");
         }
 
         [Test]
@@ -762,7 +761,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
-            mockLogger.Received(1).Warn("Session [sn=0] TraceWebRequest(String): url must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] TraceWebRequest(String): url must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -777,7 +776,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
-            mockLogger.Received(1).Warn("Session [sn=0] TraceWebRequest(String): url must not be null or empty");
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] TraceWebRequest(String): url must not be null or empty");
             mockLogger.DidNotReceive().Debug(Arg.Any<string>());
         }
 
@@ -794,7 +793,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullWebRequestTracer>());
             mockLogger.Received(1)
-                .Warn($"Session [sn=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
+                .Warn($"Session [sn=0, seq=0] TraceWebRequest(String): url \"{url}\" does not have a valid scheme");
         }
 
         [Test]
@@ -822,7 +821,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.TraceWebRequest(url);
 
             // then
-            mockLogger.Received(1).Debug($"Session [sn=0] TraceWebRequest({url})");
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] TraceWebRequest({url})");
         }
 
         [Test]
@@ -910,7 +909,9 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             // given
             const int sessionNumber = 42;
+            const int sessionSequence = 21;
             mockBeacon.SessionNumber.Returns(sessionNumber);
+            mockBeacon.SessionSequenceNumber.Returns(sessionSequence);
 
             var target = CreateSession().Build();
 
@@ -918,7 +919,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.ToString();
 
             // then
-            Assert.That(obtained, Is.EqualTo($"Session [sn={sessionNumber}]"));
+            Assert.That(obtained, Is.EqualTo($"Session [sn={sessionNumber}, seq={sessionSequence}]"));
         }
 
         [Test]

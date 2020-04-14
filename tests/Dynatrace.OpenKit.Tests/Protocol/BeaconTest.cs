@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
@@ -55,6 +56,10 @@ namespace Dynatrace.OpenKit.Protocol
 
         private ILogger mockLogger;
         private IBeaconCache mockBeaconCache;
+
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+        private CultureInfo currentCulture;
+#endif
 
         [SetUp]
         public void Setup()
@@ -119,7 +124,30 @@ namespace Dynatrace.OpenKit.Protocol
 
             mockParent = Substitute.For<IOpenKitComposite>();
             mockParent.ActionId.Returns(0);
+
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            // explicitly manipulate the CurrentCulture to Austrian German
+            // ensure it's restored in TearDown
+            // reason - some number formatting behaves different in German
+            // Note: .NET Core 1.0/1.1 does not allow manipulating the thread's culture
+            // Manipulating the culture for all threads might have negative impact
+            var newCulture = new CultureInfo("de-AT");
+            newCulture.NumberFormat.NegativeSign = "~"; // use tilde for negative numbers
+            newCulture.NumberFormat.NumberGroupSizes = new int[2] { 1, 2 };
+            newCulture.NumberFormat.NumberGroupSeparator = "_";
+            currentCulture = CultureInfo.CurrentCulture;
+            System.Threading.Thread.CurrentThread.CurrentCulture = newCulture;
+#endif
         }
+
+        [TearDown]
+        public void TearDown()
+        {
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            System.Threading.Thread.CurrentThread.CurrentCulture = currentCulture;
+#endif
+        }
+
 
         [Test]
         public void DefaultBeaconConfigurationDoesNotDisableCapturing()
@@ -273,15 +301,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(obtained, Is.EqualTo(
-                "MT"                                             // tag prefix
-                + $"_{ProtocolConstants.ProtocolVersion}"        // protocol version
-                + $"_{ServerId}"                                 // server ID
-                + $"_{DeviceId}"                                 // device ID
-                + $"_{SessionId}"                                // session number
-                + $"_{AppId}"                                    // application ID
-                + $"_{ActionId}"                                 // action ID
-                + $"_{ThreadId}"                                 // thread ID
-                + $"_{sequenceNumber}"                           // sequence number
+                "MT"                                                           // tag prefix
+                + $"_{ProtocolConstants.ProtocolVersion.ToInvariantString()}"  // protocol version
+                + $"_{ServerId.ToInvariantString()}"                           // server ID
+                + $"_{DeviceId.ToInvariantString()}"                           // device ID
+                + $"_{SessionId.ToInvariantString()}"                          // session number
+                + $"_{AppId}"                                                  // application ID
+                + $"_{ActionId.ToInvariantString()}"                           // action ID
+                + $"_{ThreadId.ToInvariantString()}"                           // thread ID
+                + $"_{sequenceNumber.ToInvariantString()}"                     // sequence number
                 ));
         }
 
@@ -298,15 +326,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(obtained, Is.EqualTo(
-                "MT"                                             // tag prefix
-                + $"_{ProtocolConstants.ProtocolVersion}"        // protocol version
-                + $"_{ServerId}"                                 // server ID
-                + $"_{DeviceId}"                                 // device ID
-                + $"_{SessionId}"                                // session number
-                + $"_{AppId}"                                    // application ID
-                + $"_{ActionId}"                                 // action ID
-                + $"_{ThreadId}"                                 // thread ID
-                + $"_{sequenceNumber}"                           // sequence number
+                "MT"                                                          // tag prefix
+                + $"_{ProtocolConstants.ProtocolVersion.ToInvariantString()}" // protocol version
+                + $"_{ServerId.ToInvariantString()}"                          // server ID
+                + $"_{DeviceId.ToInvariantString()}"                          // device ID
+                + $"_{SessionId.ToInvariantString()}"                         // session number
+                + $"_{AppId}"                                                 // application ID
+                + $"_{ActionId.ToInvariantString()}"                          // action ID
+                + $"_{ThreadId.ToInvariantString()}"                          // thread ID
+                + $"_{sequenceNumber.ToInvariantString()}"                    // sequence number
                 ));
         }
 
@@ -326,15 +354,15 @@ namespace Dynatrace.OpenKit.Protocol
 
                 // then
                 Assert.That(obtained, Is.EqualTo(
-                    "MT"                                         // tag prefix
-                    + $"_{ProtocolConstants.ProtocolVersion}"    // protocol version
-                    + $"_{ServerId}"                             // server ID
-                    + $"_{DeviceId}"                             // device ID percent encoded
-                    + $"_{SessionId}"                            // session number
-                    + $"_{AppId}"                                // application ID
-                    + $"_{ActionId}"                             // parent action ID
-                    + $"_{ThreadId}"                             // thread ID
-                    + $"_{tracerSeqNo}"                          // sequence number
+                    "MT"                                                          // tag prefix
+                    + $"_{ProtocolConstants.ProtocolVersion.ToInvariantString()}" // protocol version
+                    + $"_{ServerId.ToInvariantString()}"                          // server ID
+                    + $"_{DeviceId.ToInvariantString()}"                          // device ID percent encoded
+                    + $"_{SessionId.ToInvariantString()}"                         // session number
+                    + $"_{AppId}"                                                 // application ID
+                    + $"_{ActionId.ToInvariantString()}"                          // parent action ID
+                    + $"_{ThreadId.ToInvariantString()}"                          // thread ID
+                    + $"_{tracerSeqNo.ToInvariantString()}"                       // sequence number
                 ));
             }
         }
@@ -342,8 +370,8 @@ namespace Dynatrace.OpenKit.Protocol
         [Test]
         public void CreateTagAddsSessionSequenceNumberForVisitStoreVersionHigherOne()
         {
-            const int tracerSeqNo = 42;
-            const int sessionSeqNo = 73;
+            const int tracerSeqNo = 4242;
+            const int sessionSeqNo = 7321;
             for (var version = 2; version < 5; version++)
             {
                 // given
@@ -355,16 +383,16 @@ namespace Dynatrace.OpenKit.Protocol
 
                 // then
                 Assert.That(obtained, Is.EqualTo(
-                    "MT"                                         // tag prefix
-                    + $"_{ProtocolConstants.ProtocolVersion}"    // protocol version
-                    + $"_{ServerId}"                             // server ID
-                    + $"_{DeviceId}"                             // device ID percent encoded
-                    + $"_{SessionId}"                            // session number
-                    + $"-{sessionSeqNo}"                         // session sequence number
-                    + $"_{AppId}"                                // application ID
-                    + $"_{ActionId}"                             // parent action ID
-                    + $"_{ThreadId}"                             // thread ID
-                    + $"_{tracerSeqNo}"                          // sequence number
+                    "MT"                                                          // tag prefix
+                    + $"_{ProtocolConstants.ProtocolVersion.ToInvariantString()}" // protocol version
+                    + $"_{ServerId.ToInvariantString()}"                          // server ID
+                    + $"_{DeviceId.ToInvariantString()}"                          // device ID percent encoded
+                    + $"_{SessionId.ToInvariantString()}"                         // session number
+                    + $"-{sessionSeqNo.ToInvariantString()}"                      // session sequence number
+                    + $"_{AppId}"                                                 // application ID
+                    + $"_{ActionId.ToInvariantString()}"                          // parent action ID
+                    + $"_{ThreadId.ToInvariantString()}"                          // thread ID
+                    + $"_{tracerSeqNo.ToInvariantString()}"                       // sequence number
                 ));
             }
         }
@@ -387,17 +415,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddActionData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.ACTION.ToInt()}"          // event type
-                + $"&na={actionName}"                     // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&ca={ActionId}"                       // action ID
-                + $"&pa={parentId}"                       // parent action ID
-                +  "&s0=0"                                // action start sequence number
-                +  "&t0=0"                                // action start time
-                +  "&s1=0"                                // action end sequence number
-                +  "&t1=0"                                // action end time
+                new BeaconKey(SessionId, SessionSeqNo),               // beacon key
+                0,                                                    // timestamp
+                $"et={EventType.ACTION.ToInt().ToInvariantString()}"  // event type
+                + $"&na={actionName}"                                 // action name
+                + $"&it={ThreadId.ToInvariantString()}"               // thread ID
+                + $"&ca={ActionId.ToInvariantString()}"               // action ID
+                + $"&pa={parentId.ToInvariantString()}"               // parent action ID
+                +  "&s0=0"                                            // action start sequence number
+                +  "&t0=0"                                            // action start time
+                +  "&s1=0"                                            // action end sequence number
+                +  "&t1=0"                                            // action end time
                 );
         }
 
@@ -412,13 +440,13 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.SESSION_END.ToInt()}"     // event type
-                + $"&it={ThreadId}"                       // thread ID
-                +  "&pa=0"                                // parent action ID
-                +  "&s0=1"                                // session end sequence number
-                +  "&t0=0"                                // session end time
+                new BeaconKey(SessionId, SessionSeqNo),                       // beacon key
+                0,                                                            // timestamp
+                $"et={EventType.SESSION_END.ToInt().ToInvariantString()}"     // event type
+                + $"&it={ThreadId.ToInvariantString()}"                       // thread ID
+                +  "&pa=0"                                                    // parent action ID
+                +  "&s0=1"                                                    // session end sequence number
+                +  "&t0=0"                                                    // session end time
                 );
         }
 
@@ -435,15 +463,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.VALUE_INT.ToInt()}"       // event type
-                + $"&na={valueName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                + $"&vl={value}"                          // reported value
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.VALUE_INT.ToInt().ToInvariantString()}" // event type
+                + $"&na={valueName}"                                    // action name
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                + $"&vl={value.ToInvariantString()}"                    // reported value
                 );
         }
 
@@ -460,15 +488,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.VALUE_DOUBLE.ToInt()}"    // event type
-                + $"&na={valueName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                + $"&vl={value}"                          // reported value
+                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
+                0,                                                         // timestamp
+                $"et={EventType.VALUE_DOUBLE.ToInt().ToInvariantString()}" // event type
+                + $"&na={valueName}"                                       // action name
+                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
+                +  "&s0=1"                                                 // event sequence number
+                +  "&t0=0"                                                 // event timestamp
+                + $"&vl={value.ToInvariantString()}"                       // reported value
                 );
         }
 
@@ -485,15 +513,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.VALUE_STRING.ToInt()}"    // event type
-                + $"&na={valueName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                + $"&vl={value}"                          // reported value
+                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
+                0,                                                         // timestamp
+                $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
+                + $"&na={valueName}"                                       // action name
+                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
+                +  "&s0=1"                                                 // event sequence number
+                +  "&t0=0"                                                 // event timestamp
+                + $"&vl={value}"                                           // reported value
                 );
         }
 
@@ -509,14 +537,14 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.VALUE_STRING.ToInt()}"    // event type
-                + $"&na={valueName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
+                0,                                                         // timestamp
+                $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
+                + $"&na={valueName}"                                       // action name
+                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
+                +  "&s0=1"                                                 // event sequence number
+                +  "&t0=0"                                                 // event timestamp
                 );
         }
 
@@ -531,13 +559,13 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.VALUE_STRING.ToInt()}"    // event type
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
+                0,                                                         // timestamp
+                $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
+                +  "&s0=1"                                                 // event sequence number
+                +  "&t0=0"                                                 // event timestamp
                 );
         }
 
@@ -553,14 +581,14 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.NAMED_EVENT.ToInt()}"     // event type
-                + $"&na={eventName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.NAMED_EVENT.ToInt().ToInvariantString()}" // event type
+                + $"&na={eventName}"                                      // action name
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // event sequence number
+                +  "&t0=0"                                                // event timestamp
                 );
         }
 
@@ -575,13 +603,13 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.NAMED_EVENT.ToInt()}"     // event type
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.NAMED_EVENT.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // event sequence number
+                +  "&t0=0"                                                // event timestamp
                 );
         }
 
@@ -600,17 +628,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.ERROR.ToInt()}"           // event type
-                + $"&na={errorName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                + $"&ev={errorCode}"                      // reported error code
-                + $"&rs={reason}"                         // error reason
-                +  "&tt=c"                                // error technology type
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.ERROR.ToInt().ToInvariantString()}" // event type
+                + $"&na={errorName}"                                // action name
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"             // parent action ID
+                +  "&s0=1"                                          // event sequence number
+                +  "&t0=0"                                          // event timestamp
+                + $"&ev=-123"                                       // reported error code
+                + $"&rs={reason}"                                   // error reason
+                +  "&tt=c"                                          // error technology type
                 );
         }
 
@@ -626,15 +654,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.ERROR.ToInt()}"           // event type
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                + $"&ev={errorCode}"                      // reported error code
-                +  "&tt=c"                                // error technology type
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.ERROR.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"             // parent action ID
+                +  "&s0=1"                                          // event sequence number
+                +  "&t0=0"                                          // event timestamp
+                + $"&ev=-123"                                       // reported error code
+                +  "&tt=c"                                          // error technology type
                 );
         }
 
@@ -653,17 +681,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.CRASH.ToInt()}"           // event type
-                + $"&na={errorName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                +  "&pa=0"                                // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                + $"&rs={reason}"                         // error reason
-                + $"&st={stacktrace}"                     // reported stacktrace
-                +  "&tt=c"                                // error technology type
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&na={errorName}"                                // action name
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                +  "&pa=0"                                          // parent action ID
+                +  "&s0=1"                                          // event sequence number
+                +  "&t0=0"                                          // event timestamp
+                + $"&rs={reason}"                                   // error reason
+                + $"&st={stacktrace}"                               // reported stacktrace
+                +  "&tt=c"                                          // error technology type
                 );
         }
 
@@ -680,15 +708,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.CRASH.ToInt()}"           // event type
-                + $"&na={errorName}"                      // action name
-                + $"&it={ThreadId}"                       // thread ID
-                +  "&pa=0"                                // parent action ID
-                +  "&s0=1"                                // event sequence number
-                +  "&t0=0"                                // event timestamp
-                +  "&tt=c"                                // error technology type
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&na={errorName}"                                // action name
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                +  "&pa=0"                                          // parent action ID
+                +  "&s0=1"                                          // event sequence number
+                +  "&t0=0"                                          // event timestamp
+                +  "&tt=c"                                          // error technology type
                 );
         }
 
@@ -698,9 +726,9 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 13;
-            const int receivedBytes = 14;
-            const int responseCode = 15;
+            const int sentBytes = 1337;
+            const int receivedBytes = 1447;
+            const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns((string) null);
             tracer.BytesSent.Returns(sentBytes);
@@ -712,18 +740,18 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=0"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=0"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
-                + $"&bs={sentBytes}"                      // number bytes sent
-                + $"&br={receivedBytes}"                  // number bytes received
-                + $"&rc={responseCode}"                   // number bytes received
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
+                + $"&rc={responseCode.ToInvariantString()}"               // number bytes received
                 );
         }
 
@@ -740,14 +768,14 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
              mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.IDENTIFY_USER.ToInt()}"   // event type
-                + $"&na={userId}"                         // number bytes received
-                + $"&it={ThreadId}"                       // thread ID
-                +  "&pa=0"                                // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                     // beacon key
+                0,                                                          // timestamp
+                $"et={EventType.IDENTIFY_USER.ToInt().ToInvariantString()}" // event type
+                + $"&na={userId}"                                           // number bytes received
+                + $"&it={ThreadId.ToInvariantString()}"                     // thread ID
+                +  "&pa=0"                                                  // parent action ID
+                +  "&s0=1"                                                  // web request start sequence number
+                +  "&t0=0"                                                  // web request start timestamp
                 );
         }
 
@@ -762,13 +790,13 @@ namespace Dynatrace.OpenKit.Protocol
 
              // then
              mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.IDENTIFY_USER.ToInt()}"   // event type
-                + $"&it={ThreadId}"                       // thread ID
-                +  "&pa=0"                                // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                     // beacon key
+                0,                                                          // timestamp
+                $"et={EventType.IDENTIFY_USER.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                     // thread ID
+                +  "&pa=0"                                                  // parent action ID
+                +  "&s0=1"                                                  // web request start sequence number
+                +  "&t0=0"                                                  // web request start timestamp
                 );
         }
 
@@ -789,17 +817,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
-                + $"&bs={sentBytes}"                      // number bytes sent
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=2"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
                 );
         }
 
@@ -820,17 +848,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
-                + $"&bs={sentBytes}"                      // number bytes sent
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=2"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
                 );
         }
 
@@ -850,16 +878,16 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=2"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
                 );
         }
 
@@ -880,17 +908,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
-                + $"&br={receivedBytes}"                  // number bytes received
+                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
+                0,                                                         // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}"  // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                   // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
+                +  "&s0=1"                                                 // web request start sequence number
+                +  "&t0=0"                                                 // web request start timestamp
+                +  "&s1=2"                                                 // web request end sequence number
+                +  "&t1=0"                                                 // web request end timestamp
+                + $"&br={receivedBytes.ToInvariantString()}"               // number bytes received
                 );
         }
 
@@ -911,17 +939,17 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
-                + $"&br={receivedBytes}"                  // number bytes received
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=2"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
                 );
         }
 
@@ -941,16 +969,16 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=2"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
                 );
         }
 
@@ -973,18 +1001,18 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),   // beacon key
-                0,                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt()}"     // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"  // traced URL
-                + $"&it={ThreadId}"                       // thread ID
-                + $"&pa={ActionId}"                       // parent action ID
-                +  "&s0=1"                                // web request start sequence number
-                +  "&t0=0"                                // web request start timestamp
-                +  "&s1=2"                                // web request end sequence number
-                +  "&t1=0"                                // web request end timestamp
-                + $"&bs={sentBytes}"                      // number bytes sent
-                + $"&br={receivedBytes}"                  // number bytes received
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=1"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=2"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
                 );
         }
 
@@ -1084,26 +1112,26 @@ namespace Dynatrace.OpenKit.Protocol
             target.Send(Substitute.For<IHttpClientProvider>(), null);
 
             // then
-            var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion}" +
+            var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
                 $"&ap={AppId}" +
                 $"&an={AppName}" +
                 $"&vn={appVersion}" +
-                $"&pt={ProtocolConstants.PlatformTypeOpenKit}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
-                $"&vi={DeviceId}" +
-                $"&sn={SessionId}" +
-                $"&ss={sessionSequence}" +
+                $"&vi={DeviceId.ToInvariantString()}" +
+                $"&sn={SessionId.ToInvariantString()}" +
+                $"&ss={sessionSequence.ToInvariantString()}" +
                 $"&ip={ipAddress}" +
                 "&os=system" +
                 "&mf=manufacturer" +
                 "&md=model" +
                 "&dl=2" +
                 "&cl=2" +
-                $"&vs={visitStoreVersion}" +
+                $"&vs={visitStoreVersion.ToInvariantString()}" +
                 "&tx=0" +
                 "&tv=0" +
-                $"&mp={Multiplicity}";
+                $"&mp={Multiplicity.ToInvariantString()}";
 
             mockBeaconCache.Received(1)
                 .GetNextBeaconChunk(new BeaconKey(SessionId, sessionSequence), expectedPrefix, Arg.Any<int>(),
@@ -1399,15 +1427,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(obtained, Is.EqualTo(
-                "MT" +                    // tag prefix
-                 "_3" +                   // protocol version
-                $"_{ServerId}" +          // server ID
-                $"_{DeviceId}" +          // device ID
-                $"_{SessionId}" +         // session number
-                $"_{AppId}" +             // application ID
-                $"_{ActionId}" +          // parent action ID
-                $"_{ThreadId}" +          // thread ID
-                $"_{sequenceNo}"          // sequence number
+                "MT" +                                        // tag prefix
+                 "_3" +                                       // protocol version
+                $"_{ServerId.ToInvariantString()}" +          // server ID
+                $"_{DeviceId.ToInvariantString()}" +          // device ID
+                $"_{SessionId.ToInvariantString()}" +         // session number
+                $"_{AppId}" +                                 // application ID
+                $"_{ActionId.ToInvariantString()}" +          // parent action ID
+                $"_{ThreadId.ToInvariantString()}" +          // thread ID
+                $"_{sequenceNo.ToInvariantString()}"          // sequence number
             ));
         }
 
@@ -1426,15 +1454,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(obtained, Is.EqualTo(
-                "MT" +                    // tag prefix
-                 "_3" +                   // protocol version
-                $"_{ServerId}" +          // server ID
-                $"_{DeviceId}" +          // device ID
-                $"_{SessionId}" +         // session number
-                $"_{AppId}" +             // application ID
-                $"_{ActionId}" +          // parent action ID
-                $"_{ThreadId}" +          // thread ID
-                $"_{sequenceNo}"          // sequence number
+                "MT" +                                        // tag prefix
+                 "_3" +                                       // protocol version
+                $"_{ServerId.ToInvariantString()}" +          // server ID
+                $"_{DeviceId.ToInvariantString()}" +          // device ID
+                $"_{SessionId.ToInvariantString()}" +         // session number
+                $"_{AppId}" +                                 // application ID
+                $"_{ActionId.ToInvariantString()}" +          // parent action ID
+                $"_{ThreadId.ToInvariantString()}" +          // thread ID
+                $"_{sequenceNo.ToInvariantString()}"          // sequence number
             ));
         }
 
@@ -1453,15 +1481,15 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(obtained, Is.EqualTo(
-                "MT" +                    // tag prefix
-                 "_3" +                   // protocol version
-                $"_{ServerId}" +          // server ID
-                $"_{DeviceId}" +          // device ID
-                 "_1" +                   // session number (must be one if session number reporting disallowed)
-                $"_{AppId}" +             // application ID
-                $"_{ActionId}" +          // parent action ID
-                $"_{ThreadId}" +          // thread ID
-                $"_{sequenceNo}"          // sequence number
+                "MT" +                                        // tag prefix
+                 "_3" +                                       // protocol version
+                $"_{ServerId.ToInvariantString()}" +          // server ID
+                $"_{DeviceId.ToInvariantString()}" +          // device ID
+                 "_1" +                                       // session number (must be one if session number reporting disallowed)
+                $"_{AppId}" +                                 // application ID
+                $"_{ActionId.ToInvariantString()}" +          // parent action ID
+                $"_{ThreadId.ToInvariantString()}" +          // thread ID
+                $"_{sequenceNo.ToInvariantString()}"          // sequence number
             ));
         }
 
@@ -2044,26 +2072,26 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(response, Is.Null);
             mockBeaconCache.Received(1).GetNextBeaconChunk(
                 Arg.Any<BeaconKey>(),
-                $"vv={ProtocolConstants.ProtocolVersion}" +
+                $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
                 $"&ap={AppId}" +
                 $"&an={AppName}" +
                 $"&vn={AppVersion}" +
-                $"&pt={ProtocolConstants.PlatformTypeOpenKit}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
-                $"&vi={DeviceId}" +
-                $"&sn={SessionId}" +
-                $"&ss={SessionSeqNo}" +
+                $"&vi={DeviceId.ToInvariantString()}" +
+                $"&sn={SessionId.ToInvariantString()}" +
+                $"&ss={SessionSeqNo.ToInvariantString()}" +
                 "&ip=127.0.0.1" +
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
                 $"&md={string.Empty}" +
-                $"&dl={(int) ConfigurationDefaults.DefaultCrashReportingLevel}" +
-                $"&cl={(int) ConfigurationDefaults.DefaultCrashReportingLevel}" +
+                $"&dl={((int) ConfigurationDefaults.DefaultDataCollectionLevel).ToInvariantString()}" +
+                $"&cl={((int) ConfigurationDefaults.DefaultCrashReportingLevel).ToInvariantString()}" +
                 "&vs=0" +
                 "&tx=0" +
                 "&tv=0" +
-                $"&mp={Multiplicity}",
+                $"&mp={Multiplicity.ToInvariantString()}",
                 Arg.Any<int>(),
                 Arg.Any<char>()
             );

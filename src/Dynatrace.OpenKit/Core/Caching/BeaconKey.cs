@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using Dynatrace.OpenKit.Util;
+
 namespace Dynatrace.OpenKit.Core.Caching
 {
     public class BeaconKey
@@ -41,7 +43,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -71,7 +73,7 @@ namespace Dynatrace.OpenKit.Core.Caching
 
         public override string ToString()
         {
-            return $"[sn={BeaconId}, seq={BeaconSeqNo}]";
+            return $"[sn={BeaconId.ToInvariantString()}, seq={BeaconSeqNo.ToInvariantString()}]";
         }
     }
 }

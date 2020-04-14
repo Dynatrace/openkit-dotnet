@@ -16,6 +16,8 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Util;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -24,6 +26,11 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     internal class RootAction : BaseAction, IRootActionInternals
     {
+        /// <summary>
+        /// Helper to reduce ToString() effort.
+        /// </summary>
+        private string toString;
+
         #region constructors
 
         /// <summary>
@@ -78,7 +85,13 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public override string ToString()
         {
-            return $"{GetType().Name} [sn={Beacon.SessionNumber}, id={Id}, name={Name}]";
+            return toString ?? 
+                (toString = new StringBuilder(GetType().Name)
+                    .Append(" [sn=").Append(Beacon.SessionNumber.ToInvariantString())
+                    .Append(", seq=").Append(Beacon.SessionSequenceNumber.ToInvariantString())
+                    .Append(", id=").Append(Id.ToInvariantString())
+                    .Append(", name=").Append(Name)
+                    .Append("]").ToString());
         }
     }
 }

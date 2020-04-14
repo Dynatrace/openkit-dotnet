@@ -15,9 +15,11 @@
 //
 
 using System;
+using System.Text;
 using System.Text.RegularExpressions;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -28,6 +30,11 @@ namespace Dynatrace.OpenKit.Core.Objects
     public class WebRequestTracer : IWebRequestTracerInternals
     {
         private static readonly Regex SchemaValidationPattern = new Regex("^[a-z][a-z0-9+\\-.]*://.+", RegexOptions.IgnoreCase);
+
+        /// <summary>
+        /// Helper to reduce ToString() effort.
+        /// </summary>
+        private string toString;
 
         /// <summary>
         /// Logger for trace log messages
@@ -249,7 +256,13 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public override string ToString()
         {
-            return $"{GetType().Name} [sn={beacon.SessionNumber}, id={parentActionId}, url='{Url}'] ";
+            return toString ??
+                (toString = new StringBuilder(GetType().Name)
+                    .Append(" [sn=").Append(beacon.SessionNumber.ToInvariantString())
+                    .Append(", seq=").Append(beacon.SessionSequenceNumber.ToInvariantString())
+                    .Append(", pa=").Append(parentActionId.ToInvariantString())
+                    .Append(", url='").Append(Url)
+                    .Append("']").ToString());
         }
     }
 }

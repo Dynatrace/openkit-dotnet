@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -112,7 +113,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 // the Retry-After response header is missing
                 logger.Warn(
-                    $"{ResponseKeyRetryAfter} is not available - using default value ${DefaultRetryAfterInMilliseconds}");
+                    $"{ResponseKeyRetryAfter} is not available - using default value ${DefaultRetryAfterInMilliseconds.ToInvariantString()}");
                 return DefaultRetryAfterInMilliseconds;
             }
 
@@ -120,7 +121,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 // the Retry-After response header has multiple values, but only one is expected
                 logger.Warn(
-                    $"{ResponseKeyRetryAfter} has unexpected number of values - using default value {DefaultRetryAfterInMilliseconds}");
+                    $"{ResponseKeyRetryAfter} has unexpected number of values - using default value {DefaultRetryAfterInMilliseconds.ToInvariantString()}");
                 return DefaultRetryAfterInMilliseconds;
             }
 
@@ -131,7 +132,7 @@ namespace Dynatrace.OpenKit.Protocol
             if (!int.TryParse(values[0], out int delaySeconds))
             {
                 logger.Error(
-                    $"Failed to parse {ResponseKeyRetryAfter} value \"${values[0]}\" - using default value ${DefaultRetryAfterInMilliseconds}");
+                    $"Failed to parse {ResponseKeyRetryAfter} value \"${values[0]}\" - using default value ${DefaultRetryAfterInMilliseconds.ToInvariantString()}");
                 return DefaultRetryAfterInMilliseconds;
             }
 

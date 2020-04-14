@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -193,7 +194,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportValue (double) ({valueName}, {value})");
+                Logger.Debug($"{this} ReportValue (double) ({valueName}, {value.ToInvariantString()})");
             }
 
             lock (LockObject)
@@ -216,7 +217,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportValue (int) ({valueName}, {value})");
+                Logger.Debug($"{this} ReportValue (int) ({valueName}, {value.ToInvariantString()})");
             }
 
             lock (LockObject)
@@ -239,7 +240,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportError({errorName}, {errorCode}, {reason})");
+                Logger.Debug($"{this} ReportError({errorName}, {errorCode.ToInvariantString()}, {reason})");
             }
 
             lock (LockObject)

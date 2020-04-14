@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -97,7 +98,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                     var numRecordsRemoved = beaconCache.EvictRecordsByAge(beaconKey, smallestAllowedBeaconTimestamp);
                     if (numRecordsRemoved > 0 && logger.IsDebugEnabled)
                     {
-                        logger.Debug($"{GetType().Name} - Removed {numRecordsRemoved} records from Beacon with key {beaconKey}");
+                        logger.Debug($"{GetType().Name} - Removed {numRecordsRemoved.ToInvariantString()} records from Beacon with key {beaconKey}");
                     }
                 }
             }

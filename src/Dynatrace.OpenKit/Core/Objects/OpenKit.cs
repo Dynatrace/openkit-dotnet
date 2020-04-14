@@ -20,6 +20,7 @@ using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -131,7 +132,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{typeof(OpenKit).Name} "
                              + $"- applicationName={configuration.ApplicationName}"
                              + $", applicationID={configuration.ApplicationId}"
-                             + $", deviceID={configuration.DeviceId}"
+                             + $", deviceID={configuration.DeviceId.ToInvariantString()}"
                              + $", origDeviceID={configuration.OrigDeviceId}"
                              + $", endpointURL={configuration.EndpointUrl}"
                 );

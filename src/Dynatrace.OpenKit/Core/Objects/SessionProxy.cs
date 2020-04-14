@@ -18,6 +18,7 @@ using System;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -510,7 +511,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public override string ToString()
         {
             var beacon = currentSession.Beacon;
-            return $"{GetType().Name} [sn={beacon.SessionNumber}, seq={beacon.SessionSequenceNumber}]";
+            return $"{GetType().Name} [sn={beacon.SessionNumber.ToInvariantString()}, seq={beacon.SessionSequenceNumber.ToInvariantString()}]";
         }
     }
 }

@@ -16,9 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
-using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Caching
@@ -64,7 +64,13 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"{GetType().Name} AddActionData(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo}, timestamp={timestamp}, data='{data}')");
+                var logString = new StringBuilder(GetType().Name)
+                    .Append(" AddActionData(sn=").Append(beaconKey.BeaconId.ToInvariantString())
+                    .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
+                    .Append(", timestamp=").Append(timestamp.ToInvariantString())
+                    .Append(", data='").Append(data).Append("')").ToString();
+
+                logger.Debug(logString);
             }
             // get a reference to the cache entry
             var entry = GetCachedEntryOrInsert(beaconKey);
@@ -93,7 +99,13 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug($"{GetType().Name} AddEventData(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo} timestamp={timestamp}, data='{data}')");
+                var logString = new StringBuilder(GetType().Name)
+                    .Append(" AddEventData(sn=").Append(beaconKey.BeaconId.ToInvariantString())
+                    .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
+                    .Append(", timestamp=").Append(timestamp.ToInvariantString())
+                    .Append(", data='").Append(data).Append("')").ToString();
+
+                logger.Debug(logString);
             }
             // get a reference to the cache entry
             var entry = GetCachedEntryOrInsert(beaconKey);
@@ -122,7 +134,12 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if(logger.IsDebugEnabled)
             {
-                logger.Debug($"{GetType().Name} DeleteCacheEntry(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo})");
+                var logString = new StringBuilder(GetType().Name)
+                    .Append(" DeleteCacheEntry(sn=").Append(beaconKey.BeaconId.ToInvariantString())
+                    .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
+                    .ToString();
+
+                logger.Debug(logString);
             }
             BeaconCacheEntry entry = null;
             try
@@ -167,7 +184,14 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if(logger.IsDebugEnabled)
             {
-                logger.Debug($"{GetType().Name} EvictRecordsByAge(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo}, minTimestamp={minTimestamp}) has evicted {numRecordsRemoved} records");
+                var logString = new StringBuilder(GetType().Name)
+                    .Append(" EvictRecordsByAge(sn=").Append(beaconKey.BeaconId.ToInvariantString())
+                    .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
+                    .Append(", minTimestamp=").Append(minTimestamp.ToInvariantString())
+                    .Append(" has evicted ").Append(numRecordsRemoved.ToInvariantString()).Append(" records")
+                    .ToString();
+
+                logger.Debug(logString);
             }
 
             return numRecordsRemoved;
@@ -195,7 +219,14 @@ namespace Dynatrace.OpenKit.Core.Caching
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"{GetType().Name} EvictRecordsByNumber(sn={beaconKey.BeaconId}, seq={beaconKey.BeaconSeqNo}, numRecords={numRecords}) has evicted {numRecordsRemoved} records");
+                var logString = new StringBuilder(GetType().Name)
+                    .Append(" EvictRecordsByNumber(sn=").Append(beaconKey.BeaconId.ToInvariantString())
+                    .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
+                    .Append(", numRecords=").Append(numRecords.ToInvariantString())
+                    .Append(" has evicted ").Append(numRecordsRemoved.ToInvariantString()).Append(" records")
+                    .ToString();
+
+                logger.Debug(logString);
             }
 
             return numRecordsRemoved;

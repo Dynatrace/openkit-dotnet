@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
-using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Caching
 {
@@ -139,7 +139,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             {
                 foreach (var entry in removedRecordsPerBeacon)
                 {
-                    logger.Debug($"{GetType().Name} - Removed {entry.Value} records from Beacon with key {entry.Key}");
+                    logger.Debug($"{GetType().Name} - Removed {entry.Value.ToInvariantString()} records from Beacon with key {entry.Key}");
                 }
             }
         }

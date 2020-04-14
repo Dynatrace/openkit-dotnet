@@ -20,6 +20,7 @@ using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -78,7 +79,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var content = new System.Net.Http.ByteArrayContent(gzippedPayload);
             content.Headers.Add("Content-Encoding", "gzip");
-            content.Headers.Add("Content-Length", gzippedPayload.Length.ToString());
+            content.Headers.Add("Content-Length", gzippedPayload.Length.ToInvariantString());
 
             return content;
         }

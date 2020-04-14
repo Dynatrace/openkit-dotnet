@@ -21,6 +21,9 @@
 - Add OpenKit.createSession overload without IP address parameter.  
   The IP address is determined in this case on the server side.
 - Fix coveralls.io build
+- Fixed issue with reporting localized beacon data  
+  Integer and floating point numbers might have been reported with the thread's locale
+  causing issues with session properties.
 
 ### Improvements
 - Reformatted text files to unix style line endings.

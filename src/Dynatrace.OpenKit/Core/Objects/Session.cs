@@ -14,11 +14,13 @@
 // limitations under the License.
 //
 
+using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -27,6 +29,11 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     internal class Session : OpenKitComposite, ISessionInternals
     {
+        /// <summary>
+        /// Helper to reduce ToString() effort.
+        /// </summary>
+        private string toString;
+
         /// <summary>
         /// The maximum number of "new session requests" to send per session.
         /// </summary>
@@ -321,7 +328,11 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public override string ToString()
         {
-            return $"{GetType().Name} [sn={beacon.SessionNumber}]";
+            return toString ??
+                (toString = new StringBuilder(GetType().Name)
+                    .Append(" [sn=").Append(beacon.SessionNumber.ToInvariantString())
+                    .Append(", seq=").Append(beacon.SessionSequenceNumber.ToInvariantString())
+                    .Append("]").ToString());
         }
 
         #region session state

@@ -16,6 +16,8 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Util;
+using System.Text;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -30,6 +32,11 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// </summary>
     public class LeafAction : BaseAction
     {
+        /// <summary>
+        /// Helper to reduce ToString() effort.
+        /// </summary>
+        private string toString;
+
         /// <summary>
         /// Constructor for creating a leaf action instance.
         /// </summary>
@@ -50,7 +57,14 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public override string ToString()
         {
-            return $"{GetType().Name} [sn={Beacon.SessionNumber}, id={Id}, name={Name}, pa={ParentId}]";
+            return toString ??
+                (toString = new StringBuilder(GetType().Name)
+                    .Append(" [sn=").Append(Beacon.SessionNumber.ToInvariantString())
+                    .Append(", seq=").Append(Beacon.SessionSequenceNumber.ToInvariantString())
+                    .Append(", id=").Append(Id.ToInvariantString())
+                    .Append(", name=").Append(Name)
+                    .Append(", pa=").Append(ParentId.ToInvariantString())
+                    .Append("]").ToString());
         }
     }
 }

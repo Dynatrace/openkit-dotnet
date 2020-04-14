@@ -22,6 +22,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -259,19 +260,19 @@ namespace Dynatrace.OpenKit.Protocol
             var builder = new StringBuilder();
 
             builder.Append(WebRequestTagPrefix);
-            builder.Append("_").Append(ProtocolConstants.ProtocolVersion);
-            builder.Append("_").Append(httpConfiguration.ServerId);
-            builder.Append("_").Append(DeviceId);
-            builder.Append("_").Append(SessionNumber);
+            builder.Append("_").Append(ProtocolConstants.ProtocolVersion.ToInvariantString());
+            builder.Append("_").Append(httpConfiguration.ServerId.ToInvariantString());
+            builder.Append("_").Append(DeviceId.ToInvariantString());
+            builder.Append("_").Append(SessionNumber.ToInvariantString());
             if (VisitStoreVersion > 1)
             {
-                builder.Append("-").Append(SessionSequenceNumber);
+                builder.Append("-").Append(SessionSequenceNumber.ToInvariantString());
             }
 
             builder.Append("_").Append(openKitConfig.ApplicationIdPercentEncoded);
-            builder.Append("_").Append(parentActionId);
-            builder.Append("_").Append(threadIdProvider.ThreadId);
-            builder.Append("_").Append(tracerSeqNo);
+            builder.Append("_").Append(parentActionId.ToInvariantString());
+            builder.Append("_").Append(threadIdProvider.ThreadId.ToInvariantString());
+            builder.Append("_").Append(tracerSeqNo.ToInvariantString());
 
             return builder.ToString();
         }
@@ -731,14 +732,14 @@ namespace Dynatrace.OpenKit.Protocol
         private static void AddKeyValuePair(StringBuilder builder, string key, long longValue)
         {
             AppendKey(builder, key);
-            builder.Append(longValue);
+            builder.Append(longValue.ToInvariantString());
         }
 
         // helper method for adding key/value pairs with int values
         private static void AddKeyValuePair(StringBuilder builder, string key, int intValue)
         {
             AppendKey(builder, key);
-            builder.Append(intValue);
+            builder.Append(intValue.ToInvariantString());
         }
 
         /// <summary>
@@ -763,7 +764,7 @@ namespace Dynatrace.OpenKit.Protocol
         private static void AddKeyValuePair(StringBuilder builder, string key, double doubleValue)
         {
             AppendKey(builder, key);
-            builder.Append(doubleValue);
+            builder.Append(doubleValue.ToInvariantString());
         }
 
         // helper method for appending a key
