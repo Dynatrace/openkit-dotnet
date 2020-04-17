@@ -369,7 +369,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 currentSession.End();
 
                 sessionCreator.Reset();
-                currentSession = CreateSplitSession(serverConfiguration);
+                currentSession = CreateInitialSession(serverConfiguration);
 
                 return CalculateNextSplitTime();
             }
