@@ -10,14 +10,20 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{F02D384C-D466-45A8-AFD5-1BB3D2EEC4D7}"
 	ProjectSection(SolutionItems) = preProject
 		CHANGELOG.md = CHANGELOG.md
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{69C1C941-3821-480C-A8EC-DC0FD4AD6712}"
 	ProjectSection(SolutionItems) = preProject
+		docs\building.md = docs\building.md
+		docs\concepts.md = docs\concepts.md
 		docs\example.md = docs\example.md
+		docs\installing.md = docs\installing.md
 		docs\internals.md = docs\internals.md
+		docs\supported_versions.md = docs\supported_versions.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dynatrace.OpenKit", "src\Dynatrace.OpenKit\Dynatrace.OpenKit.csproj", "{9E288E3E-90DA-48AE-B7CA-D33E1219D90D}"
