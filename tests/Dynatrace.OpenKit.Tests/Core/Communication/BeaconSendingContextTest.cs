@@ -1029,6 +1029,30 @@ namespace Dynatrace.OpenKit.Core.Communication
         }
 
         [Test]
+        public void UpdateFromDisablesCapturingIfReceivedApplicationIdMismatches()
+        {
+            // given
+            mockHttpClientConfig.ApplicationId.Returns("some application id");
+            var attributes = ResponseAttributes.WithUndefinedDefaults()
+                .WithApplicationId("different application id")
+                .Build();
+            var response = Substitute.For<IStatusResponse>();
+            response.ResponseAttributes.Returns(attributes);
+            response.IsErroneousResponse.Returns(false);
+
+            var target = CreateSendingContext().Build();
+            var initialCaptureOn = target.IsCaptureOn;
+
+            // when
+            target.UpdateFrom(response);
+
+            // then
+            Assert.That(initialCaptureOn, Is.True);
+            Assert.That(target.IsCaptureOn, Is.False);
+
+        }
+
+        [Test]
         public void ConfigurationTimestampReturnsZeroOnDefault()
         {
             // given
@@ -1057,6 +1081,60 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             // then
             Assert.That(target.ConfigurationTimestamp, Is.EqualTo(timestamp));
+        }
+
+        [Test]
+        public void ApplicationIdMatchesIfApplicationIdWasNotReceived()
+        {
+            // given
+            mockHttpClientConfig.ApplicationId.Returns("application id");
+            var attributes = ResponseAttributes.WithUndefinedDefaults().Build();
+
+            var target = CreateSendingContext().Build();
+
+            // when
+            var obtained = target.IsApplicationIdMismatch(attributes);
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void ApplicationIdMatchesIfStoredAndReceivedApplicationIdsAreEqual()
+        {
+            // given
+            const string applicationId = "application id";
+            mockHttpClientConfig.ApplicationId.Returns("application id");
+            var attributes = ResponseAttributes.WithUndefinedDefaults()
+                .WithApplicationId(applicationId)
+                .Build();
+
+            var target = CreateSendingContext().Build();
+
+            // when
+            var obtained = target.IsApplicationIdMismatch(attributes);
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void ApplicationIdMismatchesIfStoredAndReceivedApplicationIdsAreNotEqual()
+        {
+            // given
+            const string applicationId = "application id";
+            mockHttpClientConfig.ApplicationId.Returns("application ID");
+            var attributes = ResponseAttributes.WithUndefinedDefaults()
+                .WithApplicationId(applicationId)
+                .Build();
+
+            var target = CreateSendingContext().Build();
+
+            // when
+            var obtained = target.IsApplicationIdMismatch(attributes);
+
+            // then
+            Assert.That(obtained, Is.True);
         }
 
         private TestBeaconSendingContextBuilder CreateSendingContext()

@@ -34,6 +34,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string ResponseKeyCapture = "capture";
         internal const string ResponseKeyReportCrashes = "reportCrashes";
         internal const string ResponseKeyReportErrors = "reportErrors";
+        internal const string ResponseKeyApplicationId = "applicationId";
 
         internal const string ResponseKeyDynamicConfig = "dynamicConfig";
         internal const string ResponseKeyMultiplicity = "multiplicity";
@@ -161,6 +162,7 @@ namespace Dynatrace.OpenKit.Protocol
             ApplyCapture(builder, appConfigObject);
             ApplyReportCrashes(builder, appConfigObject);
             ApplyReportErrors(builder, appConfigObject);
+            ApplyApplicationId(builder, appConfigObject);
         }
 
         private static void ApplyCapture(ResponseAttributes.Builder builder, JsonObjectValue appConfigObject)
@@ -194,6 +196,16 @@ namespace Dynatrace.OpenKit.Protocol
 
             var reportErrors = numberValue.IntValue;
             builder.WithCaptureErrors(reportErrors != 0);
+        }
+
+        private static void ApplyApplicationId(ResponseAttributes.Builder builder, JsonObjectValue appConfigObject)
+        {
+            if (!(appConfigObject[ResponseKeyApplicationId] is JsonStringValue stringValue))
+            {
+                return;
+            }
+            
+            builder.WithApplicationId(stringValue.Value);
         }
 
         #endregion

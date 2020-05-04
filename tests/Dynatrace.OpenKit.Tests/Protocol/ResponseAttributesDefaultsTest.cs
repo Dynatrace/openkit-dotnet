@@ -81,6 +81,12 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void DefaultJsonApplicationId()
+        {
+            Assert.That(ResponseAttributesDefaults.JsonResponse.ApplicationId, Is.Null);
+        }
+
+        [Test]
         public void DefaultJsonMultiplicity()
         {
             Assert.That(ResponseAttributesDefaults.JsonResponse.Multiplicity, Is.EqualTo(1));
@@ -174,6 +180,12 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void DefaultKeyValueApplicationId()
+        {
+            Assert.That(ResponseAttributesDefaults.KeyValueResponse.ApplicationId, Is.Null);
+        }
+
+        [Test]
         public void DefaultKeyValueMultiplicity()
         {
             Assert.That(ResponseAttributesDefaults.KeyValueResponse.Multiplicity, Is.EqualTo(1));
@@ -262,6 +274,12 @@ namespace Dynatrace.OpenKit.Protocol
         public void DefaultUndefinedIsCaptureErrors()
         {
             Assert.That(ResponseAttributesDefaults.Undefined.IsCaptureErrors, Is.True);
+        }
+
+        [Test]
+        public void DefaultUndefinedApplicationId()
+        {
+            Assert.That(ResponseAttributesDefaults.Undefined.ApplicationId, Is.Null);
         }
 
         [Test]

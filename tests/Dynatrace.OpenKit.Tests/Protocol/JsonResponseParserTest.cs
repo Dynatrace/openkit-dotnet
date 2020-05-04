@@ -268,6 +268,23 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParseExtractsApplicationId()
+        {
+            // given
+            var applicationId = Guid.NewGuid().ToString();
+            Begin(JsonResponseParser.ResponseKeyAppConfig);
+            AppendLastParameter(JsonResponseParser.ResponseKeyApplicationId, applicationId);
+            Close(2);
+
+            // when
+            var obtained = JsonResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
+        }
+
+        [Test]
         public void ParseExtractsMultiplicity()
         {
             // given
@@ -330,6 +347,8 @@ namespace Dynatrace.OpenKit.Protocol
             const int multiplicity = 79;
             const int serverId = 80;
             const long timestamp = 81;
+            var applicationId = Guid.NewGuid().ToString();
+
             Begin(JsonResponseParser.ResponseKeyAgentConfig);
             AppendParameter(JsonResponseParser.ResponseKeyMaxBeaconSizeInKb, beaconSize);
             AppendParameter(JsonResponseParser.ResponseKeyMaxSessionDurationInMin, sessionDuration);
@@ -342,7 +361,8 @@ namespace Dynatrace.OpenKit.Protocol
             Begin(JsonResponseParser.ResponseKeyAppConfig);
             AppendParameter(JsonResponseParser.ResponseKeyCapture, 0);
             AppendParameter(JsonResponseParser.ResponseKeyReportCrashes, 1);
-            AppendLastParameter(JsonResponseParser.ResponseKeyReportErrors, 0);
+            AppendParameter(JsonResponseParser.ResponseKeyReportErrors, 0);
+            AppendLastParameter(JsonResponseParser.ResponseKeyApplicationId, applicationId);
             Close();
             inputBuilder.Append(",");
             Begin(JsonResponseParser.ResponseKeyDynamicConfig);
@@ -367,6 +387,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.False);
             Assert.That(obtained.IsCaptureCrashes, Is.True);
             Assert.That(obtained.IsCaptureErrors, Is.False);
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
             Assert.That(obtained.Multiplicity, Is.EqualTo(multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
             Assert.That(obtained.TimestampInMilliseconds, Is.EqualTo(timestamp));
@@ -414,6 +435,11 @@ namespace Dynatrace.OpenKit.Protocol
         private void AppendLastParameter(string key, long value)
         {
             inputBuilder.Append("\"").Append(key).Append("\":").Append(value);
+        }
+
+        private void AppendLastParameter(string key, string value)
+        {
+            inputBuilder.Append("\"").Append(key).Append("\":\"").Append(value).Append("\"");
         }
 
         private void AppendParameter(string key, long value)

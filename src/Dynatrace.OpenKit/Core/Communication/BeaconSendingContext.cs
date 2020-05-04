@@ -259,7 +259,12 @@ namespace Dynatrace.OpenKit.Core.Communication
 
                 lastResponseAttributes = lastResponseAttributes.Merge(statusResponse.ResponseAttributes);
 
-                serverConfiguration = new ServerConfiguration.Builder(lastResponseAttributes).Build();
+                var builder = new ServerConfiguration.Builder(lastResponseAttributes);
+                if (IsApplicationIdMismatch(lastResponseAttributes))
+                {
+                    builder.WithCapture(false);
+                }
+                serverConfiguration = builder.Build();
 
                 var serverId = serverConfiguration.ServerId;
                 if (serverId != httpClientConfiguration.ServerId)
@@ -269,6 +274,26 @@ namespace Dynatrace.OpenKit.Core.Communication
 
                 return lastResponseAttributes;
             }
+        }
+
+        /// <summary>
+        /// Ensure that the application id coming with the response matches the one that was configured for OpenKit.
+        /// </summary>
+        /// <remarks>
+        /// Mismatch check prevents a rare Jetty bug, where responses might be dispatched to the wrong receiver.
+        /// </remarks>
+        /// <param name="lastResponseAttributes">The last response attributes received from Dynatrace/AppMon.</param>
+        /// <returns><code>false</code> if application id is matching, <code>true</code> if a mismatch occurred.</returns>
+        internal bool IsApplicationIdMismatch(IResponseAttributes lastResponseAttributes)
+        {
+            if (lastResponseAttributes.IsAttributeSet(ResponseAttribute.APPLICATION_ID))
+            {
+                return httpClientConfiguration.ApplicationId != lastResponseAttributes.ApplicationId;
+            }
+
+            // if it's not set it's either the old response format, or an older Dynatrace version
+            // in this case no mismatch is happening and everything is fine
+            return false;
         }
 
         public IResponseAttributes LastResponseAttributes

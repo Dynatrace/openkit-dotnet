@@ -66,7 +66,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             return this;
         }
 
-        internal IBeaconSendingContext Build()
+        internal BeaconSendingContext Build()
         {
             if (initState == null)
             {

@@ -44,6 +44,7 @@ namespace Dynatrace.OpenKit.Protocol
             IsCapture = builder.IsCapture;
             IsCaptureCrashes = builder.IsCaptureCrashes;
             IsCaptureErrors = builder.IsCaptureErrors;
+            ApplicationId = builder.ApplicationId;
 
             Multiplicity = builder.Multiplicity;
             ServerId = builder.ServerId;
@@ -101,6 +102,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         public bool IsCaptureErrors { get; }
 
+        public string ApplicationId { get; }
+
         public int Multiplicity { get; }
 
         public int ServerId { get; }
@@ -127,6 +130,7 @@ namespace Dynatrace.OpenKit.Protocol
             ApplyCapture(builder, responseAttributes);
             ApplyCaptureCrashes(builder, responseAttributes);
             ApplyCaptureErrors(builder, responseAttributes);
+            ApplyApplicationId(builder, responseAttributes);
             ApplyMultiplicity(builder, responseAttributes);
             ApplyServerId(builder, responseAttributes);
             ApplyTimestamp(builder, responseAttributes);
@@ -206,6 +210,14 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
+        private static void ApplyApplicationId(Builder builder, IResponseAttributes attributes)
+        {
+            if (attributes.IsAttributeSet(ResponseAttribute.APPLICATION_ID))
+            {
+                builder.WithApplicationId(attributes.ApplicationId);
+            }
+        }
+
         private static void ApplyMultiplicity(Builder builder, IResponseAttributes attributes)
         {
             if (attributes.IsAttributeSet(ResponseAttribute.MULTIPLICITY))
@@ -251,6 +263,7 @@ namespace Dynatrace.OpenKit.Protocol
                 IsCapture = defaults.IsCapture;
                 IsCaptureCrashes = defaults.IsCaptureCrashes;
                 IsCaptureErrors = defaults.IsCaptureErrors;
+                ApplicationId = defaults.ApplicationId;
 
                 Multiplicity = defaults.Multiplicity;
                 ServerId = defaults.ServerId;
@@ -397,6 +410,21 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 IsCaptureErrors = captureErrors;
                 SetAttribute(ResponseAttribute.IS_CAPTURE_ERRORS);
+
+                return this;
+            }
+
+            internal string ApplicationId { get; private set; }
+
+            /// <summary>
+            /// Set application UUID to which this configuration belongs to.
+            /// </summary>
+            /// <param name="applicationId">application's UUID</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithApplicationId(string applicationId)
+            {
+                ApplicationId = applicationId;
+                SetAttribute(ResponseAttribute.APPLICATION_ID);
 
                 return this;
             }

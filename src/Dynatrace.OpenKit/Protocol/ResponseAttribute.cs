@@ -67,6 +67,11 @@ namespace Dynatrace.OpenKit.Protocol
         IS_CAPTURE_ERRORS,
 
         /// <summary>
+        /// The ID of the application to which a configuration applies.
+        /// </summary>
+        APPLICATION_ID,
+
+        /// <summary>
         /// Multiplicity
         /// </summary>
         MULTIPLICITY,

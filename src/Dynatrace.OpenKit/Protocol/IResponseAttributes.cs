@@ -67,6 +67,14 @@ namespace Dynatrace.OpenKit.Protocol
         bool IsCaptureErrors { get; }
 
         /// <summary>
+        /// Returns the ID of the application to which this configuration applies.
+        /// <para>
+        /// This is sent by the JSON configuration only, as sanity check to fix a weird Jetty bug.
+        /// </para>
+        /// </summary>
+        string ApplicationId { get; }
+
+        /// <summary>
         /// Returns the multiplicity
         /// </summary>
         int Multiplicity { get; }

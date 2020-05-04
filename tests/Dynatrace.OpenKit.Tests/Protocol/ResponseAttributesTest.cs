@@ -71,6 +71,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.EqualTo(defaults.IsCapture));
             Assert.That(obtained.IsCaptureCrashes, Is.EqualTo(defaults.IsCaptureCrashes));
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(defaults.IsCaptureErrors));
+            Assert.That(obtained.ApplicationId, Is.EqualTo(defaults.ApplicationId));
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(defaults.ServerId));
@@ -100,6 +101,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.EqualTo(defaults.IsCapture));
             Assert.That(obtained.IsCaptureCrashes, Is.EqualTo(defaults.IsCaptureCrashes));
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(defaults.IsCaptureErrors));
+            Assert.That(obtained.ApplicationId, Is.EqualTo(defaults.ApplicationId));
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(defaults.ServerId));
@@ -434,6 +436,44 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             var obtained = target.WithCaptureErrors(!ResponseAttributesDefaults.JsonResponse.IsCaptureErrors).Build();
+
+            // then
+            Assert.That(obtained.IsAttributeSet(attribute), Is.True);
+
+            foreach (var unsetAttribute in Enum.GetValues(typeof(ResponseAttribute)).Cast<ResponseAttribute>())
+            {
+                if (attribute == unsetAttribute)
+                {
+                    continue;
+                }
+
+                Assert.That(obtained.IsAttributeSet(unsetAttribute), Is.False);
+            }
+        }
+
+        [Test]
+        public void BuildPropagatesApplicationIdToInstance()
+        {
+            // given
+            var applicationId = Guid.NewGuid().ToString();
+            var target = ResponseAttributes.WithJsonDefaults();
+
+            // when
+            var obtained = target.WithApplicationId(applicationId).Build();
+
+            // then
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
+        }
+
+        [Test]
+        public void WithApplicationIdSetsAttributeOnInstance()
+        {
+            // given
+            const ResponseAttribute attribute = ResponseAttribute.APPLICATION_ID;
+            var target = ResponseAttributes.WithJsonDefaults();
+
+            // when
+            var obtained = target.WithApplicationId(Guid.NewGuid().ToString()).Build();
 
             // then
             Assert.That(obtained.IsAttributeSet(attribute), Is.True);
@@ -1041,6 +1081,54 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(captureErrors));
+        }
+
+        [Test]
+        public void MergeTakesApplicationIdFromMergeTargetIfNotSetInSource()
+        {
+            // given
+            var applicationId = Guid.NewGuid().ToString();
+            var source = ResponseAttributes.WithUndefinedDefaults().Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().WithApplicationId(applicationId).Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
+        }
+
+        [Test]
+        public void MergeTakesApplicationIdFromMergeSourceIfSetInSource()
+        {
+            // given
+            var applicationId = Guid.NewGuid().ToString();
+            var source = ResponseAttributes.WithUndefinedDefaults().WithApplicationId(applicationId).Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
+        }
+
+        [Test]
+        public void MergeTakesApplicationIdFromMergeSourceIfSetInSourceAndTarget()
+        {
+            // given
+            var applicationId = Guid.NewGuid().ToString();
+            var source = ResponseAttributes.WithUndefinedDefaults().WithApplicationId(applicationId).Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().WithApplicationId(Guid.NewGuid().ToString()).Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
         }
 
         [Test]

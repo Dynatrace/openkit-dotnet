@@ -44,6 +44,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             public bool IsCaptureErrors => true;
 
+            public string ApplicationId => null;
+
             public int Multiplicity => 1;
 
             public virtual int ServerId => 1;
