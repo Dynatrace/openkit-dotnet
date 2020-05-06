@@ -99,6 +99,12 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void DefaultJsonStatus()
+        {
+            Assert.That(ResponseAttributesDefaults.JsonResponse.Status, Is.Null);
+        }
+
+        [Test]
         public void DefaultJsonTimestamp()
         {
             Assert.That(ResponseAttributesDefaults.JsonResponse.TimestampInMilliseconds, Is.EqualTo(0L));
@@ -198,6 +204,12 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void DefaultKeyValueStatus()
+        {
+            Assert.That(ResponseAttributesDefaults.KeyValueResponse.Status, Is.Null);
+        }
+
+        [Test]
         public void DefaultKeyValueTimestamp()
         {
             Assert.That(ResponseAttributesDefaults.KeyValueResponse.TimestampInMilliseconds, Is.EqualTo(0L));
@@ -292,6 +304,12 @@ namespace Dynatrace.OpenKit.Protocol
         public void DefaultUndefinedServerId()
         {
             Assert.That(ResponseAttributesDefaults.Undefined.ServerId, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void DefaultUndefinedStatus()
+        {
+            Assert.That(ResponseAttributesDefaults.Undefined.Status, Is.Null);
         }
 
         [Test]

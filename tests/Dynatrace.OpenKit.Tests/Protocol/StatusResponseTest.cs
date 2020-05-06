@@ -57,6 +57,47 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void IsErroneousResponseGivesTrueIfStatusResponseAttributeIndicatesError()
+        {
+            // given
+            var attributes = ResponseAttributes.WithUndefinedDefaults()
+                .WithStatus(StatusResponse.ResponseStatusError).Build();
+
+            var target = StatusResponse.CreateSuccessResponse(
+                logger, attributes, StatusResponse.HttpOk, new Dictionary<string, List<string>>());
+
+            // when, then
+            Assert.That(target.IsErroneousResponse, Is.True);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesFalseIfStatusResponseAttributeDoesNotIndicateError()
+        {
+            // given
+            var attributes = ResponseAttributes.WithUndefinedDefaults()
+                .WithStatus(StatusResponse.ResponseStatusError.ToLowerInvariant()).Build();
+
+            var target = StatusResponse.CreateSuccessResponse(
+                logger, attributes, StatusResponse.HttpOk, new Dictionary<string, List<string>>());
+
+            // when, then
+            Assert.That(target.IsErroneousResponse, Is.False);
+        }
+
+        [Test]
+        public void IsErroneousResponseGivesFalseIfStatusResponseAttributeIsNotSet()
+        {
+            // given
+            var attributes = ResponseAttributes.WithUndefinedDefaults().Build();
+
+            var target = StatusResponse.CreateSuccessResponse(
+                logger, attributes, StatusResponse.HttpOk, new Dictionary<string, List<string>>());
+
+            // when, then
+            Assert.That(target.IsErroneousResponse, Is.False);
+        }
+
+        [Test]
         public void ResponseCodeIsSet()
         {
             // given

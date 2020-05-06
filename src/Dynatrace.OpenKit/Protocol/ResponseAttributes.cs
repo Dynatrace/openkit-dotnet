@@ -48,6 +48,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             Multiplicity = builder.Multiplicity;
             ServerId = builder.ServerId;
+            Status = builder.Status;
 
             TimestampInMilliseconds = builder.TimestampInMilliseconds;
         }
@@ -108,6 +109,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         public int ServerId { get; }
 
+        public string Status { get; }
+
         public long TimestampInMilliseconds { get; }
 
         public bool IsAttributeSet(ResponseAttribute attribute)
@@ -133,6 +136,7 @@ namespace Dynatrace.OpenKit.Protocol
             ApplyApplicationId(builder, responseAttributes);
             ApplyMultiplicity(builder, responseAttributes);
             ApplyServerId(builder, responseAttributes);
+            ApplyStatus(builder, responseAttributes);
             ApplyTimestamp(builder, responseAttributes);
 
             return builder.Build();
@@ -234,6 +238,14 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
+        private static void ApplyStatus(Builder builder, IResponseAttributes attributes)
+        {
+            if (attributes.IsAttributeSet(ResponseAttribute.STATUS))
+            {
+                builder.WithStatus(attributes.Status);
+            }
+        }
+
         private static void ApplyTimestamp(Builder builder, IResponseAttributes attributes)
         {
             if (attributes.IsAttributeSet(ResponseAttribute.TIMESTAMP))
@@ -267,6 +279,7 @@ namespace Dynatrace.OpenKit.Protocol
 
                 Multiplicity = defaults.Multiplicity;
                 ServerId = defaults.ServerId;
+                Status = defaults.Status;
 
                 TimestampInMilliseconds = defaults.TimestampInMilliseconds;
 
@@ -455,6 +468,21 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 ServerId = serverId;
                 SetAttribute(ResponseAttribute.SERVER_ID);
+
+                return this;
+            }
+
+            internal string Status { get; private set; }
+
+            /// <summary>
+            /// Sets the response status received for a new session request.
+            /// </summary>
+            /// <param name="status">the status received for new session request</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithStatus(string status)
+            {
+                Status = status;
+                SetAttribute(ResponseAttribute.STATUS);
 
                 return this;
             }

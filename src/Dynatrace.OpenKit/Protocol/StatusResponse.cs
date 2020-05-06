@@ -51,6 +51,14 @@ namespace Dynatrace.OpenKit.Protocol
         internal const int DefaultRetryAfterInMilliseconds = 10 * 60 * 1000;
 
         /// <summary>
+        /// Value that is sent if response status indicates an error.
+        /// <para>
+        /// The status is part of the payload <see cref="ResponseAttributes"/>.
+        /// </para>
+        /// </summary>
+        internal const string ResponseStatusError = "ERROR";
+
+        /// <summary>
         /// Logger for logging messages.
         /// </summary>
         private readonly ILogger logger;
@@ -85,7 +93,10 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Gives a boolean indicating whether this response is erroneous or not.
         /// </summary>
-        public bool IsErroneousResponse => ResponseCode >= HttpBadRequest;
+        public bool IsErroneousResponse => ResponseCode >= HttpBadRequest || IsStatusSetToError;
+
+        private bool IsStatusSetToError =>
+            ResponseAttributes.IsAttributeSet(ResponseAttribute.STATUS) && ResponseStatusError == ResponseAttributes.Status;
 
         /// <summary>
         /// Get the HTTP response code.

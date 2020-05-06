@@ -82,6 +82,11 @@ namespace Dynatrace.OpenKit.Protocol
         SERVER_ID,
 
         /// <summary>
+        /// Status of the new session configuration request.
+        /// </summary>
+        STATUS,
+
+        /// <summary>
         /// Timestamp of the configuration sent by the server.
         /// </summary>
         TIMESTAMP

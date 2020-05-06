@@ -75,6 +75,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(defaults.ServerId));
+            Assert.That(obtained.Status, Is.EqualTo(defaults.Status));
 
             Assert.That(obtained.TimestampInMilliseconds, Is.EqualTo(defaults.TimestampInMilliseconds));
         }
@@ -105,6 +106,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(defaults.ServerId));
+            Assert.That(obtained.Status, Is.EqualTo(defaults.Status));
 
             Assert.That(obtained.TimestampInMilliseconds, Is.EqualTo(defaults.TimestampInMilliseconds));
         }
@@ -550,6 +552,44 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             var obtained = target.WithServerId(37).Build();
+
+            // then
+            Assert.That(obtained.IsAttributeSet(attribute), Is.True);
+
+            foreach (var unsetAttribute in Enum.GetValues(typeof(ResponseAttribute)).Cast<ResponseAttribute>())
+            {
+                if (attribute == unsetAttribute)
+                {
+                    continue;
+                }
+
+                Assert.That(obtained.IsAttributeSet(unsetAttribute), Is.False);
+            }
+        }
+
+        [Test]
+        public void BuildPropagatesStatusToInstance()
+        {
+            // given
+            const string status = "status";
+            var target = ResponseAttributes.WithJsonDefaults();
+
+            // when
+            var obtained = target.WithStatus(status).Build();
+
+            // then
+            Assert.That(obtained.Status, Is.EqualTo(status));
+        }
+
+        [Test]
+        public void WithStatusSetsAttributeOnInstance()
+        {
+            // given
+            const ResponseAttribute attribute = ResponseAttribute.STATUS;
+            var target = ResponseAttributes.WithJsonDefaults();
+
+            // when
+            var obtained = target.WithStatus("status").Build();
 
             // then
             Assert.That(obtained.IsAttributeSet(attribute), Is.True);
@@ -1225,6 +1265,54 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
+        }
+
+        [Test]
+        public void MergeTakesStatusFromMergeTargetIfNotSetInSource()
+        {
+            // given
+            const string status = "status";
+            var source = ResponseAttributes.WithUndefinedDefaults().Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().WithStatus(status).Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.Status, Is.EqualTo(status));
+        }
+
+        [Test]
+        public void MergeTakesStatusFromMergeSourceIfSetInSource()
+        {
+            // given
+            const string status = "status";
+            var source = ResponseAttributes.WithUndefinedDefaults().WithStatus(status).Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.Status, Is.EqualTo(status));
+        }
+
+        [Test]
+        public void MergeTakesStatusFromMergeSourceIfSetInSourceAndTarget()
+        {
+            // given
+            const string status = "status";
+            var source = ResponseAttributes.WithUndefinedDefaults().WithStatus(status).Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().WithStatus("foobar").Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.Status, Is.EqualTo(status));
         }
 
         [Test]

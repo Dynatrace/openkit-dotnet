@@ -39,6 +39,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string ResponseKeyDynamicConfig = "dynamicConfig";
         internal const string ResponseKeyMultiplicity = "multiplicity";
         internal const string ResponseKeyServerId = "serverId";
+        internal const string ResponseKeyStatus = "status";
 
         internal const string ResponseKeyTimestampInMillis = "timestamp";
 
@@ -221,6 +222,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             ApplyMultiplicity(builder, dynConfigObject);
             ApplyServerId(builder, dynConfigObject);
+            ApplyStatus(builder, dynConfigObject);
         }
 
         private static void ApplyMultiplicity(ResponseAttributes.Builder builder, JsonObjectValue dynConfigObject)
@@ -243,6 +245,16 @@ namespace Dynatrace.OpenKit.Protocol
 
             var serverId = numberValue.IntValue;
             builder.WithServerId(serverId);
+        }
+
+        private static void ApplyStatus(ResponseAttributes.Builder builder, JsonObjectValue dynConfigObject)
+        {
+            if (!(dynConfigObject[ResponseKeyStatus] is JsonStringValue stringValue))
+            {
+                return;
+            }
+            
+            builder.WithStatus(stringValue.Value);
         }
 
         #endregion

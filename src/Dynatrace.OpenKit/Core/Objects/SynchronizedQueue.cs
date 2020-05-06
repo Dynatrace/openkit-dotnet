@@ -58,7 +58,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 var first = list.First;
 
                 if (first == null)
-                    return default(T);
+                    return default;
 
                 list.RemoveFirst();
                 return first.Value;

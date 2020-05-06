@@ -319,6 +319,23 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParseExtractsStatus()
+        {
+            // given
+            const string status = "foobar";
+            Begin(JsonResponseParser.ResponseKeyDynamicConfig);
+            AppendLastParameter(JsonResponseParser.ResponseKeyStatus, status);
+            Close(2);
+
+            // when
+            var obtained = JsonResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.Status, Is.EqualTo(status));
+        }
+
+        [Test]
         public void ParseExtractsTimestamp()
         {
             // given
@@ -344,10 +361,11 @@ namespace Dynatrace.OpenKit.Protocol
             const int sessionTimeout = 76;
             const int sendInterval = 77;
             const int visitStoreVersion = 78;
+            var applicationId = Guid.NewGuid().ToString();
             const int multiplicity = 79;
             const int serverId = 80;
+            const string status = "some status";
             const long timestamp = 81;
-            var applicationId = Guid.NewGuid().ToString();
 
             Begin(JsonResponseParser.ResponseKeyAgentConfig);
             AppendParameter(JsonResponseParser.ResponseKeyMaxBeaconSizeInKb, beaconSize);
@@ -367,7 +385,8 @@ namespace Dynatrace.OpenKit.Protocol
             inputBuilder.Append(",");
             Begin(JsonResponseParser.ResponseKeyDynamicConfig);
             AppendParameter(JsonResponseParser.ResponseKeyMultiplicity, multiplicity);
-            AppendLastParameter(JsonResponseParser.ResponseKeyServerId, serverId);
+            AppendParameter(JsonResponseParser.ResponseKeyServerId, serverId);
+            AppendLastParameter(JsonResponseParser.ResponseKeyStatus, status);
             Close();
             inputBuilder.Append(",");
             AppendLastParameter(JsonResponseParser.ResponseKeyTimestampInMillis, timestamp);
@@ -390,6 +409,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
             Assert.That(obtained.Multiplicity, Is.EqualTo(multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
+            Assert.That(obtained.Status, Is.EqualTo(status));
             Assert.That(obtained.TimestampInMilliseconds, Is.EqualTo(timestamp));
             foreach (var attribute in Enum.GetValues(typeof(ResponseAttribute)).Cast<ResponseAttribute>())
             {

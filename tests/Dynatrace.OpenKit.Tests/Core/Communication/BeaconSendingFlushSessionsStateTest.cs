@@ -35,6 +35,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             var mockResponse = Substitute.For<IStatusResponse>();
             mockResponse.ResponseCode.Returns(StatusResponse.HttpOk);
+            mockResponse.IsErroneousResponse.Returns(false);
 
             mockSession1Open = Substitute.For<ISessionInternals>();
             mockSession1Open.IsDataSendingAllowed.Returns(true);

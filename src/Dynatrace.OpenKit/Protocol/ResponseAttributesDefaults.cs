@@ -50,6 +50,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             public virtual int ServerId => 1;
 
+            public string Status => null;
+
             public long TimestampInMilliseconds => 0;
 
             public bool IsAttributeSet(ResponseAttribute attribute)

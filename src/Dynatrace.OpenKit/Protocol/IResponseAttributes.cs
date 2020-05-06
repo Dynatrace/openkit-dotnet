@@ -85,6 +85,11 @@ namespace Dynatrace.OpenKit.Protocol
         int ServerId { get; }
 
         /// <summary>
+        /// Returns the status of the new session configuration request.
+        /// </summary>
+        string Status { get; }
+
+        /// <summary>
         /// Returns the timestamp of the attributes which were returned from the server.
         /// <para>
         ///     The timestamp is the duration from January, 1st

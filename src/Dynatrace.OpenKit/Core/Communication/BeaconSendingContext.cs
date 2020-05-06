@@ -233,7 +233,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
         public void HandleStatusResponse(IStatusResponse statusResponse)
         {
-            if (statusResponse == null || statusResponse.ResponseCode != StatusResponse.HttpOk)
+            if (statusResponse == null || statusResponse.IsErroneousResponse)
             {
                 DisableCaptureAndClear();
                 return;

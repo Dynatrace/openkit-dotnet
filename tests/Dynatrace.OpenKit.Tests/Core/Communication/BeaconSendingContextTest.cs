@@ -45,6 +45,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var statusResponse = Substitute.For<IStatusResponse>();
             statusResponse.ResponseCode.Returns(StatusResponse.HttpOk);
+            statusResponse.IsErroneousResponse.Returns(false);
 
             var httpClient = Substitute.For<IHttpClient>();
             httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>())
@@ -570,7 +571,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(404);
+            response.IsErroneousResponse.Returns(true);
 
             var target = CreateSendingContext().Build();
             Assert.That(target.IsCaptureOn, Is.True);
@@ -587,7 +588,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(404);
+            response.IsErroneousResponse.Returns(true);
 
             var sessionState = Substitute.For<ISessionState>();
             var session = Substitute.For<ISessionInternals>();
@@ -609,7 +610,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         {
             // given
             var response = Substitute.For<IStatusResponse>();
-            response.ResponseCode.Returns(404);
+            response.IsErroneousResponse.Returns(true);
 
             var sessionState = Substitute.For<ISessionState>();
             sessionState.IsFinished.Returns(true);
