@@ -138,20 +138,20 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             lock (lockObject)
             {
-                if (serverConfiguration == null)
+                if (serverConfiguration != null)
                 {
-                    // no server configuration was set so far so just take the new one.
-                    serverConfiguration = newServerConfiguration;
-                }
-                else
-                {
-                    serverConfiguration = serverConfiguration.Merge(newServerConfiguration);
+                    // server configuration already exists,
+                    // therefore merge new one with the existing one.
+                    newServerConfiguration = serverConfiguration.Merge(newServerConfiguration);
                 }
 
+                serverConfiguration = newServerConfiguration;
                 isServerConfigurationSet = true;
-
-                NotifyServerConfigurationUpdate(serverConfiguration);
             }
+
+            // notify has to be called outside of the synchronized block
+            // to avoid deadlock situations with SessionProxyImpl
+            NotifyServerConfigurationUpdate(serverConfiguration);
         }
 
         private void NotifyServerConfigurationUpdate(IServerConfiguration serverConfig)

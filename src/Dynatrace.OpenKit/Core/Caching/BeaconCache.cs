@@ -137,6 +137,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                 var logString = new StringBuilder(GetType().Name)
                     .Append(" DeleteCacheEntry(sn=").Append(beaconKey.BeaconId.ToInvariantString())
                     .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
+                    .Append(")")
                     .ToString();
 
                 logger.Debug(logString);
@@ -188,6 +189,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                     .Append(" EvictRecordsByAge(sn=").Append(beaconKey.BeaconId.ToInvariantString())
                     .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
                     .Append(", minTimestamp=").Append(minTimestamp.ToInvariantString())
+                    .Append(")")
                     .Append(" has evicted ").Append(numRecordsRemoved.ToInvariantString()).Append(" records")
                     .ToString();
 
@@ -223,6 +225,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                     .Append(" EvictRecordsByNumber(sn=").Append(beaconKey.BeaconId.ToInvariantString())
                     .Append(", seq=").Append(beaconKey.BeaconSeqNo.ToInvariantString())
                     .Append(", numRecords=").Append(numRecords.ToInvariantString())
+                    .Append(")")
                     .Append(" has evicted ").Append(numRecordsRemoved.ToInvariantString()).Append(" records")
                     .ToString();
 
