@@ -657,7 +657,6 @@ namespace Dynatrace.OpenKit.Protocol
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyVisitorId, DeviceId);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeySessionNumber, SessionNumber);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeySessionSequence, SessionSequenceNumber);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyClientIpAddress, clientIpAddress);
 
             // platform information
@@ -678,6 +677,10 @@ namespace Dynatrace.OpenKit.Protocol
 
             builder.Append(immutableBasicBeaconData);
             AddKeyValuePair(builder, BeaconKeyVisitStoreVersion, VisitStoreVersion);
+            if (VisitStoreVersion > 1)
+            {
+                AddKeyValuePair(builder, BeaconKeySessionSequence, SessionSequenceNumber.ToInvariantString());
+            }
 
             builder.Append(BeaconDataDelimiter);
 
@@ -772,7 +775,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (builder.Length > 0)
             {
-                builder.Append('&');
+                builder.Append(BeaconDataDelimiter);
             }
             builder.Append(key);
             builder.Append('=');

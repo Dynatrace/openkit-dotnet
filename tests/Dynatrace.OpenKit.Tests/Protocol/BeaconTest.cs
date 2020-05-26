@@ -1096,7 +1096,7 @@ namespace Dynatrace.OpenKit.Protocol
         {
             // given
             const int sessionSequence = 1213;
-            const int visitStoreVersion = 9;
+            const int visitStoreVersion = 2;
             const string appVersion = "1111";
             const string ipAddress = "192.168.0.1";
             mockOpenKitConfiguration.ApplicationVersion.Returns(appVersion);
@@ -1121,7 +1121,6 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
                 $"&vi={DeviceId.ToInvariantString()}" +
                 $"&sn={SessionId.ToInvariantString()}" +
-                $"&ss={sessionSequence.ToInvariantString()}" +
                 $"&ip={ipAddress}" +
                 "&os=system" +
                 "&mf=manufacturer" +
@@ -1129,6 +1128,7 @@ namespace Dynatrace.OpenKit.Protocol
                 "&dl=2" +
                 "&cl=2" +
                 $"&vs={visitStoreVersion.ToInvariantString()}" +
+                $"&ss={sessionSequence.ToInvariantString()}" +
                 "&tx=0" +
                 "&tv=0" +
                 $"&mp={Multiplicity.ToInvariantString()}";
@@ -2056,12 +2056,13 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void SendConstructsCorrectBeaconPrefix()
+        public void SendConstructsCorrectBeaconPrefixVisitStore1()
         {
             // given
             var httpClient = Substitute.For<IHttpClient>();
             var httpClientProvider = Substitute.For<IHttpClientProvider>();
             httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(httpClient);
+            mockServerConfiguration.VisitStoreVersion.Returns(1);
 
             var target = CreateBeacon().Build();
 
@@ -2081,14 +2082,13 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
                 $"&vi={DeviceId.ToInvariantString()}" +
                 $"&sn={SessionId.ToInvariantString()}" +
-                $"&ss={SessionSeqNo.ToInvariantString()}" +
                 "&ip=127.0.0.1" +
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
                 $"&md={string.Empty}" +
                 $"&dl={((int) ConfigurationDefaults.DefaultDataCollectionLevel).ToInvariantString()}" +
                 $"&cl={((int) ConfigurationDefaults.DefaultCrashReportingLevel).ToInvariantString()}" +
-                "&vs=0" +
+                "&vs=1" +
                 "&tx=0" +
                 "&tv=0" +
                 $"&mp={Multiplicity.ToInvariantString()}",
