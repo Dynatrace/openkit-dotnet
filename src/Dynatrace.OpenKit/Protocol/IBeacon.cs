@@ -73,9 +73,9 @@ namespace Dynatrace.OpenKit.Protocol
         long CurrentTimestamp { get; }
 
         /// <summary>
-        /// Indicates whether capturing is currently enabled or not.
+        /// Indicates whether data capturing is currently enabled or not.
         /// </summary>
-        bool IsCaptureEnabled { get; }
+        bool IsDataCapturingEnabled { get; }
 
         /// <summary>
         /// Indicates whether a server configuration is set on this beacon or not.

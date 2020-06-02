@@ -156,7 +156,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // then
-            Assert.That(target.IsCaptureEnabled, Is.True);
+            Assert.That(target.IsDataCapturingEnabled, Is.True);
         }
 
         [Test]
@@ -1170,10 +1170,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoSessionIsAddedIfBeaconConfigurationDisablesCapturing()
+        public void NoSessionIsAddedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1184,10 +1184,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoActionIsAddedIfBeaconConfigurationDisablesCapturing()
+        public void NoActionIsAddedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var action = Substitute.For<IActionInternals>();
             action.Id.Returns(ActionId);
 
@@ -1201,10 +1201,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoIntValueIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoIntValueIsReportedIfIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             const int intValue = 42;
 
             var target = CreateBeacon().Build();
@@ -1217,10 +1217,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoDoubleValueIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoDoubleValueIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             const double doubleValue = Math.E;
 
             var target = CreateBeacon().Build();
@@ -1233,10 +1233,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoStringValueIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoStringValueIsReportedIfIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             const string stringValue = "Write once, debug everywhere";
 
             var target = CreateBeacon().Build();
@@ -1249,10 +1249,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoEventIsReportedIfBeaconConfigurationDisablesCapturing()
+        public void NoEventIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1277,10 +1277,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoErrorIsReportedIfCapturingDisabled()
+        public void NoErrorIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1305,10 +1305,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoCrashIsReportedIfCapturingDisabled()
+        public void NoCrashIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
 
             var target = CreateBeacon().Build();
 
@@ -1334,10 +1334,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoWebRequestIsReportedIfCapturingDisabled()
+        public void NoWebRequestIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
             var webRequestTracer = CreateWebRequestTracer(target).WithUrl("https://foo.bar").Build();
 
@@ -1349,10 +1349,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoUserIdentificationIsReportedIfCapturingDisabled()
+        public void NoUserIdentificationIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
             // when
@@ -1925,10 +1925,10 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoSessionStartIsReportedIfCapturingDisabled()
+        public void NoSessionStartIsReportedIfDataSendingIsDisallowed()
         {
             // given
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
 
             var target = CreateBeacon().Build();
 
@@ -1991,21 +1991,28 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void IsCaptureEnabledReturnsValueFromServerConfig()
+        public void IsDataCaptureEnabledReturnsFalseIfDataSendingIsDisallowed()
         {
             // given
             var target = CreateBeacon().Build();
 
             // when
-            mockServerConfiguration.IsCaptureEnabled.Returns(false);
-            var obtained = target.IsCaptureEnabled;
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var obtained = target.IsDataCapturingEnabled;
 
             // then
             Assert.That(obtained, Is.False);
+        }
 
-            // and when
+        [Test]
+        public void IsDataCaptureEnabledReturnsTrueIfDataSendingIsAllowed()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
             mockServerConfiguration.IsCaptureEnabled.Returns(true);
-            obtained = target.IsCaptureEnabled;
+            var obtained = target.IsDataCapturingEnabled;
 
             // then
             Assert.That(obtained, Is.True);

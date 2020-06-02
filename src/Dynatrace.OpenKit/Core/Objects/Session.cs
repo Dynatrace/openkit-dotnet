@@ -116,7 +116,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         ISessionState ISessionInternals.State => state;
 
-        bool ISessionInternals.IsDataSendingAllowed => state.IsConfigured && beacon.IsCaptureEnabled;
+        bool ISessionInternals.IsDataSendingAllowed => state.IsConfigured && beacon.IsDataCapturingEnabled;
 
         void ISessionInternals.EnableCapture()
         {

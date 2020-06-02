@@ -211,7 +211,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
 
-        bool IBeacon.IsCaptureEnabled => configuration.ServerConfiguration.IsCaptureEnabled;
+        bool IBeacon.IsDataCapturingEnabled => configuration.ServerConfiguration.IsSendingDataAllowed;
 
         void IBeacon.InitializeServerConfiguration(IServerConfiguration serverConfiguration)
         {
@@ -307,7 +307,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.StartSession()
         {
-            if (!ThisBeacon.IsCaptureEnabled)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -487,7 +487,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!ThisBeacon.IsCaptureEnabled)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -516,7 +516,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!ThisBeacon.IsCaptureEnabled)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -588,7 +588,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="actionBuilder">Contains the serialized action data.</param>
         private void AddActionData(long timestamp, StringBuilder actionBuilder)
         {
-            if (ThisBeacon.IsCaptureEnabled)
+            if (ThisBeacon.IsDataCapturingEnabled)
             {
                 beaconCache.AddActionData(beaconKey, timestamp, actionBuilder.ToString());
             }
@@ -601,7 +601,7 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="eventBuilder">Contains the serialized event data.</param>
         private void AddEventData(long timestamp, StringBuilder eventBuilder)
         {
-            if (ThisBeacon.IsCaptureEnabled)
+            if (ThisBeacon.IsDataCapturingEnabled)
             {
                 beaconCache.AddEventData(beaconKey, timestamp, eventBuilder.ToString());
             }

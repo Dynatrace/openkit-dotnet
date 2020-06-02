@@ -124,9 +124,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 }
 
                 serverConfiguration = initialServerConfiguration;
-
-                NotifyServerConfigurationUpdate(serverConfiguration);
             }
+
+            NotifyServerConfigurationUpdate(initialServerConfiguration);
         }
 
         void IBeaconConfiguration.UpdateServerConfiguration(IServerConfiguration newServerConfiguration)
@@ -138,7 +138,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             lock (lockObject)
             {
-                if (serverConfiguration != null)
+                if (isServerConfigurationSet)
                 {
                     // server configuration already exists,
                     // therefore merge new one with the existing one.

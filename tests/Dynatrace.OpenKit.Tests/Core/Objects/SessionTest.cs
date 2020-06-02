@@ -954,10 +954,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void IsDataSendingAllowedReturnsTrueForConfiguredAndCaptureEnabledSession()
+        public void IsDataSendingAllowedReturnsTrueForConfiguredAndDataCaptureEnabledSession()
         {
             // given
-            mockBeacon.IsCaptureEnabled.Returns(true);
+            mockBeacon.IsDataCapturingEnabled.Returns(true);
             mockBeacon.IsServerConfigurationSet.Returns(true);
 
             var target = CreateSession().Build();
@@ -973,7 +973,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void IsDataSendingAllowedReturnsFalseForNotConfiguredSession()
         {
             // given
-            mockBeacon.IsCaptureEnabled.Returns(true);
+            mockBeacon.IsDataCapturingEnabled.Returns(true);
             mockBeacon.IsServerConfigurationSet.Returns(false);
 
             var target = CreateSession().Build();
@@ -986,10 +986,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void IsDataSendingAllowedReturnsFalseForCaptureDisabledSession()
+        public void IsDataSendingAllowedReturnsFalseForDataCaptureDisabledSession()
         {
             // given
-            mockBeacon.IsCaptureEnabled.Returns(false);
+            mockBeacon.IsDataCapturingEnabled.Returns(false);
             mockBeacon.IsServerConfigurationSet.Returns(true);
 
             var target = CreateSession().Build();
@@ -1002,10 +1002,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void IsDataSendingAllowedReturnsFalseForNotConfiguredAndCaptureDisabledSession()
+        public void IsDataSendingAllowedReturnsFalseForNotConfiguredAndDataCaptureDisabledSession()
         {
             // given
-            mockBeacon.IsCaptureEnabled.Returns(false);
+            mockBeacon.IsDataCapturingEnabled.Returns(false);
             mockBeacon.IsServerConfigurationSet.Returns(false);
 
             var target = CreateSession().Build();
