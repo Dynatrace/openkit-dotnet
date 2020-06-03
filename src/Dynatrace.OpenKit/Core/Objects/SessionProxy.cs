@@ -85,6 +85,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private bool isFinished;
 
+        /// <summary>
+        /// last user tag reported via <see cref="IdentifyUser"/>
+        /// </summary>
+        private string lastUserTag = null;
+
         internal SessionProxy(
             ILogger logger,
             IOpenKitComposite parent,
@@ -160,6 +165,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                 var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelEventInteraction();
                 session.IdentifyUser(userTag);
+                lastUserTag = userTag;
             }
         }
 
@@ -331,6 +337,8 @@ namespace Dynatrace.OpenKit.Core.Objects
                 sessionWatchdog.CloseOrEnqueueForClosing(currentSession, closeGracePeriodInMillis);
 
                 currentSession = newSession;
+
+                ReTagCurrentSession();
             }
 
             return currentSession;
@@ -370,6 +378,8 @@ namespace Dynatrace.OpenKit.Core.Objects
 
                 sessionCreator.Reset();
                 currentSession = CreateInitialSession(serverConfiguration);
+
+                ReTagCurrentSession();
 
                 return CalculateNextSplitTime();
             }
@@ -482,6 +492,16 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             topLevelActionCount++;
             RecordTopLevelEventInteraction();
+        }
+
+        private void ReTagCurrentSession()
+        {
+            if (lastUserTag == null || currentSession == null)
+            {
+                return;
+            }
+
+            currentSession.IdentifyUser(lastUserTag);
         }
 
         #region IServerConfigurationUpdateCallback implementation

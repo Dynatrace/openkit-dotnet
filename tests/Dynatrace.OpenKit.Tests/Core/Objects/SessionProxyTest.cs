@@ -1313,6 +1313,67 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
+        #region identifyUser on split sessions
+
+        [Test]
+        public void SplitByTimeReAppliesUserIdentificationTag()
+        {
+            // given
+            const long lastInteractionTimeSessionOne = 60;
+            const int idleTimeout = 10; // time to split: last interaction + idle => 70
+            const long currentTime = 70;
+            const long sessionTwoCreationTime = 80;
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTimeSessionOne, currentTime);
+            mockSplitBeacon1.SessionStartTime.Returns(sessionTwoCreationTime);
+
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(true);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(idleTimeout);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            target.IdentifyUser("test"); // update last interaction time
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTimeSessionOne));
+
+            // when
+            target.SplitSessionByTime();
+
+            // then
+            mockSplitSession1.Received(1).IdentifyUser("test");
+        }
+
+        [Test]
+        public void SplitByEventCountReAppliesUserIdentificationTag()
+        {
+            // given
+            const int maxEventCount = 1;
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
+            mockServerConfiguration.MaxEventsPerSession.Returns(maxEventCount);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            target.IdentifyUser("test1");
+            target.EnterAction("action 1");
+            target.EnterAction("action 2");
+
+            // then
+            mockSplitSession1.Received(1).IdentifyUser("test1");
+
+            // and when
+            target.EnterAction("action 3");
+
+            // then
+            mockSplitSession2.Received(1).IdentifyUser("test1");
+        }
+
+        #endregion
+
         #region further tests
 
         [Test]

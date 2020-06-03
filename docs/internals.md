@@ -125,7 +125,7 @@ is created. This session proxy is keeping track of the real current active sessi
 calls (`IdentifyUser`, `EnterAction`, `TraceWebRequest` and `ReportCrash`). When a session split condition is met the 
 current active session will be replaced with a newly created session within the session proxy. Subsequent top level
 event calls are then forwarded to this new session. The split condition is either based on top level action (`IRootAction`)
-count or on the expiration of a certain timeout. 
+count or on the expiration of a certain timeout.
 
 ### Session splitting by event count
 
@@ -155,3 +155,9 @@ will not be done. E.g. if no idle timeout is sent by the backend, sessions will 
 The session watchdog is a separate thread which's task is to split sessions after expiration of the idle or maximum 
 session timeout. Additionally it keeps track of old sessions that could not be closed after session splitting by events
 (due to open Actions or Web Requests) and which are to be closed after a certain grace period. 
+
+### Identify Users on split sessions
+
+OpenKit re-applies the last user identification, which was reported with `IdentifyUser` on every session, split after
+the API call. This is implemented as a workaround as long as this functionality is missing in the backend.  
+Please keep in mind that this will be visible in the visit details.
