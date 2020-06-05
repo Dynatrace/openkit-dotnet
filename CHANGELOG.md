@@ -26,6 +26,7 @@
 - Fixed issue with reporting localized beacon data  
   Integer and floating point numbers might have been reported with the thread's locale
   causing issues with session properties.
+- Reporting a crash causes a session split, which is transparently handled
 
 ### Improvements
 - Reformatted text files to unix style line endings.
