@@ -57,6 +57,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         int Multiplicity { get; }
 
         /// <summary>
+        /// Returns the send interval in milliseconds.
+        /// </summary>
+        int SendIntervalInMilliseconds { get; }
+
+        /// <summary>
         /// Returns the maximum duration in milliseconds after which a session is to be split.
         /// </summary>
         int MaxSessionDurationInMilliseconds { get; }

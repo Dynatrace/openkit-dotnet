@@ -192,6 +192,9 @@ namespace Dynatrace.OpenKit.Core.Objects
                 var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelEventInteraction();
                 session.ReportCrash(errorName, reason, stacktrace);
+
+                // create new session after crash report
+                SplitAndCreateNewInitialSession();
             }
         }
 
@@ -329,14 +332,8 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             if (IsSessionSplitByEventsRequired())
             {
-                var newSession = CreateSplitSession(serverConfiguration);
-                topLevelActionCount = 0;
-
-                // try to close old session or wait half the max session duration and then close it forcefully
-                var closeGracePeriodInMillis = serverConfiguration.MaxSessionDurationInMilliseconds / 2;
-                sessionWatchdog.CloseOrEnqueueForClosing(currentSession, closeGracePeriodInMillis);
-
-                currentSession = newSession;
+                CloseOrEnqueueCurrentSessionForClosing();
+                currentSession = CreateSplitSession(serverConfiguration);
 
                 ReTagCurrentSession();
             }
@@ -374,15 +371,43 @@ namespace Dynatrace.OpenKit.Core.Objects
                     return nextSplitTime;
                 }
 
-                currentSession.End();
-
-                sessionCreator.Reset();
-                currentSession = CreateInitialSession(serverConfiguration);
-
-                ReTagCurrentSession();
+                SplitAndCreateNewInitialSession();
 
                 return CalculateNextSplitTime();
             }
+        }
+
+        /// <summary>
+        /// Will end the current active session, enque the old one for closing, and create a new session.
+        /// 
+        /// <para>
+        /// The new session is created using the <see cref="CreateInitialSession(IServerConfiguration)"/> method.
+        /// </para>
+        /// 
+        /// <para>
+        /// This method must be called only when the <see cref="lockObject"/> is held.
+        /// </para>
+        /// </summary>
+        private void SplitAndCreateNewInitialSession()
+        {
+            CloseOrEnqueueCurrentSessionForClosing();
+
+            // create a completely new Session
+            sessionCreator.Reset();
+            currentSession = CreateInitialSession(serverConfiguration);
+
+            ReTagCurrentSession();
+        }
+
+        private void CloseOrEnqueueCurrentSessionForClosing()
+        {
+            // for grace period use half of the idle timeout
+            // or fallback to session interval if not configured
+            var closeGracePeriodInMillis = serverConfiguration.SessionTimeoutInMilliseconds > 0
+                ? serverConfiguration.SessionTimeoutInMilliseconds / 2
+                : serverConfiguration.SendIntervalInMilliseconds;
+
+            sessionWatchdog.CloseOrEnqueueForClosing(currentSession, closeGracePeriodInMillis);
         }
 
         /// <summary>

@@ -412,10 +412,10 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void EnterActionCallsWatchdogToCloseOldSessionOnSplitByEvents()
         {
             // given
-            const int sessionDuration = 10;
+            const int sessionIdleTimeout = 10;
             mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
             mockServerConfiguration.MaxEventsPerSession.Returns(1);
-            mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
+            mockServerConfiguration.SessionTimeoutInMilliseconds.Returns(sessionIdleTimeout);
 
             var target = CreateSessionProxy();
             mockSessionCreator.Received(1).CreateSession(target);
@@ -433,7 +433,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockSessionCreator.Received(2).CreateSession(target);
-            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, sessionDuration / 2);
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, sessionIdleTimeout / 2);
         }
 
         [Test]
@@ -465,7 +465,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
-        #region idntify user tests
+        #region identify user tests
 
         [Test]
         public void IdentifyUserWithNullTagDoesNothing()
@@ -637,6 +637,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             const string stacktrace = null;
             var target = CreateSessionProxy();
 
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
             // when reporting a crash, passing null values
             target.ReportCrash(errorName, errorReason, stacktrace);
 
@@ -652,6 +654,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             const string errorReason = "";
             const string stacktrace = "";
             var target = CreateSessionProxy();
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
 
             // when reporting a crash, passing null values
             target.ReportCrash(errorName, errorReason, stacktrace);
@@ -669,6 +673,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             const string errorName = "error name";
             const string reason = "error reason";
             const string stacktrace = "the stacktrace causing the error";
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
 
             // when
             target.ReportCrash(errorName, reason, stacktrace);
@@ -699,6 +705,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             var target = CreateSessionProxy();
             Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
 
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
             // when
             target.ReportCrash("errorName", "reason", "stacktrace");
 
@@ -707,32 +715,13 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportCrashSetsLastInterActionTime()
+        public void ReportCrashAlwaysSplitsSessionAfterReportingCrash()
         {
             // given
-            const long sessionCreationTime = 13;
-            const long lastInteractionTime = 17;
-            mockBeacon.SessionStartTime.Returns(sessionCreationTime);
-            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime);
-
-            var target = CreateSessionProxy();
-            Assert.That(target.LastInteractionTime, Is.EqualTo(sessionCreationTime));
-
-            // when
-            target.ReportCrash("errorName", "reason", "stacktrace");
-
-            // then
-            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
-        }
-
-        [Test]
-        public void ReportCrashUserDoesNotSplitSession()
-        {
-            // given
-            const int eventCount = 10;
-
-            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
-            mockServerConfiguration.MaxEventsPerSession.Returns(1);
+            // explicitly disable session splitting
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
 
             var target = CreateSessionProxy();
             mockSessionCreator.Received(1).CreateSession(target);
@@ -740,14 +729,22 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.OnServerConfigurationUpdate(mockServerConfiguration);
 
             // when
-            for (var i = 0; i < eventCount; i++)
-            {
-                target.ReportCrash("error", "reason", "stacktrace");
-            }
+            target.ReportCrash("error 1", "reason 1", "stacktrace 1");
 
             // then
-            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
-            mockSessionCreator.Received(1).CreateSession(target);
+            mockSession.Received(1).ReportCrash("error 1", "reason 1", "stacktrace 1");
+            mockSessionCreator.Received(2).CreateSession(target);
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession,
+                mockServerConfiguration.SendIntervalInMilliseconds);
+
+            // and when
+            target.ReportCrash("error 2", "reason 2", "stacktrace 2");
+
+            // then
+            mockSplitSession1.Received(1).ReportCrash("error 2", "reason 2", "stacktrace 2");
+            mockSessionCreator.Received(3).CreateSession(target);
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSplitSession1,
+                mockServerConfiguration.SendIntervalInMilliseconds);
         }
 
         #endregion
@@ -1090,7 +1087,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SplitSessionByTime();
 
             // then
-            mockSession.Received(1).End();
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, idleTimeout / 2);
             mockSessionCreator.Received(1).Reset();
             mockSessionCreator.Received(2).CreateSession(target);
             Assert.That(obtained, Is.EqualTo(sessionTwoCreationTime + idleTimeout));
@@ -1122,7 +1119,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SplitSessionByTime();
 
             // then
-            mockSession.Received(1).End();
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, idleTimeout / 2);
             mockSessionCreator.Received(1).Reset();
             mockSessionCreator.Received(2).CreateSession(target);
             Assert.That(obtained, Is.EqualTo(sessionTwoCreationTime + idleTimeout));
@@ -1162,6 +1159,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             // given
             const long startTimeFirstSession = 60;
             const int sessionDuration = 10; // split time: session start + duration = 70
+            const int sendInterval = 15;
             const long currentTime = 70;
             const long startTimeSecondSession = 80;
 
@@ -1172,6 +1170,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
             mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
             mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.SendIntervalInMilliseconds.Returns(sendInterval);
 
             var target = CreateSessionProxy();
             mockSessionCreator.Received(1).CreateSession(target);
@@ -1181,7 +1180,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SplitSessionByTime();
 
             // then
-            mockSession.Received(1).End();
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, sendInterval);
             mockSessionCreator.Received(1).Reset();
             mockSessionCreator.Received(2).CreateSession(target);
             Assert.That(obtained, Is.EqualTo(startTimeSecondSession + sessionDuration));
@@ -1193,6 +1192,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             // given
             const long startTimeFirstSession = 60;
             const int sessionDuration = 10; // split time: session start + duration => 70
+            const int sendInterval = 15;
             const long currentTime = 80;
             const long startTimeSecondSession = 90;
 
@@ -1203,6 +1203,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(true);
             mockServerConfiguration.MaxSessionDurationInMilliseconds.Returns(sessionDuration);
             mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.SendIntervalInMilliseconds.Returns(sendInterval);
 
 
             var target = CreateSessionProxy();
@@ -1213,7 +1214,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SplitSessionByTime();
 
             // then
-            mockSession.Received(1).End();
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession, sendInterval);
             mockSessionCreator.Received(1).Reset();
             mockSessionCreator.Received(2).CreateSession(target);
             Assert.That(obtained, Is.EqualTo(startTimeSecondSession + sessionDuration));

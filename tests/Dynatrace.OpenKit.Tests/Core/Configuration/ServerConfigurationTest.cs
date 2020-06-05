@@ -38,6 +38,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockAttributes.ServerId.Returns(defaultValues.ServerId);
             mockAttributes.MaxBeaconSizeInBytes.Returns(defaultValues.MaxBeaconSizeInBytes);
             mockAttributes.Multiplicity.Returns(defaultValues.Multiplicity);
+            mockAttributes.SendIntervalInMilliseconds.Returns(defaultValues.SendIntervalInMilliseconds);
             mockAttributes.MaxSessionDurationInMilliseconds.Returns(defaultValues.MaxSessionDurationInMilliseconds);
             mockAttributes.MaxEventsPerSession.Returns(defaultValues.MaxEventsPerSession);
             mockAttributes.SessionTimeoutInMilliseconds.Returns(defaultValues.SessionTimeoutInMilliseconds);
@@ -50,6 +51,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockServerConfig.ServerId.Returns(defaultValues.ServerId);
             mockServerConfig.BeaconSizeInBytes.Returns(defaultValues.MaxBeaconSizeInBytes);
             mockServerConfig.Multiplicity.Returns(defaultValues.Multiplicity);
+            mockServerConfig.SendIntervalInMilliseconds.Returns(defaultValues.SendIntervalInMilliseconds);
             mockServerConfig.MaxSessionDurationInMilliseconds.Returns(defaultValues.MaxSessionDurationInMilliseconds);
             mockServerConfig.MaxEventsPerSession.Returns(defaultValues.MaxEventsPerSession);
             mockServerConfig.IsSessionSplitByEventsEnabled.Returns(false);
@@ -95,6 +97,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(ServerConfiguration.Default.Multiplicity, Is.EqualTo(1));
         }
 
+        [Test]
+        public void InDefaultServerConfigurationSendIntervalIs120Seconds()
+        {
+            Assert.That(ServerConfiguration.Default.SendIntervalInMilliseconds, Is.EqualTo(120 * 1000));
+        }
 
         [Test]
         public void InDefaultServerConfigurationMaxSessionDurationIsMinusOne()
@@ -221,6 +228,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.Multiplicity, Is.EqualTo(multiplicity));
             _ = mockAttributes.Received(1).Multiplicity;
+        }
+
+        [Test]
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesSendInterval()
+        {
+            // given, when
+            const int sendInterval = 1234;
+            mockAttributes.SendIntervalInMilliseconds.Returns(sendInterval);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
+            _ = mockAttributes.Received(1).SendIntervalInMilliseconds;
         }
 
         [Test]
@@ -672,6 +692,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.Multiplicity, Is.EqualTo(7));
             _ = mockServerConfig.Received(1).Multiplicity;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesSendInterval()
+        {
+            // given
+            const int sendInterval = 4321;
+            mockServerConfig.SendIntervalInMilliseconds.Returns(sendInterval);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
+            _ = mockServerConfig.Received(1).SendIntervalInMilliseconds;
         }
 
         [Test]
@@ -1493,6 +1526,20 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // then
             Assert.That(obtained.Multiplicity, Is.EqualTo(multiplicity));
+        }
+
+        [Test]
+        public void BuildPropagatesSendIntervalToInstance()
+        {
+            // given
+            const int sendInterval = 777;
+
+            // when
+            var obtained = new ServerConfiguration.Builder(defaultValues)
+                .WithSendIntervalInMilliseconds(sendInterval).Build();
+
+            // then
+            Assert.That(obtained.SendIntervalInMilliseconds, Is.EqualTo(sendInterval));
         }
 
         [Test]

@@ -52,6 +52,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             ServerId = builder.ServerId;
             BeaconSizeInBytes = builder.BeaconSizeInBytes;
             Multiplicity = builder.Multiplicity;
+            SendIntervalInMilliseconds = builder.SendIntervalInMilliseconds;
             MaxSessionDurationInMilliseconds = builder.MaxSessionDurationInMilliseconds;
             isSessionSplitBySessionDurationEnabled = builder.IsSessionSplitBySessionDurationEnabled;
             MaxEventsPerSession = builder.MaxEventsPerSession;
@@ -87,6 +88,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public int BeaconSizeInBytes { get; }
 
         public int Multiplicity { get; }
+
+        public int SendIntervalInMilliseconds { get; }
 
         public int MaxSessionDurationInMilliseconds { get; }
 
@@ -146,6 +149,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 BeaconSizeInBytes = responseAttributes.MaxBeaconSizeInBytes;
                 Multiplicity = responseAttributes.Multiplicity;
 
+                SendIntervalInMilliseconds = responseAttributes.SendIntervalInMilliseconds;
+
                 MaxSessionDurationInMilliseconds = responseAttributes.MaxSessionDurationInMilliseconds;
                 IsSessionSplitBySessionDurationEnabled =
                     responseAttributes.IsAttributeSet(ResponseAttribute.MAX_SESSION_DURATION);
@@ -174,6 +179,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 BeaconSizeInBytes = serverConfiguration.BeaconSizeInBytes;
                 Multiplicity = serverConfiguration.Multiplicity;
 
+                SendIntervalInMilliseconds = serverConfiguration.SendIntervalInMilliseconds;
                 MaxSessionDurationInMilliseconds = serverConfiguration.MaxSessionDurationInMilliseconds;
                 IsSessionSplitBySessionDurationEnabled = serverConfiguration.IsSessionSplitBySessionDurationEnabled;
 
@@ -263,6 +269,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
             public Builder WithMultiplicity(int multiplicity)
             {
                 Multiplicity = multiplicity;
+                return this;
+            }
+
+            internal int SendIntervalInMilliseconds { get; set; }
+
+            /// <summary>
+            /// Configure the send interval in milliseconds.
+            /// </summary>
+            /// <param name="sendIntervalInMilliseconds">Send interval in milliseconds</param>
+            /// <returns></returns>
+            public Builder WithSendIntervalInMilliseconds(int sendIntervalInMilliseconds)
+            {
+                SendIntervalInMilliseconds = sendIntervalInMilliseconds;
                 return this;
             }
 
