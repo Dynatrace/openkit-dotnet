@@ -1991,6 +1991,30 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void IsActionReportingAllowedByPrivacySettingsDelegatesToPrivacyConfig()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            mockPrivacyConfiguration.IsActionReportingAllowed.Returns(true);
+            var obtained = target.IsActionReportingAllowedByPrivacySettings;
+
+            // then
+            Assert.That(obtained, Is.True);
+
+            // and when
+            mockPrivacyConfiguration.IsActionReportingAllowed.Returns(false);
+            obtained = target.IsActionReportingAllowedByPrivacySettings;
+
+            // then
+            Assert.That(obtained, Is.False);
+
+            // ensure calls
+            var _ = mockPrivacyConfiguration.Received(2).IsActionReportingAllowed;
+        }
+
+        [Test]
         public void IsDataCaptureEnabledReturnsFalseIfDataSendingIsDisallowed()
         {
             // given

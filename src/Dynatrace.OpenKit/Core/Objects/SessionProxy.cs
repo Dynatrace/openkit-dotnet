@@ -137,7 +137,15 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 var session = GetOrSplitCurrentSessionByEvents();
-                RecordTopLevelActionEvent();
+                if (session.Beacon.IsActionReportingAllowedByPrivacySettings)
+                {
+                    // avoid session splitting by action count, if user opted out of action collection
+                    RecordTopLevelActionEvent();
+                }
+                else
+                {
+                    RecordTopLevelEventInteraction();
+                }
                 return session.EnterAction(actionName);
             }
         }

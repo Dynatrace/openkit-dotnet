@@ -228,6 +228,8 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         bool IBeacon.IsServerConfigurationSet => configuration.IsServerConfigurationSet;
 
+        bool IBeacon.IsActionReportingAllowedByPrivacySettings => configuration.PrivacyConfiguration.IsActionReportingAllowed;
+
         void IBeacon.EnableCapture()
         {
             configuration.EnableCapture();

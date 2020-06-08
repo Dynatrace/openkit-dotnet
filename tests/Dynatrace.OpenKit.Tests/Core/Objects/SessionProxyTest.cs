@@ -51,14 +51,17 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockServerConfiguration = Substitute.For<IServerConfiguration>();
 
             mockBeacon = Substitute.For<IBeacon>();
+            mockBeacon.IsActionReportingAllowedByPrivacySettings.Returns(true);
             mockSession = Substitute.For<ISessionInternals>();
             mockSession.Beacon.Returns(mockBeacon);
 
             mockSplitBeacon1 = Substitute.For<IBeacon>();
+            mockSplitBeacon1.IsActionReportingAllowedByPrivacySettings.Returns(true);
             mockSplitSession1 = Substitute.For<ISessionInternals>();
             mockSplitSession1.Beacon.Returns(mockSplitBeacon1);
 
             mockSplitBeacon2 = Substitute.For<IBeacon>();
+            mockSplitBeacon2.IsActionReportingAllowedByPrivacySettings.Returns(true);
             mockSplitSession2 = Substitute.For<ISessionInternals>();
             mockSplitSession2.Beacon.Returns(mockSplitBeacon2);
 
@@ -461,6 +464,30 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             mockSessionCreator.Received(2).CreateSession(target);
             mockBeaconSender.Received(1).AddSession(mockSplitSession1);
+        }
+
+        [Test]
+        public void EnterActionOnlySetsLastInteractionTimeIfActionReportingIsNotAllowed()
+        {
+            // given
+            long sessionCreationTime = 13;
+            long lastInteractionTime = 17;
+            mockBeacon.SessionStartTime.Returns(sessionCreationTime);
+            mockBeacon.IsActionReportingAllowedByPrivacySettings.Returns(false);
+            mockTimingProvider.ProvideTimestampInMilliseconds().Returns(lastInteractionTime);
+
+            var target = CreateSessionProxy();
+
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            target.EnterAction("test");
+
+            // then
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+            Assert.That(target.LastInteractionTime, Is.EqualTo(lastInteractionTime));
         }
 
         #endregion

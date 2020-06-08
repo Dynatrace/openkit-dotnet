@@ -82,6 +82,11 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         bool IsServerConfigurationSet { get; }
 
+        /// <summary>
+        /// Indicates whether action reporting is allowed by privacy settings or not.
+        /// </summary>
+        bool IsActionReportingAllowedByPrivacySettings { get; }
+
         #endregion
 
         #region Methods
