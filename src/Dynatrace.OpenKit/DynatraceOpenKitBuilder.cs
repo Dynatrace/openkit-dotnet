@@ -34,7 +34,7 @@ namespace Dynatrace.OpenKit
         public const string Type = "DynatraceOpenKit";
 
 
-        private string applicationName = string.Empty;
+        private string applicationName = null;
 
         /// <summary>
         /// Creates a new instance of type DynatraceOpenKitBuilder
@@ -66,12 +66,10 @@ namespace Dynatrace.OpenKit
         /// </summary>
         /// <param name="applicationName">name of the application</param>
         /// <returns><code>this</code></returns>
+        [Obsolete("set in Dynatrace UI when custom application is created")]
         public AbstractOpenKitBuilder WithApplicationName(string applicationName)
         {
-            if (applicationName != null)
-            {
-                this.applicationName = applicationName;
-            }
+            this.applicationName = applicationName;
             return this;
         }
 

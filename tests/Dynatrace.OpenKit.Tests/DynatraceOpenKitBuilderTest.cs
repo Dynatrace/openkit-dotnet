@@ -68,7 +68,7 @@ namespace Dynatrace.OpenKit
         }
 
         [Test]
-        public void DefaultApplicationNameIsEmptyString()
+        public void DefaultApplicationNameIsNull()
         {
             // given
             var target = new DynatraceOpenKitBuilder(EndpointUrl, ApplicationId, DeviceId);
@@ -77,7 +77,7 @@ namespace Dynatrace.OpenKit
             var obtained = target.ApplicationName;
 
             // then
-            Assert.That(obtained, Is.EqualTo(string.Empty));
+            Assert.That(obtained, Is.Null);
         }
 
         [Test]
@@ -95,16 +95,17 @@ namespace Dynatrace.OpenKit
         }
 
         [Test]
-        public void WithApplicationNameIgnoresNullAsArgument()
+        public void WithApplicationNameAllowsOverwritingWithNull()
         {
             // given
             var target = new DynatraceOpenKitBuilder(EndpointUrl, ApplicationId, DeviceId);
+            target.WithApplicationName(ApplicationName); // initialize with non-null value
 
             // when
             target.WithApplicationName(null);
 
             // then
-            Assert.That(target.ApplicationName, Is.EqualTo(string.Empty));
+            Assert.That(target.ApplicationName, Is.Null);
         }
     }
 }
