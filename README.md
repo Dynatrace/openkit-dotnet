@@ -4,6 +4,9 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/ug034eehokcyw1ks/branch/main?svg=true)](https://ci.appveyor.com/project/openkitdt/openkit-dotnet/branch/main)
 [![Coverage Status](https://coveralls.io/repos/github/Dynatrace/openkit-dotnet/badge.svg?branch=main)](https://coveralls.io/github/Dynatrace/openkit-dotnet?branch=main)
 
+:information_source: We changed the default branch name to `main`. You can find the necessary steps to update your local clone on [Scott Hanselman's Blog](https://www.hanselman.com/blog/EasilyRenameYourGitDefaultBranchFromMasterToMain.aspx).  
+We encourage you to rename the default branch in your forks too.
+
 ## What is the OpenKit?
 
 The OpenKit provides an easy and lightweight way to get insights into applications with Dynatrace/AppMon by instrumenting the source code of those applications.
