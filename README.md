@@ -53,6 +53,7 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * [Detailed example][example]
 * [Contributing to OpenKit .NET][contributing]
 * [Supported versions][supported_versions]
+* [Upgrade guide][upgrade_guide]
 
 ## Advanced topics
 * [Building OpenKit .NET][building]
@@ -65,3 +66,4 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 [supported_versions]: ./docs/supported_versions.md
 [building]: ./docs/building.md
 [internals]: ./docs/internals.md
+[upgrade_guide]: ./docs/upgrade_guide.md

@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v1.4.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.0...HEAD)
+
+## 2.0.0 [Release date: 2020-06-24]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.0.0)
 
 ### Added
 - Support for parsing JSON
