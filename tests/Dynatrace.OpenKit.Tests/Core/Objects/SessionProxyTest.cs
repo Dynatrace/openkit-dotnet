@@ -1032,6 +1032,28 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockParent.Received(1).OnChildClosed(target);
         }
 
+        [Test]
+        public void EndCallsDifferentMethodsForSessions()
+        {
+            // given
+            var childObjectOne = Substitute.For<ISessionInternals>();
+            var childObjectTwo = Substitute.For<ISessionInternals>();
+
+            var target = CreateSessionProxy();
+            IOpenKitComposite targetExplicit = target;
+
+            targetExplicit.StoreChildInList(childObjectOne);
+            targetExplicit.StoreChildInList(childObjectTwo);
+
+            // when
+            target.End();
+
+            // then
+            mockSession.Received(1).End(true);
+            childObjectOne.Received(1).End(false);
+            childObjectTwo.Received(1).End(false);
+        }
+
         #endregion
 
         #region split session by time

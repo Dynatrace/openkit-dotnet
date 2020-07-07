@@ -327,6 +327,22 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void EndingASessionDoesNotFinishSessionOnBeacon()
+        {
+            // given
+            const long timestamp = 4321;
+            mockBeacon.CurrentTimestamp.Returns(timestamp);
+
+            var target = CreateSession().Build();
+
+            // when
+            target.End(false);
+
+            // then
+            mockBeacon.Received(0).EndSession();
+        }
+
+        [Test]
         public void EndingAnAlreadyEndedSessionDoesNothing()
         {
             // given
@@ -411,7 +427,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.True);
-            mockBeacon.Received(1).EndSession();
+            mockBeacon.Received(0).EndSession();
         }
 
         [Test]

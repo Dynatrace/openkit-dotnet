@@ -43,7 +43,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             // end all open sessions -> will be flushed afterwards
             foreach (var session in context.GetAllOpenAndConfiguredSessions())
             {
-                session.End();
+                session.End(false);
             }
 
             // flush already finished (and previously ended) sessions

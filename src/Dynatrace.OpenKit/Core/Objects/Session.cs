@@ -148,7 +148,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
                 if (ThisComposite.GetChildCount() == 0)
                 {
-                    End();
+                    End(false);
                     return true;
                 }
 
@@ -278,6 +278,11 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public void End()
         {
+            End(true);
+        }
+
+        public void End(bool sendSessionEndEvent)
+        {
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} End()");
@@ -297,8 +302,12 @@ namespace Dynatrace.OpenKit.Core.Objects
                 childObject.Dispose();
             }
 
-            // create end session data on beacon
-            beacon.EndSession();
+            // send the end event, only if a session is explicitly ended
+            if (sendSessionEndEvent)
+            {
+                beacon.EndSession();
+            }
+
 
             state.MarkAsFinished();
 
@@ -319,7 +328,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
                 if (state.WasTriedForEnding && ThisComposite.GetChildCount() == 0)
                 {
-                    End();
+                    End(false);
                 }
             }
         }

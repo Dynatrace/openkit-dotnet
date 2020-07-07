@@ -67,6 +67,13 @@ namespace Dynatrace.OpenKit.Core.Objects
         ISessionState State { get; }
 
         /// <summary>
+        /// Ends the session and if <paramref name="sendSessionEndEvent"/> is <code>true</code>
+        /// also send the env session event in the beacon.
+        /// </summary>
+        /// <param name="sendSessionEndEvent">Boolean indicating whether to send an end session event or not.</param>
+        void End(bool sendSessionEndEvent);
+
+        /// <summary>
         /// Tries to end the current session by checking if there are no more child objects (actions / web request
         /// tracers) open. In case no more child objects are open, the session is ended, otherwise it is kept open.
         /// </summary>
