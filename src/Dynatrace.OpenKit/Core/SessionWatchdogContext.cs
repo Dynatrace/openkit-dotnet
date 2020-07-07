@@ -133,7 +133,7 @@ namespace Dynatrace.OpenKit.Core
             foreach (var session in closableSessions)
             {
                 sessionsToClose.Remove(session);
-                session.End();
+                session.End(false);
             }
 
             return sleepTimeInMillis;

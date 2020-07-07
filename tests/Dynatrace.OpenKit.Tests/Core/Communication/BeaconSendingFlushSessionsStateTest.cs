@@ -116,8 +116,8 @@ namespace Dynatrace.OpenKit.Core.Communication
             target.Execute(mockContext);
 
             // then
-            mockSession1Open.Received(1).End();
-            mockSession2Open.Received(1).End();
+            mockSession1Open.Received(1).End(false);
+            mockSession2Open.Received(1).End(false);
         }
 
         [Test]

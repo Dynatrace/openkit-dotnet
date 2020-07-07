@@ -200,7 +200,7 @@ namespace Dynatrace.OpenKit.Core
             target.Execute();
 
             // then
-            mockSession.Received(1).End();
+            mockSession.Received(1).End(false);
             Assert.That(target.GetSessionsToClose().Count, Is.EqualTo(0));
         }
 
@@ -219,7 +219,7 @@ namespace Dynatrace.OpenKit.Core
             target.Execute();
 
             // then
-            mockSession.Received(1).End();
+            mockSession.Received(1).End(false);
             Assert.That(target.GetSessionsToClose().Count, Is.EqualTo(0));
         }
 
@@ -259,7 +259,7 @@ namespace Dynatrace.OpenKit.Core
 
             // then
             mockThreadSuspender.Received(1).Sleep(SessionWatchdogContext.DefaultSleepTimeInMillis);
-            mockSession.Received(1).End();
+            mockSession.Received(1).End(false);
         }
 
         [Test]
