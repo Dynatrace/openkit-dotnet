@@ -36,7 +36,6 @@ namespace Samples
             long deviceID = 42L;        // an ID that uniquely identifies the device
 
             var openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID)
-                .WithApplicationName("SimpleSampleApp")
                 .WithApplicationVersion("1.0")
                 .WithOperatingSystem(Environment.OSVersion.VersionString)
                 .Build();
