@@ -72,7 +72,6 @@ long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com/mbeacon";
 
 IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID)
-    .WithApplicationName(applicationName)
     .WithApplicationVersion("1.0.0.0")
     .WithOperatingSystem("Windows 10")
     .WithManufacturer("MyCompany")
