@@ -83,16 +83,12 @@ namespace Samples
                 if (webRequestTracer != null)
                 {
                     object httpResponseMessageObject;
-                    int responseCode;
+                    // assume HTTP OK by default
+                    int responseCode = (int)HttpStatusCode.OK;
                     if (reply.Properties.TryGetValue(HttpResponseMessageProperty.Name, out httpResponseMessageObject))
                     {
                         var httpResponseMessage = httpResponseMessageObject as HttpResponseMessageProperty;
                         responseCode = (int)httpResponseMessage.StatusCode;
-                    }
-                    else
-                    {
-                        // assume HTTP OK by default
-                        responseCode = (int)HttpStatusCode.OK
                     }
 
                     webRequestTracer.Stop(responseCode);
