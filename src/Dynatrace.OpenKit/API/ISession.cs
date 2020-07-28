@@ -41,7 +41,11 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <remarks>
         /// If <paramref name="userTag"/> is <code>null</code> or an empty string,
-        /// no user identification is sent to the server.
+        /// this is equivalent to logging off the user.
+        /// 
+        /// The last non-empty {@code userTag} is re-applied to split sessions.
+        /// Details are described in
+        /// https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/internals.md#identify-users-on-split-sessions.
         /// </remarks>
         /// <param name="userTag"></param>
         void IdentifyUser(string userTag);

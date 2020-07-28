@@ -2,6 +2,10 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.1...HEAD)
 
+### Changed
+- `IdentifyUser` can be called with `null` or an empty string.  
+   This simulates a log off event and no longer re-applies the user tag on split sessions.
+
 ## 2.0.1 [Release date: 2020-07-07]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.0.1)
 

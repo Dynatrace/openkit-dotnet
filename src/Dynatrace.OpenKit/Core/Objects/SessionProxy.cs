@@ -152,12 +152,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public void IdentifyUser(string userTag)
         {
-            if (string.IsNullOrEmpty(userTag))
-            {
-                logger.Warn($"{this} IdentifyUser: userTag must not be null or empty");
-                return;
-            }
-
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} IdentifyUser({userTag})");
@@ -537,7 +531,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private void ReTagCurrentSession()
         {
-            if (lastUserTag == null || currentSession == null)
+            if (string.IsNullOrEmpty(lastUserTag) || currentSession == null)
             {
                 return;
             }

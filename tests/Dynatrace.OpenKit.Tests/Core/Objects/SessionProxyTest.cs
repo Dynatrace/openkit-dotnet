@@ -495,7 +495,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         #region identify user tests
 
         [Test]
-        public void IdentifyUserWithNullTagDoesNothing()
+        public void IdentifyUserWithNullTagReportsUser()
         {
             // given
             var target = CreateSessionProxy();
@@ -504,12 +504,12 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.IdentifyUser(null);
 
             // then
-            mockLogger.Received(1).Warn($"{target} IdentifyUser: userTag must not be null or empty");
-            mockSession.Received(0).IdentifyUser(Arg.Any<string>());
+            mockLogger.Received(1).Debug($"{target} IdentifyUser()");
+            mockSession.Received(1).IdentifyUser(null);
         }
 
         [Test]
-        public void IdentifyUserWithEmptyTagDoesNothing()
+        public void IdentifyUserWithEmptyTagReportsUser()
         {
             // given
             var target = CreateSessionProxy();
@@ -518,8 +518,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.IdentifyUser("");
 
             // then
-            mockLogger.Received(1).Warn($"{target} IdentifyUser: userTag must not be null or empty");
-            mockSession.Received(0).IdentifyUser(Arg.Any<string>());
+            mockLogger.Received(1).Debug($"{target} IdentifyUser()");
+            mockSession.Received(1).IdentifyUser("");
         }
 
         [Test]
