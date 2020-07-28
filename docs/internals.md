@@ -159,5 +159,6 @@ session timeout. Additionally it keeps track of old sessions that could not be c
 ### Identify Users on split sessions
 
 OpenKit re-applies the last user identification, which was reported with `IdentifyUser` on every session, split after
-the API call. This is implemented as a workaround as long as this functionality is missing in the backend.  
-Please keep in mind that this will be visible in the visit details.
+the API call. This behavior is only implemented for client-side session splitting and will implicitly send the
+same data as an `IdentifyUser` API does, therefore it is shown as first event in the split session. 
+To stop re-tagging sessions `IdentifyUser` can be called with `null` or an empty string.

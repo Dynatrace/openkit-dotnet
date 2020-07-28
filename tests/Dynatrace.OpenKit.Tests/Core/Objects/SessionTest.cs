@@ -135,7 +135,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void IdentifyUserWithNullTagDoesNothing()
+        public void IdentifyUserWithNullTagReportsUser()
         {
             // given
             var target = CreateSession().Build();
@@ -144,13 +144,12 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.IdentifyUser(null);
 
             // then
-            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
-            mockLogger.Received(1).Warn("Session [sn=0, seq=0] IdentifyUser: userTag must not be null or empty");
-            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+            mockBeacon.Received(1).IdentifyUser(null);
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] IdentifyUser()");
         }
 
         [Test]
-        public void IdentifyUserWithEmptyTagDoesNothing()
+        public void IdentifyUserWithEmptyTagReportsUser()
         {
             // given
             var target = CreateSession().Build();
@@ -159,9 +158,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.IdentifyUser(string.Empty);
 
             // then
-            mockBeacon.Received(0).IdentifyUser(Arg.Any<string>());
-            mockLogger.Received(1).Warn("Session [sn=0, seq=0] IdentifyUser: userTag must not be null or empty");
-            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+            mockBeacon.Received(1).IdentifyUser("");
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] IdentifyUser()");
         }
 
         [Test]
