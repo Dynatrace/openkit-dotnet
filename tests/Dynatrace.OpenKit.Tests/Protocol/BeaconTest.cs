@@ -189,7 +189,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
-            Assert.That(capturedIpAddress, Is.Empty);
+            Assert.That(capturedIpAddress, Is.Null);
             httpClient.Received(1)
                 .SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
@@ -222,8 +222,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
-            Assert.That(capturedIpAddress, Is.Not.Null);
-            Assert.That(capturedIpAddress, Is.EqualTo(string.Empty));
+            Assert.That(capturedIpAddress, Is.Null);
             httpClient.Received(1)
                 .SendBeaconRequest(capturedIpAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }

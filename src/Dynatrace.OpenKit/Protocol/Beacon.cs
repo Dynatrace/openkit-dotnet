@@ -142,7 +142,7 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 // A client IP address, which is a null, is valid.
                 // The real IP address is determined on the server side.
-                clientIpAddress = string.Empty;
+                clientIpAddress = null;
             }
             else if (InetAddressValidator.IsValidIP(ipAddress))
             {
@@ -155,7 +155,7 @@ namespace Dynatrace.OpenKit.Protocol
                 {
                     logger.Warn($"Beacon: Client IP address validation failed: {ipAddress}");
                 }
-                clientIpAddress = string.Empty;
+                clientIpAddress = null; // determined on server side, based on remote IP address
             }
 
             basicBeaconData = CreateBasicBeaconData();
@@ -659,7 +659,7 @@ namespace Dynatrace.OpenKit.Protocol
             // device/visitor ID, session number and IP address
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyVisitorId, DeviceId);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeySessionNumber, SessionNumber);
-            AddKeyValuePair(basicBeaconBuilder, BeaconKeyClientIpAddress, clientIpAddress);
+            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyClientIpAddress, clientIpAddress);
 
             // platform information
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyDeviceOs, openKitConfig.OperatingSystem);
