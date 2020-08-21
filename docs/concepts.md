@@ -75,7 +75,7 @@ IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, devic
     .WithApplicationVersion("1.0.0.0")
     .WithOperatingSystem("Windows 10")
     .WithManufacturer("MyCompany")
-    .WithModelID("MyModelID")
+    .WithModelId("MyModelId")
     .Build();
 
 string clientIP = "8.8.8.8";

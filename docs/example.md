@@ -16,6 +16,9 @@ different backend systems.
  
 For Dynatrace SaaS and Dynatrace Managed the `DynatraceOpenKitBuilder` is used to build new OpenKit instances. 
 
+:information_source: VisualBasic developers should use `DynatraceOpenKitBuilderVB` for now to workaround an
+ambiguity error caused by two methods differing in case only.
+
 ```cs
 string applicationName = "My OpenKit application";
 string applicationID = "application-id";
@@ -39,6 +42,9 @@ application's id can be found in the settings page of the custom application in 
 ### AppMon
 
 An OpenKit instance for AppMon can be obtained by using the `AppMonOpenKitBuilder`.
+
+:information_source: VisualBasic developers should use `AppMonOpenKitBuilderVB` for now to workaround an
+ambiguity error caused by two methods differing in case only.
 
 The example below demonstrates how to connect an OpenKit application to an AppMon endpoint.
 ```cs
@@ -64,7 +70,7 @@ customize OpenKit. This includes device specific information like operating syst
 | `WithApplicationVersion`  | sets the application version  | `"2.1.0"` |
 | `WithOperatingSystem`  | sets the operating system name | `"OpenKit 2.1.0"` |
 | `WithManufacturer`  | sets the manufacturer | `"Dynatrace"` |
-| `WithModelID`  | sets the model id  | `"OpenKitDevice"` |
+| `WithModelId`  | sets the model id  | `"OpenKitDevice"` |
 | `WithBeaconCacheMaxRecordAge`  | sets the maximum age of an entry in the beacon cache in milliseconds | 1 h 45 min |
 | `WithBeaconCacheLowerMemoryBoundary`  | sets the lower memory boundary of the beacon cache in bytes  | 100 MB |
 | `WithBeaconCacheUpperMemoryBoundary`  |  sets the upper memory boundary of the beacon cache in bytes | 80 MB |
