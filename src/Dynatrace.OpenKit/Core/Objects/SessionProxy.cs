@@ -252,8 +252,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var childObjects = ThisComposite.GetCopyOfChildObjects();
             foreach (var childObject in childObjects)
             {
-                var childSession = childObject as ISessionInternals;
-                if (childSession != null)
+                if (childObject is ISessionInternals childSession)
                 {
                     childSession.End(childSession == currentSession);
                 }

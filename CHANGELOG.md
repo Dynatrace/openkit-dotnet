@@ -2,6 +2,14 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.1...HEAD)
 
+### Added
+- `DynatraceOpenKitBuilderVB` and `AppMonOpenKitBuilderVB` are added to workaround
+  an ambiguity error affecting VisualBasic developers. Since VB is case insensitive
+ `AbstractOpenKitBuilder.WithModelID(string)` and `AbstractOpenKitBuilder.WithModelId(string)`
+  are considered the same methods.  
+  This workaround is marked as obsolete and will be removed when the obsolete method
+  `AbstractOpenKitBuilder.WithModelID(string)` is removed.
+
 ### Changed
 - `IdentifyUser` can be called with `null` or an empty string.  
    This simulates a log off event and no longer re-applies the user tag on split sessions.
