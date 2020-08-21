@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.1...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.2...HEAD)
+
+## 2.0.2 [Release date: 2020-08-21]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.0.2)
 
 ### Added
 - `DynatraceOpenKitBuilderVB` and `AppMonOpenKitBuilderVB` are added to workaround

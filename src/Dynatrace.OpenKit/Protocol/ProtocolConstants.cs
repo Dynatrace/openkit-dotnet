@@ -19,7 +19,7 @@ namespace Dynatrace.OpenKit.Protocol
     public static class ProtocolConstants
     {
         // version constants
-        public const string OpenKitVersion = "8.199.20002";
+        public const string OpenKitVersion = "8.202.20002";
         public const int ProtocolVersion = 3;
         public const int PlatformTypeOpenKit = 1;
         public const string AgentTechnologyType = "okdotnet";
