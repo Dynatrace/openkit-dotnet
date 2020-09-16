@@ -118,7 +118,7 @@ indicates whether the OpenKit instance has been initialized or `Shutdown` has be
 An overloaded method exists to wait a given amount of time for OpenKit to initialize as shown in the
 following example.
 ```cs
-// wait 10 seconds for OpenKit to complete initialization
+// wait up to 10 seconds for OpenKit to complete initialization
 int timeoutInMilliseconds = 10 * 1000;
 bool success = openKit.WaitForInitCompletion(timeoutInMilliseconds);
 ```
@@ -129,10 +129,13 @@ and `true` to indicate successful initialization.
 To verify if OpenKit has been initialized, use the `IsInitialized` property as shown in the example below.
 ```cs
 bool isInitialized = openKit.IsInitialized;
-if (isInitialized) {
-    System.out.println("OpenKit is initialized");
-} else {
-    System.out.println("OpenKit is not yet initialized");
+if (isInitialized)
+{
+    Console.WriteLine("OpenKit is initialized");
+}
+else
+{
+    Console.WriteLine("OpenKit is not yet initialized");
 }
 ```
 
