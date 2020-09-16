@@ -122,10 +122,13 @@ and `true` to indicate successful initialization.
 To verify if OpenKit has been initialized, use the `IsInitialized` property as shown in the example below.
 ```cs
 bool isInitialized = openKit.IsInitialized;
-if (isInitialized) {
-    System.out.println("OpenKit is initialized");
-} else {
-    System.out.println("OpenKit is not yet initialized");
+if (isInitialized)
+{
+    Console.WriteLine("OpenKit is initialized");
+}
+else
+{
+    Console.WriteLine("OpenKit is not yet initialized");
 }
 ```
 

@@ -125,10 +125,10 @@ This small example provides a rough overview how OpenKit can be used.
 Detailed explanation is available in [example.md](docs/example.md).
 
 ```cs
-string applicationName = "My OpenKit application";
-string applicationID = "application-id";
-long deviceID = 42L;
-string endpointURL = "https://tenantid.beaconurl.com/mbeacon";
+string applicationName = "My OpenKit application";             // Your application's name
+string applicationID = "application-id";                       // Your application's ID
+long deviceID = 42L;                                           // Replace with a unique value per device/installation
+string endpointURL = "https://tenantid.beaconurl.com/mbeacon"; // Dynatrace endpoint URL
 
 IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, deviceID)
     .WithApplicationName(applicationName)
@@ -137,6 +137,10 @@ IOpenKit openKit = new DynatraceOpenKitBuilder(endpointURL, applicationID, devic
     .WithManufacturer("MyCompany")
     .WithModelID("MyModelID")
     .Build();
+
+// Wait up to 10 seconds for OpenKit to complete initialization
+int timeoutInMilliseconds = 10 * 1000;
+bool success = openKit.WaitForInitCompletion(timeoutInMilliseconds);
 
 string clientIP = "8.8.8.8";
 ISession session = openKit.CreateSession(clientIP);
