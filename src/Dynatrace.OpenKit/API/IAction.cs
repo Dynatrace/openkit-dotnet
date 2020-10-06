@@ -49,6 +49,18 @@ namespace Dynatrace.OpenKit.API
         IAction ReportValue(string valueName, int value);
 
         /// <summary>
+        ///  Reports a long value with a specified name.
+        /// </summary>
+        /// <remarks>
+        /// If given <paramref name="valueName"/> is <code>null</code> or an empty string,
+        /// no value is reported.
+        /// </remarks>
+        /// <param name="valueName">name of this value</param>
+        /// <param name="value">value itself</param>
+        /// <returns>this Action (for usage as fluent API)</returns>
+        IAction ReportValue(string valueName, long value);
+
+        /// <summary>
         ///  Reports a double value with a specified name.
         /// </summary>
         /// <remarks>

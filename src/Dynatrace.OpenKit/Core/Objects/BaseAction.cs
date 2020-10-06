@@ -231,6 +231,29 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
+        public IAction ReportValue(string valueName, long value)
+        {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                Logger.Warn($"{this} ReportValue (long): valueName must not be null or empty");
+                return this;
+            }
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"{this} ReportValue (long) ({valueName}, {value.ToInvariantString()})");
+            }
+
+            lock (LockObject)
+            {
+                if (!ThisAction.IsActionLeft)
+                {
+                    Beacon.ReportValue(Id, valueName, value);
+                }
+            }
+
+            return this;
+        }
+
         public IAction ReportError(string errorName, int errorCode, string reason)
         {
             if (string.IsNullOrEmpty(errorName))

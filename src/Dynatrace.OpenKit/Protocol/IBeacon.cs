@@ -136,6 +136,18 @@ namespace Dynatrace.OpenKit.Protocol
         void ReportValue(int actionId, string valueName, int value);
 
         /// <summary>
+        /// Reports the given long integer value on the action belonging to the given ID.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the value was reported.</param>
+        /// <param name="valueName">the name of the reported value.</param>
+        /// <param name="value">the reported long integer value.</param>
+        void ReportValue(int actionId, string valueName, long value);
+
+        /// <summary>
         /// Reports the given double value on the action belonging to the given ID.
         ///
         /// <para>

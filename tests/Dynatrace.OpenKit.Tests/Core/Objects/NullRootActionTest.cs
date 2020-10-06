@@ -75,6 +75,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void ReportLongValueReturnsSelf()
+        {
+            // given
+            var target = NullRootAction.Instance;
+
+            // when
+            var obtained = target.ReportValue("value name", long.MaxValue);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
         public void ReportDoubleValueReturnsSelf()
         {
             // given

@@ -60,6 +60,12 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
+        public IAction ReportValue(string valueName, long value)
+        {
+            return this;
+        }
+
+
         public IAction ReportValue(string valueName, double value)
         {
             return this;

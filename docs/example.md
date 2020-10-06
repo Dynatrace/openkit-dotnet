@@ -256,6 +256,7 @@ rootAction.ReportEvent(eventName);
 Key-value pairs can also be reported via an `IAction` as shown in the example below.
 Overloaded methods exist for the following value types:
 * int
+* long
 * double
 * string
 ```cs
@@ -263,6 +264,11 @@ Overloaded methods exist for the following value types:
 string keyIntType = "intType";
 int valueInt = 42;
 action.ReportValue(keyIntType, valueInt);
+
+// let's also report a long value 
+string keyLongType = "longType";
+long valueLong = long.MaxValue;
+action.reportValue(keyLongType, valueLong);
 
 // then let's report a double value
 string keyDoubleType = "doubleType";

@@ -9,6 +9,7 @@
   are considered the same methods.  
   This workaround is marked as obsolete and will be removed when the obsolete method
   `AbstractOpenKitBuilder.WithModelID(string)` is removed.
+- Support for reporting `long` values.
 
 ### Changed
 - Fix issue with sessions being closed after splitting.

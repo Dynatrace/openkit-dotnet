@@ -475,6 +475,31 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ReportValidValueLong()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string valueName = "longValue";
+            const long value = 21;
+
+            // when
+            target.ReportValue(ActionId, valueName, value);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.VALUE_INT.ToInt().ToInvariantString()}" // event type
+                + $"&na={valueName}"                                    // action name
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                + "&s0=1"                                               // event sequence number
+                + "&t0=0"                                               // event timestamp
+                + $"&vl={value.ToInvariantString()}"                    // reported value
+                );
+        }
+
+        [Test]
         public void ReportValidValueDouble()
         {
             // given
@@ -1149,6 +1174,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             target.AddAction(action);
             target.ReportValue(ActionId, "IntValue", 42);
+            target.ReportValue(ActionId, "LongValue", 21L);
             target.ReportValue(ActionId, "DoubleValue", 3.1415);
             target.ReportValue(ActionId, "StringValue", "HelloWorld");
             target.ReportEvent(ActionId, "SomeEvent");
@@ -1210,6 +1236,22 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportValue(ActionId, "intValue", intValue);
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoLongValueIsReportedIfIfDataSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            const long longValue = 21;
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "longValue", longValue);
 
             // then ensure nothing has been serialized
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -1778,6 +1820,50 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportValue(ActionId, "test int value", 13);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
+        }
+
+        [Test]
+        public void LongValueNotReportedIfValueReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test long value", long.MinValue);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void LongValueNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", long.MaxValue);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void LongValueIsReportedIfValueReportingAllowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test long value", long.MaxValue);
 
             // then
             mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());

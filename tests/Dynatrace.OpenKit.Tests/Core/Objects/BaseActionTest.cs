@@ -17,6 +17,7 @@
 using System;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
+using Dynatrace.OpenKit.Util;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -178,6 +179,73 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void ReportValueLongWithNullNameDoesNotReportValue()
+        {
+            // given
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            const long value = 21;
+            var obtained = target.ReportValue(null, value);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+            mockLogger.Received(1).Warn($"{target} ReportValue (long): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportValueLongWithEmptyNameDoesNotReportValue()
+        {
+            // given
+            const long value = 21;
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportValue(string.Empty, value);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+            mockLogger.Received(1).Warn($"{target} ReportValue (long): valueName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportValueLongWithValidValue()
+        {
+            // given
+            const long value = 21;
+            const string valueName = "longValue";
+            var target = CreateStubAction();
+
+            // when
+            var obtained = target.ReportValue(valueName, value);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            mockBeacon.Received(1).ReportValue(IdBaseOffset, valueName, value);
+        }
+
+        [Test]
+        public void ReportValueLongLogsInvocation()
+        {
+            // given
+            const long value = 21;
+            const string valueName = "longValue";
+            var target = CreateStubAction();
+
+            // when
+            target.ReportValue(valueName, value);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportValue (long) ({valueName}, {value})");
+        }
+
+        [Test]
         public void ReportValueDoubleWithNullNameDoesNotReportValue()
         {
             // given
@@ -241,7 +309,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.ReportValue(valueName, value);
 
             // then
-           mockLogger.Debug($"{target} ReportValue (double) ({valueName}, {value})");
+            mockLogger.Received(1).Debug($"{target} ReportValue (double) ({valueName}, {value.ToInvariantString()})");
         }
 
         [Test]
@@ -321,7 +389,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var target = CreateStubAction();
 
             // when
-            var obtained = target.ReportValue(valueName, value);
+            target.ReportValue(valueName, value);
 
             // then
             mockLogger.Received(1).Debug($"{target} ReportValue (string) ({valueName}, {value})");
@@ -809,6 +877,22 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // when
             var obtained = target.ReportValue("intValue", 42);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportLongValueDoesNothingIfActionIsLeft()
+        {
+            // given
+            var target = CreateStubAction();
+            target.LeaveAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportValue("longValue", long.MaxValue);
 
             // then
             Assert.That(obtained, Is.SameAs(target));

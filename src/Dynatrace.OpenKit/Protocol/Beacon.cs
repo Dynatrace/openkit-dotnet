@@ -351,6 +351,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportValue(int actionId, string valueName, int value)
         {
+            ThisBeacon.ReportValue(actionId, valueName, (long)value);
+        }
+
+        void IBeacon.ReportValue(int actionId, string valueName, long value)
+        {
             if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
