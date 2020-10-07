@@ -18,6 +18,7 @@ using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Util
 {
+    [TestFixture]
     public class StringUtilTest
     {
         [Test]

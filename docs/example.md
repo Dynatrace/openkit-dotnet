@@ -195,14 +195,39 @@ The example below shows how an exception might be reported.
         try 
         {
             Console.WriteLine("Got: " + div(numerator, denominator));
-        } 
+        }
         catch (Exception e) 
         {
             string errorName = e.GetType().ToString();
             string reason = e.Message;
             string stacktrace = e.StackTrace;
             // and now report the application crash via the session
-            session.reportCrash(errorName, reason, stacktrace);
+            session.ReportCrash(errorName, reason, stacktrace);
+        }
+    }
+```
+
+Alternatively the `ReportCrash(Exception)` overloaded method can be used, which is provided for convenience.
+The example below shows how to report an `Exception` as crash.
+
+```cs
+    private static int div(int numerator, int denominator) 
+    {
+        return numerator / denominator;
+    }
+
+    public static void divWithCrash() 
+    {
+        int numerator = 5;
+        int denominator = 0;
+        try 
+        {
+            Console.WriteLine("Got: " + div(numerator, denominator));
+        }
+        catch (Exception e) 
+        {
+            // report the caught Exception as crash
+            session.ReportCrash(e);
         }
     }
 ```

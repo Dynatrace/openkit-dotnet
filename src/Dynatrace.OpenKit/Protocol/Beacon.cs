@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System;
 using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
@@ -88,7 +89,7 @@ namespace Dynatrace.OpenKit.Protocol
         private const string WebRequestTagPrefix = "MT";
 
         // web request tag reserved characters
-        private static readonly char[] ReservedCharacters = { '_' };
+        internal static readonly char[] ReservedCharacters = { '_' };
 
         private const char BeaconDataDelimiter = '&';
 
@@ -460,7 +461,22 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
+        void IBeacon.ReportCrash(Exception exception)
+        {
+            var crashFormatter = new CrashFormatter(exception);
+
+            ReportCrash(crashFormatter.Name,
+                crashFormatter.Reason,
+                crashFormatter.StackTrace,
+                ProtocolConstants.ErrorTechnologyType); // TODO stefan.eberl - report better crash technology type
+        }
+
         void IBeacon.ReportCrash(string errorName, string reason, string stacktrace)
+        {
+            ReportCrash(errorName, reason, stacktrace, ProtocolConstants.ErrorTechnologyType);
+        }
+
+        private void ReportCrash(string errorName, string reason, string stacktrace, string crashTechnolgyType)
         {
             if (!configuration.PrivacyConfiguration.IsCrashReportingAllowed)
             {
@@ -482,7 +498,7 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, reason);
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, stacktrace);
-            AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, ProtocolConstants.ErrorTechnologyType);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, crashTechnolgyType);
 
             AddEventData(timestamp, eventBuilder);
         }

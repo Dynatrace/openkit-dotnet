@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System;
 using Dynatrace.OpenKit.API;
 
 namespace Dynatrace.OpenKit.Core.Objects
@@ -53,6 +54,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         public void ReportCrash(string errorName, string reason, string stacktrace)
+        {
+            // intentionally left empty, due to NullObject pattern
+        }
+
+        public void ReportCrash(Exception exception)
         {
             // intentionally left empty, due to NullObject pattern
         }

@@ -59,6 +59,15 @@ namespace Dynatrace.OpenKit.API
         void ReportCrash(string errorName, string reason, string stacktrace);
 
         /// <summary>
+        ///  Reports a crash with error name, crash reason and stacktrace determined from given <see cref="Exception"/>.
+        /// </summary>
+        /// <remarks>
+        /// This method is offered as convenience method for <see cref="ReportCrash(string, string, string)"/>.
+        /// </remarks>
+        /// <param name="exception">The <see cref="Exception"/> causing the crash.</param>
+        void ReportCrash(Exception exception);
+
+        /// <summary>
         ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
         ///  In this case the Dynatrace HTTP header (<see cref="OpenKitConstants.WEBREQUEST_TAG_HEADER"/>) has to be set manually to the
         ///  traces value of this WebRequestTracer.
@@ -78,5 +87,4 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         void End();
     }
-
 }

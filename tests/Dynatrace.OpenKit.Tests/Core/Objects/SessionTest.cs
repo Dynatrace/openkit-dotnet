@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System;
 using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
@@ -306,6 +307,50 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportCrash({errorName}, {errorReason}, {stacktrace})");
+        }
+
+        [Test]
+        public void ReportCrashWithNullExceptionDoesNotReportAnything()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCrash(null);
+
+            // then
+            mockBeacon.Received(0).ReportCrash(Arg.Any<Exception>());
+            mockLogger.Received(1).Warn("Session [sn=0, seq=0] ReportCrash: exception must not be null");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportCrashExceptionWithSameDataMultipleTimesForwardsEachCallToBeacon()
+        {
+            // given
+            var exception = new ArgumentException("foo is not in range");
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCrash(exception);
+            target.ReportCrash(exception);
+
+            // then
+            mockBeacon.Received(2).ReportCrash(exception);
+        }
+
+        [Test]
+        public void ReportCrashExceptionLogsInvocation()
+        {
+            // given
+            var exception = new ArgumentException("foo is not in range");
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCrash(exception);
+
+            // then
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportCrash({exception})");
         }
 
         [Test]

@@ -20,6 +20,7 @@ using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 using NUnit.Framework;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -769,6 +770,107 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockSplitSession1.Received(1).ReportCrash("error 2", "reason 2", "stacktrace 2");
+            mockSessionCreator.Received(3).CreateSession(target);
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSplitSession1,
+                mockServerConfiguration.SendIntervalInMilliseconds);
+        }
+
+        #endregion
+
+        #region report crash (with Exception) tests
+
+        [Test]
+        public void ReportingCrashWithNullExceptionDoesNotReportAnything()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when reporting a crash, passing null values
+            target.ReportCrash(null);
+
+            // then verify the correct methods being called
+            mockLogger.Received(1).Warn($"{target} ReportCrash: exception must not be null");
+            mockSession.Received(0).ReportCrash(Arg.Any<Exception>());
+        }
+
+        [Test]
+        public void ReportCrashExceptionLogsInvocation()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            var exception = new ArgumentException("foo is not in range");
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            target.ReportCrash(exception);
+
+            // verify the correct methods being called
+            _ = mockLogger.Received(1).IsDebugEnabled;
+            mockLogger.Received(1).Debug($"{target} ReportCrash({exception})");
+        }
+
+        [Test]
+        public void ReportCrashExceptionDoesNothingIfSessionIsEnded()
+        {
+            // given
+            var target = CreateSessionProxy();
+            target.End();
+
+            // when trying to identify a user on an ended session
+            target.ReportCrash(new InvalidOperationException());
+
+            // then
+            mockSession.Received(0).ReportCrash(Arg.Any<Exception>());
+        }
+
+        [Test]
+        public void ReportCrashExcpetionDoesNotIncreaseTopLevelEventCount()
+        {
+            // given
+            var target = CreateSessionProxy();
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            target.ReportCrash(new ArgumentException("foobar"));
+
+            // then
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ReportCrashExceptionAlwaysSplitsSessionAfterReportingCrash()
+        {
+            // given
+            // explicitly disable session splitting
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitByIdleTimeoutEnabled.Returns(false);
+            mockServerConfiguration.IsSessionSplitBySessionDurationEnabled.Returns(false);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            // when
+            Exception exception = new ArgumentException("foo");
+            target.ReportCrash(exception);
+
+            // then
+            mockSession.Received(1).ReportCrash(exception);
+            mockSessionCreator.Received(2).CreateSession(target);
+            mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSession,
+                mockServerConfiguration.SendIntervalInMilliseconds);
+
+            // and when
+            exception = new InvalidOperationException();
+            target.ReportCrash(exception);
+
+            // then
+            mockSplitSession1.Received(1).ReportCrash(exception);
             mockSessionCreator.Received(3).CreateSession(target);
             mockSessionWatchdog.Received(1).CloseOrEnqueueForClosing(mockSplitSession1,
                 mockServerConfiguration.SendIntervalInMilliseconds);

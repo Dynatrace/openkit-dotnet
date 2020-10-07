@@ -19,6 +19,7 @@ using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
+using System;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -194,6 +195,16 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="errorCode">the reported error code.</param>
         /// <param name="reason">the reported reason of the error.</param>
         void ReportError(int actionId, string errorName, int errorCode, string reason);
+
+        /// <summary>
+        /// Reports the given <c>Exception</c> as crash by adding it to the beacon.
+        ///
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="exception">the exception to report as crash.</param>
+        void ReportCrash(Exception exception);
 
         /// <summary>
         /// Reports the given crash by adding it to the beacon.

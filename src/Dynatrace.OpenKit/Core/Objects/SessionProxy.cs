@@ -184,6 +184,27 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} ReportCrash({errorName}, {reason}, {stacktrace})");
             }
 
+            DoReportCrash(session => session.ReportCrash(errorName, reason, stacktrace));
+        }
+
+        public void ReportCrash(Exception exception)
+        {
+            if (exception == null)
+            {
+                logger.Warn($"{this} ReportCrash: exception must not be null");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportCrash({exception})");
+            }
+
+            DoReportCrash(session => session.ReportCrash(exception));
+        }
+
+        private void DoReportCrash(Action<ISessionInternals> reportCrashAction)
+        {
             lock (lockObject)
             {
                 if (isFinished)
@@ -193,7 +214,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
                 var session = GetOrSplitCurrentSessionByEvents();
                 RecordTopLevelEventInteraction();
-                session.ReportCrash(errorName, reason, stacktrace);
+                reportCrashAction(session);
 
                 // create new session after crash report
                 SplitAndCreateNewInitialSession();

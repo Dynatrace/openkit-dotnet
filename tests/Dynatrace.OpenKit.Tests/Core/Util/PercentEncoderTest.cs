@@ -20,7 +20,7 @@ using NUnit.Framework;
 namespace Dynatrace.OpenKit.Core.Util
 {
     [TestFixture]
-    class PercentEncoderTest
+    public class PercentEncoderTest
     {
         /// <summary>
         /// All unreserved characters based on RFC-3986

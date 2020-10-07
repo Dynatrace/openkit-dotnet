@@ -10,6 +10,7 @@
   This workaround is marked as obsolete and will be removed when the obsolete method
   `AbstractOpenKitBuilder.WithModelID(string)` is removed.
 - Support for reporting `long` values.
+- Convenience method for reporting an `Exception` as crash.
 
 ### Changed
 - Fix issue with sessions being closed after splitting.

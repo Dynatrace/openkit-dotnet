@@ -17,10 +17,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
+using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Util;
 using NSubstitute;
@@ -720,6 +722,46 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ReportValidCrashException()
+        {
+            // given
+            Exception caught = null;
+            try
+            {
+                throw new ArgumentException("SomethingIsWrong");
+            }
+            catch (Exception e)
+            {
+                caught = e;
+            }
+            Assert.That(caught, Is.Not.Null);
+            var crashFormatter = new CrashFormatter(caught);
+            var errorName = crashFormatter.Name;
+            var reason = crashFormatter.Reason;
+            var stacktrace = PercentEncoder.Encode(crashFormatter.StackTrace, Encoding.UTF8, Beacon.ReservedCharacters);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(caught);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&na={errorName}"                                // action name
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + "&pa=0"                                           // parent action ID
+                + "&s0=1"                                           // event sequence number
+                + "&t0=0"                                           // event timestamp
+                + $"&rs={reason}"                                   // error reason
+                + $"&st={stacktrace}"                               // reported stacktrace
+                + "&tt=c"                                           // error technology type
+                );
+        }
+
+        [Test]
         public void ReportCrashWithDetailsNull()
         {
             // given
@@ -1180,6 +1222,7 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportEvent(ActionId, "SomeEvent");
             target.ReportError(ActionId, "SomeError", -123, "SomeReason");
             target.ReportCrash("SomeCrash", "SomeReason", "SomeStacktrace");
+            target.ReportCrash(new ArgumentException("something is wrong"));
             target.EndSession();
 
             var beaconKey = new BeaconKey(SessionId, SessionSeqNo);
@@ -1369,6 +1412,35 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportCrash("Error name", "The reason for this error", "the stack trace");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoCrashExceptionIsReportedIfDataSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(new ArgumentException("The reason for this error"));
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoCrashExceptionIsReportedIfSendingCrashDataDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(new ArgumentException("The reason for this error"));
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);

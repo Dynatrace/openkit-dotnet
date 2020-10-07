@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using System;
 using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
@@ -233,6 +234,28 @@ namespace Dynatrace.OpenKit.Core.Objects
                 if (!state.IsFinishingOrFinished)
                 {
                     beacon.ReportCrash(errorName, reason, stacktrace);
+                }
+            }
+        }
+
+        public void ReportCrash(Exception exception)
+        {
+            if (exception == null)
+            {
+                logger.Warn($"{this} ReportCrash: exception must not be null");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportCrash({exception})");
+            }
+
+            lock (state)
+            {
+                if (!state.IsFinishingOrFinished)
+                {
+                    beacon.ReportCrash(exception);
                 }
             }
         }
