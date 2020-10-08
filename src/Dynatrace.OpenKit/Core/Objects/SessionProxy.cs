@@ -106,7 +106,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             this.sessionWatchdog = sessionWatchdog;
 
             var currentServerConfig = beaconSender.LastServerConfiguration;
-            currentSession = CreateInitialSession(currentServerConfig);
+            CreateInitialSessionAndMakeCurrent(currentServerConfig);
         }
 
         /// <summary>
@@ -342,8 +342,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             if (IsSessionSplitByEventsRequired())
             {
                 CloseOrEnqueueCurrentSessionForClosing();
-                currentSession = CreateSplitSession(serverConfiguration);
-
+                CreateSplitSessionAndMakeCurrent(serverConfiguration);
                 ReTagCurrentSession();
             }
 
@@ -390,7 +389,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// Will end the current active session, enque the old one for closing, and create a new session.
         /// 
         /// <para>
-        /// The new session is created using the <see cref="CreateInitialSession(IServerConfiguration)"/> method.
+        /// The new session is created using the <see cref="CreateAndAssignInitialInitialSession(IServerConfiguration)"/> method.
         /// </para>
         /// 
         /// <para>
@@ -403,8 +402,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // create a completely new Session
             sessionCreator.Reset();
-            currentSession = CreateInitialSession(serverConfiguration);
-
+            CreateInitialSessionAndMakeCurrent(serverConfiguration);
             ReTagCurrentSession();
         }
 
@@ -458,14 +456,14 @@ namespace Dynatrace.OpenKit.Core.Objects
             return -1;
         }
 
-        private ISessionInternals CreateInitialSession(IServerConfiguration initialServerConfig)
+        private void CreateInitialSessionAndMakeCurrent(IServerConfiguration initialServerConfig)
         {
-            return CreateSession(initialServerConfig, null);
+            CreateAndAssignCurrentSession(initialServerConfig, null);
         }
 
-        private ISessionInternals CreateSplitSession(IServerConfiguration updatedServerConfig)
+        private void CreateSplitSessionAndMakeCurrent(IServerConfiguration updatedServerConfig)
         {
-            return CreateSession(null, updatedServerConfig);
+            CreateAndAssignCurrentSession(null, updatedServerConfig);
         }
 
         /// <summary>
@@ -489,8 +487,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <param name="updatedServerConfig">
         /// the server configuration with which the session will be updated. Can be <code>null</code>.
         /// </param>
-        /// <returns>the newly created session.</returns>
-        private ISessionInternals CreateSession(IServerConfiguration initialServerConfig,
+        private void CreateAndAssignCurrentSession(IServerConfiguration initialServerConfig,
             IServerConfiguration updatedServerConfig)
         {
             var session = sessionCreator.CreateSession(this);
@@ -512,9 +509,13 @@ namespace Dynatrace.OpenKit.Core.Objects
                 session.UpdateServerConfiguration(updatedServerConfig);
             }
 
-            beaconSender.AddSession(session);
+            lock (lockObject)
+            {
+                // synchronize access
+                currentSession = session;
+            }
 
-            return session;
+            beaconSender.AddSession(currentSession);
         }
 
         private void RecordTopLevelEventInteraction()
@@ -551,6 +552,11 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 serverConfiguration = serverConfig;
+                
+                if (IsFinished)
+                {
+                    return;
+                }
 
                 if (serverConfig.IsSessionSplitBySessionDurationEnabled ||
                     serverConfig.IsSessionSplitByIdleTimeoutEnabled)

@@ -2,6 +2,11 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.2...HEAD)
 
+### Changed
+- Fix in `JsonResponseParser` to parse correct key for max session duration.
+- Fix multithreading issues in `SessionProxy`, leading to a potential `NullReferenceException`.
+- Fix potential memory leak for very short-lived sessions in `SessionProxy`.
+
 ## 2.0.2 [Release date: 2020-08-21]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.0.2)
 
