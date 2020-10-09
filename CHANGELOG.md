@@ -1,7 +1,5 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.0...HEAD)
-
 ### Added
 - `DynatraceOpenKitBuilderVB` and `AppMonOpenKitBuilderVB` are added to workaround
   an ambiguity error affecting VisualBasic developers. Since VB is case insensitive
@@ -20,6 +18,9 @@
 - `IdentifyUser` can be called with `null` or an empty string.  
   This simulates a log off event and no longer re-applies the user tag on split sessions.
 - Improve handling of client IP in combination with server-side detection.
+- Fix in `JsonResponseParser` to parse correct key for max session duration.
+- Fix multithreading issues in `SessionProxy`, leading to a potential `NullReferenceException`.
+- Fix potential memory leak for very short-lived sessions in `SessionProxy`.
 
 ## 2.0.0 [Release date: 2020-06-24]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.0.0)

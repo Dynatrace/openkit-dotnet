@@ -24,7 +24,7 @@ namespace Dynatrace.OpenKit.Protocol
     {
         internal const string ResponseKeyAgentConfig = "mobileAgentConfig";
         internal const string ResponseKeyMaxBeaconSizeInKb = "maxBeaconSizeKb";
-        internal const string ResponseKeyMaxSessionDurationInMin = "maxSessionDurationInMins";
+        internal const string ResponseKeyMaxSessionDurationInMin = "maxSessionDurationMins";
         internal const string ResponseKeyMaxEventsPerSession = "maxEventsPerSession";
         internal const string ResponseKeySessionTimeoutInSec = "sessionTimeoutSec";
         internal const string ResponseKeySendIntervalInSec = "sendIntervalSec";
