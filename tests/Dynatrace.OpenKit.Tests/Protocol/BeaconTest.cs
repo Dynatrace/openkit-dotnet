@@ -150,6 +150,8 @@ namespace Dynatrace.OpenKit.Protocol
 #endif
         }
 
+        #region generic defaults, instance creation and smaller getters/creators
+
 
         [Test]
         public void DefaultBeaconConfigurationDoesNotDisableCapturing()
@@ -290,6 +292,10 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(target.SessionStartTime, Is.EqualTo(startTime));
         }
 
+        #endregion
+
+        #region CreateTag - creating web request tag tests
+
         [Test]
         public void CreateTag()
         {
@@ -399,6 +405,76 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void BeaconReturnsEmptyTagIfWebRequestTracingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            var tagReturned = target.CreateTag(ActionId, 1);
+
+            // then
+            Assert.That(tagReturned, Is.Empty);
+        }
+
+        [Test]
+        public void BeaconReturnsValidTagIfWebRequestTracingIsAllowed()
+        {
+            // given
+            const int sequenceNo = 1;
+            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
+            var target = CreateBeacon().Build();
+
+            // when
+            var obtained = target.CreateTag(ActionId, sequenceNo);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(
+                "MT" +                                        // tag prefix
+                 "_3" +                                       // protocol version
+                $"_{ServerId.ToInvariantString()}" +          // server ID
+                $"_{DeviceId.ToInvariantString()}" +          // device ID
+                $"_{SessionId.ToInvariantString()}" +         // session number
+                $"_{AppId}" +                                 // application ID
+                $"_{ActionId.ToInvariantString()}" +          // parent action ID
+                $"_{ThreadId.ToInvariantString()}" +          // thread ID
+                $"_{sequenceNo.ToInvariantString()}"          // sequence number
+            ));
+        }
+
+        [Test]
+        public void BeaconReturnsValidTagWithSessionNumberOneIfSessionNumberReportingDisallowed()
+        {
+            // given
+            const int sequenceNo = 1;
+            mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(false);
+            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            var obtained = target.CreateTag(ActionId, sequenceNo);
+
+            // then
+            Assert.That(obtained, Is.EqualTo(
+                "MT" +                                        // tag prefix
+                 "_3" +                                       // protocol version
+                $"_{ServerId.ToInvariantString()}" +          // server ID
+                $"_{DeviceId.ToInvariantString()}" +          // device ID
+                 "_1" +                                       // session number (must be one if session number reporting disallowed)
+                $"_{AppId}" +                                 // application ID
+                $"_{ActionId.ToInvariantString()}" +          // parent action ID
+                $"_{ThreadId.ToInvariantString()}" +          // thread ID
+                $"_{sequenceNo.ToInvariantString()}"          // sequence number
+            ));
+        }
+
+        #endregion
+
+        #region AddAction tests
+
+        [Test]
         public void AddValidActionEvent()
         {
             // given
@@ -431,6 +507,98 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ActionNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var action = Substitute.For<IActionInternals>();
+            var target = CreateBeacon().Build();
+
+            // when
+            target.AddAction(action);
+
+            // then
+            Assert.That(action.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ActionNotReportedIfActionReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsActionReportingAllowed.Returns(false);
+            var action = Substitute.For<IActionInternals>();
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.AddAction(action);
+
+            // then
+            Assert.That(action.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region startSession tests
+
+        [Test]
+        public void AddStartSessionEvent()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.StartSession();
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                       // beacon key
+                0,                                                            // timestamp
+                $"et={EventType.SESSION_START.ToInt().ToInvariantString()}"   // event type
+                + $"&it={ThreadId.ToInvariantString()}"                       // thread ID
+                + "&pa=0"                                                     // parent action ID
+                + "&s0=1"                                                     // session end sequence number
+                + "&t0=0"                                                     // session end time
+                );
+        }
+
+        [Test]
+        public void SessionStartIsReportedRegardlessOfPrivacyConfiguration()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            mockPrivacyConfiguration.ClearSubstitute();
+
+            // when
+            target.StartSession();
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
+            Assert.That(mockPrivacyConfiguration.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoSessionStartIsReportedIfDataSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.StartSession();
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region endSession tests
+
+        [Test]
         public void AddEndSessionEvent()
         {
             // given
@@ -450,6 +618,38 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&t0=0"                                                    // session end time
                 );
         }
+
+        [Test]
+        public void SessionNotReportedIfSessionReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.EndSession();
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SessionNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.EndSession();
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportValue(int) tests
 
         [Test]
         public void ReportValidValueInt()
@@ -477,6 +677,39 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void IntValueNotReportedIfValueReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test int value", 13);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void IntValueNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", 123);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportValue(long) tests
+
+        [Test]
         public void ReportValidValueLong()
         {
             // given
@@ -502,6 +735,39 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void LongValueNotReportedIfValueReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test long value", long.MinValue);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void LongValueNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", long.MaxValue);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportValue(double) tests
+
+        [Test]
         public void ReportValidValueDouble()
         {
             // given
@@ -525,6 +791,38 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"&vl={value.ToInvariantString()}"                       // reported value
                 );
         }
+
+        [Test]
+        public void DoubleValueNotReportedIfValueReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test double value", 2.71);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void DoubleValueNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test double value", 2.71);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportValue(string) tests
 
         [Test]
         public void ReportValidValueString()
@@ -569,8 +867,8 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"&na={valueName}"                                       // action name
                 + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
                 + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
-                +  "&s0=1"                                                 // event sequence number
-                +  "&t0=0"                                                 // event timestamp
+                + "&s0=1"                                                 // event sequence number
+                + "&t0=0"                                                 // event timestamp
                 );
         }
 
@@ -590,10 +888,42 @@ namespace Dynatrace.OpenKit.Protocol
                 $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
                 + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
-                +  "&s0=1"                                                 // event sequence number
-                +  "&t0=0"                                                 // event timestamp
+                + "&s0=1"                                                 // event sequence number
+                + "&t0=0"                                                 // event timestamp
                 );
         }
+
+        [Test]
+        public void StringValueNotReportedIValueReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test string value", "test data");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void StringValueNotReportedIfDataSendingDisallowed()
+        {
+            //given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test string value", "test data");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportEvent tests
 
         [Test]
         public void ReportValidEvent()
@@ -638,6 +968,52 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&t0=0"                                                // event timestamp
                 );
         }
+
+        [Test]
+        public void NamedEventNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportEvent(ActionId, "Event name");
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NamedEventNotReportedIfEventReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportEvent(ActionId, "test event");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NamedEventReportedIfEventReportingAllowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(true);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportEvent(ActionId, "test event");
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
+        }
+
+        #endregion
+
+        #region ReportError with errorCode tests
 
         [Test]
         public void ReportError()
@@ -693,6 +1069,52 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ErrorNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorNotReportedIfErrorSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorNotReportedIfErrorReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "error", 42, "the answer");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportCrash with string tests
+
+        [Test]
         public void ReportValidCrash()
         {
             // given
@@ -720,6 +1142,79 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&tt=c"                                          // error technology type
                 );
         }
+        
+        [Test]
+        public void ReportCrashWithDetailsNull()
+        {
+            // given
+            const string errorName = "someError";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, null, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&na={errorName}"                                // action name
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + "&pa=0"                                          // parent action ID
+                + "&s0=1"                                          // event sequence number
+                + "&t0=0"                                          // event timestamp
+                + "&tt=c"                                          // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportCrashDoesNotReportIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash("Error name", "The reason for this error", "the stack trace");
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportCrashDoesNotReportIfCrashSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash("Error name", "The reason for this error", "the stack trace");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportCrashDoesNotReportIfCrashReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsCrashReportingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportCrash with Exception tests
 
         [Test]
         public void ReportValidCrashException()
@@ -762,29 +1257,52 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void ReportCrashWithDetailsNull()
+        public void ReportCrashExceptionDoesNotReportIfDataSendingDisallowed()
         {
             // given
-            const string errorName = "someError";
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
 
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportCrash(errorName, null, null);
+            target.ReportCrash(new ArgumentException("The reason for this error"));
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportCrashExceptionDoesNotReportIfCrashSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(new ArgumentException("The reason for this error"));
 
             // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
-                0,                                                  // timestamp
-                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
-                + $"&na={errorName}"                                // action name
-                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
-                +  "&pa=0"                                          // parent action ID
-                +  "&s0=1"                                          // event sequence number
-                +  "&t0=0"                                          // event timestamp
-                +  "&tt=c"                                          // error technology type
-                );
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
+
+        [Test]
+        public void ReportCrashExceptionDoesNotReportIfCrashReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsCrashReportingAllowed.Returns(false);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(new ArgumentException("The reason for this error"));
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region AddWebRequest tests
 
         [Test]
         public void AddWebRequest()
@@ -822,7 +1340,250 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void AddUserIdentifyEvent()
+        public void CanAddSentBytesEqualToZeroToWebRequestTracer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = 0;
+            const int receivedBytes = 1447;
+            const int responseCode = 418;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
+                + $"&rc={responseCode.ToInvariantString()}"               // number bytes received
+                );
+        }
+
+        [Test]
+        public void CannnotAddSentBytesLessThanZeroToWebRequestTracer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = -1;
+            const int receivedBytes = 1447;
+            const int responseCode = 418;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
+                + $"&rc={responseCode.ToInvariantString()}"               // number bytes received
+                );
+        }
+
+        [Test]
+        public void CanAddReceivedBytesEqualToZeroToWebRequestTracer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = 1337;
+            const int receivedBytes = 0;
+            const int responseCode = 418;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
+                + $"&rc={responseCode.ToInvariantString()}"               // number bytes received
+                );
+        }
+
+        [Test]
+        public void CannnotAddReceivedBytesLessThanZeroToWebRequestTracer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = 1337;
+            const int receivedBytes = -1;
+            const int responseCode = 418;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&rc={responseCode.ToInvariantString()}"               // number bytes received
+                );
+        }
+
+        [Test]
+        public void CanAddResponseCodeEqualToZeroToWebRequestTracer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = 1337;
+            const int receivedBytes = 1447;
+            const int responseCode = 0;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
+                + $"&rc={responseCode.ToInvariantString()}"               // number bytes received
+                );
+        }
+
+        [Test]
+        public void CannnotAddResponseCodeLessThanZeroToWebRequestTracer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            const int sentBytes = 1337;
+            const int receivedBytes = 1447;
+            const int responseCode = -1;
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns((string)null);
+            tracer.BytesSent.Returns(sentBytes);
+            tracer.BytesReceived.Returns(receivedBytes);
+            tracer.ResponseCode.Returns(responseCode);
+
+            // when
+            target.AddWebRequest(ActionId, tracer);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
+                +  "&s0=0"                                                // web request start sequence number
+                +  "&t0=0"                                                // web request start timestamp
+                +  "&s1=0"                                                // web request end sequence number
+                +  "&t1=0"                                                // web request end timestamp
+                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
+                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
+                );
+        }
+
+        [Test]
+        public void NoWebRequestIsReportedIfDataSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+            var webRequestTracer = CreateWebRequestTracer(target).WithUrl("https://foo.bar").Build();
+
+            // when
+            target.AddWebRequest(ActionId, webRequestTracer);
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NoWebRequestIsReportedIfWebRequestTracingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
+            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.AddWebRequest(ActionId, webRequestTracer);
+
+            // then ensure nothing has been serialized
+            Assert.That(webRequestTracer.ReceivedCalls(), Is.Empty);
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region IdentifyUser tests
+
+        [Test]
+        public void ValidIdentifyUserEvent()
         {
             // given
             const string userId = "myTestUser";
@@ -846,7 +1607,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void AddUserIdentifyWithNullUserIdEvent()
+        public void IdentifyUserWithNullUserTagWorks()
         {
             // given
             var target = CreateBeacon().Build();
@@ -867,220 +1628,58 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void CanAddSentBytesToWebRequestTracer()
+        public void IdentifyUserWithEmptyUserTagWorks()
         {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            const int sentBytes = 123;
-            mockParent.ActionId.Returns(ActionId);
-
-            var target = CreateBeacon().Build();
-
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
+            // given
+            var beacon = CreateBeacon().Build();
 
             // when
-            webRequest.Start().SetBytesSent(sentBytes).Stop(-1); //stop will add the web request to the beacon
+            beacon.IdentifyUser(string.Empty);
 
             // then
             mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // web request start sequence number
-                +  "&t0=0"                                                // web request start timestamp
-                +  "&s1=2"                                                // web request end sequence number
-                +  "&t1=0"                                                // web request end timestamp
-                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
-                );
+               new BeaconKey(SessionId, SessionSeqNo),                     // beacon key
+               0,                                                          // timestamp
+               $"et={EventType.IDENTIFY_USER.ToInt().ToInvariantString()}" // event type
+               + $"&na="                                                   // number bytes received
+               + $"&it={ThreadId.ToInvariantString()}"                     // thread ID
+               +  "&pa=0"                                                  // parent action ID
+               +  "&s0=1"                                                  // web request start sequence number
+               +  "&t0=0"                                                  // web request start timestamp
+               );
         }
 
         [Test]
-        public void CanAddSentBytesValueZeroToWebRequestTracer()
+        public void CannotIdentifyUserIfDataSendingDisallowed()
         {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            const int sentBytes = 0;
-            mockParent.ActionId.Returns(ActionId);
-
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
-
             // when
-            webRequest.Start().SetBytesSent(sentBytes).Stop(-1); //stop will add the web request to the beacon
+            target.IdentifyUser("jane.doe@acme.com");
 
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // web request start sequence number
-                +  "&t0=0"                                                // web request start timestamp
-                +  "&s1=2"                                                // web request end sequence number
-                +  "&t1=0"                                                // web request end timestamp
-                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
-                );
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
-
+        
         [Test]
-        public void CannotAddSentBytesWithInvalidValueSmallerZeroToWebRequestTracer()
+        public void CannotIdentifyUserIfUserIdentificationDisabled()
         {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            mockParent.ActionId.Returns(ActionId);
-
+            // given
+            mockPrivacyConfiguration.IsUserIdentificationIsAllowed.Returns(false);
             var target = CreateBeacon().Build();
 
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
-
             // when
-            webRequest.Start().SetBytesSent(-1).Stop(-1); //stop will add the web request to the beacon
+            target.IdentifyUser("test user");
 
             // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // web request start sequence number
-                +  "&t0=0"                                                // web request start timestamp
-                +  "&s1=2"                                                // web request end sequence number
-                +  "&t1=0"                                                // web request end timestamp
-                );
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
-        [Test]
-        public void CanAddReceivedBytesToWebRequestTracer()
-        {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            const int receivedBytes = 12321;
-            mockParent.ActionId.Returns(ActionId);
+        #endregion
 
-            var target = CreateBeacon().Build();
-
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
-
-            // when
-            webRequest.Start().SetBytesReceived(receivedBytes).Stop(-1); //stop will add the web request to the beacon
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
-                0,                                                         // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}"  // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                   // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
-                +  "&s0=1"                                                 // web request start sequence number
-                +  "&t0=0"                                                 // web request start timestamp
-                +  "&s1=2"                                                 // web request end sequence number
-                +  "&t1=0"                                                 // web request end timestamp
-                + $"&br={receivedBytes.ToInvariantString()}"               // number bytes received
-                );
-        }
-
-        [Test]
-        public void CanAddReceivedBytesValueZeroToWebRequestTracer()
-        {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            const int receivedBytes = 0;
-            mockParent.ActionId.Returns(ActionId);
-
-            var target = CreateBeacon().Build();
-
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
-
-            // when
-            webRequest.Start().SetBytesReceived(receivedBytes).Stop(-1); //stop will add the web request to the beacon
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // web request start sequence number
-                +  "&t0=0"                                                // web request start timestamp
-                +  "&s1=2"                                                // web request end sequence number
-                +  "&t1=0"                                                // web request end timestamp
-                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
-                );
-        }
-
-        [Test]
-        public void CannotAddReceivedBytesWithInvalidValueSmallerZeroToWebRequestTracer()
-        {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            mockParent.ActionId.Returns(ActionId);
-
-            var target = CreateBeacon().Build();
-
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
-
-            // when
-            webRequest.Start().SetBytesReceived(-1).Stop(-1); //stop will add the web request to the beacon
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // web request start sequence number
-                +  "&t0=0"                                                // web request start timestamp
-                +  "&s1=2"                                                // web request end sequence number
-                +  "&t1=0"                                                // web request end timestamp
-                );
-        }
-
-        [Test]
-        public void CanAddBothSentBytesAndReceivedBytesToWebRequestTracer()
-        {
-            //given
-            const string testUrl = "https://127.0.0.1";
-            const int receivedBytes = 12321;
-            const int sentBytes = 123;
-            mockParent.ActionId.Returns(ActionId);
-
-            var target = CreateBeacon().Build();
-
-            var webRequest = CreateWebRequestTracer(target).WithUrl(testUrl).Build();
-
-            // when
-            webRequest.Start().SetBytesSent(sentBytes).SetBytesReceived(receivedBytes)
-                .Stop(-1); //stop will add the web request to the beacon
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
-                + $"&na={Uri.EscapeDataString(testUrl)}"                  // traced URL
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // web request start sequence number
-                +  "&t0=0"                                                // web request start timestamp
-                +  "&s1=2"                                                // web request end sequence number
-                +  "&t1=0"                                                // web request end timestamp
-                + $"&bs={sentBytes.ToInvariantString()}"                  // number bytes sent
-                + $"&br={receivedBytes.ToInvariantString()}"              // number bytes received
-                );
-        }
+        #region send tests
 
         [Test]
         public void CanHandleNoDataInBeaconSend()
@@ -1130,6 +1729,10 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(response.ResponseCode, Is.EqualTo(responseCode));
             httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
+
+        #endregion
+
+        #region misc tests
 
         [Test]
         public void SendDataAndFakeErrorResponse()
@@ -1238,404 +1841,6 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void NoSessionIsAddedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.EndSession();
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoActionIsAddedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var action = Substitute.For<IActionInternals>();
-            action.Id.Returns(ActionId);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.AddAction(action);
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoIntValueIsReportedIfIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            const int intValue = 42;
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "intValue", intValue);
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoLongValueIsReportedIfIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            const long longValue = 21;
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "longValue", longValue);
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoDoubleValueIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            const double doubleValue = Math.E;
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "doubleValue", doubleValue);
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoStringValueIsReportedIfIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            const string stringValue = "Write once, debug everywhere";
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "doubleValue", stringValue);
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoEventIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportEvent(ActionId, "Event name");
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoEventIsReportedIfDataSendingDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportEvent(ActionId, "Event name");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoErrorIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoErrorIsReportedIfSendingErrorDataDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingErrorsAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoCrashIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportCrash("Error name", "The reason for this error", "the stack trace");
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoCrashIsReportedIfSendingCrashDataDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportCrash("Error name", "The reason for this error", "the stack trace");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoCrashExceptionIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportCrash(new ArgumentException("The reason for this error"));
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoCrashExceptionIsReportedIfSendingCrashDataDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportCrash(new ArgumentException("The reason for this error"));
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoWebRequestIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-            var webRequestTracer = CreateWebRequestTracer(target).WithUrl("https://foo.bar").Build();
-
-            // when
-            target.AddWebRequest(ActionId, webRequestTracer);
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoUserIdentificationIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.IdentifyUser("jane.doe@acme.com");
-
-            // then ensure nothing has been serialized
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoWebRequestIsReportedIfWebRequestTracingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
-            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.AddWebRequest(ActionId, webRequestTracer);
-
-            // then ensure nothing has been serialized
-            Assert.That(webRequestTracer.ReceivedCalls(), Is.Empty);
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void WebRequestIsReportedIfWebRequestTracingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
-            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.AddWebRequest(ActionId, webRequestTracer);
-
-
-            // then ensure nothing has been serialized
-            _ = webRequestTracer.Received(1).BytesReceived;
-            _ = webRequestTracer.Received(1).BytesSent;
-            _ = webRequestTracer.Received(1).ResponseCode;
-            Assert.That(target.IsEmpty, Is.False);
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void BeaconReturnsEmptyTagIfWebRequestTracingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            var tagReturned = target.CreateTag(ActionId, 1);
-
-            // then
-            Assert.That(tagReturned, Is.Empty);
-        }
-
-        [Test]
-        public void BeaconReturnsValidTagIfWebRequestTracingIsAllowed()
-        {
-            // given
-            const int sequenceNo = 1;
-            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            var obtained = target.CreateTag(ActionId, sequenceNo);
-
-            // then
-            Assert.That(obtained, Is.EqualTo(
-                "MT" +                                        // tag prefix
-                 "_3" +                                       // protocol version
-                $"_{ServerId.ToInvariantString()}" +          // server ID
-                $"_{DeviceId.ToInvariantString()}" +          // device ID
-                $"_{SessionId.ToInvariantString()}" +         // session number
-                $"_{AppId}" +                                 // application ID
-                $"_{ActionId.ToInvariantString()}" +          // parent action ID
-                $"_{ThreadId.ToInvariantString()}" +          // thread ID
-                $"_{sequenceNo.ToInvariantString()}"          // sequence number
-            ));
-        }
-
-        [Test]
-        public void BeaconReturnsValidTagWithSessionNumberIfSessionNumberReportingAllowed()
-        {
-            // given
-            const int sequenceNo = 1;
-            mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(true);
-            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            var obtained = target.CreateTag(ActionId, sequenceNo);
-
-            // then
-            Assert.That(obtained, Is.EqualTo(
-                "MT" +                                        // tag prefix
-                 "_3" +                                       // protocol version
-                $"_{ServerId.ToInvariantString()}" +          // server ID
-                $"_{DeviceId.ToInvariantString()}" +          // device ID
-                $"_{SessionId.ToInvariantString()}" +         // session number
-                $"_{AppId}" +                                 // application ID
-                $"_{ActionId.ToInvariantString()}" +          // parent action ID
-                $"_{ThreadId.ToInvariantString()}" +          // thread ID
-                $"_{sequenceNo.ToInvariantString()}"          // sequence number
-            ));
-        }
-
-        [Test]
-        public void BeaconReturnsValidTagWithSessionNumberOneIfSessionNumberReportingDisallowed()
-        {
-            // given
-            const int sequenceNo = 1;
-            mockPrivacyConfiguration.IsSessionNumberReportingAllowed.Returns(false);
-            mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            var obtained = target.CreateTag(ActionId, sequenceNo);
-
-            // then
-            Assert.That(obtained, Is.EqualTo(
-                "MT" +                                        // tag prefix
-                 "_3" +                                       // protocol version
-                $"_{ServerId.ToInvariantString()}" +          // server ID
-                $"_{DeviceId.ToInvariantString()}" +          // device ID
-                 "_1" +                                       // session number (must be one if session number reporting disallowed)
-                $"_{AppId}" +                                 // application ID
-                $"_{ActionId.ToInvariantString()}" +          // parent action ID
-                $"_{ThreadId.ToInvariantString()}" +          // thread ID
-                $"_{sequenceNo.ToInvariantString()}"          // sequence number
-            ));
-        }
-
-        [Test]
-        public void CannotIdentifyUserIfUserIdentificationDisabled()
-        {
-            // given
-            mockPrivacyConfiguration.IsUserIdentificationIsAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.IdentifyUser("test user");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void CanIdentifyUserIfUserIdentificationIsAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsUserIdentificationIsAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.IdentifyUser("test user");
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
         public void DeviceIdIsRandomizedIfDeviceIdSendingDisallowed()
         {
             // given
@@ -1701,399 +1906,6 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.EqualTo(sessionId));
             _ = mockSessionIdProvider.Received(1).GetNextSessionId();
-        }
-
-        [Test]
-        public void ReportCrashDoesNotReportIfCrashReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsCrashReportingAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void ReportCrashDoesReportIfCrashReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsCrashReportingAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void ActionNotReportedIfActionReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsActionReportingAllowed.Returns(false);
-            var action = Substitute.For<IActionInternals>();
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.AddAction(action);
-
-            // then
-            Assert.That(action.ReceivedCalls(), Is.Empty);
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void ActionNotReportedIfDataSendingDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var action = Substitute.For<IActionInternals>();
-            var target = CreateBeacon().Build();
-
-            // when
-            target.AddAction(action);
-
-            // then
-            Assert.That(action.ReceivedCalls(), Is.Empty);
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void ActionReportedIfActionReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsActionReportingAllowed.Returns(true);
-            var action = Substitute.For<IActionInternals>();
-            action.Id.Returns(ActionId);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.AddAction(action);
-
-            // then
-            mockBeaconCache.Received(1).AddActionData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void SessionNotReportedIfSessionReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.EndSession();
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void SessionNotReportedIfDataSendingDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.EndSession();
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void SessionReportedIfSessionReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsSessionReportingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.EndSession();
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void ErrorNotReportedIfErrorReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportError(ActionId, "error", 42, "the answer");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void ErrorReportedIfErrorReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportError(ActionId, "error", 42, "the answer");
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void IntValueNotReportedIfValueReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test int value", 13);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void IntValueNotReportedIfDataSendingDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test value", 123);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void IntValueIsReportedIfValueReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test int value", 13);
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void LongValueNotReportedIfValueReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test long value", long.MinValue);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void LongValueNotReportedIfDataSendingDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test value", long.MaxValue);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void LongValueIsReportedIfValueReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test long value", long.MaxValue);
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void DoubleValueNotReportedIfValueReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test double value", 2.71);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void DoubleValueNotReportedIfDataSendingDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test double value", 2.71);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void DoubleValueReportedIfValueReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test double value", 2.71);
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void StringValueNotReportedIValueReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test string value", "test data");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void StringValueNotReportedIfDataSendingDisallowed()
-        {
-            //given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test string value", "test data");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void StringValueReportedIfValueReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsValueReportingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, "test string value", "test data");
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void NamedEventNotReportedIfEventReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportEvent(ActionId, "test event");
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NamedEventReportedIfEventReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportEvent(ActionId, "test event");
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void SessionStartIsReported()
-        {
-            // given
-            var target = CreateBeacon().Build();
-
-            // when
-            target.StartSession();
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
-        [Test]
-        public void SessionStartIsReportedRegardlessOfPrivacyConfiguration()
-        {
-            // given
-            var target = CreateBeacon().Build();
-            mockPrivacyConfiguration.ClearSubstitute();
-
-            // when
-            target.StartSession();
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-            Assert.That(mockPrivacyConfiguration.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
-        public void NoSessionStartIsReportedIfDataSendingIsDisallowed()
-        {
-            // given
-            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
-
-            var target = CreateBeacon().Build();
-
-            // when
-            target.StartSession();
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
         [Test]
@@ -2312,6 +2124,8 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             mockBeaconConfiguration.Received(1).OnServerConfigurationUpdate -= sessionProxy.OnServerConfigurationUpdate;
         }
+
+        #endregion
 
         private TestBeaconBuilder CreateBeacon()
         {
