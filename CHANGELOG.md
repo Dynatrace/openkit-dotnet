@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.2...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.0.3...HEAD)
+
+## 2.0.3 [Release date: 2020-10-13]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.0.3)
 
 ### Changed
 - Fix in `JsonResponseParser` to parse correct key for max session duration.
