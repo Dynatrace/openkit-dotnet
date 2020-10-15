@@ -31,6 +31,7 @@ namespace Dynatrace.OpenKit.Protocol
         SESSION_END = 19,               // session end
         WEB_REQUEST = 30,               // tagged web request
         ERROR = 40,                     // error
+        EXCEPTION = 42,                 // exception
         CRASH = 50,                     // crash
         IDENTIFY_USER = 60              // identify user
     }

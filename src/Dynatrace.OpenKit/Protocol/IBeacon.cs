@@ -193,8 +193,33 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the error code was reported.</param>
         /// <param name="errorName">the name of the reported error.</param>
         /// <param name="errorCode">the reported error code.</param>
-        /// <param name="reason">the reported reason of the error.</param>
-        void ReportError(int actionId, string errorName, int errorCode, string reason);
+        void ReportError(int actionId, string errorName, int errorCode);
+
+        /// <summary>
+        /// Reports the given error cause on the action belonging to the given ID.
+        /// 
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the error code was reported.</param>
+        /// <param name="errorName">the name of the reported error.</param>
+        /// <param name="causeName">name of the cause for this error</param>
+        /// <param name="causeDescription">description what caused this error</param>
+        /// <param name="causeStackTrace">stack trace</param>
+        void ReportError(int actionId, string errorName, string causeName, string causeDescription, string causeStackTrace);
+
+        /// <summary>
+        /// Reports the given <see cref="Exception"/> as error on the the action belonging to the given ID.
+        /// 
+        /// <para>
+        ///     The serialized data is added to the <see cref="IBeaconCache"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="actionId">the identifier of the <see cref="IAction"/> on which the error code was reported.</param>
+        /// <param name="errorName">the name of the reported error.</param>
+        /// <param name="exception">The <see cref="Exception"/> to report as error</param>
+        void ReportError(int actionId, string errorName, Exception exception);
 
         /// <summary>
         /// Reports the given <c>Exception</c> as crash by adding it to the beacon.
@@ -236,7 +261,7 @@ namespace Dynatrace.OpenKit.Protocol
         ///     The serialized data is added to the <see cref="IBeaconCache"/>.
         /// </para>
         /// </summary>
-        /// <param name="userTag">the name/tag of the user</param>
+        /// <param name="userTag">the name/tag of the user, which can be <c>null</c> or <see cref="string.Empty"/></param>
         void IdentifyUser(string userTag);
 
         /// <summary>

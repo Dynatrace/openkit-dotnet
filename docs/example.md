@@ -308,14 +308,62 @@ action.ReportValue(keyStringType, valueString);
 
 ## Report an Error
 
-An `Action` also has the possibility to report an error with a given 
-name, code and a reason. The code fragment below shows how.
+An `IAction` also has the possibility to report an error with a given 
+name and error code.  
+The code fragment below shows how.
 ```cs
 string errorName = "Unknown Error";
 int errorCode = 42;
-string reason = "Not sure what's going on here";
 
-action.ReportError(errorName, errorCode, reason);
+action.ReportError(errorName, errorCode);
+```
+
+Errors can also be reported with the method
+`IAction.ReportError(string errorName, string causeName, string causeDescription, string causeStackTrace)`, where 
+* `errorName` is the name of the reported error
+* `causeName` is an optional short name of the cause, typically an `Exception` class name
+* `causeDescription` is an optional short description of the cause, typically `Exception.Message`
+* `causeStackTrace` is an optional stack trace of the cause
+
+The fragment below shows how to report such an error.
+
+```cs
+public void RestrictedMethod()
+{
+    if (!IsUserAuthorized())
+    {
+        // user is not authorized - report this as an error
+        string errorName = "Authorization error";
+        string causeName = "User not authorized";
+        string causeDescription = "The current user is not authorized to call restrictedMethod.";
+        string stackTrace = null; // no stack trace is reported
+
+        action.ReportError(errorName, causeName, causeDescription, stackTrace);
+
+        return;
+    }
+
+    // ... further processing ...
+}
+```
+
+It is also possible to report a caught exception as error. This is a convenience method for the
+`IAction.ReportError(string, string, string, string)` method mentioned above.
+
+The example below demonstrates how to report an `Exception` as error.
+
+```cs
+try
+{
+    // call a method that is throwing an exception 
+    CallMethodThrowingException();
+}
+catch(Exception caughtException)
+{
+    // report the caught exception as error via OpenKit
+    string errorName = "Unknown Error";
+    action.ReportError(errorName, caughtException);
+}
 ```
 
 ## Tracing Web Requests

@@ -9,6 +9,11 @@
   `AbstractOpenKitBuilder.WithModelID(string)` is removed.
 - Support for reporting `long` values.
 - Convenience method for reporting an `Exception` as crash.
+- Overloaded `Action.reportError(string, int)` method for reporting an integer error code without description.  
+  The old `Action.reportError(string, int, string)` has been deprecated in favor of the new one.
+- Overloaded `Action.reportError(string, Exception)` for reporting caught exceptions as error.
+- Overloaded `Action.reportError(string, string, string, string)` for reporting generic errors to
+  Dynatrace.
 
 ### Changed
 - Fix issue with sessions being closed after splitting.

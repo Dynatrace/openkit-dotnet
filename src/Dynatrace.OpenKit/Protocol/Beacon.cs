@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         // data and error capture constants
         private const string BeaconKeyValue = "vl";
-        private const string BeaconKeyErrorCode = "ev";
+        private const string BeaconKeyErrorValue = "ev"; // can be an integer code or string (Exception class name)
         private const string BeaconKeyErrorReason = "rs";
         private const string BeaconKeyErrorStacktrace = "st";
         private const string BeaconKeyErrorTechnologyType = "tt";
@@ -251,7 +251,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         #region internal methods
 
-        string IBeacon.CreateTag(int parentActionId, int tracerSeqNo)
+        string IBeacon.CreateTag(int parentActionId, int sequenceNo)
         {
             if (!configuration.PrivacyConfiguration.IsWebRequestTracingAllowed)
             {
@@ -275,7 +275,7 @@ namespace Dynatrace.OpenKit.Protocol
             builder.Append("_").Append(openKitConfig.ApplicationIdPercentEncoded);
             builder.Append("_").Append(parentActionId.ToInvariantString());
             builder.Append("_").Append(threadIdProvider.ThreadId.ToInvariantString());
-            builder.Append("_").Append(tracerSeqNo.ToInvariantString());
+            builder.Append("_").Append(sequenceNo.ToInvariantString());
 
             return builder.ToString();
         }
@@ -284,6 +284,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.AddAction(IActionInternals action)
         {
+            if (string.IsNullOrEmpty(action?.Name))
+            {
+                throw new ArgumentException("action is null or action.Name is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsActionReportingAllowed)
             {
                 return;
@@ -317,7 +322,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.SESSION_START, null);
+            BuildBasicEventDataWithoutName(eventBuilder, EventType.SESSION_START);
 
             AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, 0);
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
@@ -340,7 +345,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             var eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.SESSION_END, null);
+            BuildBasicEventDataWithoutName(eventBuilder, EventType.SESSION_END);
 
             var sessionEndTime = ThisBeacon.CurrentTimestamp;
             AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, 0);
@@ -357,6 +362,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportValue(int actionId, string valueName, long value)
         {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                throw new ArgumentException("valueName is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
@@ -377,6 +387,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportValue(int actionId, string valueName, double value)
         {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                throw new ArgumentException("valueName is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
@@ -397,6 +412,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportValue(int actionId, string valueName, string value)
         {
+            if (string.IsNullOrEmpty(valueName))
+            {
+                throw new ArgumentException("valueName is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsValueReportingAllowed)
             {
                 return;
@@ -417,6 +437,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.ReportEvent(int actionId, string eventName)
         {
+            if (string.IsNullOrEmpty(eventName))
+            {
+                throw new ArgumentException("eventName is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsEventReportingAllowed)
             {
                 return;
@@ -434,8 +459,13 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(eventTimestamp, eventBuilder);
         }
 
-        void IBeacon.ReportError(int actionId, string errorName, int errorCode, string reason)
+        void IBeacon.ReportError(int actionId, string errorName, int errorCode)
         {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                throw new ArgumentException("errorName is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsErrorReportingAllowed)
             {
                 return;
@@ -454,15 +484,76 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, actionId);
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
-            AddKeyValuePair(eventBuilder, BeaconKeyErrorCode, errorCode);
-            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, reason);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorValue, errorCode);
             AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, ProtocolConstants.ErrorTechnologyType);
+
+            AddEventData(timestamp, eventBuilder);
+        }
+
+        void IBeacon.ReportError(int actionId, string errorName, string causeName, string causeDescription, string causeStackTrace)
+        {
+            ReportError(actionId, errorName, causeName, causeDescription, causeStackTrace, ProtocolConstants.ErrorTechnologyType);
+        }
+
+        void IBeacon.ReportError(int actionId, string errorName, Exception exception)
+        {
+            var crashFormatter = exception != null
+                ? new CrashFormatter(exception)
+                : null;
+
+            ReportError(actionId,
+                errorName,
+                crashFormatter?.Name,
+                crashFormatter?.Reason,
+                crashFormatter?.StackTrace,
+                ProtocolConstants.ErrorTechnologyType); // TODO stefan.eberl - find better technology type
+        }
+
+        private void ReportError(int actionId,
+            string errorName,
+            string causeName,
+            string causeDescription,
+            string causeStackTrace,
+            string errorTechnologyType)
+        {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                throw new ArgumentException("errorName is null or empty");
+            }
+
+            if (!configuration.PrivacyConfiguration.IsErrorReportingAllowed)
+            {
+                return;
+            }
+
+            if (!configuration.ServerConfiguration.IsSendingErrorsAllowed)
+            {
+                return;
+            }
+
+            var eventBuilder = new StringBuilder();
+
+            BuildBasicEventData(eventBuilder, EventType.EXCEPTION, errorName);
+
+            var timestamp = timingProvider.ProvideTimestampInMilliseconds();
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, actionId);
+            AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
+            AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorValue, causeName);
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, causeDescription);
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, causeStackTrace);
+            AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, errorTechnologyType);
 
             AddEventData(timestamp, eventBuilder);
         }
 
         void IBeacon.ReportCrash(Exception exception)
         {
+            if (exception == null)
+            {
+                throw new ArgumentNullException(nameof(exception));
+            }
+
             var crashFormatter = new CrashFormatter(exception);
 
             ReportCrash(crashFormatter.Name,
@@ -478,6 +569,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         private void ReportCrash(string errorName, string reason, string stacktrace, string crashTechnolgyType)
         {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                throw new ArgumentException("errorName is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsCrashReportingAllowed)
             {
                 return;
@@ -505,6 +601,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         void IBeacon.AddWebRequest(int parentActionId, IWebRequestTracerInternals webRequestTracer)
         {
+            if (string.IsNullOrEmpty(webRequestTracer?.Url))
+            {
+                throw new ArgumentException("webRequestTracer is null or webRequestTracer.Url is null or empty");
+            }
+
             if (!configuration.PrivacyConfiguration.IsWebRequestTracingAllowed)
             {
                 return;
@@ -546,7 +647,14 @@ namespace Dynatrace.OpenKit.Protocol
 
             var eventBuilder = new StringBuilder();
 
-            BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userTag);
+            if (userTag != null)
+            {
+                BuildBasicEventData(eventBuilder, EventType.IDENTIFY_USER, userTag);
+            }
+            else
+            {
+                BuildBasicEventDataWithoutName(eventBuilder, EventType.IDENTIFY_USER);
+            }
 
             var timestamp = timingProvider.ProvideTimestampInMilliseconds();
             AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, 0);
@@ -656,11 +764,16 @@ namespace Dynatrace.OpenKit.Protocol
         // helper method for building basic event data
         private void BuildBasicEventData(StringBuilder builder, EventType eventType, string name)
         {
-            AddKeyValuePair(builder, BeaconKeyEventType, (int)eventType);
-            AddKeyValuePairIfValueIsNotNull(builder, BeaconKeyName, TruncateNullSafe(name));
-            AddKeyValuePair(builder, BeaconKeyThreadId, threadIdProvider.ThreadId);
+            BuildBasicEventDataWithoutName(builder, eventType);
+            AddKeyValuePairIfValueIsNotNull(builder, BeaconKeyName, Truncate(name));
         }
 
+        // helper method for building basic event data that has no name
+        private void BuildBasicEventDataWithoutName(StringBuilder builder, EventType eventType)
+        {
+            AddKeyValuePair(builder, BeaconKeyEventType, (int)eventType);
+            AddKeyValuePair(builder, BeaconKeyThreadId, threadIdProvider.ThreadId);
+        }
 
         // helper method for creating basic beacon protocol data
         private string CreateBasicBeaconData()

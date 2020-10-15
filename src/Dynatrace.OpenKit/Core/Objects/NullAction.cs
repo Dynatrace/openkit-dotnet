@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -46,6 +47,21 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         public IAction ReportError(string errorName, int errorCode, string reason)
+        {
+            return this;
+        }
+
+        public IAction ReportError(string errorName, int errorCode)
+        {
+            return this;
+        }
+
+        public IAction ReportError(string errorName, string causeName, string causeDescription, string causeStackTrace)
+        {
+            return this;
+        }
+
+        public IAction ReportError(string errorName, Exception exception)
         {
             return this;
         }

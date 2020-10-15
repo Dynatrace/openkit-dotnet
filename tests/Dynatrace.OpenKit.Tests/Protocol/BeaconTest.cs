@@ -44,6 +44,7 @@ namespace Dynatrace.OpenKit.Protocol
         private const int SessionId = 73;
         private const int SessionSeqNo = 13;
         private const int Multiplicity = 1;
+        private const string Url = "https://www.google.com";
 
         private IBeaconConfiguration mockBeaconConfiguration;
         private IOpenKitConfiguration mockOpenKitConfiguration;
@@ -151,7 +152,6 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         #region generic defaults, instance creation and smaller getters/creators
-
 
         [Test]
         public void DefaultBeaconConfigurationDoesNotDisableCapturing()
@@ -495,8 +495,8 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),               // beacon key
                 0,                                                    // timestamp
                 $"et={EventType.ACTION.ToInt().ToInvariantString()}"  // event type
-                + $"&na={actionName}"                                 // action name
                 + $"&it={ThreadId.ToInvariantString()}"               // thread ID
+                + $"&na={actionName}"                                 // action name
                 + $"&ca={ActionId.ToInvariantString()}"               // action ID
                 + $"&pa={parentId.ToInvariantString()}"               // parent action ID
                 +  "&s0=0"                                            // action start sequence number
@@ -507,18 +507,58 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void AddingNullActionThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.AddAction(null));
+            Assert.That(exception.Message, Is.EqualTo("action is null or action.Name is null or empty"));
+        }
+
+        [Test]
+        public void AddingActionWithNullNameThrowsException()
+        {
+            // given
+            var action = Substitute.For<IActionInternals>();
+            action.Name.ReturnsNull();
+
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.AddAction(action));
+            Assert.That(exception.Message, Is.EqualTo("action is null or action.Name is null or empty"));
+        }
+
+        [Test]
+        public void AddingActionWithEmptyNameThrowsException()
+        {
+            // given
+            var action = Substitute.For<IActionInternals>();
+            action.Name.Returns(string.Empty);
+
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.AddAction(action));
+            Assert.That(exception.Message, Is.EqualTo("action is null or action.Name is null or empty"));
+        }
+
+        [Test]
         public void ActionNotReportedIfDataSendingDisallowed()
         {
             // given
             mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var action = Substitute.For<IActionInternals>();
+            action.Name.Returns("actionName");
+
             var target = CreateBeacon().Build();
 
             // when
             target.AddAction(action);
 
             // then
-            Assert.That(action.ReceivedCalls(), Is.Empty);
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
@@ -528,6 +568,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             mockPrivacyConfiguration.IsActionReportingAllowed.Returns(false);
             var action = Substitute.For<IActionInternals>();
+            action.Name.Returns("actionName");
 
             var target = CreateBeacon().Build();
 
@@ -535,7 +576,6 @@ namespace Dynatrace.OpenKit.Protocol
             target.AddAction(action);
 
             // then
-            Assert.That(action.ReceivedCalls(), Is.Empty);
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
@@ -667,13 +707,37 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
                 0,                                                      // timestamp
                 $"et={EventType.VALUE_INT.ToInt().ToInvariantString()}" // event type
-                + $"&na={valueName}"                                    // action name
                 + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={valueName}"                                    // action name
                 + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
                 +  "&s0=1"                                              // event sequence number
                 +  "&t0=0"                                              // event timestamp
                 + $"&vl={value.ToInvariantString()}"                    // reported value
                 );
+        }
+
+        [Test]
+        public void ReportingIntValueWithNullValueNameThrowsException()
+        {
+            // given
+            const int value = 42;
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, null, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingIntValueWithEmptyValueNameThrowsException()
+        {
+            // given
+            const int value = 42;
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, string.Empty, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
         }
 
         [Test]
@@ -725,13 +789,37 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
                 0,                                                      // timestamp
                 $"et={EventType.VALUE_INT.ToInt().ToInvariantString()}" // event type
-                + $"&na={valueName}"                                    // action name
                 + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={valueName}"                                    // value name
                 + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
                 + "&s0=1"                                               // event sequence number
                 + "&t0=0"                                               // event timestamp
                 + $"&vl={value.ToInvariantString()}"                    // reported value
                 );
+        }
+
+        [Test]
+        public void ReportingLongValueWithNullValueNameThrowsException()
+        {
+            // given
+            const long value = long.MaxValue;
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, null, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingLongValueWithEmptyValueNameThrowsException()
+        {
+            // given
+            const long value = long.MinValue;
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, string.Empty, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
         }
 
         [Test]
@@ -783,13 +871,37 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
                 0,                                                         // timestamp
                 $"et={EventType.VALUE_DOUBLE.ToInt().ToInvariantString()}" // event type
-                + $"&na={valueName}"                                       // action name
                 + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&na={valueName}"                                       // value name
                 + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
                 +  "&s0=1"                                                 // event sequence number
                 +  "&t0=0"                                                 // event timestamp
                 + $"&vl={value.ToInvariantString()}"                       // reported value
                 );
+        }
+
+        [Test]
+        public void ReportingDoubleValueWithNullValueNameThrowsException()
+        {
+            // given
+            const double value = Math.PI;
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, null, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingDoubleValueWithEmptyValueNameThrowsException()
+        {
+            // given
+            const double value = Math.E;
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, string.Empty, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
         }
 
         [Test]
@@ -840,13 +952,37 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
                 0,                                                         // timestamp
                 $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
-                + $"&na={valueName}"                                       // action name
                 + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&na={valueName}"                                       // value name
                 + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
                 +  "&s0=1"                                                 // event sequence number
                 +  "&t0=0"                                                 // event timestamp
                 + $"&vl={value}"                                           // reported value
                 );
+        }
+
+        [Test]
+        public void ReportingStringValueWithNullValueNameThrowsException()
+        {
+            // given
+            const string value = "foo";
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, null, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingStringValueWithEmptyValueNameThrowsException()
+        {
+            // given
+            const string value = "bar";
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportValue(ActionId, string.Empty, value));
+            Assert.That(exception.Message, Is.EqualTo("valueName is null or empty"));
         }
 
         [Test]
@@ -864,29 +1000,8 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
                 0,                                                         // timestamp
                 $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
-                + $"&na={valueName}"                                       // action name
                 + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
-                + "&s0=1"                                                 // event sequence number
-                + "&t0=0"                                                 // event timestamp
-                );
-        }
-
-        [Test]
-        public void ReportValueStringWithValueNullAndNameNull()
-        {
-            // given
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportValue(ActionId, null, null);
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                    // beacon key
-                0,                                                         // timestamp
-                $"et={EventType.VALUE_STRING.ToInt().ToInvariantString()}" // event type
-                + $"&it={ThreadId.ToInvariantString()}"                    // thread ID
+                + $"&na={valueName}"                                       // value name
                 + $"&pa={ActionId.ToInvariantString()}"                    // parent action ID
                 + "&s0=1"                                                 // event sequence number
                 + "&t0=0"                                                 // event timestamp
@@ -940,8 +1055,8 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
                 0,                                                        // timestamp
                 $"et={EventType.NAMED_EVENT.ToInt().ToInvariantString()}" // event type
-                + $"&na={eventName}"                                      // action name
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={eventName}"                                      // event name
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=1"                                                // event sequence number
                 +  "&t0=0"                                                // event timestamp
@@ -949,24 +1064,25 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void ReportEventWithNameNull()
+        public void ReportingEventWithNullEventNameThrowsException()
         {
             // given
             var target = CreateBeacon().Build();
 
-            // when
-            target.ReportEvent(ActionId, null);
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportEvent(ActionId, null));
+            Assert.That(exception.Message, Is.EqualTo("eventName is null or empty"));
+        }
 
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
-                0,                                                        // timestamp
-                $"et={EventType.NAMED_EVENT.ToInt().ToInvariantString()}" // event type
-                + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
-                +  "&s0=1"                                                // event sequence number
-                +  "&t0=0"                                                // event timestamp
-                );
+        [Test]
+        public void ReportingEventWithEmptyEventNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportEvent(ActionId, string.Empty));
+            Assert.That(exception.Message, Is.EqualTo("eventName is null or empty"));
         }
 
         [Test]
@@ -997,75 +1113,57 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
-        [Test]
-        public void NamedEventReportedIfEventReportingAllowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(true);
-            var target = CreateBeacon().Build();
-
-            // when
-            target.ReportEvent(ActionId, "test event");
-
-            // then
-            mockBeaconCache.Received(1).AddEventData(Arg.Any<BeaconKey>(), Arg.Any<long>(), Arg.Any<string>());
-        }
-
         #endregion
 
         #region ReportError with errorCode tests
 
         [Test]
-        public void ReportError()
+        public void ReportErrorCode()
         {
             // given
             const string errorName = "someError";
             const int errorCode = -123;
-            const string reason = "someReason";
 
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(ActionId, errorName, errorCode, reason);
+            target.ReportError(ActionId, errorName, errorCode);
 
             // then
             mockBeaconCache.Received(1).AddEventData(
                 new BeaconKey(SessionId, SessionSeqNo),             // beacon key
                 0,                                                  // timestamp
                 $"et={EventType.ERROR.ToInt().ToInvariantString()}" // event type
-                + $"&na={errorName}"                                // action name
                 + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
                 + $"&pa={ActionId.ToInvariantString()}"             // parent action ID
                 +  "&s0=1"                                          // event sequence number
                 +  "&t0=0"                                          // event timestamp
-                + $"&ev=-123"                                       // reported error code
-                + $"&rs={reason}"                                   // error reason
+                + $"&ev={errorCode.ToInvariantString()}"            // reported error code
                 +  "&tt=c"                                          // error technology type
                 );
         }
-
+        
         [Test]
-        public void ReportErrorNull()
+        public void ReportingErrorCodeWithNullErrorNameThrowsException()
         {
             // given
-            const int errorCode = -123;
             var target = CreateBeacon().Build();
 
-            // when
-            target.ReportError(ActionId, null, errorCode, null);
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportError(ActionId, null, 1234));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
 
-            // then
-            mockBeaconCache.Received(1).AddEventData(
-                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
-                0,                                                  // timestamp
-                $"et={EventType.ERROR.ToInt().ToInvariantString()}" // event type
-                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
-                + $"&pa={ActionId.ToInvariantString()}"             // parent action ID
-                +  "&s0=1"                                          // event sequence number
-                +  "&t0=0"                                          // event timestamp
-                + $"&ev=-123"                                       // reported error code
-                +  "&tt=c"                                          // error technology type
-                );
+        [Test]
+        public void ReportingErrorCodeWithEmptyErrorNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportError(ActionId, string.Empty, 1234));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
         }
 
         [Test]
@@ -1076,7 +1174,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
+            target.ReportError(ActionId, "Error name", 123);
 
             // then ensure nothing has been serialized
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -1090,7 +1188,7 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(ActionId, "Error name", 123, "The reason for this error");
+            target.ReportError(ActionId, "Error name", 123);
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -1104,7 +1202,332 @@ namespace Dynatrace.OpenKit.Protocol
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportError(ActionId, "error", 42, "the answer");
+            target.ReportError(ActionId, "error", 42);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportError with cause tests
+
+        [Test]
+        public void ReportErrorWithCause()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeName = "CausedBy";
+            const string causeReason = "SomeReason";
+            const string causeStackTrace = "HereComesTheTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, causeName, causeReason, causeStackTrace);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&rs={causeReason}"                                  // reported error reason
+                + $"&st={causeStackTrace}"                              // reported error stack trace
+                +  "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportingErrorWithCauseWithNullErrorNameThrowsException()
+        {
+            // given
+            const string causeName = "CausedBy";
+            const string causeReason = "SomeReason";
+            const string causeStackTrace = "HereComesTheTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportError(ActionId, null, causeName, causeReason, causeStackTrace));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingErrorWithCauseWithEmptyErrorNameThrowsException()
+        {
+            // given
+            const string causeName = "CausedBy";
+            const string causeReason = "SomeReason";
+            const string causeStackTrace = "HereComesTheTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportError(ActionId, string.Empty, causeName, causeReason, causeStackTrace));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
+
+        [Test]
+        public void ReportErrorWithNullCauseNameWorks()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeReason = "SomeReason";
+            const string causeStackTrace = "HereComesTheTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, null, causeReason, causeStackTrace);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                + $"&rs={causeReason}"                                  // reported error reason
+                + $"&st={causeStackTrace}"                              // reported error stack trace
+                +  "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportErrorWithNullCauseDescriptionWorks()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeName = "CausedBy";
+            const string causeStackTrace = "HereComesTheTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, causeName, null, causeStackTrace);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&st={causeStackTrace}"                              // reported error stack trace
+                +  "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportErrorWithNullCauseStackTraceWorks()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeName = "CausedBy";
+            const string causeReason = "SomeReason";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, causeName, causeReason, null);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&rs={causeReason}"                                  // reported error reason
+                +  "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ErrorWithCauseNotReportedIfDataSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", "cause", "description", "stack trace");
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorWithCauseNotReportedIfErrorSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", "cause", "description", "stack trace");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorWithCauseNotReportedIfErrorReportingIsDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", "cause", "description", "stack trace");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region ReportError with Exception tests
+
+        [Test]
+        public void ReportErrorWithException()
+        {
+            // given
+            const string errorName = "SomeError";
+            var exception = CreateException();
+            CrashFormatter crashFormatter = new CrashFormatter(exception);
+            var causeName = crashFormatter.Name;
+            var causeReason = PercentEncoder.Encode(crashFormatter.Reason, Encoding.UTF8, Beacon.ReservedCharacters);
+            var causeStackTrace = PercentEncoder.Encode(crashFormatter.StackTrace, Encoding.UTF8, Beacon.ReservedCharacters);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, exception);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&rs={causeReason}"                                  // reported error reason
+                + $"&st={causeStackTrace}"                              // reported error stack trace
+                +  "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportingErrorWithExceptionWithNullErrorNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportError(ActionId, null, CreateException()));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingErrorWithExceptionWithEmptyErrorNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportError(ActionId, string.Empty, CreateException()));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingErrorWithNullExceptionWorks()
+        {
+            // given
+            const string errorName = "SomeError";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, null);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                +  "&s0=1"                                              // event sequence number
+                +  "&t0=0"                                              // event timestamp
+                +  "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ErrorWithExceptionNotReportedIfDataSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", CreateException());
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorWithExceptionNotReportedIfErrorSendingIsDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", CreateException());
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorWithExceptionNotReportedIfErrorReportingIsDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsErrorReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, "Error name", CreateException());
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -1132,8 +1555,8 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),             // beacon key
                 0,                                                  // timestamp
                 $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
-                + $"&na={errorName}"                                // action name
                 + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
                 +  "&pa=0"                                          // parent action ID
                 +  "&s0=1"                                          // event sequence number
                 +  "&t0=0"                                          // event timestamp
@@ -1142,29 +1565,80 @@ namespace Dynatrace.OpenKit.Protocol
                 +  "&tt=c"                                          // error technology type
                 );
         }
-        
+
         [Test]
-        public void ReportCrashWithDetailsNull()
+        public void ReportingCrashWithNullErrorNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportCrash(null, "reason", "stack trace"));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
+
+        [Test]
+        public void ReportingCrashWithEmptyErrorNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.ReportCrash(string.Empty, "reason", "stack trace"));
+            Assert.That(exception.Message, Is.EqualTo("errorName is null or empty"));
+        }
+
+        [Test]
+        public void ReportCrashWithNullReasonWorks()
         {
             // given
             const string errorName = "someError";
+            const string stacktrace = "someStackTrace";
 
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportCrash(errorName, null, null);
+            target.ReportCrash(errorName, null, stacktrace);
 
             // then
             mockBeaconCache.Received(1).AddEventData(
                 new BeaconKey(SessionId, SessionSeqNo),             // beacon key
                 0,                                                  // timestamp
                 $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
-                + $"&na={errorName}"                                // action name
                 + $"&it={ThreadId.ToInvariantString()}"             // thread ID
-                + "&pa=0"                                          // parent action ID
-                + "&s0=1"                                          // event sequence number
-                + "&t0=0"                                          // event timestamp
-                + "&tt=c"                                          // error technology type
+                + $"&na={errorName}"                                // action name
+                +  "&pa=0"                                          // parent action ID
+                +  "&s0=1"                                          // event sequence number
+                +  "&t0=0"                                          // event timestamp
+                + $"&st={stacktrace}"                               // reported stacktrace
+                +  "&tt=c"                                          // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportCrashWithNullStacktraceWorks()
+        {
+            // given
+            const string errorName = "someError";
+            const string reason = "someReason";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, reason, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
+                +  "&pa=0"                                          // parent action ID
+                +  "&s0=1"                                          // event sequence number
+                +  "&t0=0"                                          // event timestamp
+                + $"&rs={reason}"                                   // error reason
+                +  "&tt=c"                                          // error technology type
                 );
         }
 
@@ -1220,33 +1694,24 @@ namespace Dynatrace.OpenKit.Protocol
         public void ReportValidCrashException()
         {
             // given
-            Exception caught = null;
-            try
-            {
-                throw new ArgumentException("SomethingIsWrong");
-            }
-            catch (Exception e)
-            {
-                caught = e;
-            }
-            Assert.That(caught, Is.Not.Null);
-            var crashFormatter = new CrashFormatter(caught);
+            Exception exception = CreateException();
+            var crashFormatter = new CrashFormatter(exception);
             var errorName = crashFormatter.Name;
-            var reason = crashFormatter.Reason;
+            var reason = PercentEncoder.Encode(crashFormatter.Reason, Encoding.UTF8, Beacon.ReservedCharacters);
             var stacktrace = PercentEncoder.Encode(crashFormatter.StackTrace, Encoding.UTF8, Beacon.ReservedCharacters);
 
             var target = CreateBeacon().Build();
 
             // when
-            target.ReportCrash(caught);
+            target.ReportCrash(exception);
 
             // then
             mockBeaconCache.Received(1).AddEventData(
                 new BeaconKey(SessionId, SessionSeqNo),             // beacon key
                 0,                                                  // timestamp
                 $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
-                + $"&na={errorName}"                                // action name
                 + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
                 + "&pa=0"                                           // parent action ID
                 + "&s0=1"                                           // event sequence number
                 + "&t0=0"                                           // event timestamp
@@ -1254,6 +1719,17 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"&st={stacktrace}"                               // reported stacktrace
                 + "&tt=c"                                           // error technology type
                 );
+        }
+
+        [Test]
+        public void ReportCrashWithNullExceptionThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentNullException>(() => target.ReportCrash(null));
+            Assert.That(exception.ParamName, Is.EqualTo("exception"));
         }
 
         [Test]
@@ -1314,7 +1790,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 1447;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string) null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1328,6 +1804,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1340,6 +1817,45 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void AddWebRequestWithNullWebRequestTracerThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.AddWebRequest(ActionId, null));
+            Assert.That(exception.Message, Is.EqualTo("webRequestTracer is null or webRequestTracer.Url is null or empty"));
+        }
+
+        [Test]
+        public void AddWebRequestWithNullUrlThrowsException()
+        {
+            // given
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.ReturnsNull();
+
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.AddWebRequest(ActionId, null));
+            Assert.That(exception.Message, Is.EqualTo("webRequestTracer is null or webRequestTracer.Url is null or empty"));
+        }
+
+        [Test]
+        public void AddWebRequestWithEmptyUrlThrowsException()
+        {
+            // given
+            var tracer = Substitute.For<IWebRequestTracerInternals>();
+            tracer.Url.Returns(string.Empty);
+
+            var target = CreateBeacon().Build();
+
+            // when, then
+            var exception = Assert.Throws<ArgumentException>(() => target.AddWebRequest(ActionId, null));
+            Assert.That(exception.Message, Is.EqualTo("webRequestTracer is null or webRequestTracer.Url is null or empty"));
+        }
+
+        [Test]
         public void CanAddSentBytesEqualToZeroToWebRequestTracer()
         {
             // given
@@ -1349,7 +1865,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 1447;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1363,6 +1879,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1384,7 +1901,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 1447;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1398,6 +1915,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1418,7 +1936,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 0;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1432,6 +1950,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1453,7 +1972,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = -1;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1467,6 +1986,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1487,7 +2007,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 1447;
             const int responseCode = 0;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1501,6 +2021,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1522,7 +2043,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int receivedBytes = 1447;
             const int responseCode = -1;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
-            tracer.Url.Returns((string)null);
+            tracer.Url.Returns(Url);
             tracer.BytesSent.Returns(sentBytes);
             tracer.BytesReceived.Returns(receivedBytes);
             tracer.ResponseCode.Returns(responseCode);
@@ -1536,6 +2057,7 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                        // timestamp
                 $"et={EventType.WEB_REQUEST.ToInt().ToInvariantString()}" // event type
                 + $"&it={ThreadId.ToInvariantString()}"                   // thread ID
+                + $"&na={PercentEncoder.Encode(Url, Encoding.UTF8)}"      // reported URL
                 + $"&pa={ActionId.ToInvariantString()}"                   // parent action ID
                 +  "&s0=0"                                                // web request start sequence number
                 +  "&t0=0"                                                // web request start timestamp
@@ -1567,6 +2089,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             mockPrivacyConfiguration.IsWebRequestTracingAllowed.Returns(false);
             var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
+            webRequestTracer.Url.Returns(Url);
 
             var target = CreateBeacon().Build();
 
@@ -1574,7 +2097,6 @@ namespace Dynatrace.OpenKit.Protocol
             target.AddWebRequest(ActionId, webRequestTracer);
 
             // then ensure nothing has been serialized
-            Assert.That(webRequestTracer.ReceivedCalls(), Is.Empty);
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
@@ -1598,8 +2120,8 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                     // beacon key
                 0,                                                          // timestamp
                 $"et={EventType.IDENTIFY_USER.ToInt().ToInvariantString()}" // event type
-                + $"&na={userId}"                                           // number bytes received
                 + $"&it={ThreadId.ToInvariantString()}"                     // thread ID
+                + $"&na={userId}"                                           // reported user ID
                 +  "&pa=0"                                                  // parent action ID
                 +  "&s0=1"                                                  // web request start sequence number
                 +  "&t0=0"                                                  // web request start timestamp
@@ -1641,8 +2163,8 @@ namespace Dynatrace.OpenKit.Protocol
                new BeaconKey(SessionId, SessionSeqNo),                     // beacon key
                0,                                                          // timestamp
                $"et={EventType.IDENTIFY_USER.ToInt().ToInvariantString()}" // event type
-               + $"&na="                                                   // number bytes received
                + $"&it={ThreadId.ToInvariantString()}"                     // thread ID
+               + $"&na="                                                   // reported user ID
                +  "&pa=0"                                                  // parent action ID
                +  "&s0=1"                                                  // web request start sequence number
                +  "&t0=0"                                                  // web request start timestamp
@@ -1813,6 +2335,7 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var action = Substitute.For<IActionInternals>();
             action.Id.Returns(ActionId);
+            action.Name.Returns("actionName");
 
             var beaconCache = new BeaconCache(mockLogger);
             var target = CreateBeacon().With(beaconCache).Build();
@@ -1823,9 +2346,11 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportValue(ActionId, "DoubleValue", 3.1415);
             target.ReportValue(ActionId, "StringValue", "HelloWorld");
             target.ReportEvent(ActionId, "SomeEvent");
-            target.ReportError(ActionId, "SomeError", -123, "SomeReason");
+            target.ReportError(ActionId, "SomeError", -123);
+            target.ReportError(ActionId, "OtherError", "causeName", "causeReason", "causeStackTrace");
+            target.ReportError(ActionId, "Caught Exception", CreateException());
             target.ReportCrash("SomeCrash", "SomeReason", "SomeStacktrace");
-            target.ReportCrash(new ArgumentException("something is wrong"));
+            target.ReportCrash(CreateException());
             target.EndSession();
 
             var beaconKey = new BeaconKey(SessionId, SessionSeqNo);
@@ -2148,6 +2673,19 @@ namespace Dynatrace.OpenKit.Protocol
                     .With(mockLogger)
                     .With(mockParent)
                 ;
+        }
+
+        private static Exception CreateException()
+        {
+            try
+            {
+                // need to throw an exception to populate the stack trace
+                throw new InvalidOperationException();
+            }
+            catch(Exception caught)
+            {
+                return caught;
+            }
         }
     }
 }

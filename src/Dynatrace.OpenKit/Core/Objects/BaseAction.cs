@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Util;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -256,6 +257,11 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public IAction ReportError(string errorName, int errorCode, string reason)
         {
+            return ReportError(errorName, errorCode);
+        }
+
+        public IAction ReportError(string errorName, int errorCode)
+        {
             if (string.IsNullOrEmpty(errorName))
             {
                 Logger.Warn($"{this} ReportError: errorName must not be null or empty");
@@ -263,14 +269,60 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"{this} ReportError({errorName}, {errorCode.ToInvariantString()}, {reason})");
+                Logger.Debug($"{this} ReportError({errorName}, {errorCode.ToInvariantString()})");
             }
 
             lock (LockObject)
             {
                 if (!ThisAction.IsActionLeft)
                 {
-                    Beacon.ReportError(Id, errorName, errorCode, reason);
+                    Beacon.ReportError(Id, errorName, errorCode);
+                }
+            }
+
+            return this;
+        }
+
+        public IAction ReportError(string errorName, string causeName, string causeDescription, string causeStackTrace)
+        {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                Logger.Warn($"{this} ReportError: errorName must not be null or empty");
+                return this;
+            }
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"{this} ReportError({errorName}, {causeName}, {causeDescription}, {causeStackTrace})");
+            }
+
+            lock (LockObject)
+            {
+                if (!ThisAction.IsActionLeft)
+                {
+                    Beacon.ReportError(Id, errorName, causeName, causeDescription, causeStackTrace);
+                }
+            }
+
+            return this;
+        }
+
+        public IAction ReportError(string errorName, Exception exception)
+        {
+            if (string.IsNullOrEmpty(errorName))
+            {
+                Logger.Warn($"{this} ReportError: errorName must not be null or empty");
+                return this;
+            }
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"{this} ReportError({errorName}, {exception})");
+            }
+
+            lock (LockObject)
+            {
+                if (!ThisAction.IsActionLeft)
+                {
+                    Beacon.ReportError(Id, errorName, exception);
                 }
             }
 

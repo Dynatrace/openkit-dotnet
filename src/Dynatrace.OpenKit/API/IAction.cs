@@ -95,7 +95,45 @@ namespace Dynatrace.OpenKit.API
         /// <param name="errorCode">numeric error code of this error</param>
         /// <param name="reason">reason for this error</param>
         /// <returns>this Action (for usage as fluent API)</returns>
+        [Obsolete("use IAction.ReportError(string, int) instead, since reason is unhandled")]
         IAction ReportError(string errorName, int errorCode, string reason);
+
+        /// <summary>
+        ///  Reports an error with a specified name and error code.
+        /// </summary>
+        /// <remarks>
+        /// If given <paramref name="errorName"/> is <code>null</code> or an empty string,
+        /// no error is reported.
+        /// </remarks>
+        /// <param name="errorName">name of this error</param>
+        /// <param name="errorCode">numeric error code of this error</param>
+        /// <returns>this Action (for usage as fluent API)</returns>
+        IAction ReportError(string errorName, int errorCode);
+
+        /// <summary>
+        /// Reports an error with a specified name and parameters describing the cause of this error.
+        /// </summary>
+        /// <remarks>
+        /// If given <paramref name="errorName"/> is <code>null</code> or an empty string,
+        /// no error is reported.
+        /// </remarks>
+        /// <param name="errorName">name of this error</param>
+        /// <param name="causeName">name describing the cuase of the error (e.g. Exception class name).</param>
+        /// <param name="causeDescription">description what caused the eror (e.g. Exception message).</param>
+        /// <param name="causeStackTrace">stack trace of the error</param>
+        /// <returns>this Action (for usage as fluent API)</returns>
+        IAction ReportError(string errorName, string causeName, string causeDescription, string causeStackTrace);
+
+        /// <summary>
+        /// Reports an error with a specified name and <see cref="Exception"/>
+        /// </summary>
+        /// If given <paramref name="errorName"/> is <code>null</code> or an empty string,
+        /// no error is reported.
+        /// </remarks>
+        /// <param name="errorName">name of this error</param>
+        /// <param name="exception"><see cref="Exception"/> causing this error</param>
+        /// <returns>this Action (for usage as fluent API)</returns>
+        IAction ReportError(string errorName, Exception exception);
 
         /// <summary>
         ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
@@ -118,5 +156,4 @@ namespace Dynatrace.OpenKit.API
         /// <returns>the parent Action, or null if there is no parent Action</returns>
         IAction LeaveAction();
     }
-
 }

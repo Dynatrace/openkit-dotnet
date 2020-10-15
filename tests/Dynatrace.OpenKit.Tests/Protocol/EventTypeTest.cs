@@ -30,6 +30,7 @@ namespace Dynatrace.OpenKit.Protocol
         [TestCase(19,   EventType.SESSION_END)]
         [TestCase(30,   EventType.WEB_REQUEST)]
         [TestCase(40,   EventType.ERROR)]
+        [TestCase(42,   EventType.EXCEPTION)]
         [TestCase(50,   EventType.CRASH)]
         [TestCase(60,   EventType.IDENTIFY_USER)]
         public void ToInt(int expected, EventType input)

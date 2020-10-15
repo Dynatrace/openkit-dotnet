@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using NSubstitute;
 using NUnit.Framework;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -106,13 +107,52 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportErrorReturnsSelf()
+        public void DeprecatedReportErrorReturnsSelf()
         {
             // given
             var target = CreateNullAction();
 
             // when
             var obtained = target.ReportError("error name", 1337, "something bad");
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void ReportErrorReturnsSelf()
+        {
+            // given
+            var target = CreateNullAction();
+
+            // when
+            var obtained = target.ReportError("error name", 42);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void ReportErrorCauseReturnsSelf()
+        {
+            // given
+            var target = CreateNullAction();
+
+            // when
+            var obtained = target.ReportError("error name", "error cause", "error description", "stacktrace");
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void ReportErrorExceptionReturnsSelf()
+        {
+            // given
+            var target = CreateNullAction();
+
+            // when
+            var obtained = target.ReportError("error name", new InvalidOperationException());
 
             // then
             Assert.That(obtained, Is.SameAs(target));

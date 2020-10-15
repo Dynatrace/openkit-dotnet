@@ -396,34 +396,32 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportErrorWithAllValuesSet()
+        public void ReportErrorCodeWithAllValuesSet()
         {
             // given
             const string errorName = "teapot";
-            const string errorReason = "I'm a teapot";
             const int errorCode = 418;
             var target = CreateStubAction();
 
             // when reporting an event
-            var obtained = target.ReportError(errorName, errorCode,  errorReason);
+            var obtained = target.ReportError(errorName, errorCode);
 
             // then
             Assert.That(obtained, Is.SameAs(target));
-            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, errorCode, errorReason);
+            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, errorCode);
         }
 
         [Test]
-        public void ReportErrorWithNullErrorNameDoesNotReportTheError()
+        public void ReportErrorCodeWithNullErrorNameDoesNotReportTheError()
         {
             // given
             const string errorName = null;
-            const string errorReason = "I'm a teapot";
             const int errorCode = 418;
             var target = CreateStubAction();
             mockBeacon.ClearReceivedCalls();
 
             // when
-            var obtained = target.ReportError(errorName, errorCode, errorReason);
+            var obtained = target.ReportError(errorName, errorCode);
 
             // then
             Assert.That(obtained, Is.SameAs(target));
@@ -433,18 +431,17 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportErrorWithEmptyErrorNameDoesNotReportTheError()
+        public void ReportErrorCodeWithEmptyErrorNameDoesNotReportTheError()
         {
             // given
             var errorName = string.Empty;
-            const string errorReason = "I'm a teapot";
             const int errorCode = 418;
 
             var target = CreateStubAction();
             mockBeacon.ClearReceivedCalls();
 
             // when
-            var obtained = target.ReportError(errorName, errorCode, errorReason);
+            var obtained = target.ReportError(errorName, errorCode);
 
             // then
             Assert.That(obtained, Is.SameAs(target));
@@ -454,36 +451,219 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportErrorWithNullErrorReasonDesReport()
+        public void ReportErrorCodeLogsInvocation()
         {
             // given
             const string errorName = "errorName";
-            const string errorReason = null;
             const int errorCode = 418;
+
             var target = CreateStubAction();
 
             // when
-            var obtained = target.ReportError(errorName, errorCode, errorReason);
+            target.ReportError(errorName, errorCode);
 
             // then
-            Assert.That(obtained, Is.SameAs(target));
-            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, errorCode, errorReason);
+            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {errorCode})");
         }
 
         [Test]
-        public void ReportErrorLogsInvocation()
+        public void DeprecatedReportErrorCodeWithReasonDoesNotForwardReason()
         {
             // given
-            const string errorName = "errorName";
-            const string errorReason = "reason";
-            const int errorCode = 418;
+            const string errorName = "FATAL ERROR";
+            const int errorCode = 0x8005037;
+            const string reason = "Some reason for this fatal error";
+
             var target = CreateStubAction();
 
             // when
-            target.ReportError(errorName, errorCode, errorReason);
+            var obtained = target.ReportError(errorName, errorCode, reason);
 
             // then
-            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {errorCode}, {errorReason})");
+            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {errorCode})");
+            Assert.That(obtained, Is.SameAs(target));
+            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, errorCode);
+        }
+
+        [Test]
+        public void ReportErrorCauseWithAllValuesSet()
+        {
+            // given
+            const string errorName = "FATAL ERROR";
+            const string causeName = "name";
+            const string causeDescription = "description";
+            const string causeStackTrace = "stackTrace";
+
+            var target = CreateStubAction();
+
+            // when
+            var obtained = target.ReportError(errorName, causeName, causeDescription, causeStackTrace);
+
+            // then
+            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, causeName, causeDescription, causeStackTrace);
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void ReportErrorCauseWithNullErrorNameDoesNotReportTheError()
+        {
+            // given
+            const string causeName = "name";
+            const string causeDescription = "description";
+            const string causeStackTrace = "stackTrace";
+
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportError(null, causeName, causeDescription, causeStackTrace);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+            mockLogger.Received(1).Warn($"{target} ReportError: errorName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportErrorCauseWithEmptyErrorNameDoesNotReportTheError()
+        {
+            // given
+            const string causeName = "name";
+            const string causeDescription = "description";
+            const string causeStackTrace = "stackTrace";
+
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportError(string.Empty, causeName, causeDescription, causeStackTrace);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+            mockLogger.Received(1).Warn($"{target} ReportError: errorName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportErrorCauseWithNullValuesWork()
+        {
+            // given
+            const string errorName = "FATAL ERROR";
+
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportError(errorName, null, null, null);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, null, null, null);
+        }
+
+        [Test]
+        public void ReportErrorCauseWithEmptyValuesWork()
+        {
+            // given
+            const string errorName = "FATAL ERROR";
+
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportError(errorName, string.Empty, string.Empty, string.Empty);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, string.Empty, string.Empty, string.Empty);
+        }
+
+        [Test]
+        public void ReportErrorCauseLogsInvocation()
+        {
+            // given
+            const string errorName = "error name";
+            const string causeName = "name";
+            const string causeDescription = "description";
+            const string causeStackTrace = "stackTrace";
+
+            var target = CreateStubAction();
+
+            // when
+            target.ReportError(errorName, causeName, causeDescription, causeStackTrace);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {causeName}, {causeDescription}, {causeStackTrace})");
+
+        }
+
+        [Test]
+        public void ReportErrorWithException()
+        {
+            // given
+            const string errorName = "FATAL ERROR";
+            var exception = new ArgumentException("invalid");
+
+            var target = CreateStubAction();
+
+            // when
+            var obtained = target.ReportError(errorName, exception);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, exception);
+        }
+
+        [Test]
+        public void ReportErrorExceptionWithNullErrorNameDoesNotReportTheError()
+        {
+            // given
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportError(null, new InvalidOperationException());
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+            mockLogger.Received(1).Warn($"{target} ReportError: errorName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportError»xceptionWithEmptyErrorNameDoesNotReportTheError()
+        {
+            // given
+            var target = CreateStubAction();
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.ReportError(string.Empty, new ArgumentException("invalid"));
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
+            mockLogger.Received(1).Warn($"{target} ReportError: errorName must not be null or empty");
+            mockLogger.DidNotReceive().Debug(Arg.Any<string>());
+        }
+
+        [Test]
+        public void ReportErrorExceptionLogsInvocation()
+        {
+            // given
+            const string errorName = "FATAL ERROR";
+            var exception = new ArgumentException("invalid");
+
+            var target = CreateStubAction();
+
+            // when
+            target.ReportError(errorName, exception);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {exception})");
         }
 
         [Test]
