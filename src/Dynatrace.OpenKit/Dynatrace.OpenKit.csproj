@@ -42,18 +42,27 @@
   </PropertyGroup>
 
   <!-- .NET Core 2.0 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <DefineConstants>NETCOREAPP2_0</DefineConstants>
     <Description>Dynatrace OpenKit SDK for .NET Core 2.0</Description>
   </PropertyGroup>
   
   <!-- .NET Core 1.1 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
+    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
     <DefineConstants>NETCOREAPP1_1</DefineConstants>
     <Description>Dynatrace OpenKit SDK for .NET Core 1.1</Description>
   </PropertyGroup>
   
   <!-- .NET Core 1.0 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
+    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
     <DefineConstants>NETCOREAPP1_0</DefineConstants>
     <Description>Dynatrace OpenKit SDK for .NET Core 1.0</Description>

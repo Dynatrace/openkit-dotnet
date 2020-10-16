@@ -16,12 +16,37 @@
 
 using NUnit.Framework;
 using System;
+using System.Globalization;
 
 namespace Dynatrace.OpenKit.Core.Util
 {
     [TestFixture]
     public class CrashFormatterTest
     {
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+        private CultureInfo currentUICulture;
+#endif
+
+        [SetUp]
+        public void Setup()
+        {
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            // Note: .NET Core 1.0/1.1 does not allow manipulating the thread's culture
+            // Manipulating the culture for all threads might have negative impact
+            currentUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+#endif
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            System.Threading.Thread.CurrentThread.CurrentUICulture = currentUICulture;
+#endif
+        }
+
+
         [Test]
         public void NameGivesTypeName()
         {
@@ -70,10 +95,19 @@ namespace Dynatrace.OpenKit.Core.Util
             var obtained = target.StackTrace;
 
             // then
-            Assert.That(obtained, Is.EqualTo(target.StackTrace));
+            Assert.That(obtained, Is.EqualTo(caught.StackTrace.Replace(Environment.NewLine, CrashFormatter.NewLine)));
         }
 
-        private static void CreateRecurisveCrash(string message, int callCount)
+        /// <summary>
+        /// Method for providing a recursive crash.
+        /// </summary>
+        /// <remarks>
+        /// Generics is artificially introduced to test serialization.
+        /// </remarks>
+        /// <typeparam name="MessageType">Any class.</typeparam>
+        /// <param name="message">Message to pass to the exception</param>
+        /// <param name="callCount">The number of recurisve calls</param>
+        private static void CreateRecurisveCrash<MessageType>(MessageType message, int callCount) where MessageType : class
         {
             if (callCount > 0)
             {
@@ -84,13 +118,13 @@ namespace Dynatrace.OpenKit.Core.Util
                 catch (Exception e)
                 {
                     // get in some nested exception
-                    if (callCount % 2 == 0)
+                    if (callCount == 2)
                     {
                         throw new ArgumentException("caught exception", e);
                     }
                 }
             }
-            throw new InvalidOperationException(message);
+            throw new InvalidOperationException(message.ToString());
         }
     }
 }
