@@ -72,8 +72,8 @@ customize OpenKit. This includes device specific information like operating syst
 | `WithManufacturer`  | sets the manufacturer | `"Dynatrace"` |
 | `WithModelId`  | sets the model id  | `"OpenKitDevice"` |
 | `WithBeaconCacheMaxRecordAge`  | sets the maximum age of an entry in the beacon cache in milliseconds | 1 h 45 min |
-| `WithBeaconCacheLowerMemoryBoundary`  | sets the lower memory boundary of the beacon cache in bytes  | 100 MB |
-| `WithBeaconCacheUpperMemoryBoundary`  |  sets the upper memory boundary of the beacon cache in bytes | 80 MB |
+| `WithBeaconCacheLowerMemoryBoundary`  | sets the lower memory boundary of the beacon cache in bytes  | 80 MB |
+| `WithBeaconCacheUpperMemoryBoundary`  |  sets the upper memory boundary of the beacon cache in bytes | 100 MB |
 | `WithTrustManager` | sets a custom `ISSLTrustManager` instance, replacing the builtin default one.<br>Details are described in section [SSL/TLS Security in OpenKit](#ssltls-security-in-openkit). | `SSLStrictTrustManager` |
 | `EnableVerbose`  | *Deprecated*, use `WithLogLevel` instead.<br>Enables extended log output for OpenKit if the default logger is used. | `false` |
 | `WithLogLevel` | sets the log level if the default logger is used | `LogLevel.WARN` |
