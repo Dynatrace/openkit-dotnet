@@ -19,5 +19,9 @@ to the latest 1.4 release.
    Use `DynatraceOpenKitBuilder(string endPointUrl, string applicationId, long deviceId)` instead.
 * `AppMonOpenKitBuilder(string endpointUrl, string applicationName, string deviceId)`  
    Use `AppMonOpenKitBuilder(string endpointUrl, string applicationName, long deviceId)` instead.
+* `AbstractOpenKitBuilder.EnableVerbose()`  
+  Use `AbstractOpenKitBuilder.WithLogLevel(LogLevel.DEBUG)` instead.
+* `AbstractOpenKitBuilder.WithModelID(string modelId)`  
+  Use `AbstractOpenKitBuilder.WithModelId(string modelId)` instead.
 
 [update]: ./installing.md#Updating-OpenKit-.NET
