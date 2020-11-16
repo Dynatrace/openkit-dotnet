@@ -15,7 +15,7 @@
     <IsPackable>false</IsPackable>
     <!-- set the package id, otherwise it's equal to the AssemblyName -->
     <PackageId>Dynatrace.OpenKit.NET</PackageId>
-    <Version>2.1.0-SNAPSHOT</Version>
+    <Version>2.1.0</Version>
   </PropertyGroup>
 
   <!-- generate full debug information when coverage is built -->

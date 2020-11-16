@@ -1,5 +1,14 @@
 # Upgrade guide for OpenKit .NET
 
+## OpenKit .NET 2.0 to 2.1
+There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
+to the latest 2.1 release.
+
+### Deprecated API
+* `IAction.ReportError(string errorName, int errorCode, string reason)`  
+  Use `IAction.ReportError(string errorName, int errorCode)` without `string reason` argument, as
+  `reason` is unhandled in Dynatrace.
+
 ## OpenKit .NET 1.4 to 2.0
 There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
 to the latest 2.0 release.
@@ -9,6 +18,10 @@ to the latest 2.0 release.
   Use `IWebRequestTracer.Stop(int responseCode)` instead as replacement.
 * `DynatraceOpenKitBuilder.WithApplicationName(string applicationName)`  
   The application name is configured in Dynatrace Web UI.
+* `AbstractOpenKitBuilder.EnableVerbose()`  
+  Use `AbstractOpenKitBuilder.WithLogLevel(LogLevel.DEBUG)` instead.
+* `AbstractOpenKitBuilder.WithModelID(string modelId)`  
+  Use `AbstractOpenKitBuilder.WithModelId(string modelId)` instead.
 
 ## OpenKit .NET 1.3 and below to 1.4
 There are no breaking API changes and upgrading is straightforward, by [updating][update] the library

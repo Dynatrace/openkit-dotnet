@@ -95,7 +95,7 @@ namespace Dynatrace.OpenKit.API
         /// <param name="errorCode">numeric error code of this error</param>
         /// <param name="reason">reason for this error</param>
         /// <returns>this Action (for usage as fluent API)</returns>
-        [Obsolete("use IAction.ReportError(string, int) instead, since reason is unhandled")]
+        [Obsolete("Since 2.1.0. Use IAction.ReportError(string, int) instead, since reason is unhandled")]
         IAction ReportError(string errorName, int errorCode, string reason);
 
         /// <summary>
