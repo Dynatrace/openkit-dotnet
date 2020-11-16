@@ -1,5 +1,10 @@
 # OpenKit .NET Changelog
 
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.1.0...HEAD)
+
+## 2.1.0 [Release date: 2020-11-16]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.1.0)
+
 ### Added
 - `DynatraceOpenKitBuilderVB` and `AppMonOpenKitBuilderVB` are added to workaround
   an ambiguity error affecting VisualBasic developers. Since VB is case insensitive
@@ -7,13 +12,12 @@
   are considered the same methods.  
   This workaround is marked as obsolete and will be removed when the obsolete method
   `AbstractOpenKitBuilder.WithModelID(string)` is removed.
-- Support for reporting `long` values.
-- Convenience method for reporting an `Exception` as crash.
-- Overloaded `Action.reportError(string, int)` method for reporting an integer error code without description.  
-  The old `Action.reportError(string, int, string)` has been deprecated in favor of the new one.
-- Overloaded `Action.reportError(string, Exception)` for reporting caught exceptions as error.
-- Overloaded `Action.reportError(string, string, string, string)` for reporting generic errors to
-  Dynatrace.
+- Overloaded `IAction.ReportValue(string, long`) method for reporting 64-bit integer values.
+- Overloaded `ISession.ReportCrash(Exception)` as convenience method for reporting an `Exception` as crash.
+- Overloaded `IAction.ReportError(string, int)` method for reporting an integer error code without description.  
+  The old `IAction.ReportError(string, int, string)` has been deprecated in favor of the new one.
+- Overloaded `IAction.ReportError(string, Exception)` for reporting caught exceptions as error.
+- Overloaded `IAction.ReportError(string, string, string, string)` for reporting generic errors to Dynatrace.
 
 ### Changed
 - Fix issue with sessions being closed after splitting.
