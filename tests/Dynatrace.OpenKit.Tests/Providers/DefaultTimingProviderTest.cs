@@ -14,25 +14,27 @@
 // limitations under the License.
 //
 
+using NUnit.Framework;
 using System;
-using System.Diagnostics;
 
 namespace Dynatrace.OpenKit.Providers
 {
-    public class DefaultTimingProvider : ITimingProvider
+    class DefaultTimingProviderTest
     {
-        internal static readonly DateTime EpochDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        private readonly long referenceTimestampTicks;
-
-        public DefaultTimingProvider()
+        [Test]
+        public void ProvideTimeStampInMillisecondsReturnsCurrentTime()
         {
-            referenceTimestampTicks = (DateTime.UtcNow - EpochDateTime).Ticks - Stopwatch.GetTimestamp();
-        }
+            // given
+            var target = new DefaultTimingProvider();
 
-        public virtual long ProvideTimestampInMilliseconds()
-        {
-            return (long)TimeSpan.FromTicks(referenceTimestampTicks + Stopwatch.GetTimestamp()).TotalMilliseconds;
+            // when
+            var timeBefore = (long)(DateTime.UtcNow - DefaultTimingProvider.EpochDateTime).TotalMilliseconds;
+            var obtained = target.ProvideTimestampInMilliseconds();
+            var timeAfter = (long)(DateTime.UtcNow - DefaultTimingProvider.EpochDateTime).TotalMilliseconds;
+
+            // then
+            Assert.That(obtained, Is.GreaterThanOrEqualTo(timeBefore));
+            Assert.That(obtained, Is.LessThanOrEqualTo(timeAfter));
         }
     }
 }
