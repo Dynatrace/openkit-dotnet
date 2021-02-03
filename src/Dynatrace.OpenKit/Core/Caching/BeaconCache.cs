@@ -235,16 +235,17 @@ namespace Dynatrace.OpenKit.Core.Caching
             return numRecordsRemoved;
         }
 
-        public virtual string GetNextBeaconChunk(BeaconKey beaconKey, string chunkPrefix, int maxSize, char delimiter)
+        public void PrepareDataForSending(BeaconKey beaconKey)
         {
             var entry = GetCachedEntry(beaconKey);
             if (entry == null)
             {
                 // a cache entry for the given beaconKey does not exist
-                return null;
+                return;
             }
 
-            if (entry.NeedsDataCopyBeforeChunking)
+
+            if (entry.NeedsDataCopyBeforeSending)
             {
                 // both entries are null, prepare data for sending
                 long numBytes;
@@ -252,7 +253,7 @@ namespace Dynatrace.OpenKit.Core.Caching
                 {
                     entry.Lock();
                     numBytes = entry.TotalNumBytes;
-                    entry.CopyDataForChunking();
+                    entry.CopyDataForSending();
 
                 }
                 finally
@@ -262,7 +263,29 @@ namespace Dynatrace.OpenKit.Core.Caching
                 // assumption: sending will work fine, and everything we copied will be removed quite soon
                 Interlocked.Add(ref cacheSizeInBytes, -1L * numBytes);
             }
+        }
+        
+        public bool HasDataForSending(BeaconKey beaconKey)
+        {
+            var entry = GetCachedEntry(beaconKey);
+            if (entry == null)
+            {
+                // a cache entry for the given beaconKey does not exist
+                return false;
+            }
 
+            return entry.HasDataToSend;
+        }
+
+        public virtual string GetNextBeaconChunk(BeaconKey beaconKey, string chunkPrefix, int maxSize, char delimiter)
+        {
+            var entry = GetCachedEntry(beaconKey);
+            if (entry == null)
+            {
+                // a cache entry for the given beaconKey does not exist
+                return null;
+            }
+            
             // data for chunking is available
             return entry.GetChunk(chunkPrefix, maxSize, delimiter);
         }

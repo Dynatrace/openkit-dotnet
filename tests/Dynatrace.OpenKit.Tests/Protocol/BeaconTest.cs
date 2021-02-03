@@ -186,6 +186,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             mockLogger.Received(1).Warn($"Beacon: Client IP address validation failed: {ipAddress}");
 
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
             mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .Returns("dummy");
 
@@ -219,6 +220,7 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             mockLogger.Received(0).Warn(Arg.Any<string>());
 
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
             mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .Returns("dummy");
 
@@ -2252,9 +2254,47 @@ namespace Dynatrace.OpenKit.Protocol
             httpClient.Received(1).SendBeaconRequest(ipAddress, Arg.Any<byte[]>(), mockAdditionalQueryParameters);
         }
 
-        #endregion
+        [Test]
+        public void SendCanHandleMultipleChunks()
+        {
+            // given
+            var firstChunk = "some beacon string";
+            var secondChunk = "some more beacon string";
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, true, false);
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                            .Returns(firstChunk, secondChunk);
 
-        #region misc tests
+            const int responseCode = 200;
+            var firstResponse = StatusResponse.CreateSuccessResponse(
+                mockLogger, ResponseAttributesDefaults.JsonResponse, responseCode, new Dictionary<string, List<string>>());
+            var secondResponse = StatusResponse.CreateSuccessResponse(
+                mockLogger, ResponseAttributesDefaults.JsonResponse, responseCode, new Dictionary<string, List<string>>());
+
+            var httpClient = Substitute.For<IHttpClient>();
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>())
+                .Returns(firstResponse, secondResponse);
+
+            var httpClientProvider = Substitute.For<IHttpClientProvider>();
+            httpClientProvider.CreateClient(Arg.Any<IHttpClientConfiguration>()).Returns(httpClient);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            var response = target.Send(httpClientProvider, mockAdditionalQueryParameters);
+
+            // then
+            Assert.That(response, Is.Not.Null.And.SameAs(secondResponse));
+
+            httpClient.Received(2).SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), mockAdditionalQueryParameters);
+
+            mockBeaconCache.Received(1).PrepareDataForSending(Arg.Any<BeaconKey>());
+            mockBeaconCache.Received(3).HasDataForSending(Arg.Any<BeaconKey>());
+            mockBeaconCache.Received(2).GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>());
+        }
+
+    #endregion
+
+    #region misc tests
 
         [Test]
         public void SendDataAndFakeErrorResponse()
@@ -2283,7 +2323,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void BeaconDataPrefix()
+        public void BeaconDataPrefixVS2()
         {
             // given
             const int sessionSequence = 1213;
@@ -2294,6 +2334,7 @@ namespace Dynatrace.OpenKit.Protocol
             mockOpenKitConfiguration.OperatingSystem.Returns("system");
             mockOpenKitConfiguration.Manufacturer.Returns("manufacturer");
             mockOpenKitConfiguration.ModelId.Returns("model");
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
             mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
                 .ReturnsNull();
             mockServerConfiguration.VisitStoreVersion.Returns(visitStoreVersion);
@@ -2324,9 +2365,11 @@ namespace Dynatrace.OpenKit.Protocol
                 "&tv=0" +
                 $"&mp={Multiplicity.ToInvariantString()}";
 
-            mockBeaconCache.Received(1)
-                .GetNextBeaconChunk(new BeaconKey(SessionId, sessionSequence), expectedPrefix, Arg.Any<int>(),
-                    Arg.Any<char>());
+            var expectedBeaconKey = new BeaconKey(SessionId, sessionSequence);
+            mockBeaconCache.Received(1).PrepareDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).HasDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).GetNextBeaconChunk(
+                expectedBeaconKey, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
         }
 
         [Test]
@@ -2589,15 +2632,19 @@ namespace Dynatrace.OpenKit.Protocol
             httpClientProvider.CreateClient(Arg.Any<HttpClientConfiguration>()).Returns(httpClient);
             mockServerConfiguration.VisitStoreVersion.Returns(1);
 
-            var target = CreateBeacon().Build();
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .ReturnsNull();
+
+            var target = CreateBeacon().WithSessionSequenceNumber(0).Build();
 
             // when
             var response = target.Send(httpClientProvider, mockAdditionalQueryParameters);
 
             // then
             Assert.That(response, Is.Null);
-            mockBeaconCache.Received(1).GetNextBeaconChunk(
-                Arg.Any<BeaconKey>(),
+
+            var expectedPrefix =
                 $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
                 $"&ap={AppId}" +
@@ -2611,15 +2658,18 @@ namespace Dynatrace.OpenKit.Protocol
                 $"&os={string.Empty}" +
                 $"&mf={string.Empty}" +
                 $"&md={string.Empty}" +
-                $"&dl={((int) ConfigurationDefaults.DefaultDataCollectionLevel).ToInvariantString()}" +
-                $"&cl={((int) ConfigurationDefaults.DefaultCrashReportingLevel).ToInvariantString()}" +
+                $"&dl={((int)ConfigurationDefaults.DefaultDataCollectionLevel).ToInvariantString()}" +
+                $"&cl={((int)ConfigurationDefaults.DefaultCrashReportingLevel).ToInvariantString()}" +
                 "&vs=1" +
                 "&tx=0" +
                 "&tv=0" +
-                $"&mp={Multiplicity.ToInvariantString()}",
-                Arg.Any<int>(),
-                Arg.Any<char>()
-            );
+                $"&mp={Multiplicity.ToInvariantString()}";
+
+            var expectedBeaconKey = new BeaconKey(SessionId, 0);
+            mockBeaconCache.Received(1).PrepareDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).HasDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).GetNextBeaconChunk(
+                expectedBeaconKey, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
         }
 
         [Test]

@@ -664,12 +664,13 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        IStatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider, IAdditionalQueryParameters additionalParams)
+        IStatusResponse IBeacon.Send(IHttpClientProvider httpClientProvider, IAdditionalQueryParameters additionalParameters)
         {
             var httpClient = httpClientProvider.CreateClient(configuration.HttpClientConfiguration);
             IStatusResponse response = null;
 
-            while (true)
+            beaconCache.PrepareDataForSending(beaconKey);
+            while (beaconCache.HasDataForSending(beaconKey))
             {
                 // prefix for this chunk - must be built up newly, due to changing timestamps
                 var prefix = AppendMutableBeaconData(basicBeaconData);
@@ -686,7 +687,7 @@ namespace Dynatrace.OpenKit.Protocol
                 var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 
                 // send the request
-                response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon, additionalParams);
+                response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon, additionalParameters);
                 if (response == null || response.IsErroneousResponse)
                 {
                     // error happened - but don't know what exactly

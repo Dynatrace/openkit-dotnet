@@ -70,6 +70,25 @@ namespace Dynatrace.OpenKit.Core.Caching
         void DeleteCacheEntry(BeaconKey beaconKey);
 
         /// <summary>
+        /// Prepare all data, that has been recorded so far, for sending.
+        /// </summary>
+        /// <remarks>
+        /// Note: This method must only be invoked from the beacon sending thread.
+        /// </remarks>
+        /// <param name="beaconKey">The beacon's key (aka Session ID and Session seq. no.) for which to copy the collected data.</param>
+        void PrepareDataForSending(BeaconKey beaconKey);
+
+        /// <summary>
+        /// Test if there is more data to send.
+        /// </summary>
+        /// <remarks>
+        /// Note: This method must only be invoked from the beacon sending thread.
+        /// </remarks>
+        /// <param name="beaconKey">The beacon's ID (aka Session ID and Session seq. no.) for which to test if there is more data to send.</param>
+        /// <returns><c>true</c> if there is more data to send, <c>false</c> otherwise.</returns>
+        bool HasDataForSending(BeaconKey beaconKey);
+
+        /// <summary>
         /// Get the next chunk for sending to the backend.
         /// </summary>
         /// <remarks>
