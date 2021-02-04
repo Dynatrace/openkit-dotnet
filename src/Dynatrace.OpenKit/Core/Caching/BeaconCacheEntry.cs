@@ -94,7 +94,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <remarks>
         /// This property returns <code>true</code> if data needs to be copied, <code>false</code> otherwise.
         /// </remarks>
-        internal bool NeedsDataCopyBeforeChunking => actionDataBeingSent == null && eventDataBeingSent == null;
+        internal bool NeedsDataCopyBeforeSending => !HasDataToSend;
 
         /// <summary>
         /// Test if there is more data to send (to chunk).
@@ -102,7 +102,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <remarks>
         /// This property returns <code>true</code> if there is more data to send, <code>false</code> otherwise.
         /// </remarks>
-        private bool HasDataToSend => ((eventDataBeingSent != null && eventDataBeingSent.Count > 0) || (actionDataBeingSent != null && actionDataBeingSent.Count > 0));
+        internal bool HasDataToSend => ((eventDataBeingSent != null && eventDataBeingSent.Count > 0) || (actionDataBeingSent != null && actionDataBeingSent.Count > 0));
 
         /// <summary>
         /// Lock this <see cref="BeaconCacheEntry"/> for reading & writing.
@@ -149,7 +149,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         /// <summary>
         /// Copy data for sending.
         /// </summary>
-        internal void CopyDataForChunking()
+        internal void CopyDataForSending()
         {
             eventDataBeingSent = eventData;
             actionDataBeingSent = actionData;
@@ -159,7 +159,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         /// <summary>
-        ///
+        /// Get next data chunk to send to the Dynatrace backend system.
         /// </summary>
         /// <param name="chunkPrefix">The prefix to add to each chunk</param>
         /// <param name="maxSize">The maximum size in characters for one chunk</param>
@@ -169,9 +169,6 @@ namespace Dynatrace.OpenKit.Core.Caching
         {
             if (!HasDataToSend)
             {
-                // nothing to send - reset to null, so next time lists get copied again
-                eventDataBeingSent = null;
-                actionDataBeingSent = null;
                 return string.Empty;
             }
             return GetNextChunk(chunkPrefix, maxSize, delimiter);
