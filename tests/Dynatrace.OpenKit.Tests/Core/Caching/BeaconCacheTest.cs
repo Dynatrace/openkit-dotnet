@@ -352,6 +352,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
 
+            target.PrepareDataForSending(keyOne);
+
             // when
             var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 0, '&');
 
@@ -378,6 +380,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
 
+            target.PrepareDataForSending(keyOne);
+
             // when
             target.GetNextBeaconChunk(keyOne, "prefix", 0, '&');
 
@@ -398,6 +402,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(keyTwo, 2000L, "z");
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
+
+            target.PrepareDataForSending(keyOne);
 
             // when retrieving the first chunk
             var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
@@ -428,6 +434,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(keyTwo, 2000L, "z");
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
+
+            target.PrepareDataForSending(keyOne);
 
             // when retrieving the first chunk and removing retrieved chunks
             var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
@@ -463,6 +471,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(keyTwo, 2000L, "z");
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
+
+            target.PrepareDataForSending(keyOne);
 
             // when retrieving the first chunk and removing the wrong beacon chunk
             target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
@@ -574,6 +584,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(keyOne, 1001L, "iii");
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
+
+            target.PrepareDataForSending(keyOne);
 
             // do same step we'd do when we send the
             target.GetNextBeaconChunk(keyOne, "prefix", 10, '&');
@@ -711,6 +723,8 @@ namespace Dynatrace.OpenKit.Core.Caching
             var target = new BeaconCache(logger);
             target.AddActionData(key, 1000L, "a");
             target.AddEventData(key, 1000L, "b");
+
+            target.PrepareDataForSending(key);
 
             target.GetNextBeaconChunk(key, "prefix", 0, '&');
 

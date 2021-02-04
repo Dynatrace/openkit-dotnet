@@ -90,7 +90,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void CopyDataForChunkingMovesData()
+        public void CopyDataForSendingMovesData()
         {
             // given
             var dataOne = new BeaconCacheRecord(0L, "One");
@@ -105,7 +105,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataThree);
 
             // when copying data for later chunking
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // then the data was moved
             Assert.That(target.EventDataBeingSent, Is.EqualTo(new[] { dataOne, dataFour }));
@@ -115,7 +115,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void NeedsDataCopyBeforeChunkingGivesTrueBeforeDataIsCopied()
+        public void NeedsDataCopyBeforeSendingGivesTrueBeforeDataIsCopied()
         {
             // given
             var target = new BeaconCacheEntry();
@@ -132,11 +132,11 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataThree);
 
             // when, then
-            Assert.That(target.NeedsDataCopyBeforeChunking, Is.True);
+            Assert.That(target.NeedsDataCopyBeforeSending, Is.True);
         }
 
         [Test]
-        public void NeedsDataCopyBeforeChunkingGivesFalseAfterDataHasBeenCopied()
+        public void NeedsDataCopyBeforeSendingGivesFalseAfterDataHasBeenCopied()
         {
             // given
             var target = new BeaconCacheEntry();
@@ -152,22 +152,22 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when, then
-            Assert.That(target.NeedsDataCopyBeforeChunking, Is.False);
+            Assert.That(target.NeedsDataCopyBeforeSending, Is.False);
         }
 
         [Test]
-        public void NeedsDataCopyBeforeChunkingGivesFalseEvenIfListsAreEmpty()
+        public void NeedsDataCopyBeforeSendingGivesTrueIfListsAreEmpty()
         {
             // given
             var target = new BeaconCacheEntry();
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when, then
-            Assert.That(target.NeedsDataCopyBeforeChunking, Is.False);
+            Assert.That(target.NeedsDataCopyBeforeSending, Is.True);
         }
 
         [Test]
@@ -185,7 +185,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when retrieving data
             var obtained = target.GetChunk("prefix", 1024, '&');
@@ -214,7 +214,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when getting data to send
             var obtained = target.GetChunk("a", 2, '&');
@@ -266,7 +266,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when getting data to send
             var obtained = target.GetChunk("a", 100, '&');
@@ -304,7 +304,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when requesting first chunk
             var obtained = target.GetChunk("prefix", 1, '&');
@@ -392,7 +392,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when data is reset
             target.ResetDataMarkedForSending();
@@ -419,7 +419,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when data is retrieved
             target.GetChunk("", 1024, '&');
@@ -695,7 +695,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when
             var obtained = target.RemoveRecordsOlderThan(10000);
@@ -721,7 +721,7 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddActionData(dataTwo);
             target.AddActionData(dataThree);
 
-            target.CopyDataForChunking();
+            target.CopyDataForSending();
 
             // when
             var obtained = target.RemoveOldestRecords(10000);
@@ -730,6 +730,74 @@ namespace Dynatrace.OpenKit.Core.Caching
             Assert.That(obtained, Is.EqualTo(0));
             Assert.That(target.EventDataBeingSent, Is.EqualTo(new[] { dataOne, dataFour }));
             Assert.That(target.ActionDataBeingSent, Is.EqualTo(new[] { dataTwo, dataThree }));
+        }
+
+        [Test]
+        public void HasDataForSendingReturnsFalseIfDataWasNotCopied()
+        {
+            // given
+            var dataOne = new BeaconCacheRecord(1000L, "One");
+            var dataTwo = new BeaconCacheRecord(1500L, "Two");
+
+            var target = new BeaconCacheEntry();
+            target.AddEventData(dataOne);
+            target.AddEventData(dataTwo);
+
+            // when
+            var obtained = target.HasDataToSend;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void HasDataForSendingReturnsFalseIfNoDataWasAddedBeforeCopying()
+        {
+            // given
+            var target = new BeaconCacheEntry();
+            target.CopyDataForSending();
+
+            // when
+            var obtained = target.HasDataToSend;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void HasDataForSendingReturnsTrueIfEventDataWasAddedBeforeCopying()
+        {
+            // given
+            var record = new BeaconCacheRecord(1000L, "One");
+
+            var target = new BeaconCacheEntry();
+            target.AddEventData(record);
+
+            target.CopyDataForSending();
+
+            // when
+            var obtained = target.HasDataToSend;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void HasDataForSendingReturnsTrueIfActionDataWasAddedBeforeCopying()
+        {
+            // given
+            var record = new BeaconCacheRecord(1000L, "One");
+
+            var target = new BeaconCacheEntry();
+            target.AddActionData(record);
+
+            target.CopyDataForSending();
+
+            // when
+            var obtained = target.HasDataToSend;
+
+            // then
+            Assert.That(obtained, Is.True);
         }
     }
 }
