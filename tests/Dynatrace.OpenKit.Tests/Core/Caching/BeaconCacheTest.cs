@@ -339,7 +339,7 @@ namespace Dynatrace.OpenKit.Core.Caching
         }
 
         [Test]
-        public void GetNextBeaconChunkCopiesDataForSending()
+        public void GetNextBeaconChunkDoesNotCopyDataForSending()
         {
             // given
             var keyOne = new BeaconKey(1, 0);
@@ -352,18 +352,16 @@ namespace Dynatrace.OpenKit.Core.Caching
             target.AddEventData(keyOne, 1000L, "b");
             target.AddEventData(keyOne, 1001L, "jjj");
 
-            target.PrepareDataForSending(keyOne);
-
             // when
             var obtained = target.GetNextBeaconChunk(keyOne, "prefix", 0, '&');
 
             // then
-            Assert.That(obtained, Is.EqualTo("prefix"));
+            Assert.That(obtained, Is.Empty);
 
-            Assert.That(target.GetActions(keyOne), Is.Empty);
-            Assert.That(target.GetEvents(keyOne), Is.Empty);
-            Assert.That(target.GetActionsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
-            Assert.That(target.GetEventsBeingSent(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") }));
+            Assert.That(target.GetActions(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "a"), new BeaconCacheRecord(1001L, "iii") }));
+            Assert.That(target.GetEvents(keyOne), Is.EqualTo(new[] { new BeaconCacheRecord(1000L, "b"), new BeaconCacheRecord(1001L, "jjj") }));
+            Assert.That(target.GetActionsBeingSent(keyOne), Is.Null);
+            Assert.That(target.GetEventsBeingSent(keyOne), Is.Null);
         }
 
         [Test]
