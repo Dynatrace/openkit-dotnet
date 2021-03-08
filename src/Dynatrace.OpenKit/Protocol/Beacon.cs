@@ -115,6 +115,9 @@ namespace Dynatrace.OpenKit.Protocol
         private readonly IBeaconCache beaconCache;
         private readonly BeaconKey beaconKey;
 
+        // this Beacon's traffic control value
+        private int TrafficControlValue { get; }
+
         #region constructors
 
         /// <summary>
@@ -137,6 +140,8 @@ namespace Dynatrace.OpenKit.Protocol
             SessionStartTime = timingProvider.ProvideTimestampInMilliseconds();
 
             DeviceId = CreateDeviceId(configuration, initializer.RandomNumberGenerator);
+
+            TrafficControlValue = initializer.RandomNumberGenerator.NextPercentageValue();
 
             var ipAddress = initializer.ClientIpAddress;
             if (ipAddress == null)
@@ -212,7 +217,38 @@ namespace Dynatrace.OpenKit.Protocol
         /// </summary>
         public long CurrentTimestamp => timingProvider.ProvideTimestampInMilliseconds();
 
-        bool IBeacon.IsDataCapturingEnabled => configuration.ServerConfiguration.IsSendingDataAllowed;
+        bool IBeacon.IsDataCapturingEnabled
+        {
+            get
+            {
+                var serverConfiguration = configuration.ServerConfiguration;
+
+                return serverConfiguration.IsSendingDataAllowed
+                    && TrafficControlValue < serverConfiguration.TrafficControlPercentage;
+            }
+        }
+
+        bool IBeacon.IsErrorCapturingEnabled
+        {
+            get
+            {
+                var serverConfiguration = configuration.ServerConfiguration;
+
+                return serverConfiguration.IsSendingErrorsAllowed
+                    && TrafficControlValue < serverConfiguration.TrafficControlPercentage;
+            }
+        }
+
+        bool IBeacon.IsCrashCapturingEnabled
+        {
+            get
+            {
+                var serverConfiguration = configuration.ServerConfiguration;
+
+                return serverConfiguration.IsSendingCrashesAllowed
+                    && TrafficControlValue < serverConfiguration.TrafficControlPercentage;
+            }
+        }
 
         void IBeacon.InitializeServerConfiguration(IServerConfiguration serverConfiguration)
         {
@@ -249,7 +285,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         #endregion
 
-        #region internal methods
+        #region internal methods & properties
 
         string IBeacon.CreateTag(int parentActionId, int sequenceNo)
         {
@@ -294,7 +330,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -338,7 +374,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -372,7 +408,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -397,7 +433,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -422,7 +458,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -447,7 +483,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingDataAllowed)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -471,7 +507,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingErrorsAllowed)
+            if (!ThisBeacon.IsErrorCapturingEnabled)
             {
                 return;
             }
@@ -526,7 +562,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingErrorsAllowed)
+            if (!ThisBeacon.IsErrorCapturingEnabled)
             {
                 return;
             }
@@ -579,7 +615,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!configuration.ServerConfiguration.IsSendingCrashesAllowed)
+            if (!ThisBeacon.IsCrashCapturingEnabled)
             {
                 return;
             }

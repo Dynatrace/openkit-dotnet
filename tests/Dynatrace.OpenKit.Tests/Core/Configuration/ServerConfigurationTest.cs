@@ -43,6 +43,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockAttributes.MaxEventsPerSession.Returns(defaultValues.MaxEventsPerSession);
             mockAttributes.SessionTimeoutInMilliseconds.Returns(defaultValues.SessionTimeoutInMilliseconds);
             mockAttributes.VisitStoreVersion.Returns(defaultValues.VisitStoreVersion);
+            mockAttributes.TrafficControlPercentage.Returns(defaultValues.TrafficControlPercentage);
 
             mockServerConfig = Substitute.For<IServerConfiguration>();
             mockServerConfig.IsCaptureEnabled.Returns(defaultValues.IsCapture);
@@ -57,6 +58,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockServerConfig.IsSessionSplitByEventsEnabled.Returns(false);
             mockServerConfig.SessionTimeoutInMilliseconds.Returns(defaultValues.SessionTimeoutInMilliseconds);
             mockServerConfig.VisitStoreVersion.Returns(defaultValues.VisitStoreVersion);
+            mockServerConfig.TrafficControlPercentage.Returns(defaultValues.TrafficControlPercentage);
         }
 
         #region test defaults
@@ -143,6 +145,12 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public void InDefaultServerConfigurationVisitStoreVersionIsOne()
         {
             Assert.That(ServerConfiguration.Default.VisitStoreVersion, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void InDefaultServerConfigurationTrafficControlPercentageIsOneHundred()
+        {
+            Assert.That(ServerConfiguration.Default.TrafficControlPercentage, Is.EqualTo(100));
         }
 
         #endregion
@@ -465,7 +473,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
-        public void CreatingASessionConfigurationFromResponseAttributesCopiesVisitStoreVersion()
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesVisitStoreVersion()
         {
             // given
             const int visitStoreVersion = 73;
@@ -475,6 +483,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
             _ = mockAttributes.Received(1).VisitStoreVersion;
+        }
+        
+        [Test]
+        public void CreatingAServerConfigurationFromResponseAttributesCopiesTrafficControlPercentage()
+        {
+            // given
+            const int trafficControlPercentage = 42;
+            mockAttributes.TrafficControlPercentage.Returns(trafficControlPercentage);
+            var target = ServerConfiguration.From(mockAttributes);
+
+            // then
+            Assert.That(target.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+            _ = mockAttributes.Received(1).TrafficControlPercentage;
         }
 
         [Test]
@@ -913,6 +934,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
             _ = mockServerConfig.Received(1).VisitStoreVersion;
+        }
+
+        [Test]
+        public void BuilderFromServerConfigCopiesTrafficControlPercentage()
+        {
+            // given
+            const int trafficControlPercentage = 37;
+            mockServerConfig.TrafficControlPercentage.Returns(trafficControlPercentage);
+            var target = new ServerConfiguration.Builder(mockServerConfig).Build();
+
+            // then
+            Assert.That(target.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+            _ = mockServerConfig.Received(1).TrafficControlPercentage;
         }
 
         [Test]
@@ -1446,6 +1480,22 @@ namespace Dynatrace.OpenKit.Core.Configuration
             Assert.That(obtained.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
         }
 
+        [Test]
+        public void MergeKeepsOriginalTrafficControlPercentage()
+        {
+            // given
+            const int trafficControlPercentage = 73;
+            var target = new ServerConfiguration.Builder(defaultValues).WithTrafficControlPercentage(trafficControlPercentage)
+                .Build();
+            var other = new ServerConfiguration.Builder(defaultValues).WithTrafficControlPercentage(37).Build();
+
+            // when
+            var obtained = target.Merge(other);
+
+            // then
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+        }
+
         #endregion
 
         #region test builder
@@ -1596,6 +1646,20 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // then
             Assert.That(obtained.VisitStoreVersion, Is.EqualTo(visitStoreVersion));
+        }
+
+        [Test]
+        public void BuildPropagatesTrafficControlPercentageToInstance()
+        {
+            // given
+            const int trafficControlPercentage = 73;
+
+            // when
+            var obtained = new ServerConfiguration.Builder(defaultValues)
+                .WithTrafficControlPercentage(trafficControlPercentage).Build();
+
+            // then
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
         }
 
         #endregion

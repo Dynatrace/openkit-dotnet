@@ -100,6 +100,11 @@ namespace Dynatrace.OpenKit.Core.Configuration
         int VisitStoreVersion { get; }
 
         /// <summary>
+        /// Returns a percentage value that is used for session rate limiting.
+        /// </summary>
+        int TrafficControlPercentage { get; }
+
+        /// <summary>
         /// Indicates whether sending arbitrary data to the server is allowed or not.
         ///
         /// <para>

@@ -99,6 +99,7 @@ namespace Dynatrace.OpenKit.Protocol
             mockServerConfiguration.IsSendingCrashesAllowed.Returns(true);
             mockServerConfiguration.ServerId.Returns(ServerId);
             mockServerConfiguration.BeaconSizeInBytes.Returns(30 * 1024); // 30kB
+            mockServerConfiguration.TrafficControlPercentage.Returns(100); // 100%
             mockServerConfiguration.Multiplicity.Returns(Multiplicity);
 
             var mockHttpClientConfig = Substitute.For<IHttpClientConfiguration>();
@@ -501,10 +502,10 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"&na={actionName}"                                 // action name
                 + $"&ca={ActionId.ToInvariantString()}"               // action ID
                 + $"&pa={parentId.ToInvariantString()}"               // parent action ID
-                +  "&s0=0"                                            // action start sequence number
-                +  "&t0=0"                                            // action start time
-                +  "&s1=0"                                            // action end sequence number
-                +  "&t1=0"                                            // action end time
+                + "&s0=0"                                            // action start sequence number
+                + "&t0=0"                                            // action start time
+                + "&s1=0"                                            // action end sequence number
+                + "&t1=0"                                            // action end time
                 );
         }
 
@@ -556,6 +557,30 @@ namespace Dynatrace.OpenKit.Protocol
             action.Name.Returns("actionName");
 
             var target = CreateBeacon().Build();
+
+            // when
+            target.AddAction(action);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ActionNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var action = Substitute.For<IActionInternals>();
+            action.Id.Returns(ActionId);
+            action.Name.Returns("actionName");
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             target.AddAction(action);
@@ -636,6 +661,26 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void NoSessionStartIsReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.StartSession();
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
         #endregion
 
         #region endSession tests
@@ -655,9 +700,9 @@ namespace Dynatrace.OpenKit.Protocol
                 0,                                                            // timestamp
                 $"et={EventType.SESSION_END.ToInt().ToInvariantString()}"     // event type
                 + $"&it={ThreadId.ToInvariantString()}"                       // thread ID
-                +  "&pa=0"                                                    // parent action ID
-                +  "&s0=1"                                                    // session end sequence number
-                +  "&t0=0"                                                    // session end time
+                + "&pa=0"                                                    // parent action ID
+                + "&s0=1"                                                    // session end sequence number
+                + "&t0=0"                                                    // session end time
                 );
         }
 
@@ -689,6 +734,26 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void SessionNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.EndSession();
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
         #endregion
 
         #region ReportValue(int) tests
@@ -712,8 +777,8 @@ namespace Dynatrace.OpenKit.Protocol
                 + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
                 + $"&na={valueName}"                                    // action name
                 + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
-                +  "&s0=1"                                              // event sequence number
-                +  "&t0=0"                                              // event timestamp
+                + "&s0=1"                                               // event sequence number
+                + "&t0=0"                                               // event timestamp
                 + $"&vl={value.ToInvariantString()}"                    // reported value
                 );
         }
@@ -763,6 +828,26 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", 123);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void IntValueNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             target.ReportValue(ActionId, "test value", 123);
@@ -853,6 +938,26 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void LongValueNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", long.MinValue);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
         #endregion
 
         #region ReportValue(double) tests
@@ -926,6 +1031,26 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             mockServerConfiguration.IsSendingDataAllowed.Returns(false);
             var target = CreateBeacon().Build();
+
+            // when
+            target.ReportValue(ActionId, "test double value", 2.71);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void DoubleValueNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             target.ReportValue(ActionId, "test double value", 2.71);
@@ -1038,6 +1163,26 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void StringValueNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.ReportValue(ActionId, "test value", "test data");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
         #endregion
 
         #region ReportEvent tests
@@ -1110,6 +1255,26 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportEvent(ActionId, "test event");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void NamedEventNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.ReportEvent(ActionId, "Event name");
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -1207,6 +1372,26 @@ namespace Dynatrace.OpenKit.Protocol
             target.ReportError(ActionId, "error", 42);
 
             // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void errorCodeNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            //when
+            target.ReportError(ActionId, "DivByZeroError", 127);
+
+            //then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
@@ -1402,6 +1587,26 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.ReportError(ActionId, "Error name", "cause", "description", "stack trace");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ErrorWithCauseNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.ReportError(ActionId, "error", "causeName", "causeDescription", "stackTrace");
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -1688,6 +1893,27 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
+        [Test]
+        public void ReportCrashDoesNotReportIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            //when
+            target.ReportCrash("OutOfMemory exception", "insufficient memory", "stacktrace:123");
+
+            //then
+            //verify error has not been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
         #endregion
 
         #region ReportCrash with Exception tests
@@ -1770,6 +1996,26 @@ namespace Dynatrace.OpenKit.Protocol
             mockPrivacyConfiguration.IsCrashReportingAllowed.Returns(false);
 
             var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(new ArgumentException("The reason for this error"));
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void ReportCrashExceptionDoesNotReportIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
 
             // when
             target.ReportCrash(new ArgumentException("The reason for this error"));
@@ -2102,9 +2348,32 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
         }
 
-        #endregion
+        [Test]
+        public void NoWebRequestIsReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
 
-        #region IdentifyUser tests
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            var webRequestTracer = Substitute.For<IWebRequestTracerInternals>();
+            webRequestTracer.Url.Returns(Url);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.AddWebRequest(ActionId, webRequestTracer);
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+    #endregion
+
+    #region IdentifyUser tests
 
         [Test]
         public void ValidIdentifyUserEvent()
@@ -2196,6 +2465,26 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             target.IdentifyUser("test user");
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void CannotIdentifyUserIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            target.IdentifyUser("jane@doe.com");
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
@@ -2439,7 +2728,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             _ = mockOpenKitConfiguration.Received(1).DeviceId;
-            Assert.That(mockRandomGenerator.ReceivedCalls(), Is.Empty);
+            mockRandomGenerator.Received(0).NextPositiveLong();
             Assert.That(obtained, Is.EqualTo(deviceId));
         }
 
@@ -2552,7 +2841,7 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void IsDataCaptureEnabledReturnsFalseIfDataSendingIsDisallowed()
+        public void IsDataCapturingEnabledReturnsFalseIfDataSendingIsDisallowed()
         {
             // given
             var target = CreateBeacon().Build();
@@ -2566,14 +2855,208 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void IsDataCaptureEnabledReturnsTrueIfDataSendingIsAllowed()
+        public void IsDataCapturingEnabledReturnsFalseIfTcValueEqualToTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+            
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingDataAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue);
+            var obtained = target.IsDataCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsDataCapturingEnabledReturnsFalseIfTcValueGreaterThanTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingDataAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue - 1);
+            var obtained = target.IsDataCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsDataCapturingEnabledReturnsTrueIfDataSendingIsAllowedAndTcValueGreaterThanTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsCaptureEnabled.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue + 1);
+            var obtained = target.IsDataCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void IsErrorCapturingEnabledReturnsFalseIfSendingErrorsIsDisallowed()
         {
             // given
             var target = CreateBeacon().Build();
 
             // when
-            mockServerConfiguration.IsCaptureEnabled.Returns(true);
-            var obtained = target.IsDataCapturingEnabled;
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(false);
+            var obtained = target.IsErrorCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsErrorCapturingEnabledReturnsFalseIfTcValueEqualToTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue);
+            var obtained = target.IsErrorCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsErrorCapturingEnabledReturnsFalseIfTcValueGreaterThanTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue - 1);
+            var obtained = target.IsErrorCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsErrorCapturingEnabledReturnsTrueIfDataSendingIsAllowedAndTcValueGreaterThanTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingErrorsAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue + 1);
+            var obtained = target.IsErrorCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.True);
+        }
+
+        [Test]
+        public void IsCrashCapturingEnabledReturnsFalseIfSendingErrorsIsDisallowed()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(false);
+            var obtained = target.IsCrashCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsCrashCapturingEnabledReturnsFalseIfTcValueEqualToTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue);
+            var obtained = target.IsCrashCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsCrashCapturingEnabledReturnsFalseIfTcValueGreaterThanTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue - 1);
+            var obtained = target.IsCrashCapturingEnabled;
+
+            // then
+            Assert.That(obtained, Is.False);
+        }
+
+        [Test]
+        public void IsCrashCapturingEnabledReturnsTrueIfDataSendingIsAllowedAndTcValueGreaterThanTcPercentageFromServerConfig()
+        {
+            // given
+            const int trafficControlValue = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlValue);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            // when
+            mockServerConfiguration.IsSendingCrashesAllowed.Returns(true);
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlValue + 1);
+            var obtained = target.IsCrashCapturingEnabled;
 
             // then
             Assert.That(obtained, Is.True);

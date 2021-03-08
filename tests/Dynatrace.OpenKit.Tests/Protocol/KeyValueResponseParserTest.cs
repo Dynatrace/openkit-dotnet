@@ -55,6 +55,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.EqualTo(defaults.IsCapture));
             Assert.That(obtained.IsCaptureCrashes, Is.EqualTo(defaults.IsCaptureCrashes));
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(defaults.IsCaptureErrors));
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(defaults.TrafficControlPercentage));
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(defaults.ServerId));
@@ -400,6 +401,50 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
         }
 
+        [Test]
+        public void ParseExtractsTrafficControlPercentage()
+        {
+            // given
+            const int trafficControlPercentage = 73;
+            AppendParameter(KeyValueResponseParser.ResponseKeyTrafficControlPercentage, trafficControlPercentage);
+
+            // when
+            var obtained = KeyValueResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+        }
+
+        [Test]
+        public void ParsingTrafficControlPercentageWithEmptyValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyTrafficControlPercentage, "");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingTrafficControlPercentageWithNonNumericValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyTrafficControlPercentage, "a");
+
+            // when
+            Assert.Throws<FormatException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
+
+        [Test]
+        public void ParsingTrafficControlPercentageWithTooBigValueThrowsException()
+        {
+            // given
+            AppendParameter(KeyValueResponseParser.ResponseKeyTrafficControlPercentage, 2147483648L);
+
+            // when
+            Assert.Throws<OverflowException>(() => KeyValueResponseParser.Parse(inputBuilder.ToString()));
+        }
 
         [Test]
         public void ParseExtractsServerId()

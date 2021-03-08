@@ -44,6 +44,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             public bool IsCaptureErrors => true;
 
+            public int TrafficControlPercentage => 100;
+
             public string ApplicationId => null;
 
             public int Multiplicity => 1;

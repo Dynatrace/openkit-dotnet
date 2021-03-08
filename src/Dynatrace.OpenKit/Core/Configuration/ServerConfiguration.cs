@@ -60,6 +60,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             SessionTimeoutInMilliseconds = builder.SessionTimeoutInMilliseconds;
             isSessionSplitByIdleTimeoutEnabled = builder.IsSessionSplitByIdleTimeoutEnabled;
             VisitStoreVersion = builder.VisitStoreVersion;
+            TrafficControlPercentage = builder.TrafficControlPercentage;
         }
 
         /// <summary>
@@ -107,6 +108,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public int VisitStoreVersion { get; }
 
+        public int TrafficControlPercentage { get; }
+
         public bool IsSendingDataAllowed => IsCaptureEnabled && Multiplicity > 0;
 
         public bool IsSendingCrashesAllowed => IsCrashReportingEnabled && IsSendingDataAllowed;
@@ -124,6 +127,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
             builder.WithMaxEventsPerSession(MaxEventsPerSession);
             builder.WithSessionTimeoutInMilliseconds(SessionTimeoutInMilliseconds);
             builder.WithVisitStoreVersion(VisitStoreVersion);
+            builder.WithTrafficControlPercentage(TrafficControlPercentage);
             builder.IsSessionSplitByEventsEnabled = IsSessionSplitByEventsEnabled;
             builder.IsSessionSplitBySessionDurationEnabled = IsSessionSplitBySessionDurationEnabled;
             builder.IsSessionSplitByIdleTimeoutEnabled = IsSessionSplitByIdleTimeoutEnabled;
@@ -164,6 +168,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                     responseAttributes.IsAttributeSet(ResponseAttribute.SESSION_IDLE_TIMEOUT);
 
                 VisitStoreVersion = responseAttributes.VisitStoreVersion;
+
+                TrafficControlPercentage = responseAttributes.TrafficControlPercentage;
             }
 
             /// <summary>
@@ -190,6 +196,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 IsSessionSplitByIdleTimeoutEnabled = serverConfiguration.IsSessionSplitByIdleTimeoutEnabled;
 
                 VisitStoreVersion = serverConfiguration.VisitStoreVersion;
+
+                TrafficControlPercentage = serverConfiguration.TrafficControlPercentage;
             }
 
             internal bool IsCaptureEnabled { get; private set; }
@@ -337,6 +345,22 @@ namespace Dynatrace.OpenKit.Core.Configuration
             public Builder WithVisitStoreVersion(int visitStoreVersion)
             {
                 VisitStoreVersion = visitStoreVersion;
+                return this;
+            }
+
+            internal int TrafficControlPercentage { get; private set; }
+
+            /// <summary>
+            /// Configures the traffic control/cost control percentage.
+            /// <para>
+            /// This value is used as rate limit to limit the number of sessions being captured.
+            /// </para>
+            /// </summary>
+            /// <param name="trafficControlPercentage">Percentage of sessions being captured.</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithTrafficControlPercentage(int trafficControlPercentage)
+            {
+                TrafficControlPercentage = trafficControlPercentage;
                 return this;
             }
 

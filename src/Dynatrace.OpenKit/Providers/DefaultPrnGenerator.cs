@@ -25,14 +25,14 @@ namespace Dynatrace.OpenKit.Providers
     {
         private readonly Random random = new Random();
 
-        public int NextPositiveInt()
-        {
-            return random.Next(int.MaxValue);
-        }
-
         public long NextPositiveLong()
         {
             return (long)(random.NextDouble() * long.MaxValue);
+        }
+
+        public int NextPercentageValue()
+        {
+            return random.Next(100);
         }
     }
 }

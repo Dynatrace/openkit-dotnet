@@ -34,6 +34,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string ResponseKeyCapture = "capture";
         internal const string ResponseKeyReportCrashes = "reportCrashes";
         internal const string ResponseKeyReportErrors = "reportErrors";
+        internal const string ResponseKeyTrafficControlPercentage = "trafficControlPercentage";
         internal const string ResponseKeyApplicationId = "applicationId";
 
         internal const string ResponseKeyDynamicConfig = "dynamicConfig";
@@ -163,6 +164,7 @@ namespace Dynatrace.OpenKit.Protocol
             ApplyCapture(builder, appConfigObject);
             ApplyReportCrashes(builder, appConfigObject);
             ApplyReportErrors(builder, appConfigObject);
+            ApplyTrafficControlPercentage(builder, appConfigObject);
             ApplyApplicationId(builder, appConfigObject);
         }
 
@@ -197,6 +199,16 @@ namespace Dynatrace.OpenKit.Protocol
 
             var reportErrors = numberValue.IntValue;
             builder.WithCaptureErrors(reportErrors != 0);
+        }
+
+        private static void ApplyTrafficControlPercentage(ResponseAttributes.Builder builder, JsonObjectValue appConfigObject)
+        {
+            if (!(appConfigObject[ResponseKeyTrafficControlPercentage] is JsonNumberValue numberValue))
+            {
+                return;
+            }
+
+            builder.WithTrafficControlPercentage(numberValue.IntValue);
         }
 
         private static void ApplyApplicationId(ResponseAttributes.Builder builder, JsonObjectValue appConfigObject)

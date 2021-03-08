@@ -19,22 +19,23 @@ namespace Dynatrace.OpenKit.Providers
     public class FixedPrnGenerator : IPrnGenerator
     {
         private readonly long randomLongNumber;
-        private readonly int randomIntNumber;
+        private readonly int randomPercentage;
 
         public FixedPrnGenerator(IPrnGenerator rng)
         {
             randomLongNumber = rng.NextPositiveLong();
-            randomIntNumber = rng.NextPositiveInt();
+            randomPercentage = rng.NextPercentageValue();
         }
-
-        public int NextPositiveInt()
-        {
-            return randomIntNumber;
-        }
+        
 
         public long NextPositiveLong()
         {
             return randomLongNumber;
+        }
+
+        public int NextPercentageValue()
+        {
+            return randomPercentage;
         }
     }
 }

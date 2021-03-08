@@ -64,6 +64,8 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.EqualTo(defaults.IsCapture));
             Assert.That(obtained.IsCaptureCrashes, Is.EqualTo(defaults.IsCaptureCrashes));
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(defaults.IsCaptureErrors));
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(defaults.TrafficControlPercentage));
+            Assert.That(obtained.ApplicationId, Is.EqualTo(defaults.ApplicationId));
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(defaults.ServerId));
             Assert.That(obtained.TimestampInMilliseconds, Is.EqualTo(defaults.TimestampInMilliseconds));
@@ -268,6 +270,23 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ParseExtractsTrafficControlPercentage()
+        {
+            // given
+            const int trafficControlPercentage = 84;
+            Begin(JsonResponseParser.ResponseKeyAppConfig);
+            AppendLastParameter(JsonResponseParser.ResponseKeyTrafficControlPercentage, trafficControlPercentage);
+            Close(2);
+
+            // when
+            var obtained = JsonResponseParser.Parse(inputBuilder.ToString());
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+        }
+
+        [Test]
         public void ParseExtractsApplicationId()
         {
             // given
@@ -366,6 +385,7 @@ namespace Dynatrace.OpenKit.Protocol
             const int serverId = 80;
             const string status = "some status";
             const long timestamp = 81;
+            const int trafficControlPercentage = 82;
 
             Begin(JsonResponseParser.ResponseKeyAgentConfig);
             AppendParameter(JsonResponseParser.ResponseKeyMaxBeaconSizeInKb, beaconSize);
@@ -380,6 +400,7 @@ namespace Dynatrace.OpenKit.Protocol
             AppendParameter(JsonResponseParser.ResponseKeyCapture, 0);
             AppendParameter(JsonResponseParser.ResponseKeyReportCrashes, 1);
             AppendParameter(JsonResponseParser.ResponseKeyReportErrors, 0);
+            AppendParameter(JsonResponseParser.ResponseKeyTrafficControlPercentage, trafficControlPercentage);
             AppendLastParameter(JsonResponseParser.ResponseKeyApplicationId, applicationId);
             Close();
             inputBuilder.Append(",");
@@ -406,6 +427,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.False);
             Assert.That(obtained.IsCaptureCrashes, Is.True);
             Assert.That(obtained.IsCaptureErrors, Is.False);
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
             Assert.That(obtained.ApplicationId, Is.EqualTo(applicationId));
             Assert.That(obtained.Multiplicity, Is.EqualTo(multiplicity));
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));

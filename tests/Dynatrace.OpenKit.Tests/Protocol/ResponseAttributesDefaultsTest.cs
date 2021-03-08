@@ -65,19 +65,25 @@ namespace Dynatrace.OpenKit.Protocol
         [Test]
         public void DefaultJsonIsCapture()
         {
-            Assert.That(ResponseAttributesDefaults.JsonResponse.IsCapture, Is.EqualTo(true));
+            Assert.That(ResponseAttributesDefaults.JsonResponse.IsCapture, Is.True);
         }
 
         [Test]
         public void DefaultJsonIsCaptureCrashes()
         {
-            Assert.That(ResponseAttributesDefaults.JsonResponse.IsCaptureCrashes, Is.EqualTo(true));
+            Assert.That(ResponseAttributesDefaults.JsonResponse.IsCaptureCrashes, Is.True);
         }
 
         [Test]
         public void DefaultJsonIsCaptureErrors()
         {
-            Assert.That(ResponseAttributesDefaults.JsonResponse.IsCaptureErrors, Is.EqualTo(true));
+            Assert.That(ResponseAttributesDefaults.JsonResponse.IsCaptureErrors, Is.True);
+        }
+
+        [Test]
+        public void DefaultJsonTrafficControlPercentage()
+        {
+            Assert.That(ResponseAttributesDefaults.JsonResponse.TrafficControlPercentage, Is.EqualTo(100));
         }
 
         [Test]
@@ -170,19 +176,25 @@ namespace Dynatrace.OpenKit.Protocol
         [Test]
         public void DefaultKeyValueIsCapture()
         {
-            Assert.That(ResponseAttributesDefaults.KeyValueResponse.IsCapture, Is.EqualTo(true));
+            Assert.That(ResponseAttributesDefaults.KeyValueResponse.IsCapture, Is.True);
         }
 
         [Test]
         public void DefaultKeyValueIsCaptureCrashes()
         {
-            Assert.That(ResponseAttributesDefaults.KeyValueResponse.IsCaptureCrashes, Is.EqualTo(true));
+            Assert.That(ResponseAttributesDefaults.KeyValueResponse.IsCaptureCrashes, Is.True);
         }
 
         [Test]
         public void DefaultKeyValueIsCaptureErrors()
         {
-            Assert.That(ResponseAttributesDefaults.KeyValueResponse.IsCaptureErrors, Is.EqualTo(true));
+            Assert.That(ResponseAttributesDefaults.KeyValueResponse.IsCaptureErrors, Is.True);
+        }
+
+        [Test]
+        public void DefaultKeyValueTrafficControlPercentage()
+        {
+            Assert.That(ResponseAttributesDefaults.KeyValueResponse.TrafficControlPercentage, Is.EqualTo(100));
         }
 
         [Test]
@@ -286,6 +298,12 @@ namespace Dynatrace.OpenKit.Protocol
         public void DefaultUndefinedIsCaptureErrors()
         {
             Assert.That(ResponseAttributesDefaults.Undefined.IsCaptureErrors, Is.True);
+        }
+
+        [Test]
+        public void DefaultUndefinedTrafficControlPercentage()
+        {
+            Assert.That(ResponseAttributesDefaults.Undefined.TrafficControlPercentage, Is.EqualTo(100));
         }
 
         [Test]

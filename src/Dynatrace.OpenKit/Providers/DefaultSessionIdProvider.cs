@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using System;
+
 namespace Dynatrace.OpenKit.Providers
 {
     /// <summary>
@@ -25,7 +27,7 @@ namespace Dynatrace.OpenKit.Providers
 
         private static readonly object SyncLock = new object();
 
-        public DefaultSessionIdProvider() : this(new DefaultPrnGenerator().NextPositiveInt()) { }
+        public DefaultSessionIdProvider() : this(new Random().Next()) { }
 
         internal DefaultSessionIdProvider(int initialOffset)
         {

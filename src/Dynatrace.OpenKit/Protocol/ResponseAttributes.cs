@@ -44,6 +44,7 @@ namespace Dynatrace.OpenKit.Protocol
             IsCapture = builder.IsCapture;
             IsCaptureCrashes = builder.IsCaptureCrashes;
             IsCaptureErrors = builder.IsCaptureErrors;
+            TrafficControlPercentage = builder.TrafficControlPercentage;
             ApplicationId = builder.ApplicationId;
 
             Multiplicity = builder.Multiplicity;
@@ -103,6 +104,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         public bool IsCaptureErrors { get; }
 
+        public int TrafficControlPercentage { get; }
+
         public string ApplicationId { get; }
 
         public int Multiplicity { get; }
@@ -133,6 +136,7 @@ namespace Dynatrace.OpenKit.Protocol
             ApplyCapture(builder, responseAttributes);
             ApplyCaptureCrashes(builder, responseAttributes);
             ApplyCaptureErrors(builder, responseAttributes);
+            ApplyTrafficControlPercentage(builder, responseAttributes);
             ApplyApplicationId(builder, responseAttributes);
             ApplyMultiplicity(builder, responseAttributes);
             ApplyServerId(builder, responseAttributes);
@@ -213,6 +217,14 @@ namespace Dynatrace.OpenKit.Protocol
                 builder.WithCaptureErrors(attributes.IsCaptureErrors);
             }
         }
+        
+        private static void ApplyTrafficControlPercentage(Builder builder, IResponseAttributes attributes)
+        {
+            if (attributes.IsAttributeSet(ResponseAttribute.TRAFFIC_CONTROL_PERCENTAGE))
+            {
+                builder.WithTrafficControlPercentage(attributes.TrafficControlPercentage);
+            }
+        }
 
         private static void ApplyApplicationId(Builder builder, IResponseAttributes attributes)
         {
@@ -275,6 +287,7 @@ namespace Dynatrace.OpenKit.Protocol
                 IsCapture = defaults.IsCapture;
                 IsCaptureCrashes = defaults.IsCaptureCrashes;
                 IsCaptureErrors = defaults.IsCaptureErrors;
+                TrafficControlPercentage = defaults.TrafficControlPercentage;
                 ApplicationId = defaults.ApplicationId;
 
                 Multiplicity = defaults.Multiplicity;
@@ -426,6 +439,22 @@ namespace Dynatrace.OpenKit.Protocol
 
                 return this;
             }
+
+            internal int TrafficControlPercentage { get; private set; }
+
+            /// <summary>
+            /// Sets a session sampling percentage (known as Cost Control).
+            /// </summary>
+            /// <param name="trafficControlPercentage">Sets a session sampling percentage (known as Cost Control).</param>
+            /// <returns><code>this</code></returns>
+            public Builder WithTrafficControlPercentage(int trafficControlPercentage)
+            {
+                TrafficControlPercentage = trafficControlPercentage;
+                SetAttribute(ResponseAttribute.TRAFFIC_CONTROL_PERCENTAGE);
+
+                return this;
+            }
+
 
             internal string ApplicationId { get; private set; }
 

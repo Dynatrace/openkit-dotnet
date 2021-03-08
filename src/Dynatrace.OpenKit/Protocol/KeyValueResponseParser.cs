@@ -29,6 +29,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string ResponseKeyCapture = "cp";
         internal const string ResponseKeyReportCrashes = "cr";
         internal const string ResponseKeyReportErrors = "er";
+        internal const string ResponseKeyTrafficControlPercentage = "tc";
 
         internal const string ResponseKeyServerId = "id";
         internal const string ResponseKeyMultiplicity = "mp";
@@ -44,6 +45,7 @@ namespace Dynatrace.OpenKit.Protocol
             ApplyCapture(builder, keyValuePairs);
             ApplyReportCrashes(builder, keyValuePairs);
             ApplyReportErrors(builder, keyValuePairs);
+            ApplyTrafficControlPercentage(builder, keyValuePairs);
             ApplyServerId(builder, keyValuePairs);
             ApplyMultiplicity(builder, keyValuePairs);
 
@@ -139,6 +141,18 @@ namespace Dynatrace.OpenKit.Protocol
 
             var reportErrors = int.Parse(reportErrorsString);
             builder.WithCaptureErrors(reportErrors != 0);
+        }
+
+        private static void ApplyTrafficControlPercentage(ResponseAttributes.Builder builder,
+            Dictionary<string, string> keyValuePairs)
+        {
+            if (!keyValuePairs.TryGetValue(ResponseKeyTrafficControlPercentage, out var tcValue))
+            {
+                return;
+            }
+
+            var trafficControlPercentage = int.Parse(tcValue);
+            builder.WithTrafficControlPercentage(trafficControlPercentage);
         }
 
         private static void ApplyServerId(ResponseAttributes.Builder builder,

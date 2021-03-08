@@ -40,5 +40,25 @@ namespace Dynatrace.OpenKit.Providers
                 Assert.That(obtained, Is.EqualTo(randomNumber));
             }
         }
+
+        [Test]
+        public void NextPercentageValueReturnsAlwaysTheSameNumber()
+        {
+            // given
+            const int randomPercentage = 42;
+            var mockRng = Substitute.For<IPrnGenerator>();
+            mockRng.NextPercentageValue().Returns(randomPercentage, 1, 2, 4, 5);
+
+            var target = new FixedPrnGenerator(mockRng);
+
+            for (var i = 0; i < 100; i++)
+            {
+                // when
+                var obtained = target.NextPercentageValue();
+
+                // then
+                Assert.That(obtained, Is.EqualTo(randomPercentage));
+            }
+        }
     }
 }

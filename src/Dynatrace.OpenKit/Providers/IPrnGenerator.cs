@@ -22,13 +22,13 @@ namespace Dynatrace.OpenKit.Providers
     public interface IPrnGenerator
     {
         /// <summary>
-        /// Provide a random int between 0 (inclusive) and <see cref="int.MaxValue"/> (exclusive)
-        /// </summary>
-        int NextPositiveInt();
-
-        /// <summary>
         /// Provide a positive random long between 0 (inclusive) and <see cref="long.MaxValue"/> (exclusive)
         /// </summary>
         long NextPositiveLong();
+
+        /// <summary>
+        /// Provide a positive random integer number in range [0, 100).
+        /// </summary>
+        int NextPercentageValue();
     }
 }

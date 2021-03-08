@@ -21,31 +21,37 @@ namespace Dynatrace.OpenKit.Providers
     public class DefaultSessionPrnGeneratorTest
     {
         [Test]
-        public void DefaultPrnGeneratorProvidesPositiveInt()
-        {
-            // given
-            var randomGenerator = new DefaultPrnGenerator();
-
-            //when
-            var randomNumber = randomGenerator.NextPositiveInt();
-
-            // then
-            Assert.That(randomNumber, Is.GreaterThanOrEqualTo(0));
-            Assert.That(randomNumber, Is.LessThan(int.MaxValue));
-        }
-
-        [Test]
         public void DefaultPrnGeneratorProvidesPositiveLong()
         {
             // given
             var randomGenerator = new DefaultPrnGenerator();
 
-            //when
-            var randomNumber = randomGenerator.NextPositiveLong();
+            for (var i = 0; i < 100; i++)
+            {
+                //when
+                var randomNumber = randomGenerator.NextPositiveLong();
 
-            // then
-            Assert.That(randomNumber, Is.GreaterThanOrEqualTo(0));
-            Assert.That(randomNumber, Is.LessThan(long.MaxValue));
+                // then
+                Assert.That(randomNumber, Is.GreaterThanOrEqualTo(0));
+                Assert.That(randomNumber, Is.LessThan(long.MaxValue));
+            }
+        }
+
+        [Test]
+        public void DefaultPrnGeneratorProvidesPercentageVAlue()
+        {
+            // given
+            var randomGenerator = new DefaultPrnGenerator();
+
+            for (var i = 0; i < 100; i++)
+            {
+                //when
+                var randomNumber = randomGenerator.NextPercentageValue();
+
+                // then
+                Assert.That(randomNumber, Is.GreaterThanOrEqualTo(0));
+                Assert.That(randomNumber, Is.LessThan(100));
+            }
         }
     }
 }

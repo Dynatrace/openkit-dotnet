@@ -71,6 +71,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.EqualTo(defaults.IsCapture));
             Assert.That(obtained.IsCaptureCrashes, Is.EqualTo(defaults.IsCaptureCrashes));
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(defaults.IsCaptureErrors));
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(defaults.TrafficControlPercentage));
             Assert.That(obtained.ApplicationId, Is.EqualTo(defaults.ApplicationId));
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
@@ -102,6 +103,7 @@ namespace Dynatrace.OpenKit.Protocol
             Assert.That(obtained.IsCapture, Is.EqualTo(defaults.IsCapture));
             Assert.That(obtained.IsCaptureCrashes, Is.EqualTo(defaults.IsCaptureCrashes));
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(defaults.IsCaptureErrors));
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(defaults.TrafficControlPercentage));
             Assert.That(obtained.ApplicationId, Is.EqualTo(defaults.ApplicationId));
 
             Assert.That(obtained.Multiplicity, Is.EqualTo(defaults.Multiplicity));
@@ -438,6 +440,44 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             var obtained = target.WithCaptureErrors(!ResponseAttributesDefaults.JsonResponse.IsCaptureErrors).Build();
+
+            // then
+            Assert.That(obtained.IsAttributeSet(attribute), Is.True);
+
+            foreach (var unsetAttribute in Enum.GetValues(typeof(ResponseAttribute)).Cast<ResponseAttribute>())
+            {
+                if (attribute == unsetAttribute)
+                {
+                    continue;
+                }
+
+                Assert.That(obtained.IsAttributeSet(unsetAttribute), Is.False);
+            }
+        }
+
+        [Test]
+        public void BuildPropagatesTrafficControlPercentageToInstance()
+        {
+            // given
+            const int trafficControlPercentage = 65;
+            var target = ResponseAttributes.WithJsonDefaults();
+
+            // when
+            var obtained = target.WithTrafficControlPercentage(trafficControlPercentage).Build();
+
+            // then
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+        }
+
+        [Test]
+        public void WithTrafficControlPercentageSetsAttributeOnInstance()
+        {
+            // given
+            const ResponseAttribute attribute = ResponseAttribute.TRAFFIC_CONTROL_PERCENTAGE;
+            var target = ResponseAttributes.WithJsonDefaults();
+
+            // when
+            var obtained = target.WithTrafficControlPercentage(42).Build();
 
             // then
             Assert.That(obtained.IsAttributeSet(attribute), Is.True);
@@ -1121,6 +1161,58 @@ namespace Dynatrace.OpenKit.Protocol
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.IsCaptureErrors, Is.EqualTo(captureErrors));
+        }
+
+        [Test]
+        public void MergeTakesTrafficControlPercentageFromMergeTargetIfNotSetInSource()
+        {
+            // given
+            const int trafficControlPercentage = 73;
+            var source = ResponseAttributes.WithUndefinedDefaults().Build();
+            var target = ResponseAttributes.WithUndefinedDefaults()
+                .WithTrafficControlPercentage(trafficControlPercentage).Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+        }
+
+        [Test]
+        public void MergeTakesTrafficControlPercentageFromMergeSourceIfSetInSource()
+        {
+            // given
+            const int trafficControlPercentage = 73;
+            var source = ResponseAttributes.WithUndefinedDefaults()
+                .WithTrafficControlPercentage(trafficControlPercentage).Build();
+            var target = ResponseAttributes.WithUndefinedDefaults().Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
+        }
+
+        [Test]
+        public void MergeTakesTrafficControlPercentageFromMergeSourceIfSetInSourceAndTarget()
+        {
+            // given
+            const int trafficControlPercentage = 73;
+            var source = ResponseAttributes.WithUndefinedDefaults()
+                .WithTrafficControlPercentage(trafficControlPercentage).Build();
+            var target = ResponseAttributes.WithUndefinedDefaults()
+                .WithTrafficControlPercentage(37).Build();
+
+            // when
+            var obtained = target.Merge(source);
+
+            // then
+            Assert.That(obtained, Is.Not.Null);
+            Assert.That(obtained.TrafficControlPercentage, Is.EqualTo(trafficControlPercentage));
         }
 
         [Test]

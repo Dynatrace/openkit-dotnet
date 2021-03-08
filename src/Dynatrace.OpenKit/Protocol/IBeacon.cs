@@ -79,6 +79,16 @@ namespace Dynatrace.OpenKit.Protocol
         bool IsDataCapturingEnabled { get; }
 
         /// <summary>
+        /// Indicates whether error capturing is currently enabled or not.
+        /// </summary>
+        bool IsErrorCapturingEnabled { get; }
+
+        /// <summary>
+        /// Indicates whether crash capturing is currently enabled or not.
+        /// </summary>
+        bool IsCrashCapturingEnabled { get; }
+
+        /// <summary>
         /// Indicates whether a server configuration is set on this beacon or not.
         /// </summary>
         bool IsServerConfigurationSet { get; }
