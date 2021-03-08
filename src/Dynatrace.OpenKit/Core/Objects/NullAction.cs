@@ -46,6 +46,13 @@ namespace Dynatrace.OpenKit.Core.Objects
             return parentAction;
         }
 
+        public IAction CancelAction()
+        {
+            return parentAction;
+        }
+
+        public TimeSpan Duration => TimeSpan.Zero;
+
         public IAction ReportError(string errorName, int errorCode, string reason)
         {
             return this;

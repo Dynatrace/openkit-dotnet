@@ -440,6 +440,36 @@ namespace Dynatrace.OpenKit.Core.Objects
             Assert.That(((WebRequestTracer)target).ResponseCode, Is.EqualTo(200));
         }
 
+        [Test]
+        public void CancellingAWebRequestLogsInvocation()
+        {
+            // given
+            mockLogger.IsDebugEnabled.Returns(true);
+            var target = CreateWebRequestTracer().Build();
+
+            // when
+            target.Cancel();
+
+            // then
+            var _ = mockLogger.Received(1).IsDebugEnabled;
+            mockLogger.Received(1).Debug($"{target.ToString()} Cancel()");
+        }
+
+        [Test]
+        public void CancellingAWebRequestStopsItWithoutReportingIt()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+            mockBeacon.NextSequenceNumber.Returns(42);
+
+            // when
+            target.Cancel();
+
+            // then
+            Assert.That(target.EndSequenceNo, Is.EqualTo(42));
+            var _ = mockBeacon.Received(2).NextSequenceNumber;
+            mockBeacon.DidNotReceive().AddWebRequest(Arg.Any<int>(), Arg.Any<IWebRequestTracerInternals>());
+        }
 
         private TestWebRequestTracerBuilder CreateWebRequestTracer()
         {

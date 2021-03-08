@@ -263,8 +263,32 @@ To leave an `IAction` simply use the `LeaveAction` method. The method returns th
 if it has no parent.
 
 ```cs
-IAction parentAction = action.LeaveAction(); // returns the appropriate RootAction
+IAction parentAction = action.LeaveAction(); // returns the appropriate IRootAction
 IAction parent = parentAction.LeaveAction(); // will always return null
+```
+
+## Cancelling Actions
+
+Cancelling an `IAction` is similar to leaving an `IAction`, except that the `IAction` will be discarded
+and not reported to Dynatrace. Open child objects, like child actions and web request tracers, will be
+discarded as well.
+To cancel an `IAction` simply use the method `CancelAction` as shown in the example below.
+
+```cs
+IAction parentAction = action.CancelAction(); // returns the appropriate IRootAction
+IAction parent = parentAction.CancelAction(); // will always return null
+```
+
+## Obtaining an Action duration
+
+To get the `IAction` duration use the property `Duration`. The property returns the difference 
+between the end time and start time, if the `IAction` is left or canceled.
+If the `IAction` is still ongoing, the duration is the difference between the current time and start time.
+
+```cs
+TimeSpan duration = action.Duration; // gives current time - action start time
+action.LeaveAction();
+duration = action.Duration; // gives action end time - action start time
 ```
 
 ## Report Named Event

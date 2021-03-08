@@ -198,6 +198,45 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void CancelActionReturnsParentAction()
+        {
+            // given
+            var target = CreateNullAction();
+
+            // when
+            var obtained = target.CancelAction();
+
+            // then
+            Assert.That(obtained, Is.SameAs(mockParent));
+        }
+
+        [Test]
+        public void CancelActionWithNullParent()
+        {
+            // given
+            var target = new NullAction(null);
+
+            // when
+            var obtained = target.CancelAction();
+
+            // then
+            Assert.That(obtained, Is.Null);
+        }
+
+        [Test]
+        public void DurationAlwaysGivesZeroDuration()
+        {
+            // given
+            var target = CreateNullAction();
+
+            // when
+            var obtained = target.Duration;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(TimeSpan.Zero));
+        }
+
+        [Test]
         public void DisposeDoesNothing()
         {
             // given

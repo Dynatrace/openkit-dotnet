@@ -151,9 +151,29 @@ namespace Dynatrace.OpenKit.API
         IWebRequestTracer TraceWebRequest(string url);
 
         /// <summary>
-        ///  Leaves this Action.
+        /// Leaves this <see cref="IAction"/>.
         /// </summary>
-        /// <returns>the parent Action, or null if there is no parent Action</returns>
+        /// <returns>the parent <see cref="IAction"/>, or <c>null</c> if there is no parent <see cref="IAction"/></returns>
         IAction LeaveAction();
+
+        /// <summary>
+        /// Cancels this <see cref="IAction"/>.
+        /// <para>
+        /// Canceling an <see cref="IAction"/> is similar to <see cref="IAction.LeaveAction">leaving an action</see>,
+        /// except that the data and all unfinished child objects are discarded instead of being sent.
+        /// </para>
+        /// </summary>
+        /// <returns>the parent <see cref="IAction"/>, or <c>null</c> if there is no parent <see cref="IAction"/></returns>
+        IAction CancelAction();
+
+        /// <summary>
+        /// Get the <see cref="IAction">action's</see> duration.
+        /// <para>
+        /// The duration of an <see cref="IAction"/> is equal to the <c>current timestamp - start timestamp</c>,
+        /// if the action is still open, or <c>end timestamp - start timestamp</c> if <see cref="IAction.LeaveAction"/>
+        /// or <see cref="IAction.CancelAction"/> was already called.
+        /// </para>
+        /// </summary>
+        TimeSpan Duration { get; }
     }
 }

@@ -4,6 +4,9 @@
 
 ### Added
 - Support cost control configured in the Dynatrace UI.
+- It is possible to get the duration from an `IAction`.
+- An `IAction` can be canceled.  
+  Canceling an `IAction` is similar to leaving it, without reporting it.
 
 ### Changed
 - Provide a more reliable way to determine monotonic timestamps.

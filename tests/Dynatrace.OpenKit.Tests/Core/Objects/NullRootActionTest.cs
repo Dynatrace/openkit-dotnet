@@ -15,6 +15,7 @@
 //
 
 using NUnit.Framework;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -150,6 +151,32 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             Assert.That(obtained, Is.Null);
+        }
+
+        [Test]
+        public void CancelActionReturnsNull()
+        {
+            // given
+            var target = NullRootAction.Instance;
+
+            // when
+            var obtained = target.CancelAction();
+
+            // then
+            Assert.That(obtained, Is.Null);
+        }
+
+        [Test]
+        public void getDurationInMillisecondsReturnsZero()
+        {
+            // given
+            var target = NullRootAction.Instance;
+
+            // when
+            var obtained = target.Duration;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(TimeSpan.Zero));
         }
     }
 }

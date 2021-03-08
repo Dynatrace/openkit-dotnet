@@ -26,7 +26,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// more easily testable.
     /// </para>
     /// </summary>
-    internal interface IWebRequestTracerInternals : IWebRequestTracer, IOpenKitObject
+    internal interface IWebRequestTracerInternals : IWebRequestTracer, ICancelableOpenKitObject
     {
         /// <summary>
         /// Returns the URL to be traced (excluding query arguments)

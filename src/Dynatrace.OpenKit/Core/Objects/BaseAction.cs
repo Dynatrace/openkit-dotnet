@@ -25,7 +25,7 @@ namespace Dynatrace.OpenKit.Core.Objects
     /// <summary>
     ///  Abstract base class implementing the <see cref="IAction"/> interface
     /// </summary>
-    public abstract class BaseAction : OpenKitComposite, IActionInternals
+    public abstract class BaseAction : OpenKitComposite, IActionInternals, ICancelableOpenKitObject
     {
         /// <summary>
         /// Indicates whether this action was already <see cref="LeaveAction">left</see> or not.
@@ -109,7 +109,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// Returns the end sequence number of this <see cref="IAction"/>.
         /// </summary>
         public int EndSequenceNo { get; private set; } = -1;
-
 
         /// <summary>
         /// Indicates if this action was <see cref="LeaveAction">left</see>
@@ -367,6 +366,21 @@ namespace Dynatrace.OpenKit.Core.Objects
                 Logger.Debug($"{this} LeaveAction({Name})");
             }
 
+            return DoLeaveAction(false);
+        }
+
+        public IAction CancelAction()
+        {
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"{this} CancelAction({Name})");
+            }
+
+            return DoLeaveAction(true);
+        }
+
+        private IAction DoLeaveAction(bool discardData)
+        {
             lock (LockObject)
             {
                 if (ThisAction.IsActionLeft)
@@ -376,24 +390,56 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 isActionLeft = true;
-
             }
 
             var childObjects = ThisComposite.GetCopyOfChildObjects();
             foreach (var childObject in childObjects)
             {
-                childObject.Dispose();
+                if (discardData)
+                {
+                    if (childObject is ICancelableOpenKitObject cancelableObject)
+                    {
+                        cancelableObject.Cancel();
+                    }
+                    else
+                    {
+                        Logger.Warn(childObject.ToString() + " is not cancelable - falling back to Dispose() instead");
+                        childObject.Dispose();
+                    }
+                }
+                else
+                {
+                    childObject.Dispose();
+                }
             }
 
             EndTime = Beacon.CurrentTimestamp;
             EndSequenceNo = Beacon.NextSequenceNumber;
 
-            Beacon.AddAction(this);
+            if (!discardData)
+            {
+                Beacon.AddAction(this);
+            }
 
             // detach from parent
             parent.OnChildClosed(this);
 
             return ParentAction;
+        }
+
+        public TimeSpan Duration
+        {
+            get
+            {
+                lock(LockObject)
+                {
+                    var durationInMilliseconds = ThisAction.IsActionLeft
+                        ? EndTime - StartTime
+                        : Beacon.CurrentTimestamp - StartTime;
+
+                    return TimeSpan.FromMilliseconds(durationInMilliseconds);
+                }
+            }
         }
 
         #endregion
@@ -408,6 +454,15 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 ThisComposite.RemoveChildFromList(childObject);
             }
+        }
+
+        #endregion
+
+        #region ICancelableOpenKitObject implementation
+
+        void ICancelableOpenKitObject.Cancel()
+        {
+            CancelAction();
         }
 
         #endregion

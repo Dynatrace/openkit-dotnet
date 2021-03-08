@@ -191,6 +191,11 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} Stop(rc='{responseCode}')");
             }
 
+            DoStop(responseCode, false);
+        }
+
+        private void DoStop(int responseCode, bool discardData)
+        {
             lock (lockObject)
             {
                 if (ThisTracer.IsStopped)
@@ -206,7 +211,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             ResponseCode = responseCode;
 
             // add web request to beacon
-            beacon.AddWebRequest(parentActionId, this);
+            if (!discardData)
+            {
+                beacon.AddWebRequest(parentActionId, this);
+            }
 
             // last but not least notify the parent & detach from parent
             parent.OnChildClosed(this);
@@ -250,6 +258,20 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
 
             return this;
+        }
+
+        #endregion
+
+        #region ICancelableOpenKitObject implementation
+
+        void ICancelableOpenKitObject.Cancel()
+        {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug(this + " Cancel()");
+            }
+
+            DoStop(ResponseCode, true);
         }
 
         #endregion

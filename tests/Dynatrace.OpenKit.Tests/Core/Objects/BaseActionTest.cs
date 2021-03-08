@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Util;
@@ -1161,6 +1162,239 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(((BaseAction)target).EndSequenceNo, Is.EqualTo(sequenceNumber));
             Assert.That(((BaseAction)target).EndTime, Is.EqualTo(endTime));
+        }
+
+        [Test]
+        public void AfterCancelingAnActionItIsLeft()
+        {
+            // given
+            IActionInternals target = CreateStubAction();
+
+            // when
+            target.CancelAction();
+
+            // then
+            Assert.That(target.IsActionLeft, Is.True);
+        }
+
+        [Test]
+        public void CancelingAnActionSetsTheEndTime()
+        {
+            // given
+            mockBeacon.CurrentTimestamp.Returns(1234L, 5678L, 9012L);
+
+            var target = CreateStubAction();
+
+            // when
+            target.CancelAction();
+
+            // then
+            Assert.That(target.EndTime, Is.EqualTo(5678L));
+            var _ = mockBeacon.Received(2).CurrentTimestamp;
+        }
+        
+        [Test]
+        public void CancelingAnActionSetsTheEndSequenceNumber()
+        {
+            // given
+            mockBeacon.NextSequenceNumber.Returns(1, 10, 20);
+
+            var target = CreateStubAction();
+
+            // when
+            target.CancelAction();
+
+            // then
+            Assert.That(target.EndSequenceNo, Is.EqualTo(10));
+            var _ = mockBeacon.Received(2).NextSequenceNumber;
+        }
+        
+        [Test]
+        public void CancelingAnActionDoesNotSerializeItself()
+        {
+            // given
+            var target = CreateStubAction();
+
+            // when
+            target.CancelAction();
+
+            // then
+            mockBeacon.DidNotReceive().AddAction(Arg.Any<IActionInternals>());
+        }
+        
+        [Test]
+        public void CancelingAnActionCancelsAllChildObjects()
+        {
+            // given
+            var childObjectOne = Substitute.For<ICancelableOpenKitObject>();
+            var childObjectTwo = Substitute.For<ICancelableOpenKitObject>();
+
+            var target = CreateStubAction();
+            IOpenKitComposite targetComposite = target;
+            targetComposite.StoreChildInList(childObjectOne);
+            targetComposite.StoreChildInList(childObjectTwo);
+
+            // when
+            target.CancelAction();
+
+            // then
+            childObjectOne.Received(1).Cancel();
+            childObjectTwo.Received(1).Cancel();
+        }
+        
+        [Test]
+        public void CancelingAnActionClosesAllChildObjectsThatAreNotCancelable()
+        {
+            // given
+            var childObjectOne = Substitute.For<IOpenKitObject>();
+            var childObjectTwo = Substitute.For<IOpenKitObject>();
+
+            var target = CreateStubAction();
+            IOpenKitComposite targetComposite = target;
+            targetComposite.StoreChildInList(childObjectOne);
+            targetComposite.StoreChildInList(childObjectTwo);
+
+            // when
+            target.CancelAction();
+
+            // then
+            mockLogger.Received(1).Warn($"{childObjectOne} is not cancelable - falling back to Dispose() instead");
+            childObjectOne.Received(1).Dispose();
+
+            mockLogger.Received(1).Warn($"{childObjectTwo} is not cancelable - falling back to Dispose() instead");
+            childObjectTwo.Received(1).Dispose();
+        }
+        
+        [Test]
+        public void CancelingAnActionNotifiesTheParentCompositeObject()
+        {
+            // given
+            var target = CreateStubAction();
+            parentComposite.ClearReceivedCalls();
+
+            // when
+            target.CancelAction();
+
+            // then
+            Assert.That(parentComposite.ReceivedCalls().Count(), Is.EqualTo(1));
+            parentComposite.Received(1).OnChildClosed(target);
+        }
+
+        [Test]
+        public void CancelingAnActionReturnsTheParentAction()
+        {
+            // given
+            var parentAction = Substitute.For<IAction>();
+            var target = CreateStubAction(parentAction: parentAction);
+
+            // when
+            var obtained = target.CancelAction();
+
+            // then
+            Assert.That(obtained, Is.SameAs(parentAction));
+        }
+        
+        [Test]
+        public void CancelingAnAlreadyCanceledActionReturnsTheParentAction()
+        {
+            // given
+            var parentAction = Substitute.For<IAction>();
+            var target = CreateStubAction(parentAction: parentAction);
+            target.CancelAction(); // cancelling the first time
+
+            // when leaving a second time
+            var obtained = target.CancelAction();
+
+            // then
+            Assert.That(obtained, Is.SameAs(parentAction));
+        }
+        
+        [Test]
+        public void CancelingAnAlreadyCancelledActionReturnsImmediately()
+        {
+            // given
+            var target = CreateStubAction();
+            target.CancelAction(); // cancelling the first time
+            parentComposite.ClearReceivedCalls();
+
+            // when
+            target.CancelAction();
+
+            // then
+            Assert.That(parentComposite.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void CancelingActionLogsInvocation()
+        {
+            // given
+            mockLogger.IsDebugEnabled.Returns(true);
+
+            var target = CreateStubAction();
+
+            // when
+            target.CancelAction();
+
+            // then
+            var _ = mockLogger.Received(1).IsDebugEnabled;
+            mockLogger.Received(1).Debug($"{target} CancelAction({ActionName})");
+        }
+
+        [Test]
+        public void CancelCancelsTheAction()
+        {
+            // given
+            mockBeacon.CurrentTimestamp.Returns(1234L);
+            mockBeacon.NextSequenceNumber.Returns(42);
+
+            var target = CreateStubAction();
+            ICancelableOpenKitObject cancelableTarget = target;
+
+            // when
+            cancelableTarget.Cancel();
+
+            // then
+            Assert.That(target.EndTime, Is.EqualTo(1234L));
+            Assert.That(target.EndSequenceNo, Is.EqualTo(42));
+
+            mockBeacon.DidNotReceiveWithAnyArgs().AddAction(Arg.Any<IActionInternals>());
+            var _1 = mockBeacon.Received(2).CurrentTimestamp;
+            var _2 = mockBeacon.Received(2).NextSequenceNumber;
+        }
+
+        [Test]
+        public void DurationGivesDurationSinceStartIfActionIsNotLeft()
+        {
+            // given
+            mockBeacon.CurrentTimestamp.Returns(12L, 42L);
+            var target = CreateStubAction();
+
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.Duration;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(TimeSpan.FromMilliseconds(30)));
+            var _ = mockBeacon.Received(1).CurrentTimestamp;
+        }
+
+        [Test]
+        public void getDurationInMillisecondsGivesDurationBetweenEndAndStartTimeIfActionIsLeft()
+        {
+            // given
+            mockBeacon.CurrentTimestamp.Returns(12L, 42L);
+            var target = CreateStubAction();
+            target.LeaveAction();
+
+            mockBeacon.ClearReceivedCalls();
+
+            // when
+            var obtained = target.Duration;
+
+            // then
+            Assert.That(obtained, Is.EqualTo(TimeSpan.FromMilliseconds(30)));
+            Assert.That(mockBeacon.ReceivedCalls, Is.Empty);
         }
 
         private StubBaseAction CreateStubAction(string name = ActionName, IAction parentAction = null)
