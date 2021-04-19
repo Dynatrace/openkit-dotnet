@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -95,6 +96,42 @@ namespace Dynatrace.OpenKit.Core.Configuration
         }
 
         [Test]
+        public void InstanceFromOpenKitConfigTakesOverHttpRequestInterceptor()
+        {
+            // given
+            var httpRequestInterceptor = Substitute.For<IHttpRequestInterceptor>();
+            var openKitConfig = Substitute.For<IOpenKitConfiguration>();
+            openKitConfig.HttpRequestInterceptor.Returns(httpRequestInterceptor);
+
+            var target = HttpClientConfiguration.From(openKitConfig);
+
+            // when
+            var obtained = target.HttpRequestInterceptor;
+
+            // then
+            _ = openKitConfig.Received(1).HttpRequestInterceptor;
+            Assert.That(obtained, Is.SameAs(httpRequestInterceptor));
+        }
+
+        [Test]
+        public void ÌnstanceFromOpenKitConfigTakesOverHttpResponseInterceptor()
+        {
+            // given
+            var httpResponseInterceptor = Substitute.For<IHttpResponseInterceptor>();
+            var openKitConfig = Substitute.For<IOpenKitConfiguration>();
+            openKitConfig.HttpResponseInterceptor.Returns(httpResponseInterceptor);
+            
+            var target = HttpClientConfiguration.From(openKitConfig);
+
+            // when
+            var obtained = target.HttpResponseInterceptor;
+
+            // then
+            _ = openKitConfig.Received(1).HttpResponseInterceptor;
+            Assert.That(obtained, Is.SameAs(httpResponseInterceptor));
+        }
+
+        [Test]
         public void BuilderFromHttpClientConfigTakesOverBaseUrl()
         {
             // given
@@ -154,8 +191,40 @@ namespace Dynatrace.OpenKit.Core.Configuration
             var target = HttpClientConfiguration.ModifyWith(httpConfig).Build();
 
             // then
-            _ = httpConfig.ServerId;
+            _ = httpConfig.Received(1).ServerId;
             Assert.That(target.ServerId, Is.EqualTo(serverId));
+        }
+
+        [Test]
+        public void BuilderFromHttpClientConfigTakesHttpRequestInterceptor()
+        {
+            // given
+            var httpRequestInterceptor = Substitute.For<IHttpRequestInterceptor>();
+            var httpConfig = Substitute.For<IHttpClientConfiguration>();
+            httpConfig.HttpRequestInterceptor.Returns(httpRequestInterceptor);
+
+            // when
+            var target = HttpClientConfiguration.ModifyWith(httpConfig).Build();
+
+            // then
+            _ = httpConfig.Received(1).HttpRequestInterceptor;
+            Assert.That(target.HttpRequestInterceptor, Is.SameAs(httpRequestInterceptor));
+        }
+
+        [Test]
+        public void BuilderFromHttpClientConfigTakesHttpResponseInterceptor()
+        {
+            // given
+            var httpResponseInterceptor = Substitute.For<IHttpResponseInterceptor>();
+            var httpConfig = Substitute.For<IHttpClientConfiguration>();
+            httpConfig.HttpResponseInterceptor.Returns(httpResponseInterceptor);
+
+            // when
+            var target = HttpClientConfiguration.ModifyWith(httpConfig).Build();
+
+            // then
+            _ = httpConfig.Received(1).HttpResponseInterceptor;
+            Assert.That(target.HttpResponseInterceptor, Is.SameAs(httpResponseInterceptor));
         }
 
         [Test]
@@ -228,6 +297,36 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // then
             Assert.That(obtained.ServerId, Is.EqualTo(serverId));
+        }
+
+        [Test]
+        public void BuilderWithHttpRequestInterceptorPropagatesToInstance()
+        {
+            // given
+            var httpRequestInterceptor = Substitute.For<IHttpRequestInterceptor>();
+            var target = new HttpClientConfiguration.Builder()
+                .WithHttpRequestInterceptor(httpRequestInterceptor);
+
+            // when
+            var obtained = target.Build();
+
+            // then
+            Assert.That(obtained.HttpRequestInterceptor, Is.SameAs(httpRequestInterceptor));
+        }
+
+        [Test]
+        public void BuilderWithHttpResponseInterceptorPropagatesToInstance()
+        {
+            // given
+            var httpResponseInterceptor = Substitute.For<IHttpResponseInterceptor>();
+            var target = new HttpClientConfiguration.Builder()
+                .WithHttpResponseInterceptor(httpResponseInterceptor);
+
+            // when
+            var obtained = target.Build();
+
+            // then
+            Assert.That(obtained.HttpResponseInterceptor, Is.SameAs(httpResponseInterceptor));
         }
     }
 }

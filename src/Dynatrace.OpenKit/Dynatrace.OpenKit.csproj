@@ -137,8 +137,8 @@
     <TargetPlatformVersion Condition="'$(TargetPlatformVersion)' == ''">10.0.16299.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
-    <TargetFrameworkIdentifier>.NETCore</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkIdentifier>.NETStandard</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v1.5</TargetFrameworkVersion>
     <DefineConstants>NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <Description>Dynatrace OpenKit SDK for Universal Windows Platform</Description>
   </PropertyGroup>

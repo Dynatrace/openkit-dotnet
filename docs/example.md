@@ -78,6 +78,8 @@ customize OpenKit. This includes device specific information like operating syst
 | `EnableVerbose`  | *Deprecated*, use `WithLogLevel` instead.<br>Enables extended log output for OpenKit if the default logger is used. | `false` |
 | `WithLogLevel` | sets the log level if the default logger is used | `LogLevel.WARN` |
 | `WithLogger` | sets a custom logger, replacing the builtin default one.<br>Details are described in section [Logging](#logging). | `DefaultLogger` |
+| `WithHttpRequestInterceptor` | sets a custom `IHttpRequestInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace/AppMon](#intercepting-http-traffic-to-dynatraceappmon). | `NullHttpRequestInterceptor` |
+| `WithHttpResponseInterceptor` | sets a custom `IHttpResponseInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace/AppMon](#intercepting-http-traffic-to-dynatraceappmon). | `NullHttpResponseInterceptor` |
 
 
 ## SSL/TLS Security in OpenKit
@@ -92,6 +94,18 @@ man-in-the-middle attacks.
 
 Keep in mind on .NET 3.5 and 4.0 server certificate validation can only be overwritten on global level via
 the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request basis.  
+
+## Intercepting HTTP traffic to Dynatrace/AppMon
+
+When routing traffic through own network infrastructure it might be necessary  to intercept HTTP traffic
+to Dynatrace/AppMon and add or overwrite HTTP headers. This can be achieved by implementing the 
+`IHttpRequestInterceptor` interface and passing an instance to the builder by calling 
+the `WithHttpRequestInterceptor` method. OpenKit invokes the `IHttpRequestInterceptor.Intercept(IHttpRequest)` 
+method for each request sent to Dynatrace/AppMon.  
+It might be required to intercept the HTTP response and read custom response headers. This
+can be achieved by implementing the `IHttpResponseInterceptor` interface and passing an instance to the builder
+by calling `WithHttpResponseInterceptor`. OpenKit calls the `IHttpResponseInterceptor.Intercept(IHttpResponse)`
+for each HTTP response received from the backend.
 
 ## Logging
 
@@ -267,9 +281,9 @@ IAction parentAction = action.LeaveAction(); // returns the appropriate IRootAct
 IAction parent = parentAction.LeaveAction(); // will always return null
 ```
 
-## Cancelling Actions
+## Canceling Actions
 
-Cancelling an `IAction` is similar to leaving an `IAction`, except that the `IAction` will be discarded
+Canceling an `IAction` is similar to leaving an `IAction`, except that the `IAction` will be discarded
 and not reported to Dynatrace. Open child objects, like child actions and web request tracers, will be
 discarded as well.
 To cancel an `IAction` simply use the method `CancelAction` as shown in the example below.

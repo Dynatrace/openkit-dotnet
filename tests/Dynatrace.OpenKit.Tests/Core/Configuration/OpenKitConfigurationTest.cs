@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -205,6 +206,36 @@ namespace Dynatrace.OpenKit.Core.Configuration
             // then
             Assert.That(target.TrustManager, Is.SameAs(trustManager));
             _ = mockOpenKitBuilder.Received(1).TrustManager;
+        }
+
+        [Test]
+        public void CreatingAnOpenKitConfigurationFromBuilderCopiesHttpRequestInterceptor()
+        {
+            // given
+            var requestInterceptor = Substitute.For<IHttpRequestInterceptor>();
+            mockOpenKitBuilder.HttpRequestInterceptor.Returns(requestInterceptor);
+
+            // when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(target.HttpRequestInterceptor, Is.SameAs(requestInterceptor));
+            _ = mockOpenKitBuilder.Received(1).HttpRequestInterceptor;
+        }
+
+        [Test]
+        public void CreatingAnOpenKitConfigurationFromBuilderCopiesHttpResponseInterceptor()
+        {
+            // given
+            var responseInterceptor = Substitute.For<IHttpResponseInterceptor>();
+            mockOpenKitBuilder.HttpResponseInterceptor.Returns(responseInterceptor);
+
+            // when
+            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
+
+            // then
+            Assert.That(target.HttpResponseInterceptor, Is.SameAs(responseInterceptor));
+            _ = mockOpenKitBuilder.Received(1).HttpResponseInterceptor;
         }
     }
 }

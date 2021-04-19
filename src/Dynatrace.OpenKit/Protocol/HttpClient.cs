@@ -88,14 +88,16 @@ namespace Dynatrace.OpenKit.Protocol
         {
             this.logger = logger;
             this.threadSuspender = threadSuspender;
-            ServerId = configuration.ServerId;
+            HttpClientConfiguration = configuration;
             monitorUrl = BuildMonitorUrl(configuration.BaseUrl, configuration.ApplicationId, ServerId);
             newSessionUrl = BuildNewSessionUrl(configuration.BaseUrl, configuration.ApplicationId, ServerId);
         }
 
         #endregion
 
-        public int ServerId { get; }
+        protected IHttpClientConfiguration HttpClientConfiguration { get; }
+
+        public int ServerId => HttpClientConfiguration.ServerId;
 
         // sends a status check request and returns a status response
         public IStatusResponse SendStatusRequest(IAdditionalQueryParameters additionalParameters)

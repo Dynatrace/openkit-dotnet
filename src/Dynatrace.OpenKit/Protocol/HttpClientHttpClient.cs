@@ -16,10 +16,16 @@
 
 #if (!NET40 && !NET35)
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.Protocol.HTTP;
 using Dynatrace.OpenKit.Util;
 
 namespace Dynatrace.OpenKit.Protocol
@@ -38,53 +44,66 @@ namespace Dynatrace.OpenKit.Protocol
 
         protected override HttpResponse GetRequest(string url, string clientIpAddress)
         {
-            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIpAddress))
+            using (var message = CreateRequestMessage(HttpMethod.Get, url, clientIpAddress))
             {
-                var responseTask = httpClient.GetAsync(url);
-                responseTask.Wait();
-
-                return CreateHttpResponse(responseTask.Result);
+                return CreateHttpResponse(SendRequest(message));
             }
         }
 
         protected override HttpResponse PostRequest(string url, string clientIpAddress, byte[] gzippedPayload)
         {
-            using (System.Net.Http.HttpClient httpClient = CreateHttpClient(clientIpAddress))
+            using (var message = CreateRequestMessage(HttpMethod.Post, url, clientIpAddress))
             {
-                var content = CreatePostContent(gzippedPayload);
-                var responseTask = httpClient.PostAsync(url, content);
-                responseTask.Wait();
-
-                return CreateHttpResponse(responseTask.Result);
+                message.Content = CreatePostContent(gzippedPayload);
+                return CreateHttpResponse(SendRequest(message));
             }
         }
 
-        private System.Net.Http.HttpClient CreateHttpClient(string clientIpAddress)
+        private HttpRequestMessage CreateRequestMessage(HttpMethod httpMethod, string url, string clientIpAddress)
         {
-            // The implementation of CreateHttpClient varies based on the .NET technology
-            var httpClient = CreateHttpClient();
-
+            var requestMessage = new HttpRequestMessage(httpMethod, url);
             if (clientIpAddress != null)
             {
-                httpClient.DefaultRequestHeaders.Add("X-Client-IP", clientIpAddress);
+                requestMessage.Headers.Add("X-Client-IP", clientIpAddress);
             }
 
-            return httpClient;
+            return requestMessage;
         }
 
-        private static System.Net.Http.ByteArrayContent CreatePostContent(byte[] gzippedPayload)
+        private HttpResponseMessage SendRequest(HttpRequestMessage httpRequestMessage)
+        {
+            // intercept request
+            HttpClientConfiguration.HttpRequestInterceptor.Intercept(new HttpRequestMessageAdapter(httpRequestMessage));
+
+            HttpResponseMessage httpResponseMessage;
+
+            using (var httpClient = CreateHttpClient())
+            {
+                var responseTask = httpClient.SendAsync(httpRequestMessage);
+                responseTask.Wait();
+
+                httpResponseMessage = responseTask.Result;
+            }
+
+            // intercept response
+            HttpClientConfiguration.HttpResponseInterceptor.Intercept(new HttpResponseMessageAdapter(httpResponseMessage));
+
+            return httpResponseMessage;
+        }
+
+        private static ByteArrayContent CreatePostContent(byte[] gzippedPayload)
         {
             if (gzippedPayload == null || gzippedPayload.Length == 0)
-                return new System.Net.Http.ByteArrayContent(new byte[] { });
+                return new ByteArrayContent(new byte[] { });
 
-            var content = new System.Net.Http.ByteArrayContent(gzippedPayload);
+            var content = new ByteArrayContent(gzippedPayload);
             content.Headers.Add("Content-Encoding", "gzip");
             content.Headers.Add("Content-Length", gzippedPayload.Length.ToInvariantString());
 
             return content;
         }
 
-        private static HttpResponse CreateHttpResponse(System.Net.Http.HttpResponseMessage result)
+        private static HttpResponse CreateHttpResponse(HttpResponseMessage result)
         {
             System.Threading.Tasks.Task<string> httpResponseContentTask = result.Content.ReadAsStringAsync();
             httpResponseContentTask.Wait();
@@ -100,7 +119,7 @@ namespace Dynatrace.OpenKit.Protocol
             };
         }
 
-        #region CreateHttpClient implementations
+#region CreateHttpClient implementations
 
 #if WINDOWS_UWP || NETSTANDARD1_1
 
@@ -129,7 +148,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         private System.Net.Http.HttpClient CreateHttpClient()
         {
-            var webRequestHandler = new System.Net.Http.WebRequestHandler();
+            var webRequestHandler = new WebRequestHandler();
             webRequestHandler.ServerCertificateValidationCallback += configuration.SslTrustManager.ServerCertificateValidationCallback;
             return new System.Net.Http.HttpClient(webRequestHandler, true);
         }
@@ -138,7 +157,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         private System.Net.Http.HttpClient CreateHttpClient()
         {
-            var httpClientHandler = new System.Net.Http.HttpClientHandler
+            var httpClientHandler = new HttpClientHandler
             {
                 ServerCertificateCustomValidationCallback = configuration.SslTrustManager.ServerCertificateValidationCallback.Invoke
             };
@@ -147,8 +166,69 @@ namespace Dynatrace.OpenKit.Protocol
 
 #endif
 
-        #endregion
+#endregion
 
+        private class HttpRequestMessageAdapter : IHttpRequest
+        {
+            private readonly HttpRequestMessage httpRequestMessage;
+
+            internal HttpRequestMessageAdapter(HttpRequestMessage httpRequestMessage)
+            {
+                this.httpRequestMessage = httpRequestMessage;
+            }
+
+            public Uri Uri => httpRequestMessage.RequestUri;
+
+            public string Method => httpRequestMessage.Method.ToString();
+
+            public Dictionary<string, List<string>> Headers => httpRequestMessage.Headers.ToDictionary(entry => entry.Key, entry => entry.Value.ToList(), StringComparer.OrdinalIgnoreCase);
+
+            public bool ExistsHeader(string name) => httpRequestMessage.Headers.Contains(name);
+
+            public List<string> GetHeader(string name) => httpRequestMessage.Headers.GetValues(name).ToList();
+
+            public void AddHeader(string name, string value)
+            {
+                if (string.IsNullOrEmpty(name) || RestrictedRequestHeaders.IsHeaderRestricted(name))
+                {
+                    return;
+                }
+
+                httpRequestMessage.Headers.Add(name, value);
+            }
+
+            public void RemoveHeader(string name)
+            {
+                if (string.IsNullOrEmpty(name) || RestrictedRequestHeaders.IsHeaderRestricted(name))
+                {
+                    return;
+                }
+
+                httpRequestMessage.Headers.Remove(name);
+            }
+        }
+
+        private class HttpResponseMessageAdapter : IHttpResponse
+        {
+            private readonly HttpResponseMessage httpResponseMessage;
+
+            internal HttpResponseMessageAdapter(HttpResponseMessage httpResponseMessage)
+            {
+                this.httpResponseMessage = httpResponseMessage;
+            }
+
+            public Uri RequestUri => httpResponseMessage.RequestMessage.RequestUri;
+
+            public string RequestMethod => httpResponseMessage.RequestMessage.Method.ToString();
+
+            public HttpStatusCode HttpStatusCode => httpResponseMessage.StatusCode;
+
+            public string ResponseMessage => httpResponseMessage.ReasonPhrase;
+
+            public Dictionary<string, List<string>> Headers => httpResponseMessage.Headers.ToDictionary(entry => entry.Key, entry => entry.Value.ToList());
+
+            public List<string> GetHeader(string name) => httpResponseMessage.Headers.GetValues(name).ToList();
+        }
     }
 }
 #endif

@@ -7,6 +7,7 @@
 - It is possible to get the duration from an `IAction`.
 - An `IAction` can be canceled.  
   Canceling an `IAction` is similar to leaving it, without reporting it.
+- Requests to Dynatrace can be intercepted to add custom HTTP headers.
 
 ### Changed
 - Provide a more reliable way to determine monotonic timestamps.

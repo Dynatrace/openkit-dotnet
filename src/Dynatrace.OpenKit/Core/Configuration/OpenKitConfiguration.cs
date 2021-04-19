@@ -16,6 +16,7 @@
 
 using System.Text;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 using Dynatrace.OpenKit.Core.Util;
 
 namespace Dynatrace.OpenKit.Core.Configuration
@@ -52,6 +53,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             ModelId = builder.ModelId;
             DefaultServerId = builder.DefaultServerId;
             TrustManager = builder.TrustManager;
+            HttpRequestInterceptor = builder.HttpRequestInterceptor;
+            HttpResponseInterceptor = builder.HttpResponseInterceptor;
         }
 
         /// <summary>
@@ -141,6 +144,16 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// Returns the <see cref="ISSLTrustManager"/>
         /// </summary>
         public ISSLTrustManager TrustManager { get; }
+        
+        /// <summary>
+        /// Returns the <see cref="IHttpRequestInterceptor"/>
+        /// </summary>
+        public IHttpRequestInterceptor HttpRequestInterceptor { get; }
+
+        /// <summary>
+        /// Returns the <see cref="IHttpResponseInterceptor"/>
+        /// </summary>
+        public IHttpResponseInterceptor HttpResponseInterceptor { get; }
 
         #endregion
     }

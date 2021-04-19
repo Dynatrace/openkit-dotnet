@@ -15,9 +15,11 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.Protocol.HTTP;
 using Dynatrace.OpenKit.Protocol.SSL;
 using NSubstitute;
 using NUnit.Framework;
@@ -569,6 +571,90 @@ namespace Dynatrace.OpenKit
 
             // then
             Assert.That(obtained, Is.EqualTo(CrashReportingLevel.OPT_OUT_CRASHES));
+        }
+
+        [Test]
+        public void HttpRequestInterceptorGivesNullHttpRequestInterceptorByDefault()
+        {
+            // given
+            var target = new StubOpenKitBuilder(EndpointUrl, DeviceId);
+
+            // when
+            var obtained = target.HttpRequestInterceptor;
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullHttpRequestInterceptor>());
+        }
+
+        [Test]
+        public void HttpRequestInterceptorGivesPreviouslySetHttpRequestInterceptor()
+        {
+            // given
+            var httpRequestInterceptor = Substitute.For<IHttpRequestInterceptor>();
+            var target = new StubOpenKitBuilder(EndpointUrl, DeviceId);
+
+            // when
+            target.WithHttpRequestInterceptor(httpRequestInterceptor);
+            var obtained = target.HttpRequestInterceptor;
+
+            // then
+            Assert.That(obtained, Is.SameAs(httpRequestInterceptor));
+        }
+
+        [Test]
+        public void HttpRequestInterceptorCannotBeChangedToNull()
+        {
+            // given
+            var target = new StubOpenKitBuilder(EndpointUrl, DeviceId);
+
+            // when
+            target.WithHttpRequestInterceptor(null);
+            var obtained = target.HttpRequestInterceptor;
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullHttpRequestInterceptor>());
+        }
+
+        [Test]
+        public void HttpResponseInterceptorGivesNullHttpResponseInterceptorByDefault()
+        {
+            // given
+            var target = new StubOpenKitBuilder(EndpointUrl, DeviceId);
+
+            // when
+            var obtained = target.HttpResponseInterceptor;
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullHttpResponseInterceptor>());
+        }
+
+        [Test]
+        public void HttpResponseInterceptorGivesPreviouslySetHttpResponseInterceptor()
+        {
+            // given
+            var httpResponseInterceptor = Substitute.For<IHttpResponseInterceptor>();
+            var target = new StubOpenKitBuilder(EndpointUrl, DeviceId);
+
+            // when
+            target.WithHttpResponseInterceptor(httpResponseInterceptor);
+            var obtained = target.HttpResponseInterceptor;
+
+            // then
+            Assert.That(obtained, Is.SameAs(httpResponseInterceptor));
+        }
+
+        [Test]
+        public void HttpResponseInterceptorCannotBeChangedToNull()
+        {
+            // given
+            var target = new StubOpenKitBuilder(EndpointUrl, DeviceId);
+
+            // when
+            target.WithHttpResponseInterceptor(null);
+            var obtained = target.HttpResponseInterceptor;
+
+            // then
+            Assert.That(obtained, Is.Not.Null.And.InstanceOf<NullHttpResponseInterceptor>());
         }
 
         private sealed class StubOpenKitBuilder : AbstractOpenKitBuilder

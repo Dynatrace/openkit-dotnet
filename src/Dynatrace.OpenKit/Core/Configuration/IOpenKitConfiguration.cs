@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -93,5 +94,15 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// Returns the <see cref="ISSLTrustManager"/>
         /// </summary>
         ISSLTrustManager TrustManager { get; }
+
+        /// <summary>
+        /// Returns the <see cref="IHttpRequestInterceptor"/>
+        /// </summary>
+        IHttpRequestInterceptor HttpRequestInterceptor { get; }
+
+        /// <summary>
+        /// Returns the <see cref="IHttpResponseInterceptor"/>
+        /// </summary>
+        IHttpResponseInterceptor HttpResponseInterceptor { get; }
     }
 }

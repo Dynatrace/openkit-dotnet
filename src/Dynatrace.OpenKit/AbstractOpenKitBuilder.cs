@@ -17,10 +17,12 @@
 using System;
 using System.Globalization;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 using Dynatrace.OpenKit.Core;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
+using Dynatrace.OpenKit.Protocol.HTTP;
 using Dynatrace.OpenKit.Protocol.SSL;
 
 namespace Dynatrace.OpenKit
@@ -282,6 +284,34 @@ namespace Dynatrace.OpenKit
         }
 
         /// <summary>
+        /// Sets a custom <see cref="IHttpRequestInterceptor"/>
+        /// </summary>
+        /// <param name="httpRequestInterceptor">Interceptor for intercepting requests to Dynatrace/AppMon backends.</param>
+        /// <returns><code>this</code></returns>
+        public AbstractOpenKitBuilder WithHttpRequestInterceptor(IHttpRequestInterceptor httpRequestInterceptor)
+        {
+            if (httpRequestInterceptor != null)
+            {
+                HttpRequestInterceptor = httpRequestInterceptor;
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Sets a custom <see cref="IHttpResponseInterceptor"/>
+        /// </summary>
+        /// <param name="httpResponseInterceptor">Interceptor for intercepting responses received from Dynatrace/AppMon backends.</param>
+        /// <returns><code>this</code></returns>
+        public AbstractOpenKitBuilder WithHttpResponseInterceptor(IHttpResponseInterceptor httpResponseInterceptor)
+        {
+            if (httpResponseInterceptor != null)
+            {
+                HttpResponseInterceptor = httpResponseInterceptor;
+            }
+            return this;
+        }
+
+        /// <summary>
         /// Builds a new <code>IOpenKit</code> instance
         /// </summary>
         /// <returns></returns>
@@ -463,6 +493,12 @@ namespace Dynatrace.OpenKit
         /// </summary>
         public CrashReportingLevel CrashReportingLevel { get; private set; } =
             ConfigurationDefaults.DefaultCrashReportingLevel;
+
+        public IHttpRequestInterceptor HttpRequestInterceptor { get; private set; } =
+            NullHttpRequestInterceptor.Instance;
+
+        public IHttpResponseInterceptor HttpResponseInterceptor { get; private set; } =
+            NullHttpResponseInterceptor.Instance;
 
         /// <summary>
         /// Returns the log level that has been set with <see cref="WithLogLevel"/>.

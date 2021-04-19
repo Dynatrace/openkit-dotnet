@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 
 namespace Dynatrace.OpenKit.Core.Configuration
 {
@@ -29,6 +30,8 @@ namespace Dynatrace.OpenKit.Core.Configuration
             ServerId = builder.ServerId;
             ApplicationId = builder.ApplicationId;
             SslTrustManager = builder.TrustManager;
+            HttpRequestInterceptor = builder.HttpRequestInterceptor;
+            HttpResponseInterceptor = builder.HttpResponseInterceptor;
         }
 
         /// <summary>
@@ -56,7 +59,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 .WithBaseUrl(openKitConfig.EndpointUrl)
                 .WithApplicationId(openKitConfig.ApplicationId)
                 .WithTrustManager(openKitConfig.TrustManager)
-                .WithServerId(openKitConfig.DefaultServerId);
+                .WithServerId(openKitConfig.DefaultServerId)
+                .WithHttpRequestInterceptor(openKitConfig.HttpRequestInterceptor)
+                .WithHttpResponseInterceptor(openKitConfig.HttpResponseInterceptor);
         }
 
         internal static Builder ModifyWith(IHttpClientConfiguration httpClientConfig)
@@ -65,7 +70,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
                 .WithBaseUrl(httpClientConfig.BaseUrl)
                 .WithApplicationId(httpClientConfig.ApplicationId)
                 .WithTrustManager(httpClientConfig.SslTrustManager)
-                .WithServerId(httpClientConfig.ServerId);
+                .WithServerId(httpClientConfig.ServerId)
+                .WithHttpRequestInterceptor(httpClientConfig.HttpRequestInterceptor)
+                .WithHttpResponseInterceptor(httpClientConfig.HttpResponseInterceptor);
         }
 
         /// <summary>
@@ -85,12 +92,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
         public ISSLTrustManager SslTrustManager { get; }
 
+        public IHttpRequestInterceptor HttpRequestInterceptor { get; }
+
+        public IHttpResponseInterceptor HttpResponseInterceptor { get; }
+
         public class Builder
         {
             public string BaseUrl { get; private set; }
             public int ServerId { get; private set; } = -1;
             public string ApplicationId { get; private set; }
             public ISSLTrustManager TrustManager { get; private set; }
+            public IHttpRequestInterceptor HttpRequestInterceptor { get; private set; }
+            public IHttpResponseInterceptor HttpResponseInterceptor { get; private set; }
 
             public Builder WithBaseUrl(string baseUrl)
             {
@@ -113,6 +126,18 @@ namespace Dynatrace.OpenKit.Core.Configuration
             public Builder WithTrustManager(ISSLTrustManager trustManager)
             {
                 TrustManager = trustManager;
+                return this;
+            }
+
+            public Builder WithHttpRequestInterceptor(IHttpRequestInterceptor httpRequestInterceptor)
+            {
+                HttpRequestInterceptor = httpRequestInterceptor;
+                return this;
+            }
+
+            public Builder WithHttpResponseInterceptor(IHttpResponseInterceptor httpResponseInterceptor)
+            {
+                HttpResponseInterceptor = httpResponseInterceptor;
                 return this;
             }
 

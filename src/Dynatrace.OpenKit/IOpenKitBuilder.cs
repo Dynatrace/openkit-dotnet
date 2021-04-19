@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.API.HTTP;
 
 namespace Dynatrace.OpenKit
 {
@@ -55,7 +56,7 @@ namespace Dynatrace.OpenKit
         int DefaultServerId { get; }
 
         /// <summary>
-        /// Returns the application version that has been set with <see cref="WithApplicationVersion"/>.
+        /// Returns the application version that has been set with <see cref="AbstractOpenKitBuilder.WithApplicationVersion(string)"/>.
         ///
         /// <para>
         ///     If no version was set, the <see cref="OpenKitConstants.DefaultApplicationVersion">default version</see>
@@ -65,7 +66,7 @@ namespace Dynatrace.OpenKit
         string ApplicationVersion { get; }
 
         /// <summary>
-        /// Returns the operating system that has been set with <see cref="WithOperatingSystem"/>.
+        /// Returns the operating system that has been set with <see cref="AbstractOpenKitBuilder.WithOperatingSystem(string)"/>.
         ///
         /// <para>
         ///     If no operating system was set, the <see cref="OpenKitConstants.DefaultOperatingSystem">default
@@ -75,7 +76,7 @@ namespace Dynatrace.OpenKit
         string OperatingSystem { get; }
 
         /// <summary>
-        /// Returns the manufacturer that has been set with <see cref="WithManufacturer"/>.
+        /// Returns the manufacturer that has been set with <see cref="AbstractOpenKitBuilder.WithManufacturer(string)"/>.
         ///
         /// <para>
         ///     If no manufacturer was set, the <see cref="OpenKitConstants.DefaultManufacturer">default manufacturer</see>
@@ -85,7 +86,7 @@ namespace Dynatrace.OpenKit
         string Manufacturer { get; }
 
         /// <summary>
-        /// Returns the model identifier that has been set with <see cref="WithModelId"/>.
+        /// Returns the model identifier that has been set with <see cref="AbstractOpenKitBuilder.WithModelId(string)"/>.
         ///
         /// <para>
         ///     If no model ID was set, the <see cref="OpenKitConstants.DefaultModelId">default model ID</see> is
@@ -121,7 +122,7 @@ namespace Dynatrace.OpenKit
         string OrigDeviceId { get; }
 
         /// <summary>
-        /// Returns the SSL trust manager that has been set with <see cref="WithTrustManager"/>.
+        /// Returns the SSL trust manager that has been set with <see cref="AbstractOpenKitBuilder.WithTrustManager(ISSLTrustManager)"/>.
         ///
         /// <para>
         ///     The <see cref="ISSLTrustManager"/> implementation is responsible for checking the X509 certificate chain
@@ -132,7 +133,8 @@ namespace Dynatrace.OpenKit
         ISSLTrustManager TrustManager { get; }
 
         /// <summary>
-        /// Returns the maximum beacon cache record age that has been set with <see cref="WithBeaconCacheMaxRecordAge"/>.
+        /// Returns the maximum beacon cache record age that has been set with
+        /// <see cref="AbstractOpenKitBuilder.WithBeaconCacheMaxRecordAge(long)"/>.
         ///
         /// <para>
         ///     Is no max age was set, the <see cref="BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis">default max
@@ -143,7 +145,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the beacon cache's lower memory boundary that has been set with
-        /// <see cref="WithBeaconCacheLowerMemoryBoundary"/>.
+        /// <see cref="AbstractOpenKitBuilder.WithBeaconCacheLowerMemoryBoundary(long)"/>.
         ///
         /// <para>
         ///     If no lower memory boundary was set, the
@@ -155,7 +157,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the beacon cache's upper memory boundary that has been set with
-        /// <see cref="WithBeaconCacheUpperMemoryBoundary"/>.
+        /// <see cref="AbstractOpenKitBuilder.WithBeaconCacheUpperMemoryBoundary(long)"/>.
         ///
         /// <para>
         ///     If no upper memory boundary was set, the
@@ -166,7 +168,8 @@ namespace Dynatrace.OpenKit
         long BeaconCacheUpperMemoryBoundary { get; }
 
         /// <summary>
-        /// Returns the data collection level that has been set with <see cref="WithDataCollectionLevel"/>.
+        /// Returns the data collection level that has been set with 
+        /// <see cref="AbstractOpenKitBuilder.WithDataCollectionLevel(DataCollectionLevel)"/>.
         ///
         /// <para>
         ///     If no data collection level was set, the <see cref="PrivacyConfiguration.DefaultDataCollectionLevel"/>
@@ -176,7 +179,8 @@ namespace Dynatrace.OpenKit
         DataCollectionLevel DataCollectionLevel { get; }
 
         /// <summary>
-        /// Returns the crash reporting level that has been set with <see cref="WithCrashReportingLevel"/>.
+        /// Returns the crash reporting level that has been set with 
+        /// <see cref="AbstractOpenKitBuilder.WithCrashReportingLevel(CrashReportingLevel)"/>.
         ///
         /// <para>
         ///     If no crash reporting level was set, the <see cref="PrivacyConfiguration.DefaultCrashReportingLevel"/>
@@ -186,7 +190,7 @@ namespace Dynatrace.OpenKit
         CrashReportingLevel CrashReportingLevel { get; }
 
         /// <summary>
-        /// Returns the log level that has been set with <see cref="WithLogLevel"/>.
+        /// Returns the log level that has been set with <see cref="AbstractOpenKitBuilder.WithLogLevel(LogLevel)"/>.
         ///
         /// <para>
         ///     If no log level was set, the <see cref="Dynatrace.OpenKit.API.LogLevel.WARN">default log level</see>
@@ -196,12 +200,34 @@ namespace Dynatrace.OpenKit
         LogLevel LogLevel { get; }
 
         /// <summary>
-        /// Returns the <see cref="ILogger"/> that has been set with <see cref="WithLogger"/>.
+        /// Returns the <see cref="ILogger"/> that has been set with <see cref="AbstractOpenKitBuilder.WithLogger(ILogger)"/>.
         ///
         /// <para>
         ///     If no logger was set, a <see cref="DefaultLogger">default logger</see> instance is returned.
         /// </para>
         /// </summary>
         ILogger Logger { get; }
+
+
+        /// <summary>
+        /// Returns the <see cref="IHttpRequestInterceptor"/> that has been set with
+        /// <see cref="AbstractOpenKitBuilder.WithHttpRequestInterceptor(IHttpRequestInterceptor)"/>
+        /// 
+        /// <para>
+        ///     If no request interceptor was set, a <see cref="NullHttpRequestInterceptor">default request interceptor</see>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        IHttpRequestInterceptor HttpRequestInterceptor { get; }
+
+        /// <summary>
+        /// Returns the <see cref="IHttpResponseInterceptor"/>
+        /// 
+        /// <para>
+        ///     If no response interceptor was set, a <see cref="NullHttpResponseInterceptor">default response interceptor</see>
+        ///     is returned.
+        /// </para>
+        /// </summary>
+        IHttpResponseInterceptor HttpResponseInterceptor { get; }
     }
 }
