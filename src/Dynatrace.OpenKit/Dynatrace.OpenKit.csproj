@@ -138,7 +138,7 @@
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <TargetFrameworkIdentifier>.NETStandard</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v1.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <DefineConstants>NETFX_CORE;WINDOWS_UWP</DefineConstants>
     <Description>Dynatrace OpenKit SDK for Universal Windows Platform</Description>
   </PropertyGroup>
