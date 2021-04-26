@@ -7,8 +7,8 @@ environment:
   NUGET_API_KEY:
     secure: FLH3rCl/Okbe8lchEljJpnCPrs18DiTlm5oQn3i03yAEIjNhpQcWQDFV3VMPXthc
 
-# Build with Visual Studio 2017
-image: Visual Studio 2017
+# Build with Visual Studio 2019
+image: Visual Studio 2019
 
 # Build Release and Coverage (2 build jobs)
 configuration:
