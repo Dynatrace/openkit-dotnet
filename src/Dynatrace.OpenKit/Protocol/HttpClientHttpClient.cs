@@ -138,13 +138,13 @@ namespace Dynatrace.OpenKit.Protocol
         {
             if (!remoteCertificateValidationCallbackInitialized)
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += configuration.SslTrustManager.ServerCertificateValidationCallback;
+                ServicePointManager.ServerCertificateValidationCallback += configuration.SslTrustManager.ServerCertificateValidationCallback;
                 remoteCertificateValidationCallbackInitialized = true;
             }
             return new System.Net.Http.HttpClient();
         }
 
-#elif NET45 || NET46 || NET47
+#elif NET45 || NET451 || NET452 || NET46 || NET461 || NET462 || NET47 || NET471 || NET472 || NET48
 
         private System.Net.Http.HttpClient CreateHttpClient()
         {

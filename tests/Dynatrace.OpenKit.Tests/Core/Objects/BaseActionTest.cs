@@ -1258,11 +1258,16 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.CancelAction();
 
             // then
-            mockLogger.Received(1).Warn($"{childObjectOne} is not cancelable - falling back to Dispose() instead");
             childObjectOne.Received(1).Dispose();
-
-            mockLogger.Received(1).Warn($"{childObjectTwo} is not cancelable - falling back to Dispose() instead");
             childObjectTwo.Received(1).Dispose();
+
+#if NET35 || NET40
+            // old NSubstitute does only print the class, nothing about instance
+            mockLogger.Received(2).Warn(Arg.Is<string>(message => message.EndsWith("is not cancelable - falling back to Dispose() instead")));
+#else
+            mockLogger.Received(1).Warn($"{childObjectOne} is not cancelable - falling back to Dispose() instead");
+            mockLogger.Received(1).Warn($"{childObjectTwo} is not cancelable - falling back to Dispose() instead");
+#endif
         }
         
         [Test]

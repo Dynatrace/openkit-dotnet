@@ -8,11 +8,17 @@
 - An `IAction` can be canceled.  
   Canceling an `IAction` is similar to leaving it, without reporting it.
 - Requests to Dynatrace can be intercepted to add custom HTTP headers.
+- Excplicit support for additional .NET target frameworks.
+  - .NET Core 2.1 and 3.1
+  - .NET Standard 2.1
+  - .NET Framework 4.5.1, 4.5.2, 4.6.1, 4.6.2, 4.7.1, 4.7.2 and 4.8
+  - .NET 5.0
 
 ### Changed
 - Provide a more reliable way to determine monotonic timestamps.
 - Fix potential endless loop in beacon sending, when lots of data
   is generated in a short period of time.
+- Update testing dependencies to latest possible version.
 
 ## 2.1.0 [Release date: 2020-11-16]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.1.0)

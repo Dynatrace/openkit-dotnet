@@ -7,7 +7,7 @@ if ("$env:APPVEYOR" -ieq "true") {
 } else {
     $format = "nunit3"
     $outputDir = "$env:OUTPUTDIR"
-    $nunit3_console = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.10.0\tools\nunit3-console.exe"
+    $nunit3_console = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.12.0\tools\nunit3-console.exe"
 }
 
 Write-Output $format
