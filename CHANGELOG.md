@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.1.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.2.0...release/2.0)
+
+## 2.2.0 [Release date: 2021-05-19]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.2.0)
 
 ### Added
 - Support cost control configured in the Dynatrace UI.
