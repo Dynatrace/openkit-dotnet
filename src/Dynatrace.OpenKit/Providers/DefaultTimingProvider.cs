@@ -23,16 +23,22 @@ namespace Dynatrace.OpenKit.Providers
     {
         internal static readonly DateTime EpochDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        private readonly long referenceTimestampTicks;
+        internal long ReferenceTimestampTicks { get; }
 
         public DefaultTimingProvider()
         {
-            referenceTimestampTicks = (DateTime.UtcNow - EpochDateTime).Ticks - Stopwatch.GetTimestamp();
+            ReferenceTimestampTicks = (DateTime.UtcNow - EpochDateTime).Ticks - StopwatchTimestampAsTimeSpanTicks;
         }
 
         public virtual long ProvideTimestampInMilliseconds()
         {
-            return (long)TimeSpan.FromTicks(referenceTimestampTicks + Stopwatch.GetTimestamp()).TotalMilliseconds;
+            return (long)TimeSpan.FromTicks(ReferenceTimestampTicks + StopwatchTimestampAsTimeSpanTicks).TotalMilliseconds;
         }
+
+        /// <summary>
+        /// Get the current <see cref="Stopwatch.GetTimestamp()"/> value as <see cref="TimeSpan"/> tick value.
+        /// </summary>
+        private static long StopwatchTimestampAsTimeSpanTicks => 
+            (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond);
     }
 }
