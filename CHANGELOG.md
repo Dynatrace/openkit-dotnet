@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.2.0...HEAD)
 
+### Changed
+- Fix issue in `DefaultTimingProvider` with `Stopwatch` frequency
+
 ## 2.2.0 [Release date: 2021-05-19]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.2.0)
 
