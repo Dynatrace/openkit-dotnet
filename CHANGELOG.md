@@ -4,6 +4,7 @@
 
 ### Changed
 - Provide a more reliable way to determine monotonic timestamps.
+  The `Stopwatch` frequency fix has been applied too. 
 - Fix potential endless loop in beacon sending, when lots of data
   is generated in a short period of time.
 

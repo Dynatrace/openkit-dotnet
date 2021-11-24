@@ -16,6 +16,7 @@
 
 using NUnit.Framework;
 using System;
+using System.Diagnostics;
 
 namespace Dynatrace.OpenKit.Providers
 {
@@ -28,9 +29,13 @@ namespace Dynatrace.OpenKit.Providers
             var target = new DefaultTimingProvider();
 
             // when
-            var timeBefore = (long)(DateTime.UtcNow - DefaultTimingProvider.EpochDateTime).TotalMilliseconds;
+            var timeBefore = (long)TimeSpan.FromTicks(
+                   (target.ReferenceTimestampTicks + (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond))
+                ).TotalMilliseconds;
             var obtained = target.ProvideTimestampInMilliseconds();
-            var timeAfter = (long)(DateTime.UtcNow - DefaultTimingProvider.EpochDateTime).TotalMilliseconds;
+            var timeAfter = (long)TimeSpan.FromTicks(
+                   (target.ReferenceTimestampTicks + (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond))
+                ).TotalMilliseconds;
 
             // then
             Assert.That(obtained, Is.GreaterThanOrEqualTo(timeBefore));
