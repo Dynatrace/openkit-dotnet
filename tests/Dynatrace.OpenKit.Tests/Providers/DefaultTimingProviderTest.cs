@@ -29,9 +29,13 @@ namespace Dynatrace.OpenKit.Providers
             var target = new DefaultTimingProvider();
 
             // when
-            var timeBefore = (long)TimeSpan.FromTicks(target.ReferenceTimestampTicks + Stopwatch.GetTimestamp()).TotalMilliseconds;
+            var timeBefore = (long)TimeSpan.FromTicks(
+                   (target.ReferenceTimestampTicks + (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond))
+                ).TotalMilliseconds;
             var obtained = target.ProvideTimestampInMilliseconds();
-            var timeAfter = (long)TimeSpan.FromTicks(target.ReferenceTimestampTicks + Stopwatch.GetTimestamp()).TotalMilliseconds;
+            var timeAfter = (long)TimeSpan.FromTicks(
+                   (target.ReferenceTimestampTicks + (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond))
+                ).TotalMilliseconds;
 
             // then
             Assert.That(obtained, Is.GreaterThanOrEqualTo(timeBefore));

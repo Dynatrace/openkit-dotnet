@@ -27,12 +27,18 @@ namespace Dynatrace.OpenKit.Providers
 
         public DefaultTimingProvider()
         {
-            ReferenceTimestampTicks = (DateTime.UtcNow - EpochDateTime).Ticks - Stopwatch.GetTimestamp();
+            ReferenceTimestampTicks = (DateTime.UtcNow - EpochDateTime).Ticks - StopwatchTimestampAsTimeSpanTicks;
         }
 
         public virtual long ProvideTimestampInMilliseconds()
         {
-            return (long)TimeSpan.FromTicks(ReferenceTimestampTicks + Stopwatch.GetTimestamp()).TotalMilliseconds;
+            return (long)TimeSpan.FromTicks(ReferenceTimestampTicks + StopwatchTimestampAsTimeSpanTicks).TotalMilliseconds;
         }
+
+        /// <summary>
+        /// Get the current <see cref="Stopwatch.GetTimestamp()"/> value as <see cref="TimeSpan"/> tick value.
+        /// </summary>
+        private static long StopwatchTimestampAsTimeSpanTicks => 
+            (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond);
     }
 }
