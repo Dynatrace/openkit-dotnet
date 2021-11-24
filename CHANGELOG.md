@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.2.0...release/2.2)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.2.1...release/2.2)
+
+## 2.2.1 [Release date: 2021-11-24]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.2.1)
 
 ### Changed
 - Fix issue in `DefaultTimingProvider` with `Stopwatch` frequency
