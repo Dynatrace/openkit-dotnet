@@ -71,7 +71,7 @@ customize OpenKit. This includes device specific information like operating syst
 | `WithOperatingSystem`  | sets the operating system name | `"OpenKit 2.3.0"` |
 | `WithManufacturer`  | sets the manufacturer | `"Dynatrace"` |
 | `WithModelId`  | sets the model id  | `"OpenKitDevice"` |
-| `WithBeaconCacheMaxRecordAge`  | sets the maximum age of an entry in the beacon cache in milliseconds | 1 h 45 min |
+| `WithBeaconCacheMaxRecordAge`  | sets the maximum age of an entry in the beacon cache in milliseconds | 45 min |
 | `WithBeaconCacheLowerMemoryBoundary`  | sets the lower memory boundary of the beacon cache in bytes  | 80 MB |
 | `WithBeaconCacheUpperMemoryBoundary`  |  sets the upper memory boundary of the beacon cache in bytes | 100 MB |
 | `WithTrustManager` | sets a custom `ISSLTrustManager` instance, replacing the builtin default one.<br>Details are described in section [SSL/TLS Security in OpenKit](#ssltls-security-in-openkit). | `SSLStrictTrustManager` |

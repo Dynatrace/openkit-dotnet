@@ -27,9 +27,9 @@ namespace Dynatrace.OpenKit.Core.Configuration
         /// <summary>
         /// The default <see cref="BeaconCacheConfiguration"/> when a user does not override it.
         ///
-        /// Default settings allow beacons which are max 2 hours old and unbounded memory limits
+        /// Default settings allow beacons which are max 45 minutes old and unbounded memory limits
         /// </summary>
-        public static readonly long DefaultMaxRecordAgeInMillis = (long)TimeSpan.FromMinutes(105).TotalMilliseconds; // 1 hour and 45 minutes
+        public static readonly long DefaultMaxRecordAgeInMillis = (long)TimeSpan.FromMinutes(45).TotalMilliseconds; // 45 minutes
 
         /// <summary>
         /// Defines the default upper memory boundary of the <see cref="IBeaconCache"/>.
