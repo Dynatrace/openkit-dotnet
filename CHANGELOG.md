@@ -2,6 +2,9 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v2.2.0...HEAD)
 
+### Added
+- Support for .NET 6.0
+
 ### Changed
 - Fix issue in `DefaultTimingProvider` with `Stopwatch` frequency
 - Default maximum age of an entry in the beacon cache changed from 1h 45m to 45m

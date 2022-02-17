@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- common properties -->
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-        <TargetFrameworks>net5.0;net48;net472;net471;net47;net462;net461;net46;net452;net451;net45;net40;net35;netcoreapp3.1;netcoreapp2.1;netcoreapp2.0;netcoreapp1.1;netcoreapp1.0</TargetFrameworks>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '16.0'">
+        <TargetFrameworks>net48;net472;net471;net47;net462;net461;net46;net452;net451;net45;net40;net35;netcoreapp3.1;netcoreapp2.1;netcoreapp2.0;netcoreapp1.1;netcoreapp1.0</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '17.0'">
+        <TargetFrameworks>net6.0;net5.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
         <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
@@ -22,7 +25,7 @@
   </ItemGroup>
   
   <!-- package references for .NET 3.5 and .NET 4.0 -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net35'  Or '$(TargetFramework)' == 'net40'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net35'  Or '$(TargetFramework)' == 'net40' And '$(VisualStudioVersion)' == '16.0'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
     <PackageReference Include="coveralls.io" Version="1.4.2" />
@@ -34,7 +37,7 @@
   </ItemGroup>
   
   <!-- package references for .NET 4.5 and above -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net451' Or '$(TargetFramework)' == 'net452' Or '$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'net461' Or '$(TargetFramework)' == 'net462' Or '$(TargetFramework)' == 'net47' Or '$(TargetFramework)' == 'net471' Or '$(TargetFramework)' == 'net472' Or '$(TargetFramework)' == 'net48'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net451' Or '$(TargetFramework)' == 'net452' Or '$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'net461' Or '$(TargetFramework)' == 'net462' Or '$(TargetFramework)' == 'net47' Or '$(TargetFramework)' == 'net471' Or '$(TargetFramework)' == 'net472' Or '$(TargetFramework)' == 'net48' And '$(VisualStudioVersion)' == '16.0'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
     <PackageReference Include="coveralls.io" Version="1.4.2" />
@@ -44,7 +47,7 @@
   </ItemGroup>
 
   <!-- package references for .NET Core 1.X and 2.X frameworks -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' Or '$(TargetFramework)' == 'netcoreapp1.1' Or '$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' And '$(VisualStudioVersion)' == '16.0'">
     <!--references to external packages -->
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="OpenCover" Version="4.7.922" />
@@ -55,7 +58,7 @@
   </ItemGroup>
   
   <!-- package references for LTS .NET Core 3.1 -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' And '$(VisualStudioVersion)' == '16.0'">
     <!--references to external packages -->
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="OpenCover" Version="4.7.922" />
@@ -65,9 +68,23 @@
     <PackageReference Include="NSubstitute" Version="4.2.2" />
   </ItemGroup>
 
-  <!-- package references for .NET 5.0 -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+  <!-- package references for .NET 6.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' And '$(VisualStudioVersion)' == '17.0'">
     <!--references to external packages -->
+    <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
+    <PackageReference Include="coveralls.io" Version="1.4.2" />
+    <PackageReference Include="OpenCover" Version="4.7.922" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="NUnit" Version="3.13.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="NSubstitute" Version="4.2.2" />
+  </ItemGroup>
+
+
+  <!-- package references for .NET 5.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' And '$(VisualStudioVersion)' == '17.0'">
+    <!--references to external packages -->
+    <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
     <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="OpenCover" Version="4.7.922" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
@@ -77,144 +94,150 @@
   </ItemGroup>
 
   <!-- .NET Core 3.1 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NETCOREAPP3_1</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 3.1</Description>
   </PropertyGroup>
   
   <!-- .NET Core 2.1 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NETCOREAPP2_1</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 2.1</Description>
   </PropertyGroup>
 
   <!-- .NET Core 2.0 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NETCOREAPP2_0</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 2.0</Description>
   </PropertyGroup>
   
   <!-- .NET Core 1.1 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NETCOREAPP1_1</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 1.1</Description>
   </PropertyGroup>
   
   <!-- .NET Core 1.0 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NETCOREAPP1_0</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Core 1.0</Description>
   </PropertyGroup>
 
   <!-- .NET Full 3.5 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net35' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET35</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 3.5</Description>
   </PropertyGroup>
 
   <!-- .NET Full 4.0 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net40' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net40'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net40' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET40</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.0</Description>
   </PropertyGroup>
 
   <!-- .NET Full 4.5 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net45' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET45</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.5</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.5.1 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net451' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net451'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net451'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net451' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET451</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.5.1</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.5.2 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net452' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net452'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net452' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET452</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.5.2</Description>
   </PropertyGroup>
 
   <!-- .NET Full 4.6 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net46' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net46'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net46'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net46' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET46</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.6</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.6.1 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net461' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET461</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.6.1</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.6.2 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET462</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.6.2</Description>
   </PropertyGroup>
 
   <!-- .NET Full 4.7 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net47' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net47'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net47'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net47' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET47</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.7</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.7.1 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net471' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net471'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net471'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net471' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET471</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.7.1</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.7.2 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET472</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.7.2</Description>
   </PropertyGroup>
   
   <!-- .NET Full 4.8 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net48' ">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'  And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET48</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.8</Description>
   </PropertyGroup>
 
   <!-- .NET 5.0 references, compilation flags and build options -->
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0' And '$(VisualStudioVersion)' == '17.0'">
     <DefineConstants>NET5_0</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET 5.0</Description>
+  </PropertyGroup>
+
+  <!-- .NET 6.0 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' And '$(VisualStudioVersion)' == '17.0'">
+    <DefineConstants>NET6_0</DefineConstants>
+    <Description>Dynatrace OpenKit Tests for .NET 6.0</Description>
   </PropertyGroup>
   
 </Project>

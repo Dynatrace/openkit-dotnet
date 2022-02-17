@@ -10,6 +10,8 @@ if ("$env:APPVEYOR" -ieq "true") {
     $nunit3_console = "$env:USERPROFILE\.nuget\packages\nunit.consolerunner\3.12.0\tools\nunit3-console.exe"
 }
 
+$ErrorActionpreference = "Stop"
+
 Write-Output $format
 Write-Output $outputDir
 Write-Output $nunit3_console
