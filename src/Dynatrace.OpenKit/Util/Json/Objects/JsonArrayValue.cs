@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Util.Json.Writer;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -77,6 +78,24 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
         public static JsonArrayValue FromList(ICollection<JsonValue> values)
         {
             return values == null ? null : new JsonArrayValue(values);
+        }
+
+        internal override void WriteJSONString(JsonValueWriter writer)
+        {
+            writer.OpenArray();
+            int writtenElements = 0;
+
+            foreach(JsonValue value in jsonValues)
+            {
+                if (writtenElements++ > 0)
+                {
+                    writer.InsertElementSeperator();
+                }
+
+                value.WriteJSONString(writer);
+            }
+
+            writer.CloseArray();
         }
     }
 }

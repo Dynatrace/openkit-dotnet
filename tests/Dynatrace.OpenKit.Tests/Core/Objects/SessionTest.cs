@@ -15,11 +15,13 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util.Json.Objects;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -1100,6 +1102,86 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(1).DisableCapture();
+        }
+
+        [Test]
+        public void SendEventWithNullEventName()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.SendEvent(null, new Dictionary<string, JsonValue>());
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be null or empty");
+        }
+
+        [Test]
+        public void SendEventWithEmptyEventName()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.SendEvent("", new Dictionary<string, JsonValue>());
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be null or empty");
+        }
+
+        [Test]
+        public void SendEventWithNameInPayload()
+        {
+            // given
+            var target = CreateSession().Build();
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("name", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendEvent(eventName, attributes);
+
+            Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
+            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be used in the attributes as it will be overridden!");
+            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{actualAttributes.ToString()})");
+            mockBeacon.Received(1).SendEvent("SomeEvent", "{\"name\":\"SomeEvent\"}");
+        }
+
+        [Test]
+        public void SendEventWithValidPayload()
+        {
+            // given
+            var target = CreateSession().Build();
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("value", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendEvent(eventName, attributes);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes.ToString()})");
+            mockBeacon.Received(1).SendEvent("SomeEvent", "{\"value\":\"Test\",\"name\":\"SomeEvent\"}");
+        }
+
+        [Test]
+        public void SendEventDoesNothingIfSessionIsEnded()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            target.SendEvent("EventName", new Dictionary<string, JsonValue>());
+
+            // then
+            mockBeacon.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<string>());
         }
 
         private TestSessionBuilder CreateSession()

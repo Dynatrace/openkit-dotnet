@@ -230,5 +230,23 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             Assert.That(obtained.IsInteger, Is.False);
             Assert.That(obtained.DoubleValue, Is.EqualTo(-1.25));
         }
+
+        [Test]
+        public void IntegerJsonString()
+        {
+            Assert.That(JsonNumberValue.FromNumberLiteral("17").ToString(), Is.EqualTo("17"));
+        }
+
+        [Test]
+        public void LongJsonString()
+        {
+            Assert.That(JsonNumberValue.FromLong(17).ToString(), Is.EqualTo("17"));
+        }
+
+        [Test]
+        public void DoubleJsonString()
+        {
+            Assert.That(JsonNumberValue.FromDouble(17.1).ToString(), Is.EqualTo("17.1"));
+        }
     }
 }

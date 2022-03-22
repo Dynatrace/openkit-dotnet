@@ -17,6 +17,7 @@
 using System;
 using System.Globalization;
 using Dynatrace.OpenKit.Util.Json.Constants;
+using Dynatrace.OpenKit.Util.Json.Writer;
 
 namespace Dynatrace.OpenKit.Util.Json.Objects
 {
@@ -168,6 +169,18 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
             catch (OverflowException)
             {
                 return null;
+            }
+        }
+
+        internal override void WriteJSONString(JsonValueWriter writer)
+        {
+            if (IsInteger)
+            {
+                writer.InsertValue(LongValue.ToInvariantString());
+            }
+            else
+            {
+                writer.InsertValue(DoubleValue.ToInvariantString());
             }
         }
     }

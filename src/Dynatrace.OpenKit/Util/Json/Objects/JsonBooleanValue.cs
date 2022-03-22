@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Util.Json.Constants;
+using Dynatrace.OpenKit.Util.Json.Writer;
 
 namespace Dynatrace.OpenKit.Util.Json.Objects
 {
@@ -99,6 +100,11 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
             }
 
             return null;
+        }
+
+        internal override void WriteJSONString(JsonValueWriter writer)
+        {
+            writer.InsertValue(Value ? JsonLiterals.BooleanTrueLiteral : JsonLiterals.BooleanFalseLiteral);
         }
     }
 }

@@ -82,6 +82,10 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyWebRequestBytesSent = "bs";
         private const string BeaconKeyWebRequestBytesReceived = "br";
 
+        // events api
+        private const string BeaconKeyEventPayload = "pl";
+        internal const int EventPayloadBytesLength = 16 * 1024;
+
         // max name length
         private const int MaximumNameLength = 250;
 
@@ -633,6 +637,40 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, crashTechnolgyType);
 
             AddEventData(timestamp, eventBuilder);
+        }
+
+        void IBeacon.SendEvent(string name, string jsonPayload)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException("name is null or empty");
+            }
+
+            if (string.IsNullOrEmpty(jsonPayload))
+            {
+                throw new ArgumentException("payload is null or empty");
+            }
+
+            if (!configuration.PrivacyConfiguration.IsEventReportingAllowed)
+            {
+                return;
+            }
+
+            if (!ThisBeacon.IsCrashCapturingEnabled)
+            {
+                return;
+            }
+
+            if (Encoding.UTF8.GetBytes(jsonPayload).Length > EventPayloadBytesLength)
+            {
+                throw new ArgumentException($"Event payload is exceeding {EventPayloadBytesLength} bytes!");
+            }
+
+            var eventBuilder = new StringBuilder();
+            AddKeyValuePair(eventBuilder, BeaconKeyEventType, EventType.EVENT.ToInt().ToString());
+            AddKeyValuePair(eventBuilder, BeaconKeyEventPayload, jsonPayload);
+
+            AddEventData(timingProvider.ProvideTimestampInMilliseconds(), eventBuilder);
         }
 
         void IBeacon.AddWebRequest(int parentActionId, IWebRequestTracerInternals webRequestTracer)

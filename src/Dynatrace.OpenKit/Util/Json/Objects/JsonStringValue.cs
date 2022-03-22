@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Util.Json.Writer;
+
 namespace Dynatrace.OpenKit.Util.Json.Objects
 {
     /// <summary>
@@ -54,6 +56,11 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
         public static JsonStringValue FromString(string stringValue)
         {
             return stringValue == null ? null : new JsonStringValue(stringValue);
+        }
+
+        internal override void WriteJSONString(JsonValueWriter writer)
+        {
+            writer.InsertStringValue(Value);
         }
     }
 }

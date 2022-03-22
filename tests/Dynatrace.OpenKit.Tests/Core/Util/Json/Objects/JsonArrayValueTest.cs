@@ -75,5 +75,32 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             Assert.That(obtained, Is.Not.Null);
             using (jsonValues.Received(1).GetEnumerator()) { /* nothing, just to get rid of warning */ }
         }
+
+        [Test]
+        public void EmptyListJsonString()
+        {
+            Assert.That(JsonArrayValue.FromList(EmptyList).ToString(), Is.EqualTo("[]"));
+        }
+
+        [Test]
+        public void SingleElementListJsonString()
+        {
+            ICollection<JsonValue> list = new Collection<JsonValue>();
+            list.Add(JsonStringValue.FromString("Test"));
+
+            Assert.That(JsonArrayValue.FromList(list).ToString(), Is.EqualTo("[\"Test\"]"));
+        }
+
+        [Test]
+        public void MultipleElementListJsonString()
+        {
+            ICollection<JsonValue> list = new Collection<JsonValue>();
+            list.Add(JsonStringValue.FromString("Test"));
+            list.Add(JsonStringValue.FromString("Test2"));
+
+            Assert.That(JsonArrayValue.FromList(list).ToString(), Is.EqualTo("[\"Test\",\"Test2\"]"));
+        }
+
+
     }
 }

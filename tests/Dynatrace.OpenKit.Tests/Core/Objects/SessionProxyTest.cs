@@ -18,9 +18,11 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util.Json.Objects;
 using NSubstitute;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -1522,6 +1524,125 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockSplitSession2.Received(1).IdentifyUser("test1");
+        }
+
+        #endregion
+
+        #region send event
+
+        [Test]
+        public void SendEventWithNullEventName()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.SendEvent(null, null);
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be null or empty");
+            mockSession.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        [Test]
+        public void SendEventWithEmptyEventName()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.SendEvent("", null);
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be null or empty");
+            mockSession.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        [Test]
+        public void SendEventWithNameInPayload()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("name", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendEvent(eventName, attributes);
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be used in the attributes as it will be overridden!");
+            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes.ToString()})");
+            mockSession.Received(1).SendEvent(eventName, attributes);
+        }
+
+        [Test]
+        public void SendEventDoesNothingIfSessionIsEnded()
+        {
+            // given
+            var target = CreateSessionProxy();
+            target.End();
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("value", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendEvent(eventName, attributes);
+
+            // then
+            mockSession.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        public void SendEventDoesNotIncreaseTopLevelEventCount()
+        {
+            // given
+            var target = CreateSessionProxy();
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("value", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendEvent(eventName, attributes);
+
+            // then
+            mockSession.Received(1).SendEvent(eventName, attributes);
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+        }
+
+        public void SendEventDoesNotSplitSession()
+        {
+            // given
+            const int eventCount = 10;
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
+            mockServerConfiguration.MaxEventsPerSession.Returns(1);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("value", JsonStringValue.FromString("Test"));
+
+            // when
+            for (var i = 0; i < eventCount; i++)
+            {
+                target.SendEvent(eventName, attributes);
+            }
+
+            // then
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+            mockSession.Received(eventCount).SendEvent(eventName, attributes);
+            mockSessionCreator.Received(1).CreateSession(target);
         }
 
         #endregion

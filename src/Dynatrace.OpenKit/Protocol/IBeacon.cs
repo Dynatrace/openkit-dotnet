@@ -254,6 +254,13 @@ namespace Dynatrace.OpenKit.Protocol
         void ReportCrash(string errorName, string reason, string stacktrace);
 
         /// <summary>
+        /// Reports the given event by adding it to the beacon.
+        /// </summary>
+        /// <param name="name">the name of the event</param>
+        /// <param name="jsonPayload">json payload of the event</param>
+        void SendEvent(string name, string jsonPayload);
+
+        /// <summary>
         /// Adds the given traced web request on the action belonging to the given ID.
         ///
         /// <para>

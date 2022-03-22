@@ -94,5 +94,17 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             // when an empty string is passed
             Assert.That(JsonBooleanValue.FromLiteral(""), Is.Null);
         }
+
+        [Test]
+        public void FalseJsonString()
+        {
+            Assert.That(JsonBooleanValue.FromValue(false).ToString(), Is.EqualTo("false"));
+        }
+
+        [Test]
+        public void TrueJsonString()
+        {
+            Assert.That(JsonBooleanValue.FromValue(true).ToString(), Is.EqualTo("true"));
+        }
     }
 }

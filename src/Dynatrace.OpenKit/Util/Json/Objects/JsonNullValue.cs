@@ -14,6 +14,9 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Util.Json.Constants;
+using Dynatrace.OpenKit.Util.Json.Writer;
+
 namespace Dynatrace.OpenKit.Util.Json.Objects
 {
     /// <summary>
@@ -37,5 +40,10 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
         ///     Indicates that this value is of type null
         /// </summary>
         public override JsonValueType ValueType => JsonValueType.NULL;
+
+        internal override void WriteJSONString(JsonValueWriter writer)
+        {
+            writer.InsertValue(JsonLiterals.NullLiteral);
+        }
     }
 }

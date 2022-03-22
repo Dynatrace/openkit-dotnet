@@ -134,5 +134,52 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             // then
             Assert.That(obtained, Is.Null);
         }
+
+        [Test]
+        public void EmptyObjectJsonString()
+        {
+            // given
+            var jsonObjectDict = new Dictionary<string, JsonValue>();
+
+            Assert.That(JsonObjectValue.FromDictionary(jsonObjectDict).ToString(), Is.EqualTo("{}"));
+        }
+
+        [Test]
+        public void SingleElementObjectJsonString()
+        {
+            // given
+            var jsonObjectDict = new Dictionary<string, JsonValue>();
+            jsonObjectDict.Add("Test", JsonBooleanValue.FromValue(false));
+
+            Assert.That(JsonObjectValue.FromDictionary(jsonObjectDict).ToString(), Is.EqualTo("{\"Test\":false}"));
+        }
+
+        [Test]
+        public void MultipleElementObjectJsonString()
+        {
+            // given
+            var jsonObjectDict = new Dictionary<string, JsonValue>();
+            jsonObjectDict.Add("Test", JsonBooleanValue.FromValue(false));
+            jsonObjectDict.Add("Test2", JsonStringValue.FromString("Value"));
+
+            Assert.That(JsonObjectValue.FromDictionary(jsonObjectDict).ToString(), Is.EqualTo("{\"Test\":false,\"Test2\":\"Value\"}"));
+        }
+
+        [Test]
+        public void NestedObjectInObjectJsonString()
+        {
+            // given
+            var jsonObjectDict = new Dictionary<string, JsonValue>();
+            jsonObjectDict.Add("Test", JsonBooleanValue.FromValue(false));
+
+            var jsonNestedObjectDict = new Dictionary<string, JsonValue>();
+            jsonNestedObjectDict.Add("Test3", JsonNumberValue.FromLong(1));
+
+            jsonObjectDict.Add("Test2", JsonObjectValue.FromDictionary(jsonNestedObjectDict));
+
+            Assert.That(JsonObjectValue.FromDictionary(jsonObjectDict).ToString(), Is.EqualTo("{\"Test\":false,\"Test2\":{\"Test3\":1}}"));
+        }
+
+
     }
 }

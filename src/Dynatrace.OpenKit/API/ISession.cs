@@ -14,7 +14,9 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Util.Json.Objects;
 using System;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.API
 {
@@ -67,6 +69,13 @@ namespace Dynatrace.OpenKit.API
         /// <param name="exception">The <see cref="Exception"/> causing the crash.</param>
         void ReportCrash(Exception exception);
 
+        /// <summary>
+        /// Sends an event with a name and a dictionary containing json values.
+        /// </summary>
+        /// <param name="name">name of the event</param>
+        /// <param name="attributes">dictonary containing json values</param>
+        internal void SendEvent(string name, Dictionary<string, JsonValue> attributes);
+        
         /// <summary>
         ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
         ///  In this case the Dynatrace HTTP header (<see cref="OpenKitConstants.WEBREQUEST_TAG_HEADER"/>) has to be set manually to the

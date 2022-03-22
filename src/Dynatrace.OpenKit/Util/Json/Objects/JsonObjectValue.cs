@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Util.Json.Writer;
 using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Util.Json.Objects
@@ -88,6 +89,30 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
         public bool ContainsKey(string key)
         {
             return jsonObjectDictionary.ContainsKey(key);
+        }
+
+        internal override void WriteJSONString(JsonValueWriter writer)
+        {
+            writer.OpenObject();
+
+            int writtenElements = 0;
+
+            foreach(KeyValuePair<string, JsonValue> entry in jsonObjectDictionary)
+            {
+                if(entry.Key != null)
+                {
+                    if(writtenElements++ > 0)
+                    {
+                        writer.InsertElementSeperator();
+                    }
+
+                    writer.InsertKey(entry.Key);
+                    writer.InsertKeyValueSeperator();
+                    entry.Value.WriteJSONString(writer);
+                }
+            }
+
+            writer.CloseObject();
         }
     }
 }

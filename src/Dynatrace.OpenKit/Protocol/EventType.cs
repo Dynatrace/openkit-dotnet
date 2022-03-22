@@ -33,7 +33,8 @@ namespace Dynatrace.OpenKit.Protocol
         ERROR = 40,                     // error
         EXCEPTION = 42,                 // exception
         CRASH = 50,                     // crash
-        IDENTIFY_USER = 60              // identify user
+        IDENTIFY_USER = 60,             // identify user
+        EVENT = 98                      // event api
     }
 
 }

@@ -25,6 +25,7 @@ using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Util;
+using Dynatrace.OpenKit.Util.Json.Objects;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
 using NSubstitute.ReturnsExtensions;
@@ -1181,6 +1182,167 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region SendEvent tests
+
+        [Test]
+        public void SendValidEvent()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("TestString", JsonStringValue.FromString("Test"));
+            attributes.Add("TestBool", JsonBooleanValue.FromValue(false));
+            attributes.Add("name", JsonStringValue.FromString(eventName));
+
+            // when
+            target.SendEvent(eventName, JsonObjectValue.FromDictionary(attributes).ToString());
+
+            // then
+            string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(attributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.EVENT.ToInt().ToInvariantString()}" // event type
+                + $"&pl={encodedPayload}"                                             
+                );
+        }
+
+        [Test]
+        public void SendEventWithNullEventNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentException>(() => target.SendEvent(null, null));
+            Assert.That(exception.Message, Is.EqualTo("name is null or empty"));
+        }
+
+        [Test]
+        public void SendEventWithEmptyEventNameThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentException>(() => target.SendEvent("", null));
+            Assert.That(exception.Message, Is.EqualTo("name is null or empty"));
+        }
+
+        [Test]
+        public void SendEventWithNullPayloadThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentException>(() => target.SendEvent("Name", null));
+            Assert.That(exception.Message, Is.EqualTo("payload is null or empty"));
+        }
+
+        [Test]
+        public void SendEventWithEmptyPayloadThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentException>(() => target.SendEvent("Name", ""));
+            Assert.That(exception.Message, Is.EqualTo("payload is null or empty"));
+        }
+
+        [Test]
+        public void SendEventNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("TestString", JsonStringValue.FromString("Test"));
+            attributes.Add("TestBool", JsonBooleanValue.FromValue(false));
+            attributes.Add("name", JsonStringValue.FromString(eventName));
+
+            // when
+            target.SendEvent(eventName, JsonObjectValue.FromDictionary(attributes).ToString());
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SendEventNotReportedIfEventReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("TestString", JsonStringValue.FromString("Test"));
+            attributes.Add("TestBool", JsonBooleanValue.FromValue(false));
+            attributes.Add("name", JsonStringValue.FromString(eventName));
+
+            // when
+            target.SendEvent(eventName, JsonObjectValue.FromDictionary(attributes).ToString());
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SendEventNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("TestString", JsonStringValue.FromString("Test"));
+            attributes.Add("TestBool", JsonBooleanValue.FromValue(false));
+            attributes.Add("name", JsonStringValue.FromString(eventName));
+
+            // when
+            target.SendEvent(eventName, JsonObjectValue.FromDictionary(attributes).ToString());
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SendEventPayloadIsToBig()
+        {
+            var target = CreateBeacon().Build();
+            const string eventName = "SomeEvent";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            for (int i = 0; i < 500; i++)
+            {
+                attributes.Add("TestNameForOversizeMap" + i, JsonStringValue.FromString(eventName));
+            }
+
+            var exception = Assert.Throws<ArgumentException>(() => target.SendEvent(eventName, JsonObjectValue.FromDictionary(attributes).ToString()));
+            Assert.That(exception.Message, Is.EqualTo($"Event payload is exceeding { Beacon.EventPayloadBytesLength } bytes!"));
         }
 
         #endregion

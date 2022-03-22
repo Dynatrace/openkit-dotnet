@@ -15,10 +15,12 @@
 //
 
 using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Util;
+using Dynatrace.OpenKit.Util.Json.Objects;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -201,6 +203,41 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
 
             DoReportCrash(session => session.ReportCrash(exception));
+        }
+
+        void ISession.SendEvent(string name, Dictionary<string, JsonValue> attributes)
+        {
+            SendEvent(name, attributes);
+        }
+
+        internal void SendEvent(string name, Dictionary<string, JsonValue> attributes)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                logger.Warn($"{this} SendEvent: name must not be null or empty");
+                return;
+            }
+
+            if (attributes != null && attributes.ContainsKey("name"))
+            {
+                logger.Warn($"{this} SendEvent: name must not be used in the attributes as it will be overridden!");
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} SendEvent({name},{attributes})");
+            }
+
+            lock (lockObject)
+            {
+                if (isFinished)
+                {
+                    return;
+                }
+
+                var session = GetOrSplitCurrentSessionByEvents();
+                session.SendEvent(name, attributes);
+            }
         }
 
         private void DoReportCrash(Action<ISessionInternals> reportCrashAction)

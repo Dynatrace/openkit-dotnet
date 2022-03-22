@@ -15,7 +15,9 @@
 //
 
 using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
+using Dynatrace.OpenKit.Util.Json.Objects;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -59,6 +61,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         public void ReportCrash(Exception exception)
+        {
+            // intentionally left empty, due to NullObject pattern
+        }
+
+        void ISession.SendEvent(string name, Dictionary<string, JsonValue> attributes)
         {
             // intentionally left empty, due to NullObject pattern
         }

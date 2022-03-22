@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using Dynatrace.OpenKit.Util.Json.Writer;
+
 namespace Dynatrace.OpenKit.Util.Json.Objects
 {
     /// <summary>
@@ -25,5 +27,14 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
         ///     Returns an indicator whether this instance represents a JSON null value or not.
         /// </summary>
         public virtual JsonValueType ValueType => JsonValueType.NULL;
+
+        public override string ToString()
+        {
+            JsonValueWriter Writer = new JsonValueWriter();
+            WriteJSONString(Writer);
+            return Writer.ToString();
+        }
+
+        internal abstract void WriteJSONString(JsonValueWriter writer);
     }
 }

@@ -40,5 +40,17 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             Assert.That(JsonStringValue.FromString("a").Value, Is.EqualTo("a"));
             Assert.That(JsonStringValue.FromString("foobar").Value, Is.EqualTo("foobar"));
         }
+
+        [Test]
+        public void EmptyValueJsonString()
+        {
+            Assert.That(JsonStringValue.FromString("").ToString(), Is.EqualTo("\"\""));
+        }
+
+        [Test]
+        public void AnyValueJsonString()
+        {
+            Assert.That(JsonStringValue.FromString("Test").ToString(), Is.EqualTo("\"Test\""));
+        }
     }
 }

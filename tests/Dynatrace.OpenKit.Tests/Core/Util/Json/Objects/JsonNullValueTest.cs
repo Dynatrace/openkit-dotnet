@@ -27,5 +27,11 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             // then
             Assert.That(JsonNullValue.Null.ValueType, Is.EqualTo(JsonValueType.NULL));
         }
+
+        [Test]
+        public void NullJsonString()
+        {
+            Assert.That(JsonNullValue.Null.ToString(), Is.EqualTo("null"));
+        }
     }
 }

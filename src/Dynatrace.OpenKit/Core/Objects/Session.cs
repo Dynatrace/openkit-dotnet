@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
@@ -22,6 +23,7 @@ using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Util;
+using Dynatrace.OpenKit.Util.Json.Objects;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -256,6 +258,40 @@ namespace Dynatrace.OpenKit.Core.Objects
                 if (!state.IsFinishingOrFinished)
                 {
                     beacon.ReportCrash(exception);
+                }
+            }
+        }
+
+        void ISession.SendEvent(string name, Dictionary<string, JsonValue> attributes)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                logger.Warn($"{this} SendEvent: name must not be null or empty");
+                return;
+            }
+
+            if(attributes != null && attributes.ContainsKey("name"))
+            {
+                logger.Warn($"{this} SendEvent: name must not be used in the attributes as it will be overridden!");
+            }
+
+            if(attributes == null)
+            {
+                attributes = new Dictionary<string, JsonValue>();
+            }
+
+            attributes["name"] = JsonStringValue.FromString(name);
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} SendEvent({name},{attributes})");
+            }
+
+            lock (state)
+            {
+                if (!state.IsFinishingOrFinished)
+                {
+                    beacon.SendEvent(name, JsonObjectValue.FromDictionary(attributes).ToString());
                 }
             }
         }
