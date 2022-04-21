@@ -41,5 +41,26 @@ namespace Dynatrace.OpenKit.Providers
             Assert.That(obtained, Is.GreaterThanOrEqualTo(timeBefore));
             Assert.That(obtained, Is.LessThanOrEqualTo(timeAfter));
         }
+
+        [Test]
+        public void ProvideTimeStampInNanosecondsReturnsCurrentTime()
+        {
+            // given
+            var target = new DefaultTimingProvider();
+
+            // when
+            var timeBefore = (long)TimeSpan.FromTicks(
+                   (target.ReferenceTimestampTicks + (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond))
+                ).Ticks * 100;
+            
+            var obtained = target.ProvideTimestampInNanoseconds();
+            var timeAfter = (long)TimeSpan.FromTicks(
+                   (target.ReferenceTimestampTicks + (long)((Stopwatch.GetTimestamp() / (double)Stopwatch.Frequency) * TimeSpan.TicksPerSecond))
+                ).Ticks * 100;
+
+            // then
+            Assert.That(obtained, Is.GreaterThanOrEqualTo(timeBefore));
+            Assert.That(obtained, Is.LessThanOrEqualTo(timeAfter));
+        }
     }
 }

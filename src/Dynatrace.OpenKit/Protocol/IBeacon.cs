@@ -19,7 +19,9 @@ using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
+using Dynatrace.OpenKit.Util.Json.Objects;
 using System;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -256,9 +258,9 @@ namespace Dynatrace.OpenKit.Protocol
         /// <summary>
         /// Reports the given event by adding it to the beacon.
         /// </summary>
-        /// <param name="name">the name of the event</param>
+        /// <param name="name">name of the event</param>
         /// <param name="jsonPayload">json payload of the event</param>
-        void SendEvent(string name, string jsonPayload);
+        void SendEvent(string name, Dictionary<string, JsonValue> attributes);
 
         /// <summary>
         /// Adds the given traced web request on the action belonging to the given ID.

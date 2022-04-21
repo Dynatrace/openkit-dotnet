@@ -1131,28 +1131,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void SendEventWithNameInPayload()
-        {
-            // given
-            var target = CreateSession().Build();
-            const string eventName = "SomeEvent";
-
-            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
-            attributes.Add("name", JsonStringValue.FromString("Test"));
-
-            // when
-            target.SendEvent(eventName, attributes);
-
-            Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
-            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
-
-            // then
-            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be used in the attributes as it will be overridden!");
-            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{actualAttributes.ToString()})");
-            mockBeacon.Received(1).SendEvent("SomeEvent", "{\"name\":\"SomeEvent\"}");
-        }
-
-        [Test]
         public void SendEventWithValidPayload()
         {
             // given
@@ -1167,7 +1145,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes.ToString()})");
-            mockBeacon.Received(1).SendEvent("SomeEvent", "{\"value\":\"Test\",\"name\":\"SomeEvent\"}");
+            mockBeacon.Received(1).SendEvent("SomeEvent", attributes);
         }
 
         [Test]
@@ -1181,7 +1159,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.SendEvent("EventName", new Dictionary<string, JsonValue>());
 
             // then
-            mockBeacon.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<string>());
+            mockBeacon.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
         }
 
         private TestSessionBuilder CreateSession()

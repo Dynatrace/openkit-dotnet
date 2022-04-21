@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
@@ -24,6 +25,7 @@ using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Core.Util;
 using Dynatrace.OpenKit.Providers;
 using Dynatrace.OpenKit.Util;
+using Dynatrace.OpenKit.Util.Json.Objects;
 
 namespace Dynatrace.OpenKit.Protocol
 {
@@ -85,6 +87,15 @@ namespace Dynatrace.OpenKit.Protocol
         // events api
         private const string BeaconKeyEventPayload = "pl";
         internal const int EventPayloadBytesLength = 16 * 1024;
+        internal const string EventPayloadApplicationId = "dt.application_id";
+        internal const string EventPayloadInstanceId = "dt.instance_id";
+        internal const string EventPayloadSessionId = "dt.sid";
+        internal const string EventPayloadSendTimestamp = "dt.send_timestamp";
+
+        /// <summary>
+        /// Replacement for send timestamp. This will be replaced in the payload when data gets sent.
+        /// </summary>
+        internal const string SendTimestampPlaceholder = "DT_SEND_TIMESTAMP_PLACEHOLDER";
 
         // max name length
         private const int MaximumNameLength = 250;
@@ -122,6 +133,8 @@ namespace Dynatrace.OpenKit.Protocol
         // this Beacon's traffic control value
         private int TrafficControlValue { get; }
 
+        private readonly ILogger logger;
+
         #region constructors
 
         /// <summary>
@@ -147,6 +160,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             TrafficControlValue = initializer.RandomNumberGenerator.NextPercentageValue();
 
+            logger = initializer.Logger;
             var ipAddress = initializer.ClientIpAddress;
             if (ipAddress == null)
             {
@@ -160,7 +174,6 @@ namespace Dynatrace.OpenKit.Protocol
             }
             else
             {
-                var logger = initializer.Logger;
                 if (logger.IsWarnEnabled)
                 {
                     logger.Warn($"Beacon: Client IP address validation failed: {ipAddress}");
@@ -639,16 +652,11 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timestamp, eventBuilder);
         }
 
-        void IBeacon.SendEvent(string name, string jsonPayload)
+        void IBeacon.SendEvent(string name, Dictionary<string, JsonValue> attributes)
         {
             if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentException("name is null or empty");
-            }
-
-            if (string.IsNullOrEmpty(jsonPayload))
-            {
-                throw new ArgumentException("payload is null or empty");
             }
 
             if (!configuration.PrivacyConfiguration.IsEventReportingAllowed)
@@ -660,6 +668,29 @@ namespace Dynatrace.OpenKit.Protocol
             {
                 return;
             }
+
+            if (attributes == null)
+            {
+                attributes = new Dictionary<string, JsonValue>();
+            }
+
+            EventPayloadBuilder builder = new EventPayloadBuilder(name, attributes, logger);
+
+            builder.AddOverridableAttribute(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(timingProvider.ProvideTimestampInNanoseconds()))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"))
+                .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
+                .AddNonOverridableAttribute(EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId))
+                .AddNonOverridableAttribute(EventPayloadSessionId, JsonNumberValue.FromLong(SessionNumber))
+                .AddNonOverridableAttribute(EventPayloadSendTimestamp, JsonStringValue.FromString(SendTimestampPlaceholder))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString(OpenKitConstants.DefaultApplicationVersion))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"))
+                .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
+                .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
+                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))
+                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ModelId));
+
+            string jsonPayload = builder.Build();
 
             if (Encoding.UTF8.GetBytes(jsonPayload).Length > EventPayloadBytesLength)
             {
@@ -757,6 +788,9 @@ namespace Dynatrace.OpenKit.Protocol
                     // no data added so far or no data to send
                     return response;
                 }
+
+                // Check if the chunk contains timestamp that needs to be replaced
+                chunk.Replace(SendTimestampPlaceholder, timingProvider.ProvideTimestampInNanoseconds().ToString());
 
                 var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 

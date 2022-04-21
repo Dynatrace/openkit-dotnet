@@ -26,5 +26,11 @@ namespace Dynatrace.OpenKit.Providers
         /// </summary>
         /// <returns></returns>
         long ProvideTimestampInMilliseconds();
+
+        /// <summary>
+        /// Provide the current timestamp in nanoseconds in local time.
+        /// </summary>
+        /// <returns></returns>
+        long ProvideTimestampInNanoseconds();
     }
 }

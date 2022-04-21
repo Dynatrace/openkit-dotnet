@@ -22,6 +22,7 @@ namespace Dynatrace.OpenKit.Providers
     public class DefaultTimingProvider : ITimingProvider
     {
         internal static readonly DateTime EpochDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        internal const int TimeSpanTicksToNanoseconds = 100;
 
         internal long ReferenceTimestampTicks { get; }
 
@@ -33,6 +34,11 @@ namespace Dynatrace.OpenKit.Providers
         public virtual long ProvideTimestampInMilliseconds()
         {
             return (long)TimeSpan.FromTicks(ReferenceTimestampTicks + StopwatchTimestampAsTimeSpanTicks).TotalMilliseconds;
+        }
+
+        public virtual long ProvideTimestampInNanoseconds()
+        {
+            return (ReferenceTimestampTicks + StopwatchTimestampAsTimeSpanTicks) * TimeSpanTicksToNanoseconds;
         }
 
         /// <summary>

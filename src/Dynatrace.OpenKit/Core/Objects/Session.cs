@@ -280,8 +280,6 @@ namespace Dynatrace.OpenKit.Core.Objects
                 attributes = new Dictionary<string, JsonValue>();
             }
 
-            attributes["name"] = JsonStringValue.FromString(name);
-
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} SendEvent({name},{attributes})");
@@ -291,7 +289,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 if (!state.IsFinishingOrFinished)
                 {
-                    beacon.SendEvent(name, JsonObjectValue.FromDictionary(attributes).ToString());
+                    beacon.SendEvent(name, attributes);
                 }
             }
         }
