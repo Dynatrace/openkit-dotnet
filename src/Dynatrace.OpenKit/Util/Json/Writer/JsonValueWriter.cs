@@ -67,7 +67,7 @@ namespace Dynatrace.OpenKit.Util.Json.Writer
         internal void InsertKey(string key)
         {
             stringBuilder.Append("\"");
-            stringBuilder.Append(key);
+            stringBuilder.Append(EscapeString(key));
             stringBuilder.Append("\"");
         }
 
@@ -78,7 +78,7 @@ namespace Dynatrace.OpenKit.Util.Json.Writer
         internal void InsertStringValue(string value)
         {
             stringBuilder.Append("\"");
-            stringBuilder.Append(value);
+            stringBuilder.Append(EscapeString(value));
             stringBuilder.Append("\"");
         }
 
@@ -98,6 +98,44 @@ namespace Dynatrace.OpenKit.Util.Json.Writer
         public override String ToString()
         {
             return stringBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Escaping the string used in JSON obj
+        /// </summary>
+        /// <param name="value">string value which should be escaped</param>
+        /// <returns>Escaped string value</returns>
+        internal static string EscapeString(string value)
+        {
+            var sb = new StringBuilder();
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                switch (value[i])
+                {
+                    case '\b': sb.Append("\\b"); break;
+                    case '\f': sb.Append("\\f"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    case '/': sb.Append("\\/"); break;
+                    case '"': sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    default:
+                        if ('\x00' <= value[i] && value[i] <= '\x1f')
+                        {
+                            sb.Append("\\u");
+                            sb.Append(((int)value[i]).ToString("x04"));
+                        }
+                        else
+                        {
+                            sb.Append(value[i]);
+                        }
+                        break;
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }

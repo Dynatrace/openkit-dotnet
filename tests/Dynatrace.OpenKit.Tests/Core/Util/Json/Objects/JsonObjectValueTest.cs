@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright 2018-2021 Dynatrace LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using System.Text;
 using Dynatrace.OpenKit.Util.Json.Objects;
 using NSubstitute;
 using NUnit.Framework;
@@ -178,6 +179,15 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
             jsonObjectDict.Add("Test2", JsonObjectValue.FromDictionary(jsonNestedObjectDict));
 
             Assert.That(JsonObjectValue.FromDictionary(jsonObjectDict).ToString(), Is.EqualTo("{\"Test\":false,\"Test2\":{\"Test3\":1}}"));
+        }
+
+        [Test]
+        public void ParsingSpecialUnicodeCharacter()
+        {
+            var jsonObjectDict = new Dictionary<string, JsonValue>();
+
+            jsonObjectDict.Add("Test", JsonStringValue.FromString("/\b\f\n\r\t\"\\\ud834\uDD1E"));
+            Assert.That(JsonObjectValue.FromDictionary(jsonObjectDict).ToString(), Is.EqualTo("{\"Test\":\"\\/\\b\\f\\n\\r\\t\\\"\\\\𝄞\"}"));
         }
 
 
