@@ -90,6 +90,8 @@ passing an implementation of `ISSLTrustManager` to the previously mentioned Open
 :warning: We do **NOT** recommend bypassing TLS/SSL server certificate validation, since this allows
 man-in-the-middle attacks.
 
+:warning: Dynatrace SaaS [supports only TLS 1.2+](https://www.dynatrace.com/support/help/whats-new/tls-1-0-and-1-1-end-of-support-for-rum-data). Using .NET Framework below 4.7 might require [additional configuration](https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls#if-your-app-targets-a-net-framework-version-earlier-than-47).
+
 Keep in mind on .NET 3.5 and 4.0 server certificate validation can only be overwritten on global level via
 the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request basis.  
 
