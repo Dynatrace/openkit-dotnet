@@ -218,11 +218,6 @@ namespace Dynatrace.OpenKit.Core.Objects
                 return;
             }
 
-            if (attributes != null && attributes.ContainsKey("name"))
-            {
-                logger.Warn($"{this} SendEvent: name must not be used in the attributes as it will be overridden!");
-            }
-
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{this} SendEvent({name},{attributes})");
@@ -237,6 +232,31 @@ namespace Dynatrace.OpenKit.Core.Objects
 
                 var session = GetOrSplitCurrentSessionByEvents();
                 session.SendEvent(name, attributes);
+            }
+        }
+
+        public void SendBizEvent(string type, Dictionary<string, JsonValue> attributes)
+        {
+            if (string.IsNullOrEmpty(type))
+            {
+                logger.Warn($"{this} SendBizEvent: type must not be null or empty");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} SendBizEvent({type},{attributes})");
+            }
+
+            lock (lockObject)
+            {
+                if (isFinished)
+                {
+                    return;
+                }
+
+                var session = GetOrSplitCurrentSessionByEvents();
+                session.SendBizEvent(type, attributes);
             }
         }
 

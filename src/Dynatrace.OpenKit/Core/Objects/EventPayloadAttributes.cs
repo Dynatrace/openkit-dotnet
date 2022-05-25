@@ -15,5 +15,8 @@
         internal const string DEVICE_MANUFACTURER = "device.manufacturer";
         internal const string DEVICE_MODEL_IDENTIFIER = "device.model.identifier";
         internal const string WINDOW_ORIENTATION = "window.orientation";
+
+        internal const string DT_TYPE_CUSTOM = "custom";
+        internal const string DT_TYPE_BIZ = "biz";
     }
 }

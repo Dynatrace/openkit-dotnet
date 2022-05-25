@@ -1198,7 +1198,6 @@ namespace Dynatrace.OpenKit.Protocol
             Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
             attributes.Add("TestString", JsonStringValue.FromString("Test"));
             attributes.Add("TestBool", JsonBooleanValue.FromValue(false));
-            attributes.Add("name", JsonStringValue.FromString(eventName));
 
             // when
             target.SendEvent(eventName, attributes);
@@ -1206,10 +1205,8 @@ namespace Dynatrace.OpenKit.Protocol
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
             actualAttributes.Add("TestString", JsonStringValue.FromString("Test"));
             actualAttributes.Add("TestBool", JsonBooleanValue.FromValue(false));
-            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
 
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
             actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
             actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
@@ -1221,6 +1218,8 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
+            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
+            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1252,9 +1251,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
 
-            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
             actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
             actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
@@ -1266,6 +1263,8 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
+            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
+            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1493,9 +1492,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
 
-            actualAttributes.Add("name", JsonStringValue.FromString("name"));
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
             actualAttributes.Add("dt.application_id", JsonStringValue.FromString(AppId));
             actualAttributes.Add("dt.instance_id", JsonNumberValue.FromLong(DeviceId));
             actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
@@ -1507,7 +1504,9 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
-
+            actualAttributes.Add("name", JsonStringValue.FromString("name"));
+            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
+            
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
 
@@ -1603,6 +1602,444 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             var exception = Assert.Throws<ArgumentException>(() => target.SendEvent(eventName, attributes));
+            Assert.That(exception.Message, Is.EqualTo($"Event payload is exceeding { Beacon.EventPayloadBytesLength } bytes!"));
+        }
+
+        #endregion
+
+        #region SendBizEvent tests
+
+        [Test]
+        public void SendValidBizEvent()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("TestString", JsonStringValue.FromString("Test"));
+            attributes.Add("TestBool", JsonBooleanValue.FromValue(false));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
+            actualAttributes.Add("TestString", JsonStringValue.FromString("Test"));
+            actualAttributes.Add("TestBool", JsonBooleanValue.FromValue(false));
+
+            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
+            actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add(Beacon.EventPayloadSendTimestamp, JsonStringValue.FromString("DT_SEND_TIMESTAMP_PLACEHOLDER"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString("2.3.0.0"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"));
+            actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
+            actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
+            actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
+            actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
+
+            actualAttributes.Add("type", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("biz"));
+            actualAttributes.Add("name", JsonStringValue.FromString("SomeType"));
+
+            // then
+            string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.EVENT.ToInt().ToInvariantString()}" // event type
+                + $"&pl={encodedPayload}"
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDtValuesWhichAreNotAllowed()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString("Test"));
+            attributes.Add(Beacon.EventPayloadInstanceId, JsonStringValue.FromString("Test"));
+            attributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString("Test"));
+            attributes.Add(Beacon.EventPayloadSendTimestamp, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
+
+            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
+            actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add(Beacon.EventPayloadSendTimestamp, JsonStringValue.FromString("DT_SEND_TIMESTAMP_PLACEHOLDER"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString("2.3.0.0"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"));
+            actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
+            actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
+            actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
+            actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
+
+            actualAttributes.Add("type", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("biz"));
+            actualAttributes.Add("name", JsonStringValue.FromString("SomeType"));
+
+            // then
+            string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.EVENT.ToInt().ToInvariantString()}" // event type
+                + $"&pl={encodedPayload}"
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideTimestamp()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.TIMESTAMP, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("timestamp%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDtType()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("dt.type%22%3A%22biz%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDtAgentVersion()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("dt.agent.version%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDtAgentTechnologyType()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("dt.agent.technology%5Ftype%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDtAgentFlavor()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("dt.agent.flavor%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideAppVersion()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("app.version%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideOsName()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("os.name%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDeviceManufacturer()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("device.manufacturer%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDeviceModelIdentifier()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("device.model.identifier%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventWithNameInAttributes()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("name", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("name%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendBizEventWithNullEventTypeThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentException>(() => target.SendBizEvent(null, null));
+            Assert.That(exception.Message, Is.EqualTo("type is null or empty"));
+        }
+
+        [Test]
+        public void SendBizEventWithEmptyEventTypeThrowsException()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            var exception = Assert.Throws<ArgumentException>(() => target.SendBizEvent("", null));
+            Assert.That(exception.Message, Is.EqualTo("type is null or empty"));
+        }
+
+        [Test]
+        public void SendBizEventWithNullAttributes()
+        {
+            // given
+            var target = CreateBeacon().Build();
+
+            // when
+            target.SendBizEvent("type", null);
+
+            Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
+
+            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
+            actualAttributes.Add("dt.application_id", JsonStringValue.FromString(AppId));
+            actualAttributes.Add("dt.instance_id", JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add("dt.send_timestamp", JsonStringValue.FromString("DT_SEND_TIMESTAMP_PLACEHOLDER"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString("2.3.0.0"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"));
+            actualAttributes.Add(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"));
+            actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
+            actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
+            actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
+            actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
+            
+            actualAttributes.Add("type", JsonStringValue.FromString("type"));
+            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("biz"));
+            actualAttributes.Add("name", JsonStringValue.FromString("type"));
+
+            // then
+            string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                $"et={EventType.EVENT.ToInt().ToInvariantString()}" // event type
+                + $"&pl={encodedPayload}"
+                );
+        }
+
+        [Test]
+        public void SendBizEventNotReportedIfDataSendingDisallowed()
+        {
+            // given
+            mockServerConfiguration.IsSendingDataAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then ensure nothing has been serialized
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SendBizEventNotReportedIfEventReportingDisallowed()
+        {
+            // given
+            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(false);
+            var target = CreateBeacon().Build();
+
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SendBizEventNotReportedIfDisallowedByTrafficControl()
+        {
+            // given
+            const int trafficControlPercentage = 50;
+
+            var mockRandomGenerator = Substitute.For<IPrnGenerator>();
+            mockRandomGenerator.NextPercentageValue().Returns(trafficControlPercentage);
+
+            mockServerConfiguration.TrafficControlPercentage.Returns(trafficControlPercentage);
+
+            var target = CreateBeacon().With(mockRandomGenerator).Build();
+
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();;
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then
+            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        [Test]
+        public void SendBizEventPayloadIsToBig()
+        {
+            var target = CreateBeacon().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            for (int i = 0; i < 500; i++)
+            {
+                attributes.Add("TestNameForOversizeMap" + i, JsonStringValue.FromString(eventType));
+            }
+
+            var exception = Assert.Throws<ArgumentException>(() => target.SendBizEvent(eventType, attributes));
             Assert.That(exception.Message, Is.EqualTo($"Event payload is exceeding { Beacon.EventPayloadBytesLength } bytes!"));
         }
 

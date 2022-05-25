@@ -1559,26 +1559,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void SendEventWithNameInPayload()
-        {
-            // given
-            var target = CreateSessionProxy();
-
-            const string eventName = "SomeEvent";
-
-            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
-            attributes.Add("name", JsonStringValue.FromString("Test"));
-
-            // when
-            target.SendEvent(eventName, attributes);
-
-            // then
-            mockLogger.Received(1).Warn($"{target} SendEvent: name must not be used in the attributes as it will be overridden!");
-            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes.ToString()})");
-            mockSession.Received(1).SendEvent(eventName, attributes);
-        }
-
-        [Test]
         public void SendEventDoesNothingIfSessionIsEnded()
         {
             // given
@@ -1642,6 +1622,102 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
             mockSession.Received(eventCount).SendEvent(eventName, attributes);
+            mockSessionCreator.Received(1).CreateSession(target);
+        }
+
+        #endregion
+
+        #region send biz event
+
+        [Test]
+        public void SendBizEventWithNullEventType()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.SendBizEvent(null, null);
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendBizEvent: type must not be null or empty");
+            mockSession.Received(0).SendBizEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        [Test]
+        public void SendBizEventWithEmptyEventType()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.SendBizEvent("", null);
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendBizEvent: type must not be null or empty");
+            mockSession.Received(0).SendBizEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        [Test]
+        public void SendBizEventDoesNothingIfSessionIsEnded()
+        {
+            // given
+            var target = CreateSessionProxy();
+            target.End();
+
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            // when
+            target.SendEvent(eventType, attributes);
+
+            // then
+            mockSession.Received(0).SendBizEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        public void SendBizEventDoesNotIncreaseTopLevelEventCount()
+        {
+            // given
+            var target = CreateSessionProxy();
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then
+            mockSession.Received(1).SendBizEvent(eventType, attributes);
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+        }
+
+        public void SendBizEventDoesNotSplitSession()
+        {
+            // given
+            const int eventCount = 10;
+            mockServerConfiguration.IsSessionSplitByEventsEnabled.Returns(true);
+            mockServerConfiguration.MaxEventsPerSession.Returns(1);
+
+            var target = CreateSessionProxy();
+            mockSessionCreator.Received(1).CreateSession(target);
+
+            target.OnServerConfigurationUpdate(mockServerConfiguration);
+
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+
+            // when
+            for (var i = 0; i < eventCount; i++)
+            {
+                target.SendBizEvent(eventType, attributes);
+            }
+
+            // then
+            Assert.That(target.TopLevelActionCount, Is.EqualTo(0));
+            mockSession.Received(eventCount).SendBizEvent(eventType, attributes);
             mockSessionCreator.Received(1).CreateSession(target);
         }
 

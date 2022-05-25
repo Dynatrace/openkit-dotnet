@@ -1144,7 +1144,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.SendEvent(eventName, attributes);
 
             // then
-            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes.ToString()})");
+            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes})");
             mockBeacon.Received(1).SendEvent("SomeEvent", attributes);
         }
 
@@ -1160,6 +1160,64 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // then
             mockBeacon.Received(0).SendEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
+        }
+
+        [Test]
+        public void SendBizEventWithNullEventType()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.SendBizEvent(null, new Dictionary<string, JsonValue>());
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendBizEvent: type must not be null or empty");
+        }
+
+        [Test]
+        public void SendBizEventWithEmptyEventType()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.SendBizEvent("", new Dictionary<string, JsonValue>());
+
+            // then
+            mockLogger.Received(1).Warn($"{target} SendBizEvent: type must not be null or empty");
+        }
+
+        [Test]
+        public void SendBizEventWithValidPayload()
+        {
+            // given
+            var target = CreateSession().Build();
+            const string eventType = "SomeType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("value", JsonStringValue.FromString("Test"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then
+            mockLogger.Received(1).Debug($"{target} SendBizEvent({eventType},{attributes})");
+            mockBeacon.Received(1).SendBizEvent("SomeType", attributes);
+        }
+
+        [Test]
+        public void SendBizEventDoesNothingIfSessionIsEnded()
+        {
+            // given
+            var target = CreateSession().Build();
+            target.End();
+
+            // when
+            target.SendBizEvent("EventType", new Dictionary<string, JsonValue>());
+
+            // then
+            mockBeacon.Received(0).SendBizEvent(Arg.Any<string>(), Arg.Any<Dictionary<string, JsonValue>>());
         }
 
         private TestSessionBuilder CreateSession()

@@ -70,6 +70,11 @@ namespace Dynatrace.OpenKit.Core.Objects
             // intentionally left empty, due to NullObject pattern
         }
 
+        public void SendBizEvent(string type, Dictionary<string, JsonValue> attributes)
+        {
+            // intentionally left empty, due to NullObject pattern
+        }
+
         public IWebRequestTracer TraceWebRequest(string url)
         {
             return NullWebRequestTracer.Instance;

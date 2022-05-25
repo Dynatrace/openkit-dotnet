@@ -263,6 +263,13 @@ namespace Dynatrace.OpenKit.Protocol
         void SendEvent(string name, Dictionary<string, JsonValue> attributes);
 
         /// <summary>
+        /// Reports the given biz event by adding it to the beacon.
+        /// </summary>
+        /// <param name="type">type of the event</param>
+        /// <param name="jsonPayload">json payload of the event</param>
+        void SendBizEvent(string type, Dictionary<string, JsonValue> attributes);
+
+        /// <summary>
         /// Adds the given traced web request on the action belonging to the given ID.
         ///
         /// <para>

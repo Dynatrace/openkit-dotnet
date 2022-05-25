@@ -669,27 +669,48 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (attributes == null)
+            EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
+            eventPayloadBuilder.AddNonOverridableAttribute("name", JsonStringValue.FromString(name));
+            eventPayloadBuilder.AddOverridableAttribute(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString(EventPayloadAttributes.DT_TYPE_CUSTOM));
+
+            SendEventPayload(eventPayloadBuilder);
+        }
+
+        void IBeacon.SendBizEvent(string type, Dictionary<string, JsonValue> attributes)
+        {
+            if (string.IsNullOrEmpty(type))
             {
-                attributes = new Dictionary<string, JsonValue>();
+                throw new ArgumentException("type is null or empty");
             }
 
-            EventPayloadBuilder builder = new EventPayloadBuilder(name, attributes, logger);
+            if (!configuration.PrivacyConfiguration.IsEventReportingAllowed)
+            {
+                return;
+            }
 
-            builder.AddOverridableAttribute(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(timingProvider.ProvideTimestampInNanoseconds()))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"))
-                .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
-                .AddNonOverridableAttribute(EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId))
-                .AddNonOverridableAttribute(EventPayloadSessionId, JsonNumberValue.FromLong(SessionNumber))
-                .AddNonOverridableAttribute(EventPayloadSendTimestamp, JsonStringValue.FromString(SendTimestampPlaceholder))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString(OpenKitConstants.DefaultApplicationVersion))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"))
-                .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
-                .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
-                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))
-                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ModelId));
+            if (!ThisBeacon.IsCrashCapturingEnabled)
+            {
+                return;
+            }
 
+            EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
+            eventPayloadBuilder.AddNonOverridableAttribute("type", JsonStringValue.FromString(type));
+            eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString(EventPayloadAttributes.DT_TYPE_BIZ));
+
+            if(attributes != null && attributes.ContainsKey("name"))
+            {
+                eventPayloadBuilder.AddNonOverridableAttribute("name", attributes["name"]);
+            }
+            else
+            {
+                eventPayloadBuilder.AddNonOverridableAttribute("name", JsonStringValue.FromString(type));
+            }
+
+            SendEventPayload(eventPayloadBuilder);
+        }
+
+        private void SendEventPayload(EventPayloadBuilder builder)
+        {
             string jsonPayload = builder.Build();
 
             if (Encoding.UTF8.GetBytes(jsonPayload).Length > EventPayloadBytesLength)
@@ -702,6 +723,26 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyEventPayload, jsonPayload);
 
             AddEventData(timingProvider.ProvideTimestampInMilliseconds(), eventBuilder);
+        }
+
+        private EventPayloadBuilder GenerateEventPayload(Dictionary<string, JsonValue> attributes)
+        {
+            EventPayloadBuilder builder = new EventPayloadBuilder(attributes, logger);
+
+            builder.AddOverridableAttribute(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(timingProvider.ProvideTimestampInNanoseconds()))
+                .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
+                .AddNonOverridableAttribute(EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId))
+                .AddNonOverridableAttribute(EventPayloadSessionId, JsonNumberValue.FromLong(SessionNumber))
+                .AddNonOverridableAttribute(EventPayloadSendTimestamp, JsonStringValue.FromString(SendTimestampPlaceholder))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString(OpenKitConstants.DefaultApplicationVersion))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"))
+                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"))
+                .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
+                .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
+                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))
+                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ModelId));
+
+            return builder;
         }
 
         void IBeacon.AddWebRequest(int parentActionId, IWebRequestTracerInternals webRequestTracer)

@@ -23,12 +23,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private Collection<JsonValue> overriddenKeys;
 
-        public EventPayloadBuilder(string name, Dictionary<string, JsonValue> attributes, ILogger logger)
+        public EventPayloadBuilder(Dictionary<string, JsonValue> attributes, ILogger logger)
         {
             this.logger = logger;
             overriddenKeys = new Collection<JsonValue>();
 
-            InitializeInternalAttributes(attributes, name);
+            InitializeInternalAttributes(attributes);
         }
 
         public EventPayloadBuilder AddOverridableAttribute(string key, JsonValue value)
@@ -77,22 +77,23 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// Initialize the internal attribute dictionary and filter out the reserved internal keys already
         /// </summary>
         /// <param name="extAttributes">External attributes coming from the API</param>
-        private void InitializeInternalAttributes(Dictionary<string, JsonValue> extAttributes, string name)
+        private void InitializeInternalAttributes(Dictionary<string, JsonValue> extAttributes)
         {
-            foreach (KeyValuePair<string, JsonValue> entry in extAttributes)
+            if(extAttributes != null)
             {
-                if(entry.Key == "dt" || (entry.Key.StartsWith("dt.") &&
-                    !entry.Key.StartsWith("dt.agent.") && entry.Key != EventPayloadAttributes.DT_TYPE))
+                foreach (KeyValuePair<string, JsonValue> entry in extAttributes)
                 {
-                    logger.Warn($"EventPayloadBuilder InitializeInternalAttributes: ${entry.Key} is reserved for internal values!");
-                }
-                else
-                {
-                    this.attributes.Add(entry.Key, entry.Value);
+                    if (entry.Key == "dt" || (entry.Key.StartsWith("dt.") &&
+                        !entry.Key.StartsWith("dt.agent.") && entry.Key != EventPayloadAttributes.DT_TYPE))
+                    {
+                        logger.Warn($"EventPayloadBuilder InitializeInternalAttributes: ${entry.Key} is reserved for internal values!");
+                    }
+                    else
+                    {
+                        this.attributes.Add(entry.Key, entry.Value);
+                    }
                 }
             }
-
-            AddNonOverridableAttribute("name", JsonStringValue.FromString(name));
         }
     }
 }
