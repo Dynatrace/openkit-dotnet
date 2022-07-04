@@ -36,10 +36,10 @@ namespace Dynatrace.OpenKit.Core.Objects
             Dictionary<string, JsonValue> dict = new Dictionary<string, JsonValue>();
             dict.Add("dt", JsonStringValue.FromString("Removed"));
             dict.Add("dt.hello", JsonStringValue.FromString("Removed"));
-            dict.Add("dt.type", JsonStringValue.FromString("Okay"));
+            dict.Add("event.kind", JsonStringValue.FromString("Okay"));
 
             EventPayloadBuilder builder = new EventPayloadBuilder(dict, mockLogger);
-            Assert.That(builder.Build(), Is.EqualTo("{\"dt.type\":\"Okay\"}"));
+            Assert.That(builder.Build(), Is.EqualTo("{\"event.kind\":\"Okay\"}"));
         }
 
         [Test]

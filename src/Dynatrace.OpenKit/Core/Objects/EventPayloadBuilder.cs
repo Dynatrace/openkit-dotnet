@@ -83,8 +83,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 foreach (KeyValuePair<string, JsonValue> entry in extAttributes)
                 {
-                    if (entry.Key == "dt" || (entry.Key.StartsWith("dt.") &&
-                        !entry.Key.StartsWith("dt.agent.") && entry.Key != EventPayloadAttributes.DT_TYPE))
+                    if (entry.Key == "dt" || (entry.Key.StartsWith("dt.") && !entry.Key.StartsWith("dt.agent.")))
                     {
                         logger.Warn($"EventPayloadBuilder InitializeInternalAttributes: ${entry.Key} is reserved for internal values!");
                     }

@@ -1218,8 +1218,8 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
-            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
+            actualAttributes.Add("event.name", JsonStringValue.FromString(eventName));
+            actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("RUM_EVENT"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1263,8 +1263,8 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
-            actualAttributes.Add("name", JsonStringValue.FromString(eventName));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
+            actualAttributes.Add("event.name", JsonStringValue.FromString(eventName));
+            actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("RUM_EVENT"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1307,7 +1307,7 @@ namespace Dynatrace.OpenKit.Protocol
             const string eventName = "SomeEvent";
 
             Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
-            attributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("Test"));
+            attributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("Test"));
 
             // when
             target.SendEvent(eventName, attributes);
@@ -1315,7 +1315,7 @@ namespace Dynatrace.OpenKit.Protocol
             mockBeaconCache.Received(1).AddEventData(
                 new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
                 0,                                                        // timestamp
-                Arg.Is<string>(str => str.Contains("dt.type%22%3A%22Test%22%2C%22"))
+                Arg.Is<string>(str => str.Contains("event.kind%22%3A%22Test%22%2C%22"))
                 );
         }
 
@@ -1504,8 +1504,8 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
-            actualAttributes.Add("name", JsonStringValue.FromString("name"));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("custom"));
+            actualAttributes.Add("event.name", JsonStringValue.FromString("name"));
+            actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("RUM_EVENT"));
             
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1640,9 +1640,9 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
 
-            actualAttributes.Add("type", JsonStringValue.FromString("SomeType"));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("biz"));
-            actualAttributes.Add("name", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("BIZ_EVENT"));
+            actualAttributes.Add("event.name", JsonStringValue.FromString("SomeType"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1687,9 +1687,9 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
 
-            actualAttributes.Add("type", JsonStringValue.FromString("SomeType"));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("biz"));
-            actualAttributes.Add("name", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("BIZ_EVENT"));
+            actualAttributes.Add("event.name", JsonStringValue.FromString("SomeType"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);
@@ -1732,7 +1732,7 @@ namespace Dynatrace.OpenKit.Protocol
             const string eventType = "SomeType";
 
             Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
-            attributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("Test"));
+            attributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("Test"));
 
             // when
             target.SendBizEvent(eventType, attributes);
@@ -1740,7 +1740,7 @@ namespace Dynatrace.OpenKit.Protocol
             mockBeaconCache.Received(1).AddEventData(
                 new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
                 0,                                                        // timestamp
-                Arg.Is<string>(str => str.Contains("dt.type%22%3A%22biz%22%2C%22"))
+                Arg.Is<string>(str => str.Contains("event.kind%22%3A%22BIZ%5FEVENT%22%2C%22"))
                 );
         }
 
@@ -1950,9 +1950,9 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(""));
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
             
-            actualAttributes.Add("type", JsonStringValue.FromString("type"));
-            actualAttributes.Add(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString("biz"));
-            actualAttributes.Add("name", JsonStringValue.FromString("type"));
+            actualAttributes.Add("event.type", JsonStringValue.FromString("type"));
+            actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("BIZ_EVENT"));
+            actualAttributes.Add("event.name", JsonStringValue.FromString("type"));
 
             // then
             string encodedPayload = PercentEncoder.Encode(JsonObjectValue.FromDictionary(actualAttributes).ToString(), Encoding.UTF8, Beacon.ReservedCharacters);

@@ -670,8 +670,8 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
-            eventPayloadBuilder.AddNonOverridableAttribute("name", JsonStringValue.FromString(name));
-            eventPayloadBuilder.AddOverridableAttribute(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString(EventPayloadAttributes.DT_TYPE_CUSTOM));
+            eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(name));
+            eventPayloadBuilder.AddOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_RUM));
 
             SendEventPayload(eventPayloadBuilder);
         }
@@ -694,16 +694,16 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
-            eventPayloadBuilder.AddNonOverridableAttribute("type", JsonStringValue.FromString(type));
-            eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.DT_TYPE, JsonStringValue.FromString(EventPayloadAttributes.DT_TYPE_BIZ));
+            eventPayloadBuilder.AddNonOverridableAttribute("event.type", JsonStringValue.FromString(type));
+            eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
 
-            if(attributes != null && attributes.ContainsKey("name"))
+            if(attributes != null && attributes.ContainsKey("event.name"))
             {
-                eventPayloadBuilder.AddNonOverridableAttribute("name", attributes["name"]);
+                eventPayloadBuilder.AddNonOverridableAttribute("event.name", attributes["event.name"]);
             }
             else
             {
-                eventPayloadBuilder.AddNonOverridableAttribute("name", JsonStringValue.FromString(type));
+                eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(type));
             }
 
             SendEventPayload(eventPayloadBuilder);
