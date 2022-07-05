@@ -74,14 +74,14 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <param name="name">name of the event</param>
         /// <param name="attributes">dictonary containing JSON values</param>
-        internal void SendEvent(string name, Dictionary<string, JsonValue> attributes);
+        internal void SendEvent(string name, Dictionary<string, JsonValue> attributes = null);
 
         /// <summary>
         /// Sends an biz event with a type and a dictionary containing JSON values.
         /// </summary>
         /// <param name="type">type of the event</param>
         /// <param name="attributes">dictonary containing JSON values</param>
-        void SendBizEvent(string type, Dictionary<string, JsonValue> attributes);
+        void SendBizEvent(string type, Dictionary<string, JsonValue> attributes = null);
         
         /// <summary>
         ///  Allows tracing and timing of a web request handled by any 3rd party HTTP Client (e.g. Apache, Google, ...).
