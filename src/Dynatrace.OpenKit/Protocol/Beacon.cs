@@ -831,7 +831,8 @@ namespace Dynatrace.OpenKit.Protocol
                 }
 
                 // Check if the chunk contains timestamp that needs to be replaced
-                chunk.Replace(SendTimestampPlaceholder, timingProvider.ProvideTimestampInNanoseconds().ToString());
+                chunk = chunk.Replace(PercentEncoder.Encode("\"" + SendTimestampPlaceholder + "\"", Encoding.UTF8, ReservedCharacters),
+                    timingProvider.ProvideTimestampInNanoseconds().ToInvariantString());
 
                 var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 
