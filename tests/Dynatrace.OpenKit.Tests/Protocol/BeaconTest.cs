@@ -71,7 +71,6 @@ namespace Dynatrace.OpenKit.Protocol
             mockOpenKitConfiguration = Substitute.For<IOpenKitConfiguration>();
             mockOpenKitConfiguration.ApplicationId.Returns(AppId);
             mockOpenKitConfiguration.ApplicationIdPercentEncoded.Returns(AppId);
-            mockOpenKitConfiguration.ApplicationName.Returns(AppName);
             mockOpenKitConfiguration.ApplicationVersion.Returns(AppVersion);
             mockOpenKitConfiguration.OperatingSystem.Returns(string.Empty);
             mockOpenKitConfiguration.Manufacturer.Returns(string.Empty);
@@ -3496,7 +3495,6 @@ namespace Dynatrace.OpenKit.Protocol
             var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
                 $"&ap={AppId}" +
-                $"&an={AppName}" +
                 $"&vn={appVersion}" +
                 $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +
@@ -3991,7 +3989,6 @@ namespace Dynatrace.OpenKit.Protocol
                 $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
                 $"&va={ProtocolConstants.OpenKitVersion}" +
                 $"&ap={AppId}" +
-                $"&an={AppName}" +
                 $"&vn={AppVersion}" +
                 $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
                 $"&tt={ProtocolConstants.AgentTechnologyType}" +

@@ -23,7 +23,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
 {
 
     /// <summary>
-    ///  The OpenKitConfiguration class holds all configuration settings, both provided by the user and the Dynatrace/AppMon server.
+    ///  The OpenKitConfiguration class holds all configuration settings, both provided by the user and the Dynatrace server.
     /// </summary>
     public class OpenKitConfiguration : IOpenKitConfiguration
     {
@@ -46,7 +46,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             OpenKitType = builder.OpenKitType;
             ApplicationId = builder.ApplicationId;
             ApplicationIdPercentEncoded = PercentEncoder.Encode(ApplicationId, EncodingCharset, ReservedCharacters);
-            ApplicationName = builder.ApplicationName;
             ApplicationVersion = builder.ApplicationVersion;
             OperatingSystem = builder.OperatingSystem;
             Manufacturer = builder.Manufacturer;
@@ -111,11 +110,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public string ApplicationIdPercentEncoded { get; }
 
         /// <summary>
-        /// Returns the name of the application.
-        /// </summary>
-        public string ApplicationName { get; }
-
-        /// <summary>
         /// Returns the application's version.
         /// </summary>
         public string ApplicationVersion { get; }
@@ -136,7 +130,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         public string ModelId { get; }
 
         /// <summary>
-        /// Returns the default identifier of the Dynatrace/AppMon server to communicate with.
+        /// Returns the default identifier of the Dynatrace server to communicate with.
         /// </summary>
         public int DefaultServerId { get; }
 

@@ -37,16 +37,6 @@ namespace Dynatrace.OpenKit
         string ApplicationId { get; }
 
         /// <summary>
-        /// Returns the application's name
-        ///
-        /// <para>
-        ///     It depends on the concrete builder whether the application name is configurable or not.
-        ///     In any case, the derived classes have to return a string that is neither <code>null</code> nor empty.
-        /// </para>
-        /// </summary>
-        string ApplicationName { get; }
-
-        /// <summary>
         /// Returns the ID of the server to communicate with.
         ///
         /// <para>
@@ -56,7 +46,7 @@ namespace Dynatrace.OpenKit
         int DefaultServerId { get; }
 
         /// <summary>
-        /// Returns the application version that has been set with <see cref="AbstractOpenKitBuilder.WithApplicationVersion(string)"/>.
+        /// Returns the application version that has been set with <see cref="DynatraceOpenKitBuilder.WithApplicationVersion(string)"/>.
         ///
         /// <para>
         ///     If no version was set, the <see cref="OpenKitConstants.DefaultApplicationVersion">default version</see>
@@ -66,7 +56,7 @@ namespace Dynatrace.OpenKit
         string ApplicationVersion { get; }
 
         /// <summary>
-        /// Returns the operating system that has been set with <see cref="AbstractOpenKitBuilder.WithOperatingSystem(string)"/>.
+        /// Returns the operating system that has been set with <see cref="DynatraceOpenKitBuilder.WithOperatingSystem(string)"/>.
         ///
         /// <para>
         ///     If no operating system was set, the <see cref="OpenKitConstants.DefaultOperatingSystem">default
@@ -76,7 +66,7 @@ namespace Dynatrace.OpenKit
         string OperatingSystem { get; }
 
         /// <summary>
-        /// Returns the manufacturer that has been set with <see cref="AbstractOpenKitBuilder.WithManufacturer(string)"/>.
+        /// Returns the manufacturer that has been set with <see cref="DynatraceOpenKitBuilder.WithManufacturer(string)"/>.
         ///
         /// <para>
         ///     If no manufacturer was set, the <see cref="OpenKitConstants.DefaultManufacturer">default manufacturer</see>
@@ -86,7 +76,7 @@ namespace Dynatrace.OpenKit
         string Manufacturer { get; }
 
         /// <summary>
-        /// Returns the model identifier that has been set with <see cref="AbstractOpenKitBuilder.WithModelId(string)"/>.
+        /// Returns the model identifier that has been set with <see cref="DynatraceOpenKitBuilder.WithModelId(string)"/>.
         ///
         /// <para>
         ///     If no model ID was set, the <see cref="OpenKitConstants.DefaultModelId">default model ID</see> is
@@ -122,7 +112,7 @@ namespace Dynatrace.OpenKit
         string OrigDeviceId { get; }
 
         /// <summary>
-        /// Returns the SSL trust manager that has been set with <see cref="AbstractOpenKitBuilder.WithTrustManager(ISSLTrustManager)"/>.
+        /// Returns the SSL trust manager that has been set with <see cref="DynatraceOpenKitBuilder.WithTrustManager(ISSLTrustManager)"/>.
         ///
         /// <para>
         ///     The <see cref="ISSLTrustManager"/> implementation is responsible for checking the X509 certificate chain
@@ -134,7 +124,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the maximum beacon cache record age that has been set with
-        /// <see cref="AbstractOpenKitBuilder.WithBeaconCacheMaxRecordAge(long)"/>.
+        /// <see cref="DynatraceOpenKitBuilder.WithBeaconCacheMaxRecordAge(long)"/>.
         ///
         /// <para>
         ///     Is no max age was set, the <see cref="BeaconCacheConfiguration.DefaultMaxRecordAgeInMillis">default max
@@ -145,7 +135,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the beacon cache's lower memory boundary that has been set with
-        /// <see cref="AbstractOpenKitBuilder.WithBeaconCacheLowerMemoryBoundary(long)"/>.
+        /// <see cref="DynatraceOpenKitBuilder.WithBeaconCacheLowerMemoryBoundary(long)"/>.
         ///
         /// <para>
         ///     If no lower memory boundary was set, the
@@ -157,7 +147,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the beacon cache's upper memory boundary that has been set with
-        /// <see cref="AbstractOpenKitBuilder.WithBeaconCacheUpperMemoryBoundary(long)"/>.
+        /// <see cref="DynatraceOpenKitBuilder.WithBeaconCacheUpperMemoryBoundary(long)"/>.
         ///
         /// <para>
         ///     If no upper memory boundary was set, the
@@ -169,7 +159,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the data collection level that has been set with 
-        /// <see cref="AbstractOpenKitBuilder.WithDataCollectionLevel(DataCollectionLevel)"/>.
+        /// <see cref="DynatraceOpenKitBuilder.WithDataCollectionLevel(DataCollectionLevel)"/>.
         ///
         /// <para>
         ///     If no data collection level was set, the <see cref="PrivacyConfiguration.DefaultDataCollectionLevel"/>
@@ -180,7 +170,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the crash reporting level that has been set with 
-        /// <see cref="AbstractOpenKitBuilder.WithCrashReportingLevel(CrashReportingLevel)"/>.
+        /// <see cref="DynatraceOpenKitBuilder.WithCrashReportingLevel(CrashReportingLevel)"/>.
         ///
         /// <para>
         ///     If no crash reporting level was set, the <see cref="PrivacyConfiguration.DefaultCrashReportingLevel"/>
@@ -190,7 +180,7 @@ namespace Dynatrace.OpenKit
         CrashReportingLevel CrashReportingLevel { get; }
 
         /// <summary>
-        /// Returns the log level that has been set with <see cref="AbstractOpenKitBuilder.WithLogLevel(LogLevel)"/>.
+        /// Returns the log level that has been set with <see cref="DynatraceOpenKitBuilder.WithLogLevel(LogLevel)"/>.
         ///
         /// <para>
         ///     If no log level was set, the <see cref="Dynatrace.OpenKit.API.LogLevel.WARN">default log level</see>
@@ -200,7 +190,7 @@ namespace Dynatrace.OpenKit
         LogLevel LogLevel { get; }
 
         /// <summary>
-        /// Returns the <see cref="ILogger"/> that has been set with <see cref="AbstractOpenKitBuilder.WithLogger(ILogger)"/>.
+        /// Returns the <see cref="ILogger"/> that has been set with <see cref="DynatraceOpenKitBuilder.WithLogger(ILogger)"/>.
         ///
         /// <para>
         ///     If no logger was set, a <see cref="DefaultLogger">default logger</see> instance is returned.
@@ -211,7 +201,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Returns the <see cref="IHttpRequestInterceptor"/> that has been set with
-        /// <see cref="AbstractOpenKitBuilder.WithHttpRequestInterceptor(IHttpRequestInterceptor)"/>
+        /// <see cref="DynatraceOpenKitBuilder.WithHttpRequestInterceptor(IHttpRequestInterceptor)"/>
         /// 
         /// <para>
         ///     If no request interceptor was set, a <see cref="NullHttpRequestInterceptor">default request interceptor</see>

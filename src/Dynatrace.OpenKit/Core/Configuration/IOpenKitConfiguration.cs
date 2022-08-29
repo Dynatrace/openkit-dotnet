@@ -61,11 +61,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         string ApplicationIdPercentEncoded { get; }
 
         /// <summary>
-        /// Returns the name of the application for which this configuration is used.
-        /// </summary>
-        string ApplicationName { get; }
-
-        /// <summary>
         /// Returns the version of the application for which this configuration is used.
         /// </summary>
         string ApplicationVersion { get; }
@@ -86,7 +81,7 @@ namespace Dynatrace.OpenKit.Core.Configuration
         string ModelId { get; }
 
         /// <summary>
-        /// Returns the default identifier of the Dynatrace/AppMon server to communicate with.
+        /// Returns the default identifier of the Dynatrace server to communicate with.
         /// </summary>
         int DefaultServerId { get; }
 

@@ -8,8 +8,7 @@ avoid C#'s auto type deduction feature.
 
 ## Obtaining an OpenKit Instance
 
-Depending on the backend a new OpenKit instance can be obtained by using either `DynatraceOpenKitBuilder` 
-or `AppMonOpenKitBuilder`. Despite from this, the developer does not need to distinguish between 
+Depending on the backend a new OpenKit instance can be obtained by using either `DynatraceOpenKitBuilder`. Despite from this, the developer does not need to distinguish between 
 different backend systems.
 
 ### Dynatrace
@@ -20,7 +19,6 @@ For Dynatrace SaaS and Dynatrace Managed the `DynatraceOpenKitBuilder` is used t
 ambiguity error caused by two methods differing in case only.
 
 ```cs
-string applicationName = "My OpenKit application";
 string applicationID = "application-id";
 long deviceID = 42L;
 string endpointURL = "https://tenantid.beaconurl.com/mbeacon";
@@ -37,28 +35,6 @@ application's id can be found in the settings page of the custom application in 
 * The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
 
 :grey_exclamation: For Dynatrace Managed the endpoint URL looks a bit different.
-
-
-### AppMon
-
-An OpenKit instance for AppMon can be obtained by using the `AppMonOpenKitBuilder`.
-
-:information_source: VisualBasic developers should use `AppMonOpenKitBuilderVB` for now to workaround an
-ambiguity error caused by two methods differing in case only.
-
-The example below demonstrates how to connect an OpenKit application to an AppMon endpoint.
-```cs
-string applicationName = "My OpenKit application";
-long deviceID = 42L;
-string endpointURL = "https://beaconurl.com/dynaTraceMonitor";
-
-// by default verbose logging is disabled
-IOpenKit openKit = new AppMonOpenKitBuilder(endpointURL, applicationName, deviceID).Build();
-```
-
-* The `endpointURL` denotes the AppMon endpoint OpenKit communicates with.
-* The `applicationName` parameter is the application's name in AppMon and is also used as the application's id.
-* The `deviceID` is a unique identifier, which might be used to uniquely identify a device.
 
 ### Optional Configuration
 
@@ -78,8 +54,8 @@ customize OpenKit. This includes device specific information like operating syst
 | `EnableVerbose`  | *Deprecated*, use `WithLogLevel` instead.<br>Enables extended log output for OpenKit if the default logger is used. | `false` |
 | `WithLogLevel` | sets the log level if the default logger is used | `LogLevel.WARN` |
 | `WithLogger` | sets a custom logger, replacing the builtin default one.<br>Details are described in section [Logging](#logging). | `DefaultLogger` |
-| `WithHttpRequestInterceptor` | sets a custom `IHttpRequestInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace/AppMon](#intercepting-http-traffic-to-dynatraceappmon). | `NullHttpRequestInterceptor` |
-| `WithHttpResponseInterceptor` | sets a custom `IHttpResponseInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace/AppMon](#intercepting-http-traffic-to-dynatraceappmon). | `NullHttpResponseInterceptor` |
+| `WithHttpRequestInterceptor` | sets a custom `IHttpRequestInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace](#intercepting-http-traffic-to-dynatrace). | `NullHttpRequestInterceptor` |
+| `WithHttpResponseInterceptor` | sets a custom `IHttpResponseInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace](#intercepting-http-traffic-to-dynatrace). | `NullHttpResponseInterceptor` |
 
 
 ## SSL/TLS Security in OpenKit
@@ -97,13 +73,13 @@ man-in-the-middle attacks.
 Keep in mind on .NET 3.5 and 4.0 server certificate validation can only be overwritten on global level via
 the `ServicePointManager`. In versions .NET 4.5+ overwriting happens on request basis.  
 
-## Intercepting HTTP traffic to Dynatrace/AppMon
+## Intercepting HTTP traffic to Dynatrace
 
 When routing traffic through own network infrastructure it might be necessary  to intercept HTTP traffic
-to Dynatrace/AppMon and add or overwrite HTTP headers. This can be achieved by implementing the 
+to Dynatrace and add or overwrite HTTP headers. This can be achieved by implementing the 
 `IHttpRequestInterceptor` interface and passing an instance to the builder by calling 
 the `WithHttpRequestInterceptor` method. OpenKit invokes the `IHttpRequestInterceptor.Intercept(IHttpRequest)` 
-method for each request sent to Dynatrace/AppMon.  
+method for each request sent to Dynatrace.  
 It might be required to intercept the HTTP response and read custom response headers. This
 can be achieved by implementing the `IHttpResponseInterceptor` interface and passing an instance to the builder
 by calling `WithHttpResponseInterceptor`. OpenKit calls the `IHttpResponseInterceptor.Intercept(IHttpResponse)`
@@ -412,7 +388,7 @@ catch(Exception caughtException)
 
 One of the most powerful OpenKit features is web request tracing. When the application starts a web
 request (e.g. HTTP GET) a special tag can be attached to the header. This special header allows
-Dynatrace SaaS/Dynatrace Managed/AppMon to correlate actions with a server side PurePath. 
+Dynatrace SaaS/Dynatrace Managed to correlate actions with a server side PurePath. 
 
 A tracer instance can be obtained from an `IAction` by invoking `TraceWebRequest`. In addition to 
 capture the execution time of a request, `IWebRequestTracer` defines methods to add additional metadata 
@@ -459,5 +435,5 @@ using (HttpClient httpClient = new HttpClient()) {
 When an OpenKit instance is no longer needed (e.g. the application using OpenKit is shut down), the previously
 obtained instance can be cleared by invoking the `Shutdown` method.  
 Calling the `Shutdown` method blocks the calling thread while the OpenKit flushes data which has not been
-transmitted yet to the backend (Dynatrace SaaS/Dynatrace Managed/AppMon).  
+transmitted yet to the backend (Dynatrace SaaS/Dynatrace Managed).  
 Details are explained in [internals.md](#internals.md)

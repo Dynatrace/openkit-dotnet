@@ -36,7 +36,6 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockBuilder = Substitute.For<IOpenKitBuilder>();
             mockBuilder.Logger.Returns(mockLogger);
             mockBuilder.ApplicationId.Returns(AppId);
-            mockBuilder.ApplicationName.Returns(AppName);
             mockBuilder.ApplicationVersion.Returns(AppVersion);
         }
 

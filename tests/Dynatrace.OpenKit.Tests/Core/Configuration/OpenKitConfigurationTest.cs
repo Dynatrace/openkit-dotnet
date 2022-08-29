@@ -27,7 +27,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
         private const long DeviceId = 37;
         private const string OpenKitType = "Dynatrace NextGen";
         private const string ApplicationId = "Application-Id";
-        private const string ApplicationName = "Application Name";
         private const string ApplicationVersion = "1.2.3.4-b4321";
         private const string OperatingSystem = "Linux #253-Microsoft Mon Dec 31 17:49:00 PST 2018 x86_64 GNU/Linux";
         private const string Manufacturer = "Dynatrace";
@@ -44,7 +43,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
             mockOpenKitBuilder.DeviceId.Returns(DeviceId);
             mockOpenKitBuilder.OpenKitType.Returns(OpenKitType);
             mockOpenKitBuilder.ApplicationId.Returns(ApplicationId);
-            mockOpenKitBuilder.ApplicationName.Returns(ApplicationName);
             mockOpenKitBuilder.ApplicationVersion.Returns(ApplicationVersion);
             mockOpenKitBuilder.OperatingSystem.Returns(OperatingSystem);
             mockOpenKitBuilder.Manufacturer.Returns(Manufacturer);
@@ -125,17 +123,6 @@ namespace Dynatrace.OpenKit.Core.Configuration
 
             // then
             Assert.That(obtained, Is.EqualTo("%2FApp%5FID%25"));
-        }
-
-        [Test]
-        public void CreatingOpenKitConfigurationFromBuilderCopiesApplicationName()
-        {
-            // given, when
-            var target = OpenKitConfiguration.From(mockOpenKitBuilder);
-
-            // then
-            Assert.That(target.ApplicationName, Is.EqualTo(ApplicationName));
-            _ = mockOpenKitBuilder.Received(1).ApplicationName;
         }
 
         [Test]

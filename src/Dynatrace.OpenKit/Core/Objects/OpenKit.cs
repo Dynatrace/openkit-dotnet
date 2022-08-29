@@ -130,7 +130,6 @@ namespace Dynatrace.OpenKit.Core.Objects
             if (logger.IsDebugEnabled)
             {
                 logger.Debug($"{typeof(OpenKit).Name} "
-                             + $"- applicationName={configuration.ApplicationName}"
                              + $", applicationID={configuration.ApplicationId}"
                              + $", deviceID={configuration.DeviceId.ToInvariantString()}"
                              + $", origDeviceID={configuration.OrigDeviceId}"
@@ -151,7 +150,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         /// <remarks>
         /// This method starts the <see cref="BeaconSender"/>  and is called directly after
-        /// the instance has been created in <see cref="AbstractOpenKitBuilder.Build"/>.
+        /// the instance has been created in <see cref="DynatraceOpenKitBuilder.Build"/>.
         /// </remarks>
         internal void Initialize()
         {
@@ -179,7 +178,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public bool IsInitialized => beaconSender.IsInitialized;
 
-        [Obsolete("Use the AbstractOpenKitBuilder to set the application version")]
+        [Obsolete("Use the DynatraceOpenKitBuilder to set the application version")]
         public string ApplicationVersion
         {
             set

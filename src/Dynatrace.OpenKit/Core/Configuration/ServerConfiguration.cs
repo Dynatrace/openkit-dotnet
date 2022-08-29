@@ -19,7 +19,7 @@ using Dynatrace.OpenKit.Protocol;
 namespace Dynatrace.OpenKit.Core.Configuration
 {
     /// <summary>
-    /// Configuration class storing all configuration parameters as returned by Dynatrace/AppMon
+    /// Configuration class storing all configuration parameters as returned by Dynatrace
     /// </summary>
     public class ServerConfiguration : IServerConfiguration
     {

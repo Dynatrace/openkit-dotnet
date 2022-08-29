@@ -54,7 +54,6 @@ namespace Dynatrace.OpenKit.Core.Objects
             mockOpenKitConfig = Substitute.For<IOpenKitConfiguration>();
             mockOpenKitConfig.ApplicationId.Returns(AppId);
             mockOpenKitConfig.DeviceId.Returns(DeviceId);
-            mockOpenKitConfig.ApplicationName.Returns(AppName);
             mockOpenKitConfig.OperatingSystem.Returns(string.Empty);
             mockOpenKitConfig.Manufacturer.Returns(string.Empty);
             mockOpenKitConfig.ModelId.Returns(string.Empty);

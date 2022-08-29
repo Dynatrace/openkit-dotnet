@@ -3,8 +3,8 @@
 In this part the concepts used throughout OpenKit are explained. A short sample how to use OpenKit is
 also provided. For detailed code samples have a look into [example.md][example].
 
-## DynatraceOpenKitBuilder / AppMonOpenKitBuilder
-A `DynatraceOpenKitBuilder`/`AppMonOpenKitBuilder` instance is responsible for setting 
+## DynatraceOpenKitBuilder
+A `DynatraceOpenKitBuilder` instance is responsible for setting 
 application relevant information, e.g. the application's version and device specific information, and to create
 an `IOpenKit` instance.
 
@@ -12,7 +12,7 @@ an `IOpenKit` instance.
 The OpenKit is responsible for creating user sessions (see [ISession](#session)).
 
 Although it would be possible to have multiple `IOpenKit` instances connected to the same endpoint
-(Dynatrace/AppMon) within one process, there should be one unique instance. `IOpenKit` is designed to be
+(Dynatrace) within one process, there should be one unique instance. `IOpenKit` is designed to be
 thread safe and therefore the instance can be shared among threads.  
 
 On application shutdown, `Shutdown()` needs to be called on the OpenKit instance.
@@ -66,7 +66,6 @@ This small example provides a rough overview how OpenKit can be used.
 Detailed explanation is available in [example.md][example].
 
 ```cs
-string applicationName = "My OpenKit application";             // Your application's name
 string applicationID = "application-id";                       // Your application's ID
 long deviceID = 42L;                                           // Replace with a unique value per device/installation
 string endpointURL = "https://tenantid.beaconurl.com/mbeacon"; // Dynatrace endpoint URL

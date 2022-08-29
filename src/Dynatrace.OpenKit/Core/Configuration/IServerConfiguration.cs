@@ -19,19 +19,19 @@ namespace Dynatrace.OpenKit.Core.Configuration
     public interface IServerConfiguration
     {
         /// <summary>
-        /// Indicates whether capturing is enabled in Dynatrace/AppMon or not.
+        /// Indicates whether capturing is enabled in Dynatrace or not.
         /// </summary>
         /// <returns><code>true</code> if capturing is enabled, <code>false</code> otherwise.</returns>
         bool IsCaptureEnabled { get; }
 
         /// <summary>
-        /// Indicates whether crash reporting is enabled by Dynatrace/AppMon or not.
+        /// Indicates whether crash reporting is enabled by Dynatrace or not.
         /// </summary>
         /// <returns><code>true</code> if crash reporting is enabled, <code>false</code> otherwise.</returns>
         bool IsCrashReportingEnabled { get; }
 
         /// <summary>
-        /// Indicates whether error reporting is enabled in Dynatrace/AppMon or not.
+        /// Indicates whether error reporting is enabled in Dynatrace or not.
         /// </summary>
         /// <returns><code>true</code> if error reporting is enabled, <code>false</code> otherwise.</returns>
         bool IsErrorReportingEnabled { get; }

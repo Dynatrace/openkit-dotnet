@@ -282,7 +282,7 @@ namespace Dynatrace.OpenKit.Core.Communication
         /// <remarks>
         /// Mismatch check prevents a rare Jetty bug, where responses might be dispatched to the wrong receiver.
         /// </remarks>
-        /// <param name="lastResponseAttributes">The last response attributes received from Dynatrace/AppMon.</param>
+        /// <param name="lastResponseAttributes">The last response attributes received from Dynatrace.</param>
         /// <returns><code>false</code> if application id is matching, <code>true</code> if a mismatch occurred.</returns>
         internal bool IsApplicationIdMismatch(IResponseAttributes lastResponseAttributes)
         {

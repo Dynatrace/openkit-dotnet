@@ -1,5 +1,10 @@
 # Upgrade guide for OpenKit .NET
 
+## OpenKit .NET 2.2 to 3.0
+Appmon has been removed from OpenKit .NET. If you don't want to replace your AppMon related code, stay on the latest 2.2.x release.
+### Removed API
+* `AbstractOpenKitBuilder` has been removed as it was not needed anymore due to AppMon removal. All functionalities have been consolidated into the `DynatraceOpenKitBuilder`.
+
 ## OpenKit .NET 2.1 to 2.2
 There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
 to the latest 2.2 release.
@@ -34,7 +39,5 @@ to the latest 1.4 release.
 ### Deprecated API
 * `DynatraceOpenKitBuilder(string endPointUrl, string applicationId, string deviceId)`  
    Use `DynatraceOpenKitBuilder(string endPointUrl, string applicationId, long deviceId)` instead.
-* `AppMonOpenKitBuilder(string endpointUrl, string applicationName, string deviceId)`  
-   Use `AppMonOpenKitBuilder(string endpointUrl, string applicationName, long deviceId)` instead.
 
 [update]: ./installing.md#Updating-OpenKit-.NET

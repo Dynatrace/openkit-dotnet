@@ -39,7 +39,6 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyProtocolVersion = "vv";
         private const string BeaconKeyOpenKitVersion = "va";
         private const string BeaconKeyApplicationId = "ap";
-        private const string BeaconKeyApplicationName = "an";
         private const string BeaconKeyApplicationVersion = "vn";
         private const string BeaconKeyPlatformType = "pt";
         private const string BeaconKeyAgentTechnologyType = "tt";
@@ -936,7 +935,6 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyProtocolVersion, ProtocolConstants.ProtocolVersion);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyOpenKitVersion, ProtocolConstants.OpenKitVersion);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyApplicationId, openKitConfig.ApplicationId);
-            AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyApplicationName, openKitConfig.ApplicationName);
             AddKeyValuePairIfValueIsNotNull(basicBeaconBuilder, BeaconKeyApplicationVersion, openKitConfig.ApplicationVersion);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyPlatformType, ProtocolConstants.PlatformTypeOpenKit);
             AddKeyValuePair(basicBeaconBuilder, BeaconKeyAgentTechnologyType, ProtocolConstants.AgentTechnologyType);
