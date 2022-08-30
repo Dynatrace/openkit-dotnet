@@ -4,6 +4,7 @@
 
 ### Added
 - Support for .NET 6.0
+- User-Agent header to http requests
 
 ### Changed
 - Fix issue in `DefaultTimingProvider` with `Stopwatch` frequency

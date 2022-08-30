@@ -67,6 +67,8 @@ namespace Dynatrace.OpenKit.Protocol
                 requestMessage.Headers.Add("X-Client-IP", clientIpAddress);
             }
 
+            requestMessage.Headers.Add("User-Agent", "OpenKit/" + ProtocolConstants.OpenKitVersion);
+
             return requestMessage;
         }
 
