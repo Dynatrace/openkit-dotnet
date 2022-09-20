@@ -2410,6 +2410,102 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ReportErrorIsTruncatingReasonIfTooLong()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeName = "CausedBy";
+            string causeReason = new string('a', 1001);
+            string causeReasonTruncated = new string('a', 1000);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, causeName, causeReason, null);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                + "&s0=1"                                              // event sequence number
+                + "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&rs={causeReasonTruncated}"                                  // reported error reason
+                + "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportErrorIsTruncatingStacktraceIfTooLong()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeName = "CausedBy";
+            const string causeReason = "SomeReason";
+            string causeStacktrace = new string('a', 128001);
+            string causeStacktraceTruncated = new string('a', 128000);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, causeName, causeReason, causeStacktrace);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                + "&s0=1"                                              // event sequence number
+                + "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&rs={causeReason}"                                  // reported error reason
+                + $"&st={causeStacktraceTruncated}"                          // reported stacktrace
+                + "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportErrorIsTruncatingStacktraceUntilLastBreakIfTooLong()
+        {
+            // given
+            const string errorName = "SomeError";
+            const string causeName = "CausedBy";
+            const string causeReason = "SomeReason";
+            string causeStacktraceTruncated = new string('a', 127900);
+            string causeStacktrace = causeStacktraceTruncated + '\n' + new string('a', 1000);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportError(ActionId, errorName, causeName, causeReason, causeStacktrace);
+
+            // then
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                 // beacon key
+                0,                                                      // timestamp
+                $"et={EventType.EXCEPTION.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"                 // thread ID
+                + $"&na={errorName}"                                    // action name
+                + $"&pa={ActionId.ToInvariantString()}"                 // parent action ID
+                + "&s0=1"                                              // event sequence number
+                + "&t0=0"                                              // event timestamp
+                + $"&ev={causeName}"                                    // reported error value
+                + $"&rs={causeReason}"                                  // reported error reason
+                + $"&st={causeStacktraceTruncated}"                          // reported stacktrace
+                + "&tt=c"                                              // error technology type
+                );
+        }
+
+        [Test]
         public void ErrorWithCauseNotReportedIfDataSendingIsDisallowed()
         {
             // given
@@ -2484,7 +2580,7 @@ namespace Dynatrace.OpenKit.Protocol
             CrashFormatter crashFormatter = new CrashFormatter(exception);
             var causeName = crashFormatter.Name;
             var causeReason = PercentEncoder.Encode(crashFormatter.Reason, Encoding.UTF8, Beacon.ReservedCharacters);
-            var causeStackTrace = PercentEncoder.Encode(crashFormatter.StackTrace, Encoding.UTF8, Beacon.ReservedCharacters);
+            var causeStackTrace = PercentEncoder.Encode(crashFormatter.StackTrace.Trim(), Encoding.UTF8, Beacon.ReservedCharacters);
 
             var target = CreateBeacon().Build();
 
@@ -2709,6 +2805,96 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
+        public void ReportCrashIsTruncatingReasonIfTooLong()
+        {
+            // given
+            const string errorName = "someError";
+            string reason = new string('a', 1001);
+            string reasonTruncated = new string('a', 1000);
+            const string stacktrace = "someStackTrace";
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, reason, stacktrace);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
+                + "&pa=0"                                          // parent action ID
+                + "&s0=1"                                          // event sequence number
+                + "&t0=0"                                          // event timestamp
+                + $"&rs={reasonTruncated}"                                   // error reason
+                + $"&st={stacktrace}"                               // reported stacktrace
+                + "&tt=c"                                          // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportCrashIsTruncatingStacktraceIfTooLong()
+        {
+            // given
+            const string errorName = "someError";
+            const string reason = "someReason";
+            string stacktrace = new string('a', 128001);
+            string stacktraceTruncated = new string('a', 128000);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, reason, stacktrace);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
+                + "&pa=0"                                          // parent action ID
+                + "&s0=1"                                          // event sequence number
+                + "&t0=0"                                          // event timestamp
+                + $"&rs={reason}"                                   // error reason
+                + $"&st={stacktraceTruncated}"                               // reported stacktrace
+                + "&tt=c"                                          // error technology type
+                );
+        }
+
+        [Test]
+        public void ReportCrashIsTruncatingStacktraceUntilLastBreakIfTooLong()
+        {
+            // given
+            const string errorName = "someError";
+            const string reason = "someReason";
+            string stacktraceTruncated = new string('a', 127900);
+            string stacktrace = stacktraceTruncated + '\n' + new string('a', 1000);
+
+            var target = CreateBeacon().Build();
+
+            // when
+            target.ReportCrash(errorName, reason, stacktrace);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),             // beacon key
+                0,                                                  // timestamp
+                $"et={EventType.CRASH.ToInt().ToInvariantString()}" // event type
+                + $"&it={ThreadId.ToInvariantString()}"             // thread ID
+                + $"&na={errorName}"                                // action name
+                + "&pa=0"                                          // parent action ID
+                + "&s0=1"                                          // event sequence number
+                + "&t0=0"                                          // event timestamp
+                + $"&rs={reason}"                                   // error reason
+                + $"&st={stacktraceTruncated}"                               // reported stacktrace
+                + "&tt=c"                                          // error technology type
+                );
+        }
+
+        [Test]
         public void ReportCrashDoesNotReportIfDataSendingDisallowed()
         {
             // given
@@ -2785,7 +2971,7 @@ namespace Dynatrace.OpenKit.Protocol
             var crashFormatter = new CrashFormatter(exception);
             var errorName = crashFormatter.Name;
             var reason = PercentEncoder.Encode(crashFormatter.Reason, Encoding.UTF8, Beacon.ReservedCharacters);
-            var stacktrace = PercentEncoder.Encode(crashFormatter.StackTrace, Encoding.UTF8, Beacon.ReservedCharacters);
+            var stacktrace = PercentEncoder.Encode(crashFormatter.StackTrace.Trim(), Encoding.UTF8, Beacon.ReservedCharacters);
 
             var target = CreateBeacon().Build();
 
@@ -2803,7 +2989,7 @@ namespace Dynatrace.OpenKit.Protocol
                 + "&s0=1"                                           // event sequence number
                 + "&t0=0"                                           // event timestamp
                 + $"&rs={reason}"                                   // error reason
-                + $"&st={stacktrace}"                               // reported stacktrace
+                + $"&st={stacktrace}"                        // reported stacktrace
                 + "&tt=c"                                           // error technology type
                 );
         }

@@ -116,6 +116,8 @@ namespace Dynatrace.OpenKit.API
         /// <remarks>
         /// If given <paramref name="errorName"/> is <code>null</code> or an empty string,
         /// no error is reported.
+        /// If the <paramref name="causeDescription"/> is longer than 1000 characters, it is truncated to this value.
+        /// If the <paramref name="causeStackTrace"/> is longer than 128.000 characters, it is truncated according to the last line break.
         /// </remarks>
         /// <param name="errorName">name of this error</param>
         /// <param name="causeName">name describing the cuase of the error (e.g. Exception class name).</param>

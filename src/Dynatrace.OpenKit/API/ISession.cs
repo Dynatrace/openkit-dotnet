@@ -55,6 +55,10 @@ namespace Dynatrace.OpenKit.API
         /// <summary>
         ///  Reports a crash with a specified error name, crash reason and a stacktrace.
         /// </summary>
+        /// <remarks>
+        /// If the <paramref name="reason"/> is longer than 1000 characters, it is truncated to this value.
+        /// If the <paramref name="stacktrace"/> is longer than 128.000 characters, it is truncated according to the last line break.
+        /// </remarks>
         /// <param name="errorName">name of the error leading to the crash (e.g. Exception class)</param>
         /// <param name="reason">reason or description of that error</param>
         /// <param name="stacktrace">stacktrace leading to that crash</param>

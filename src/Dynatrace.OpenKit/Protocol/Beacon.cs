@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Dynatrace.OpenKit.API;
@@ -98,6 +99,8 @@ namespace Dynatrace.OpenKit.Protocol
 
         // max name length
         private const int MaximumNameLength = 250;
+        private const int MaximumStacktraceLength = 128 * 1000;
+        private const int MaximumReasonLength = 1000;
 
         // web request tag prefix constant
         private const string WebRequestTagPrefix = "MT";
@@ -583,6 +586,18 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            var maxStackTraceLength = MaximumStacktraceLength;
+
+            // Truncating stacktrace at last line break
+            if (causeStackTrace != null && causeStackTrace.Length > MaximumStacktraceLength)
+            {
+                var lastLineBreakIndex = causeStackTrace.LastIndexOf('\n', MaximumStacktraceLength);
+                if (lastLineBreakIndex != -1)
+                {
+                    maxStackTraceLength = lastLineBreakIndex;
+                }
+            }
+
             var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.EXCEPTION, errorName);
@@ -592,8 +607,8 @@ namespace Dynatrace.OpenKit.Protocol
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
             AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorValue, causeName);
-            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, causeDescription);
-            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, causeStackTrace);
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, TruncateNullSafe(causeDescription, MaximumReasonLength));
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, TruncateNullSafe(causeStackTrace, maxStackTraceLength));
             AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, errorTechnologyType);
 
             AddEventData(timestamp, eventBuilder);
@@ -636,16 +651,26 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
+            var maxStackTraceLength = MaximumStacktraceLength;
+
+            // Truncating stacktrace at last line break
+            if (stacktrace != null && stacktrace.Length > MaximumStacktraceLength) {
+                var lastLineBreakIndex = stacktrace.LastIndexOf('\n', MaximumStacktraceLength);
+                if (lastLineBreakIndex != -1) {
+                    maxStackTraceLength = lastLineBreakIndex;
+                }
+            }
+
             var eventBuilder = new StringBuilder();
 
             BuildBasicEventData(eventBuilder, EventType.CRASH, errorName);
 
             var timestamp = timingProvider.ProvideTimestampInMilliseconds();
-            AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, 0);                                  // no parent action
+            AddKeyValuePair(eventBuilder, BeaconKeyParentActionId, 0); // no parent action
             AddKeyValuePair(eventBuilder, BeaconKeyStartSequenceNumber, NextSequenceNumber);
             AddKeyValuePair(eventBuilder, BeaconKeyTimeZero, GetTimeSinceBeaconCreation(timestamp));
-            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, reason);
-            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, stacktrace);
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorReason, TruncateNullSafe(reason, MaximumReasonLength));
+            AddKeyValuePairIfValueIsNotNull(eventBuilder, BeaconKeyErrorStacktrace, TruncateNullSafe(stacktrace, maxStackTraceLength));
             AddKeyValuePair(eventBuilder, BeaconKeyErrorTechnologyType, crashTechnolgyType);
 
             AddEventData(timestamp, eventBuilder);
@@ -1079,10 +1104,25 @@ namespace Dynatrace.OpenKit.Protocol
         // helper method for truncating name at max name size
         private static string Truncate(string name)
         {
-            name = name.Trim();
-            if (name.Length > MaximumNameLength)
+            return Truncate(name, MaximumNameLength);
+        }
+
+        private static string TruncateNullSafe(string name, int length)
+        {
+            if (name == null)
             {
-                name = name.Substring(0, MaximumNameLength);
+                return null;
+            }
+
+            return Truncate(name, length);
+        }
+
+        private static string Truncate(string name, int length)
+        {
+            name = name.Trim();
+            if (name.Length > length)
+            {
+                name = name.Substring(0, length);
             }
             return name;
         }
