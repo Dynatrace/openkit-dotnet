@@ -53,11 +53,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public TimeSpan Duration => TimeSpan.Zero;
 
-        public IAction ReportError(string errorName, int errorCode, string reason)
-        {
-            return this;
-        }
-
         public IAction ReportError(string errorName, int errorCode)
         {
             return this;

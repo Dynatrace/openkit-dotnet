@@ -13,6 +13,14 @@
 - Maximum length of reported error/crash stacktrace has been limited to 128k.
 - Maximum length of reported error/crash reason has been limited to 1000.
 
+### Removed
+* `DynatraceOpenKitBuilder.WithApplicationName(string applicationName)`
+* `DynatraceOpenKitBuilder.EnableVerbose()`
+* `IAction.ReportError(string errorName, int errorCode, string reason)`
+* `IOpenKit.ApplicationVersion`
+* `IWebRequestTracer.SetResponseCode(int responseCode)`
+* `IWebRequestTracer.Stop()`
+
 ## 2.2.0 [Release date: 2021-05-19]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v2.2.0)
 

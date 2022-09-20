@@ -178,15 +178,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public bool IsInitialized => beaconSender.IsInitialized;
 
-        [Obsolete("Use the DynatraceOpenKitBuilder to set the application version")]
-        public string ApplicationVersion
-        {
-            set
-            {
-                /** nothing */
-            }
-        }
-
         public ISession CreateSession(string clientIpAddress)
         {
             if (logger.IsDebugEnabled)

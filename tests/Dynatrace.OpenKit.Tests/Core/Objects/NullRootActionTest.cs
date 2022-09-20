@@ -115,19 +115,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportErrorReturnsSelf()
-        {
-            // given
-            var target = NullRootAction.Instance;
-
-            // when
-            var obtained = target.ReportError("error name", 1337, "something bad");
-
-            // then
-            Assert.That(obtained, Is.SameAs(target));
-        }
-
-        [Test]
         public void TraceWebRequestReturnsNullWebRequestTracer()
         {
             // given

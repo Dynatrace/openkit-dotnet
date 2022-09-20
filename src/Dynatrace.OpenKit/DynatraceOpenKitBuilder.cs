@@ -73,7 +73,7 @@ namespace Dynatrace.OpenKit
 
         /// <summary>
         /// Sets the logger. If no logger is set the default console logger is used. For the default
-        /// logger verbose mode is enabled by calling <code>EnableVerbose</code>
+        /// logger verbose mode is enabled by calling <code>WithLogLevel</code>
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <returns><code>this</code></returns>

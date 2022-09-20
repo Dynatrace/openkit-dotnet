@@ -51,7 +51,6 @@ customize OpenKit. This includes device specific information like operating syst
 | `WithBeaconCacheLowerMemoryBoundary`  | sets the lower memory boundary of the beacon cache in bytes  | 80 MB |
 | `WithBeaconCacheUpperMemoryBoundary`  |  sets the upper memory boundary of the beacon cache in bytes | 100 MB |
 | `WithTrustManager` | sets a custom `ISSLTrustManager` instance, replacing the builtin default one.<br>Details are described in section [SSL/TLS Security in OpenKit](#ssltls-security-in-openkit). | `SSLStrictTrustManager` |
-| `EnableVerbose`  | *Deprecated*, use `WithLogLevel` instead.<br>Enables extended log output for OpenKit if the default logger is used. | `false` |
 | `WithLogLevel` | sets the log level if the default logger is used | `LogLevel.WARN` |
 | `WithLogger` | sets a custom logger, replacing the builtin default one.<br>Details are described in section [Logging](#logging). | `DefaultLogger` |
 | `WithHttpRequestInterceptor` | sets a custom `IHttpRequestInterceptor` instance,  replacing the builtin default one.<br>Details are described in section [Intercepting HTTP traffic to Dynatrace](#intercepting-http-traffic-to-dynatrace). | `NullHttpRequestInterceptor` |

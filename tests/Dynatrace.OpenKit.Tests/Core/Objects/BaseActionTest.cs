@@ -468,25 +468,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void DeprecatedReportErrorCodeWithReasonDoesNotForwardReason()
-        {
-            // given
-            const string errorName = "FATAL ERROR";
-            const int errorCode = 0x8005037;
-            const string reason = "Some reason for this fatal error";
-
-            var target = CreateStubAction();
-
-            // when
-            var obtained = target.ReportError(errorName, errorCode, reason);
-
-            // then
-            mockLogger.Received(1).Debug($"{target} ReportError({errorName}, {errorCode})");
-            Assert.That(obtained, Is.SameAs(target));
-            mockBeacon.Received(1).ReportError(IdBaseOffset, errorName, errorCode);
-        }
-
-        [Test]
         public void ReportErrorCauseWithAllValuesSet()
         {
             // given
@@ -1107,24 +1088,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // when
             var obtained = target.ReportValue("doubleValue", "someValue");
-
-            // then
-            Assert.That(obtained, Is.SameAs(target));
-            Assert.That(mockBeacon.ReceivedCalls(), Is.Empty);
-        }
-
-
-
-        [Test]
-        public void ReportErrorDoesNothingIfActionIsLeft()
-        {
-            // given
-            var target = CreateStubAction();
-            target.LeaveAction();
-            mockBeacon.ClearReceivedCalls();
-
-            // when
-            var obtained = target.ReportError("teapot", 418, "I'm a teapot");
 
             // then
             Assert.That(obtained, Is.SameAs(target));

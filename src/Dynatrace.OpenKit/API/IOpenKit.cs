@@ -62,13 +62,6 @@ namespace Dynatrace.OpenKit.API
         bool IsInitialized { get; }
 
         /// <summary>
-        ///  Defines the version of the application.
-        /// </summary>
-        /// <param name="value">application version</param>
-        [Obsolete("Use OpenKitBuilder to set ApplicationVersion")]
-        string ApplicationVersion { set; }
-
-        /// <summary>
         ///  Creates a Session instance which can then be used to create Actions.
         /// </summary>
         /// <param name="clientIpAddress">client IP address where this Session is coming from</param>

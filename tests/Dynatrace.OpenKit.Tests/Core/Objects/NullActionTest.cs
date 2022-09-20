@@ -107,19 +107,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void DeprecatedReportErrorReturnsSelf()
-        {
-            // given
-            var target = CreateNullAction();
-
-            // when
-            var obtained = target.ReportError("error name", 1337, "something bad");
-
-            // then
-            Assert.That(obtained, Is.SameAs(target));
-        }
-
-        [Test]
         public void ReportErrorReturnsSelf()
         {
             // given

@@ -4,6 +4,17 @@
 Appmon has been removed from OpenKit .NET. If you don't want to replace your AppMon related code, stay on the latest 2.2.x release.
 ### Removed API
 * `AbstractOpenKitBuilder` has been removed as it was not needed anymore due to AppMon removal. All functionalities have been consolidated into the `DynatraceOpenKitBuilder`.
+* `IAction.ReportError(string errorName, int errorCode, string reason)`  
+  Use `IAction.ReportError(string errorName, int errorCode)` without `string reason` argument, as
+  `reason` is unhandled in Dynatrace.
+* `IOpenKit.ApplicationVersion`  
+  Use `OpenKitBuilder` to set the `ApplicationVersion`
+* `IWebRequestTracer.SetResponseCode(int responseCode)` and `IWebRequestTracer.Stop()`  
+  Use `IWebRequestTracer.Stop(int responseCode)` instead as replacement.
+* `DynatraceOpenKitBuilder.WithApplicationName(string applicationName)`  
+  The application name is configured in Dynatrace Web UI.
+* `DynatraceOpenKitBuilder.EnableVerbose()`  
+  Use `DynatraceOpenKitBuilder.WithLogLevel(LogLevel.DEBUG)` instead.
 
 ## OpenKit .NET 2.1 to 2.2
 There are no breaking API changes and upgrading is straightforward, by [updating][update] the library

@@ -49,21 +49,9 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
-        [Obsolete("Use Stop(int) instead")]
-        public IWebRequestTracer SetResponseCode(int responseCode)
-        {
-            return this;
-        }
-
         public IWebRequestTracer Start()
         {
             return this;
-        }
-
-        [Obsolete("Use Stop(int) instead")]
-        public void Stop()
-        {
-            // intentionally left empty, due to NullObject pattern
         }
 
         public void Stop(int responseCode)

@@ -254,11 +254,6 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
-        public IAction ReportError(string errorName, int errorCode, string reason)
-        {
-            return ReportError(errorName, errorCode);
-        }
-
         public IAction ReportError(string errorName, int errorCode)
         {
             if (string.IsNullOrEmpty(errorName))

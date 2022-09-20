@@ -85,20 +85,6 @@ namespace Dynatrace.OpenKit.API
         IAction ReportValue(string valueName, string value);
 
         /// <summary>
-        ///  Reports an error with a specified name, error code and reason.
-        /// </summary>
-        /// <remarks>
-        /// If given <paramref name="errorName"/> is <code>null</code> or an empty string,
-        /// no error is reported.
-        /// </remarks>
-        /// <param name="errorName">name of this error</param>
-        /// <param name="errorCode">numeric error code of this error</param>
-        /// <param name="reason">reason for this error</param>
-        /// <returns>this Action (for usage as fluent API)</returns>
-        [Obsolete("Since 2.1.0. Use IAction.ReportError(string, int) instead, since reason is unhandled")]
-        IAction ReportError(string errorName, int errorCode, string reason);
-
-        /// <summary>
         ///  Reports an error with a specified name and error code.
         /// </summary>
         /// <remarks>

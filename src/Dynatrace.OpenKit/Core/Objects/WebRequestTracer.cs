@@ -178,12 +178,6 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
-        [Obsolete("Use Stop(int) instead")]
-        public void Stop()
-        {
-            Stop(ResponseCode);
-        }
-
         public void Stop(int responseCode)
         {
             if (logger.IsDebugEnabled)
@@ -218,20 +212,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // last but not least notify the parent & detach from parent
             parent.OnChildClosed(this);
-        }
-
-        [Obsolete("Use Stop(int) instead")]
-        public IWebRequestTracer SetResponseCode(int responseCode)
-        {
-            lock (lockObject)
-            {
-                if (!ThisTracer.IsStopped)
-                {
-                    ResponseCode = responseCode;
-                }
-            }
-
-            return this;
         }
 
         public IWebRequestTracer SetBytesSent(int bytesSent)

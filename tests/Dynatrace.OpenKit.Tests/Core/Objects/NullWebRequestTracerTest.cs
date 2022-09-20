@@ -34,19 +34,6 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void SetResponseCodeReturnsSelf()
-        {
-            // given
-            var target = NullWebRequestTracer.Instance;
-
-            // when
-            var obtained = target.SetResponseCode(200);
-
-            // then
-            Assert.That(obtained, Is.SameAs(target));
-        }
-
-        [Test]
         public void SetBytesSentReturnsSelf()
         {
             // given
