@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-#if NET35 || NET40
+#if NET35
 
 using System;
 using System.Reflection;

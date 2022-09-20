@@ -1,7 +1,7 @@
 # Building OpenKit .NET
 
 ## Prerequisites for building
-* .NET Framework 3.5+ or .NET Core 1.0+
+* .NET Framework 3.5+ or .NET Core 3.1+
 * Visual Studio:
     * <= .NET 4.8: Visual Studio 2019 version 16.11 (to open VS solution) or Rider .NET IDE
     * .NET 6.0 & 5.0: Visual Studio 2022 

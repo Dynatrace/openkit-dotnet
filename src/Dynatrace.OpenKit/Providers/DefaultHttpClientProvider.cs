@@ -34,8 +34,8 @@ namespace Dynatrace.OpenKit.Providers
 
         public IHttpClient CreateClient(IHttpClientConfiguration configuration)
         {
-#if NET40 || NET35
-            return new HttpClientWebClient(logger, configuration, threadSuspender); // HttpClient is not available in .NET 3.5 and 4.0
+#if NET35
+            return new HttpClientWebClient(logger, configuration, threadSuspender); // HttpClient is not available in .NET 3.5
 #else
             return new HttpClientHttpClient(logger, configuration, threadSuspender);
 #endif

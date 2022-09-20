@@ -38,10 +38,10 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         static OpenKitConstants()
         {
-#if (!NET35 && !NET40)
+#if (!NET35)
             var assembly = typeof(OpenKitConstants).GetTypeInfo().Assembly;
 
-#elif (NET35 || NET40)
+#elif (NET35)
             var assembly = Assembly.GetExecutingAssembly();
 #else
 #error .NET preprocessor directive is missing

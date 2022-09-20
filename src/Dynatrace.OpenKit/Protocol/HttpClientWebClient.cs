@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-#if NET40 || NET35
+#if NET35
 
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.API;

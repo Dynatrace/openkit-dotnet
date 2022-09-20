@@ -2,14 +2,14 @@
 
   <!-- common properties -->
   <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '16.0'">
-        <TargetFrameworks>net48;net472;net471;net47;net462;net461;net46;net452;net451;net45;net40;net35;netstandard2.1;netstandard2.0;netstandard1.1;netcoreapp3.1;netcoreapp2.1;netcoreapp2.0;netcoreapp1.1;netcoreapp1.0;uap10.0</TargetFrameworks>
+        <TargetFrameworks>net48;net472;net471;net47;net462;net461;net46;net452;net35;netstandard2.1;netstandard2.0;netstandard1.1;netcoreapp3.1;uap10.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '17.0'">
         <TargetFrameworks>net6.0;net5.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
          <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
-        <TargetFrameworks>net47;net46;net45;net40;net35</TargetFrameworks>
+        <TargetFrameworks>net48;net472;net471;net47;net46;net35;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>Dynatrace.OpenKit</AssemblyName>
@@ -56,42 +56,6 @@
     <Description>Dynatrace OpenKit SDK for .NET Core 3.1</Description>
   </PropertyGroup>
 
-  <!-- .NET Core 2.1 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1' And '$(VisualStudioVersion)' == '16.0'">
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NETCOREAPP2_1</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Core 2.1</Description>
-  </PropertyGroup>
-
-  <!-- .NET Core 2.0 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' And '$(VisualStudioVersion)' == '16.0'">
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NETCOREAPP2_0</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Core 2.0</Description>
-  </PropertyGroup>
-  
-  <!-- .NET Core 1.1 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1' And '$(VisualStudioVersion)' == '16.0'">
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NETCOREAPP1_1</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Core 1.1</Description>
-  </PropertyGroup>
-  
-  <!-- .NET Core 1.0 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' And '$(VisualStudioVersion)' == '16.0'">
-    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NETCOREAPP1_0</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Core 1.0</Description>
-  </PropertyGroup>
-
   <!-- .NET Full 3.5 references, compilation flags and build options -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net35' And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="System" />
@@ -102,32 +66,13 @@
     <Description>Dynatrace OpenKit SDK for .NET Framework 3.5</Description>
   </PropertyGroup>
 
-  <!-- .NET Full 4.0 references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net40' And '$(VisualStudioVersion)' == '16.0'">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System" />
-    <Reference Include="System.Net" />
-  </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net40' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NET40</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Framework 4.0</Description>
-  </PropertyGroup>
-
   <!-- .NET Full 4.5.X references, compilation flags and build options -->
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net451' Or '$(TargetFramework)' == 'net452' And '$(VisualStudioVersion)' == '16.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net452' And '$(VisualStudioVersion)' == '16.0'">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.WebRequest" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net45' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NET45</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Framework 4.5</Description>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net451' And '$(VisualStudioVersion)' == '16.0'">
-    <DefineConstants>NET451</DefineConstants>
-    <Description>Dynatrace OpenKit SDK for .NET Framework 4.5.1</Description>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net452' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET452</DefineConstants>
     <Description>Dynatrace OpenKit SDK for .NET Framework 4.5.2</Description>

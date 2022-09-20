@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-#if (!NET40 && !NET35)
+#if (!NET35)
 
 using System;
 using System.Collections.Generic;

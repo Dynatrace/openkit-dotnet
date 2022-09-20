@@ -6,6 +6,10 @@
 - Support for .NET 6.0
 - User-Agent header to http requests
 
+### Removed
+- Support for .NET 4.5.1 / 4.5 / 4.0
+- Support for .NET Core App 2.1 / 2.0 / 1.1 / 1.0
+
 ### Changed
 - Fix issue in `DefaultTimingProvider` with `Stopwatch` frequency
 - Default maximum age of an entry in the beacon cache changed from 1h 45m to 45m

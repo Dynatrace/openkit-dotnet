@@ -616,7 +616,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void ReportError»xceptionWithEmptyErrorNameDoesNotReportTheError()
+        public void ReportErrorExceptionWithEmptyErrorNameDoesNotReportTheError()
         {
             // given
             var target = CreateStubAction();
@@ -1224,7 +1224,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             childObjectOne.Received(1).Dispose();
             childObjectTwo.Received(1).Dispose();
 
-#if NET35 || NET40
+#if NET35
             // old NSubstitute does only print the class, nothing about instance
             mockLogger.Received(2).Warn(Arg.Is<string>(message => message.EndsWith("is not cancelable - falling back to Dispose() instead")));
 #else
