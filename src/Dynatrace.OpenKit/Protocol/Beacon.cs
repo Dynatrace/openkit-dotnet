@@ -87,15 +87,9 @@ namespace Dynatrace.OpenKit.Protocol
         // events api
         private const string BeaconKeyEventPayload = "pl";
         internal const int EventPayloadBytesLength = 16 * 1024;
-        internal const string EventPayloadApplicationId = "dt.application_id";
-        internal const string EventPayloadInstanceId = "dt.instance_id";
-        internal const string EventPayloadSessionId = "dt.sid";
-        internal const string EventPayloadSendTimestamp = "dt.send_timestamp";
-
-        /// <summary>
-        /// Replacement for send timestamp. This will be replaced in the payload when data gets sent.
-        /// </summary>
-        internal const string SendTimestampPlaceholder = "DT_SEND_TIMESTAMP_PLACEHOLDER";
+        internal const string EventPayloadApplicationId = "dt.rum.application.id";
+        internal const string EventPayloadInstanceId = "dt.rum.instance.id";
+        internal const string EventPayloadSessionId = "dt.rum.sid";
 
         // max name length
         private const int MaximumNameLength = 250;
@@ -694,8 +688,8 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
-            eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(name));
-            eventPayloadBuilder.AddOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_RUM));
+            eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(name))
+                .AddOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_RUM));
 
             SendEventPayload(eventPayloadBuilder);
         }
@@ -718,10 +712,10 @@ namespace Dynatrace.OpenKit.Protocol
             }
 
             EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
-            eventPayloadBuilder.AddNonOverridableAttribute("event.type", JsonStringValue.FromString(type));
-            eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
+            eventPayloadBuilder.AddNonOverridableAttribute("event.type", JsonStringValue.FromString(type))
+                .AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
 
-            if(attributes != null && attributes.ContainsKey("event.name"))
+            if (attributes != null && attributes.ContainsKey("event.name"))
             {
                 eventPayloadBuilder.AddNonOverridableAttribute("event.name", attributes["event.name"]);
             }
@@ -757,14 +751,12 @@ namespace Dynatrace.OpenKit.Protocol
                 .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
                 .AddNonOverridableAttribute(EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId))
                 .AddNonOverridableAttribute(EventPayloadSessionId, JsonNumberValue.FromLong(SessionNumber))
-                .AddNonOverridableAttribute(EventPayloadSendTimestamp, JsonStringValue.FromString(SendTimestampPlaceholder))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_VERSION, JsonStringValue.FromString(OpenKitConstants.DefaultApplicationVersion))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_TECHNOLOGY_TYPE, JsonStringValue.FromString("openkit"))
-                .AddOverridableAttribute(EventPayloadAttributes.DT_AGENT_FLAVOR, JsonStringValue.FromString("dotnet"))
+                .AddNonOverridableAttribute("dt.rum.schema_version", JsonStringValue.FromString("1.0"))
                 .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
                 .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
                 .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))
-                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ModelId));
+                .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ModelId))
+                .AddOverridableAttribute(EventPayloadAttributes.EVENT_PROVIDER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded));
 
             return builder;
         }
@@ -853,10 +845,6 @@ namespace Dynatrace.OpenKit.Protocol
                     // no data added so far or no data to send
                     return response;
                 }
-
-                // Check if the chunk contains timestamp that needs to be replaced
-                chunk = chunk.Replace(PercentEncoder.Encode("\"" + SendTimestampPlaceholder + "\"", Encoding.UTF8, ReservedCharacters),
-                    timingProvider.ProvideTimestampInNanoseconds().ToInvariantString());
 
                 var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 

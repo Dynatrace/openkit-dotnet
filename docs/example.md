@@ -282,6 +282,29 @@ action.LeaveAction();
 duration = action.Duration; // gives action end time - action start time
 ```
 
+## Business events capturing
+
+With `SendBizEvent`, you can report business events. These events are standalone events, as OneAgent sends them detached from user actions or user sessions.
+
+For more information on business events, see the [dynatrace documentation](https://www.dynatrace.com/support/help/how-to-use-dynatrace/business-analytics/ba-events-capturing#expand--example-configuration-files-for-rum--2).
+
+```cs
+Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+attributes.Add("event.name", JsonStringValue.FromString("Confirmed Booking"));
+attributes.Add("screen", JsonStringValue.FromString("booking-confirmation"));
+attributes.Add("product", JsonStringValue.FromString("Hotel Passy Eiffel"));
+attributes.Add("amount", JsonNumberValue.FromDouble(358.35));
+attributes.Add("currency", JsonStringValue.FromString("USD"));
+attributes.Add("reviewScore", JsonNumberValue.FromDouble(4.8));
+attributes.Add("arrivalDate", JsonStringValue.FromString("2022-11-05"));
+attributes.Add("departureDate", JsonStringValue.FromString("2022-11-15"));
+attributes.Add("journeyDuration", JsonNumberValue.FromLong(10));
+attributes.Add("adultTravelers", JsonNumberValue.FromLong(2));
+attributes.Add("childrenTravelers", JsonNumberValue.FromLong(0));
+
+session.SendBizEvent("com.easytravel.funnel.booking-finished", attributes);
+```
+
 ## Report Named Event
 
 To report a named event use the `ReportEvent` method on `IAction`.

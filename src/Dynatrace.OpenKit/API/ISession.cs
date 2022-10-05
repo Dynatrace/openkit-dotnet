@@ -81,10 +81,16 @@ namespace Dynatrace.OpenKit.API
         internal void SendEvent(string name, Dictionary<string, JsonValue> attributes = null);
 
         /// <summary>
-        /// Sends an biz event with a type and a dictionary containing JSON values.
+        /// Send a Business Event
+        ///
+        /// With SendBizEvent, you can report a business event. These standalone events are being sent detached
+        /// from user actions or sessions.
+        ///
+        /// Note: Business events are only supported on Dynatrace SaaS deployments currently.
         /// </summary>
-        /// <param name="type">type of the event</param>
-        /// <param name="attributes">dictonary containing JSON values</param>
+        /// <param name="type">Mandatory event type</param>
+        /// <param name="attributes">Must be a valid JSON object. The resulting event will be populated by
+        /// the 'attributes'-parameter and enriched with additional properties. Therefore, even empty objects are valid.</param>
         void SendBizEvent(string type, Dictionary<string, JsonValue> attributes = null);
         
         /// <summary>

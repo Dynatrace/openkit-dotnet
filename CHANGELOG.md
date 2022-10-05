@@ -5,6 +5,7 @@
 ### Added
 - Support for .NET 6.0
 - User-Agent header to http requests
+- Business events capturing API `SendBizEvent`
 
 ### Removed
 - Support for .NET 4.5.1 / 4.5 / 4.0

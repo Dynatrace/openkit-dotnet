@@ -18,31 +18,18 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private readonly Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
 
-        /// <summary>
-        /// List containing all keys which have been overridden by the customer
-        /// </summary>
-        private Collection<JsonValue> overriddenKeys;
-
         public EventPayloadBuilder(Dictionary<string, JsonValue> attributes, ILogger logger)
         {
             this.logger = logger;
-            overriddenKeys = new Collection<JsonValue>();
 
             InitializeInternalAttributes(attributes);
         }
 
         public EventPayloadBuilder AddOverridableAttribute(string key, JsonValue value)
         {
-            if (value != null)
+            if (value != null && !attributes.ContainsKey(key))
             {
-                if (attributes.ContainsKey(key))
-                {
-                    overriddenKeys.Add(JsonStringValue.FromString(key));
-                }
-                else
-                {
-                    attributes[key] = value;
-                }
+                attributes[key] = value;
             }
 
             return this;
@@ -65,11 +52,6 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public string Build()
         {
-            if(overriddenKeys.Count > 0)
-            {
-                AddNonOverridableAttribute("dt.overridden_keys", JsonArrayValue.FromList(overriddenKeys));
-            }
-
             return JsonObjectValue.FromDictionary(attributes).ToString();
         }
 
@@ -83,7 +65,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             {
                 foreach (KeyValuePair<string, JsonValue> entry in extAttributes)
                 {
-                    if (entry.Key == "dt" || (entry.Key.StartsWith("dt.") && !entry.Key.StartsWith("dt.agent.")))
+                    if (entry.Key == "dt" || entry.Key.StartsWith("dt."))
                     {
                         logger.Warn($"EventPayloadBuilder InitializeInternalAttributes: ${entry.Key} is reserved for internal values!");
                     }

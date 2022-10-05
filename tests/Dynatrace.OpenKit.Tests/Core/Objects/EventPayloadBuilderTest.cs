@@ -46,12 +46,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         public void AddNonOverridableAttributeWhichIsAlreadyAvailable()
         {
             Dictionary<string, JsonValue> dict = new Dictionary<string, JsonValue>();
-            dict.Add("dt.sid", JsonStringValue.FromString("MySession"));
+            dict.Add("dt.rum.sid", JsonStringValue.FromString("MySession"));
 
             EventPayloadBuilder builder = new EventPayloadBuilder(dict, mockLogger);
-            builder.AddNonOverridableAttribute("dt.sid", JsonStringValue.FromString("ComingFromAgent"));
+            builder.AddNonOverridableAttribute("dt.rum.sid", JsonStringValue.FromString("ComingFromAgent"));
 
-            Assert.That(builder.Build(), Is.EqualTo("{\"dt.sid\":\"ComingFromAgent\"}"));
+            Assert.That(builder.Build(), Is.EqualTo("{\"dt.rum.sid\":\"ComingFromAgent\"}"));
         }
 
         [Test]
@@ -72,7 +72,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             EventPayloadBuilder builder = new EventPayloadBuilder(dict, mockLogger);
             builder.AddOverridableAttribute("timestamp", JsonStringValue.FromString("ComingFromAgent"));
 
-            Assert.That(builder.Build(), Is.EqualTo("{\"timestamp\":\"Changed\",\"dt.overridden_keys\":[\"timestamp\"]}"));
+            Assert.That(builder.Build(), Is.EqualTo("{\"timestamp\":\"Changed\"}"));
         }
 
         [Test]
