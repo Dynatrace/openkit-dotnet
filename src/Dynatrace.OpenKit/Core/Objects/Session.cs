@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Xml.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Protocol;
@@ -72,17 +73,24 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// </summary>
         private long splitByEventsGracePeriodEndTimeInMillis = -1;
 
+        /// <summary>
+        /// Supplementary mutable basic data which gets sent via beacon
+        /// </summary>
+        private readonly ISupplementaryBasicData supplementaryBasicData;
+
 
         internal Session(
             ILogger logger,
             IOpenKitComposite parent,
-            IBeacon beacon
+            IBeacon beacon,
+            ISupplementaryBasicData supplementaryBasicData
         )
         {
             state = new SessionState(this);
             this.logger = logger;
             this.parent = parent;
             this.beacon = beacon;
+            this.supplementaryBasicData = supplementaryBasicData;
 
             beacon.StartSession();
         }
@@ -260,6 +268,48 @@ namespace Dynatrace.OpenKit.Core.Objects
                     beacon.ReportCrash(exception);
                 }
             }
+        }
+
+        public void ReportNetworkTechnology(string technology)
+        {
+            if(technology != null && technology.Length == 0)
+            {
+                logger.Warn($"{this} ReportNetworkTechnology(String): technology must not be empty");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportNetworkTechnology({technology})");
+            }
+
+            supplementaryBasicData.NetworkTechnology = technology;
+        }
+
+        public void ReportConnectionType(ConnectionType connectionType)
+        {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportConnectionType({connectionType})");
+            }
+
+            supplementaryBasicData.ConnectionType = connectionType;
+        }
+
+        public void ReportCarrier(string carrier)
+        {
+            if (carrier != null && carrier.Length == 0)
+            {
+                logger.Warn($"{this} ReportCarrier(String): carrier must not be empty");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportCarrier({carrier})");
+            }
+
+            supplementaryBasicData.Carrier = carrier;
         }
 
         void ISession.SendEvent(string name, Dictionary<string, JsonValue> attributes)

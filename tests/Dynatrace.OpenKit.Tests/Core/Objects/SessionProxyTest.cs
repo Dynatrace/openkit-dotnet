@@ -880,6 +880,122 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         #endregion
 
+        #region report mutable basic data
+
+        [Test]
+        public void ReportEmptyNetworkTechnology()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportNetworkTechnology("");
+
+            // then
+            mockSession.Received(0).ReportNetworkTechnology(Arg.Any<string>());
+            mockLogger.Received(1).Warn($"SessionProxy [sn=0, seq=0] ReportNetworkTechnology(String): technology must not be empty");
+        }
+
+        [Test]
+        public void ReportNullNetworkTechnology()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportNetworkTechnology(null);
+
+            // then
+            mockSession.Received(1).ReportNetworkTechnology(null);
+            mockLogger.Received(1).Debug($"SessionProxy [sn=0, seq=0] ReportNetworkTechnology()");
+        }
+
+        [Test]
+        public void ReportValidNetworkTechnology()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportNetworkTechnology("Test");
+
+            // then
+            mockSession.Received(1).ReportNetworkTechnology("Test");
+            mockLogger.Received(1).Debug($"SessionProxy [sn=0, seq=0] ReportNetworkTechnology(Test)");
+        }
+
+        [Test]
+        public void ReportEmptyCarrier()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportCarrier("");
+
+            // then
+            mockSession.Received(0).ReportCarrier(Arg.Any<string>());
+            mockLogger.Received(1).Warn($"SessionProxy [sn=0, seq=0] ReportCarrier(String): carrier must not be empty");
+        }
+
+        [Test]
+        public void ReportNullCarrier()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportCarrier(null);
+
+            // then
+            mockSession.Received(1).ReportCarrier(null);
+            mockLogger.Received(1).Debug($"SessionProxy [sn=0, seq=0] ReportCarrier()");
+        }
+
+        [Test]
+        public void ReportValidCarrier()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportCarrier("Test");
+
+            // then
+            mockSession.Received(1).ReportCarrier("Test");
+            mockLogger.Received(1).Debug($"SessionProxy [sn=0, seq=0] ReportCarrier(Test)");
+        }
+
+        [Test]
+        public void ReportNullConnectionType()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportConnectionType(null);
+
+            // then
+            mockSession.Received(1).ReportConnectionType(null);
+            mockLogger.Received(1).Debug($"SessionProxy [sn=0, seq=0] ReportConnectionType()");
+        }
+
+        [Test]
+        public void ReportValidConnectionType()
+        {
+            // given
+            var target = CreateSessionProxy();
+
+            // when
+            target.ReportConnectionType(ConnectionType.LAN);
+
+            // then
+            mockSession.Received(1).ReportConnectionType(Arg.Is<ConnectionType>(cT => cT.Value == "l"));
+            mockLogger.Received(1).Debug($"SessionProxy [sn=0, seq=0] ReportConnectionType(l)");
+        }
+
+        #endregion
+
         #region trace web request tests
 
         [Test]

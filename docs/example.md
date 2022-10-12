@@ -451,6 +451,15 @@ using (HttpClient httpClient = new HttpClient()) {
 
 ```
 
+## Reporting optional metrics
+
+After creating a `Session` object, it provides APIs to set additional mutable metrics like network technology, connection type or network carrier:
+
+```java
+session.ReportNetworkTechnology('technology');
+session.ReportCarrier('carrier');
+session.ReportConnectionType(ConnectionType.LAN);
+```
 
 ## Terminating the OpenKit Instance
 

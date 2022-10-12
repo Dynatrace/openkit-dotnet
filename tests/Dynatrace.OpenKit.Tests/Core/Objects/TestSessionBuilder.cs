@@ -24,12 +24,14 @@ namespace Dynatrace.OpenKit.Core.Objects
         private ILogger logger;
         private IOpenKitComposite parent;
         private IBeacon beacon;
+        private ISupplementaryBasicData supplementaryBasicData;
 
         internal TestSessionBuilder()
         {
             logger = Substitute.For<ILogger>();
             parent = Substitute.For<IOpenKitComposite>();
             beacon = Substitute.For<IBeacon>();
+            supplementaryBasicData = Substitute.For<ISupplementaryBasicData>();
         }
 
         internal TestSessionBuilder With(IBeacon beacon)
@@ -50,12 +52,19 @@ namespace Dynatrace.OpenKit.Core.Objects
             return this;
         }
 
+        internal TestSessionBuilder With(ISupplementaryBasicData supplementaryBasicData)
+        {
+            this.supplementaryBasicData = supplementaryBasicData;
+            return this;
+        }
+
         internal ISessionInternals Build()
         {
             return new Session(
                 logger,
                 parent,
-                beacon
+                beacon,
+                supplementaryBasicData
             );
         }
     }

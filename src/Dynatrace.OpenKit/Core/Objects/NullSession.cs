@@ -65,6 +65,21 @@ namespace Dynatrace.OpenKit.Core.Objects
             // intentionally left empty, due to NullObject pattern
         }
 
+        public void ReportNetworkTechnology(string technology)
+        {
+            // intentionally left empty, due to NullObject pattern
+        }
+
+        public void ReportConnectionType(ConnectionType connectionType)
+        {
+            // intentionally left empty, due to NullObject pattern
+        }
+
+        public void ReportCarrier(string carrier)
+        {
+            // intentionally left empty, due to NullObject pattern
+        }
+
         void ISession.SendEvent(string name, Dictionary<string, JsonValue> attributes)
         {
             // intentionally left empty, due to NullObject pattern

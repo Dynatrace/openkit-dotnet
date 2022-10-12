@@ -74,6 +74,24 @@ namespace Dynatrace.OpenKit.API
         void ReportCrash(Exception exception);
 
         /// <summary>
+        /// Reports the network technology in use (e.g. 2G, 3G, 802.11x, offline, ...). Use null to clear the value again and it will not be sent.
+        /// </summary>
+        /// <param name="technology">network technology</param>
+        void ReportNetworkTechnology(string technology);
+
+        /// <summary>
+        /// Reports the type of connection with which the device is connected to the network. Use null to clear the value again and it will not be sent.
+        /// </summary>
+        /// <param name="connectionType">type of connection</param>
+        void ReportConnectionType(ConnectionType connectionType);
+
+        /// <summary>
+        /// Reports the name of the cellular network carrier. Use null to clear the value again and it will not be sent.
+        /// </summary>
+        /// <param name="carrier">cellular network carrier</param>
+        void ReportCarrier(string carrier);
+
+        /// <summary>
         /// Sends an event with a name and a dictionary containing JSON values.
         /// </summary>
         /// <param name="name">name of the event</param>

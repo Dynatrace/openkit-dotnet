@@ -17,6 +17,7 @@
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
 using NSubstitute;
 
@@ -33,6 +34,7 @@ namespace Dynatrace.OpenKit.Protocol
         private IThreadIdProvider threadIdProvider;
         private ITimingProvider timingProvider;
         private IPrnGenerator randomGenerator;
+        private ISupplementaryBasicData supplementaryBasicData;
 
         internal TestBeaconBuilder()
         {
@@ -43,6 +45,7 @@ namespace Dynatrace.OpenKit.Protocol
             threadIdProvider = Substitute.For<IThreadIdProvider>();
             timingProvider = Substitute.For<ITimingProvider>();
             randomGenerator = Substitute.For<IPrnGenerator>();
+            supplementaryBasicData = Substitute.For<ISupplementaryBasicData>();
         }
 
         internal TestBeaconBuilder With(ILogger logger)
@@ -99,6 +102,12 @@ namespace Dynatrace.OpenKit.Protocol
             return this;
         }
 
+        internal TestBeaconBuilder With(ISupplementaryBasicData supplementaryBasicData)
+        {
+            this.supplementaryBasicData = supplementaryBasicData;
+            return this;
+        }
+
         internal IBeacon Build()
         {
             var initializer = Substitute.For<IBeaconInitializer>();
@@ -110,6 +119,7 @@ namespace Dynatrace.OpenKit.Protocol
             initializer.ThreadIdProvider.Returns(threadIdProvider);
             initializer.TimingProvider.Returns(timingProvider);
             initializer.RandomNumberGenerator.Returns(randomGenerator);
+            initializer.SupplementaryBasicData.Returns(supplementaryBasicData);
 
             return new Beacon(initializer, configuration);
         }

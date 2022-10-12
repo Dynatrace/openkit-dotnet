@@ -52,6 +52,11 @@ namespace Dynatrace.OpenKit.Protocol
         private const string BeaconKeyCrashReportingLevel = "cl";
         private const string BeaconKeyVisitStoreVersion = "vs";
 
+        // additional metadata
+        private const string BeaconKeyConnectionType = "ct";
+        private const string BeaconKeyNetworkTechnology = "np";
+        private const string BeaconKeyCarrier = "cr";
+
         // device data constants
         private const string BeaconKeyDeviceOs = "os";
         private const string BeaconKeyDeviceManufacturer = "mf";
@@ -130,6 +135,7 @@ namespace Dynatrace.OpenKit.Protocol
         private int TrafficControlValue { get; }
 
         private readonly ILogger logger;
+        private readonly ISupplementaryBasicData supplementaryBasicData;
 
         #region constructors
 
@@ -176,6 +182,8 @@ namespace Dynatrace.OpenKit.Protocol
                 }
                 clientIpAddress = null; // determined on server side, based on remote IP address
             }
+
+            supplementaryBasicData = initializer.SupplementaryBasicData;
 
             basicBeaconData = CreateBasicBeaconData();
         }
@@ -988,6 +996,15 @@ namespace Dynatrace.OpenKit.Protocol
             // append multiplicity
             builder.Append(BeaconDataDelimiter).Append(CreateMultiplicityData());
 
+            // append supplementary basic data
+            AddKeyValuePairIfValueIsNotNullOrEmpty(builder, BeaconKeyNetworkTechnology, supplementaryBasicData.NetworkTechnology);
+            AddKeyValuePairIfValueIsNotNullOrEmpty(builder, BeaconKeyCarrier, supplementaryBasicData.Carrier);
+
+            if (supplementaryBasicData.ConnectionType != null)
+            {
+                AddKeyValuePairIfValueIsNotNull(builder, BeaconKeyConnectionType, supplementaryBasicData.ConnectionType.Value);
+            }
+
             return builder.ToString();
         }
 
@@ -1022,6 +1039,15 @@ namespace Dynatrace.OpenKit.Protocol
         private static void AddKeyValuePairIfValueIsNotNull(StringBuilder builder, string key, string stringValue)
         {
             if (stringValue == null)
+            {
+                return;
+            }
+
+            AddKeyValuePair(builder, key, stringValue);
+        }
+        private static void AddKeyValuePairIfValueIsNotNullOrEmpty(StringBuilder builder, string key, string stringValue)
+        {
+            if (string.IsNullOrEmpty(stringValue))
             {
                 return;
             }

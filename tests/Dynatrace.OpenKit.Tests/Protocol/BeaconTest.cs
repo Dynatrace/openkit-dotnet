@@ -60,6 +60,7 @@ namespace Dynatrace.OpenKit.Protocol
 
         private ILogger mockLogger;
         private IBeaconCache mockBeaconCache;
+        private ISupplementaryBasicData mockSupplementaryBasicData;
 
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
         private CultureInfo currentCulture;
@@ -122,9 +123,9 @@ namespace Dynatrace.OpenKit.Protocol
             mockTimingProvider = Substitute.For<ITimingProvider>();
             mockTimingProvider.ProvideTimestampInMilliseconds().Returns(0);
 
-
             mockLogger = Substitute.For<ILogger>();
             mockBeaconCache = Substitute.For<IBeaconCache>();
+            mockSupplementaryBasicData = Substitute.For<ISupplementaryBasicData>();
 
             mockParent = Substitute.For<IOpenKitComposite>();
             mockParent.ActionId.Returns(0);
@@ -1181,6 +1182,163 @@ namespace Dynatrace.OpenKit.Protocol
 
             // then
             Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
+        }
+
+        #endregion
+
+        #region Report Mutable Basic Data
+
+        [Test]
+        public void ReportNetworkTechnology()
+        {
+            // given
+            const int sessionSequence = 1213;
+            const int visitStoreVersion = 2;
+            const string appVersion = "1111";
+            const string ipAddress = "192.168.0.1";
+            mockOpenKitConfiguration.ApplicationVersion.Returns(appVersion);
+            mockOpenKitConfiguration.OperatingSystem.Returns("system");
+            mockOpenKitConfiguration.Manufacturer.Returns("manufacturer");
+            mockOpenKitConfiguration.ModelId.Returns("model");
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .ReturnsNull();
+            mockServerConfiguration.VisitStoreVersion.Returns(visitStoreVersion);
+            mockSupplementaryBasicData.NetworkTechnology.Returns("TestValue");
+            var target = CreateBeacon().WithIpAddress(ipAddress).WithSessionSequenceNumber(sessionSequence).Build();
+
+            // when
+            target.Send(Substitute.For<IHttpClientProvider>(), null);
+
+            // then
+            var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
+                $"&va={ProtocolConstants.OpenKitVersion}" +
+                $"&ap={AppId}" +
+                $"&vn={appVersion}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
+                $"&tt={ProtocolConstants.AgentTechnologyType}" +
+                $"&vi={DeviceId.ToInvariantString()}" +
+                $"&sn={SessionId.ToInvariantString()}" +
+                $"&ip={ipAddress}" +
+                "&os=system" +
+                "&mf=manufacturer" +
+                "&md=model" +
+                "&dl=2" +
+                "&cl=2" +
+                $"&vs={visitStoreVersion.ToInvariantString()}" +
+                $"&ss={sessionSequence.ToInvariantString()}" +
+                "&tx=0" +
+                "&tv=0" +
+                $"&mp={Multiplicity.ToInvariantString()}" + 
+                "&np=TestValue";
+
+            var expectedBeaconKey = new BeaconKey(SessionId, sessionSequence);
+            mockBeaconCache.Received(1).PrepareDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).HasDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).GetNextBeaconChunk(
+                expectedBeaconKey, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
+        }
+
+        [Test]
+        public void ReportCarrier()
+        {
+            // given
+            const int sessionSequence = 1213;
+            const int visitStoreVersion = 2;
+            const string appVersion = "1111";
+            const string ipAddress = "192.168.0.1";
+            mockOpenKitConfiguration.ApplicationVersion.Returns(appVersion);
+            mockOpenKitConfiguration.OperatingSystem.Returns("system");
+            mockOpenKitConfiguration.Manufacturer.Returns("manufacturer");
+            mockOpenKitConfiguration.ModelId.Returns("model");
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .ReturnsNull();
+            mockServerConfiguration.VisitStoreVersion.Returns(visitStoreVersion);
+            mockSupplementaryBasicData.Carrier.Returns("TestValue");
+            var target = CreateBeacon().WithIpAddress(ipAddress).WithSessionSequenceNumber(sessionSequence).Build();
+
+            // when
+            target.Send(Substitute.For<IHttpClientProvider>(), null);
+
+            // then
+            var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
+                $"&va={ProtocolConstants.OpenKitVersion}" +
+                $"&ap={AppId}" +
+                $"&vn={appVersion}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
+                $"&tt={ProtocolConstants.AgentTechnologyType}" +
+                $"&vi={DeviceId.ToInvariantString()}" +
+                $"&sn={SessionId.ToInvariantString()}" +
+                $"&ip={ipAddress}" +
+                "&os=system" +
+                "&mf=manufacturer" +
+                "&md=model" +
+                "&dl=2" +
+                "&cl=2" +
+                $"&vs={visitStoreVersion.ToInvariantString()}" +
+                $"&ss={sessionSequence.ToInvariantString()}" +
+                "&tx=0" +
+                "&tv=0" +
+                $"&mp={Multiplicity.ToInvariantString()}" +
+                "&cr=TestValue";
+
+            var expectedBeaconKey = new BeaconKey(SessionId, sessionSequence);
+            mockBeaconCache.Received(1).PrepareDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).HasDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).GetNextBeaconChunk(
+                expectedBeaconKey, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
+        }
+
+        [Test]
+        public void ReportConnectionType()
+        {
+            // given
+            const int sessionSequence = 1213;
+            const int visitStoreVersion = 2;
+            const string appVersion = "1111";
+            const string ipAddress = "192.168.0.1";
+            mockOpenKitConfiguration.ApplicationVersion.Returns(appVersion);
+            mockOpenKitConfiguration.OperatingSystem.Returns("system");
+            mockOpenKitConfiguration.Manufacturer.Returns("manufacturer");
+            mockOpenKitConfiguration.ModelId.Returns("model");
+            mockBeaconCache.HasDataForSending(Arg.Any<BeaconKey>()).Returns(true, false);
+            mockBeaconCache.GetNextBeaconChunk(Arg.Any<BeaconKey>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<char>())
+                .ReturnsNull();
+            mockServerConfiguration.VisitStoreVersion.Returns(visitStoreVersion);
+            mockSupplementaryBasicData.ConnectionType.Returns(ConnectionType.LAN);
+            var target = CreateBeacon().WithIpAddress(ipAddress).WithSessionSequenceNumber(sessionSequence).Build();
+
+            // when
+            target.Send(Substitute.For<IHttpClientProvider>(), null);
+
+            // then
+            var expectedPrefix = $"vv={ProtocolConstants.ProtocolVersion.ToInvariantString()}" +
+                $"&va={ProtocolConstants.OpenKitVersion}" +
+                $"&ap={AppId}" +
+                $"&vn={appVersion}" +
+                $"&pt={ProtocolConstants.PlatformTypeOpenKit.ToInvariantString()}" +
+                $"&tt={ProtocolConstants.AgentTechnologyType}" +
+                $"&vi={DeviceId.ToInvariantString()}" +
+                $"&sn={SessionId.ToInvariantString()}" +
+                $"&ip={ipAddress}" +
+                "&os=system" +
+                "&mf=manufacturer" +
+                "&md=model" +
+                "&dl=2" +
+                "&cl=2" +
+                $"&vs={visitStoreVersion.ToInvariantString()}" +
+                $"&ss={sessionSequence.ToInvariantString()}" +
+                "&tx=0" +
+                "&tv=0" +
+                $"&mp={Multiplicity.ToInvariantString()}" +
+                "&ct=l";
+
+            var expectedBeaconKey = new BeaconKey(SessionId, sessionSequence);
+            mockBeaconCache.Received(1).PrepareDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).HasDataForSending(expectedBeaconKey);
+            mockBeaconCache.Received(1).GetNextBeaconChunk(
+                expectedBeaconKey, expectedPrefix, Arg.Any<int>(), Arg.Any<char>());
         }
 
         #endregion
@@ -3328,7 +3486,7 @@ namespace Dynatrace.OpenKit.Protocol
 
     #endregion
 
-    #region IdentifyUser tests
+        #region IdentifyUser tests
 
         [Test]
         public void ValidIdentifyUserEvent()
@@ -3538,7 +3696,7 @@ namespace Dynatrace.OpenKit.Protocol
 
     #endregion
 
-    #region misc tests
+        #region misc tests
 
         [Test]
         public void SendDataAndFakeErrorResponse()
@@ -4149,6 +4307,7 @@ namespace Dynatrace.OpenKit.Protocol
                     .With(mockThreadIdProvider)
                     .With(mockTimingProvider)
                     .WithSessionSequenceNumber(SessionSeqNo)
+                    .With(mockSupplementaryBasicData)
                 ;
         }
 

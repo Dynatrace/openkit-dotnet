@@ -16,6 +16,7 @@
 
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
+using Dynatrace.OpenKit.Core.Objects;
 using Dynatrace.OpenKit.Providers;
 
 namespace Dynatrace.OpenKit.Protocol
@@ -65,5 +66,10 @@ namespace Dynatrace.OpenKit.Protocol
         /// Returns the <see cref="IPrnGenerator"/> to obtain random numbers (e.g. for randomizing device IDs).
         /// </summary>
         IPrnGenerator RandomNumberGenerator { get; }
+
+        /// <summary>
+        /// Returns the <see cref="ISupplementaryBasicData"/> to obtain additional mutable basic data
+        /// </summary>
+        ISupplementaryBasicData SupplementaryBasicData { get; }
     }
 }

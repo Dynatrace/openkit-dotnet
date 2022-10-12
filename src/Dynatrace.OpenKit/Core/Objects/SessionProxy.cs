@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Configuration;
 using Dynatrace.OpenKit.Providers;
@@ -203,6 +204,72 @@ namespace Dynatrace.OpenKit.Core.Objects
             }
 
             DoReportCrash(session => session.ReportCrash(exception));
+        }
+
+        public void ReportNetworkTechnology(string technology)
+        {
+            if (technology != null && technology.Length == 0)
+            {
+                logger.Warn($"{this} ReportNetworkTechnology(String): technology must not be empty");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportNetworkTechnology({technology})");
+            }
+
+            lock (lockObject)
+            {
+                if (isFinished)
+                {
+                    return;
+                }
+
+                currentSession.ReportNetworkTechnology(technology);
+            }
+        }
+
+        public void ReportConnectionType(ConnectionType connectionType)
+        {
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportConnectionType({connectionType})");
+            }
+
+            lock (lockObject)
+            {
+                if (isFinished)
+                {
+                    return;
+                }
+
+                currentSession.ReportConnectionType(connectionType);
+            }
+        }
+
+        public void ReportCarrier(string carrier)
+        {
+            if (carrier != null && carrier.Length == 0)
+            {
+                logger.Warn($"{this} ReportCarrier(String): carrier must not be empty");
+                return;
+            }
+
+            if (logger.IsDebugEnabled)
+            {
+                logger.Debug($"{this} ReportCarrier({carrier})");
+            }
+
+            lock (lockObject)
+            {
+                if (isFinished)
+                {
+                    return;
+                }
+
+                currentSession.ReportCarrier(carrier);
+            }
         }
 
         void ISession.SendEvent(string name, Dictionary<string, JsonValue> attributes)

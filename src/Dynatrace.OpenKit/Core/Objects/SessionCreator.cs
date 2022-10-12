@@ -49,6 +49,8 @@ namespace Dynatrace.OpenKit.Core.Objects
             continuousSessionIdProvider = input.SessionIdProvider;
             continuousRandomNumberGenerator = new DefaultPrnGenerator();
 
+            SupplementaryBasicData = new SupplementaryBasicData();
+
             InitializeFixedNumberProviders();
         }
 
@@ -63,7 +65,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var configuration = BeaconConfiguration.From(openKitConfiguration, privacyConfiguration, serverId);
             var beacon = new Beacon(this, configuration);
 
-            var session = new Session(Logger, parent, beacon);
+            var session = new Session(Logger, parent, beacon, SupplementaryBasicData);
             SessionSequenceNumber++;
 
             return session;
@@ -92,6 +94,8 @@ namespace Dynatrace.OpenKit.Core.Objects
         public ITimingProvider TimingProvider { get; }
 
         public IPrnGenerator RandomNumberGenerator { get; private set; }
+
+        public ISupplementaryBasicData SupplementaryBasicData { get; private set; }
 
         #endregion
     }

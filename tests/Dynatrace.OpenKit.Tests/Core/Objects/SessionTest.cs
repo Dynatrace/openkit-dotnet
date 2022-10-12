@@ -32,6 +32,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         private ILogger mockLogger;
         private IBeacon mockBeacon;
         private IAdditionalQueryParameters mockAdditionalParameters;
+        private ISupplementaryBasicData mockSupplementaryBasicData;
 
         [SetUp]
         public void SetUp()
@@ -42,6 +43,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             mockBeacon = Substitute.For<IBeacon>();
             mockAdditionalParameters = Substitute.For<IAdditionalQueryParameters>();
+            mockSupplementaryBasicData = Substitute.For<ISupplementaryBasicData>();
         }
 
         [Test]
@@ -149,6 +151,118 @@ namespace Dynatrace.OpenKit.Core.Objects
             // then
             mockBeacon.Received(1).IdentifyUser(null);
             mockLogger.Received(1).Debug($"Session [sn=0, seq=0] IdentifyUser()");
+        }
+
+        [Test]
+        public void ReportEmptyNetworkTechnology()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportNetworkTechnology("");
+
+            // then
+            mockSupplementaryBasicData.Received(0).NetworkTechnology = Arg.Any<string>();
+            mockLogger.Received(1).Warn($"Session [sn=0, seq=0] ReportNetworkTechnology(String): technology must not be empty");
+        }
+
+        [Test]
+        public void ReportNullNetworkTechnology()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportNetworkTechnology(null);
+
+            // then
+            mockSupplementaryBasicData.Received(1).NetworkTechnology = null;
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportNetworkTechnology()");
+        }
+
+        [Test]
+        public void ReportValidNetworkTechnology()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportNetworkTechnology("Test");
+
+            // then
+            mockSupplementaryBasicData.Received(1).NetworkTechnology = "Test";
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportNetworkTechnology(Test)");
+        }
+
+        [Test]
+        public void ReportEmptyCarrier()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCarrier("");
+
+            // then
+            mockSupplementaryBasicData.Received(0).Carrier = Arg.Any<string>();
+            mockLogger.Received(1).Warn($"Session [sn=0, seq=0] ReportCarrier(String): carrier must not be empty");
+        }
+
+        [Test]
+        public void ReportNullCarrier()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCarrier(null);
+
+            // then
+            mockSupplementaryBasicData.Received(1).Carrier = null;
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportCarrier()");
+        }
+
+        [Test]
+        public void ReportValidCarrier()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportCarrier("Test");
+
+            // then
+            mockSupplementaryBasicData.Received(1).Carrier = "Test";
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportCarrier(Test)");
+        }
+
+        [Test]
+        public void ReportNullConnectionType()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportConnectionType(null);
+
+            // then
+            mockSupplementaryBasicData.Received(1).ConnectionType = null;
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportConnectionType()");
+        }
+
+        [Test]
+        public void ReportValidConnectionType()
+        {
+            // given
+            var target = CreateSession().Build();
+
+            // when
+            target.ReportConnectionType(ConnectionType.LAN);
+
+            // then
+            mockSupplementaryBasicData.Received(1).ConnectionType = Arg.Is<ConnectionType>(cT => cT.Value == "l");
+            mockLogger.Received(1).Debug($"Session [sn=0, seq=0] ReportConnectionType(l)");
         }
 
         [Test]
@@ -1225,6 +1339,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             return new TestSessionBuilder()
                     .With(mockLogger)
                     .With(mockBeacon)
+                    .With(mockSupplementaryBasicData)
                 ;
         }
     }
