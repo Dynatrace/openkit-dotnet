@@ -292,7 +292,7 @@ For more information on business events, see the [dynatrace documentation](https
 Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
 attributes.Add("event.name", JsonStringValue.FromString("Confirmed Booking"));
 attributes.Add("screen", JsonStringValue.FromString("booking-confirmation"));
-attributes.Add("product", JsonStringValue.FromString("Hotel Passy Eiffel"));
+attributes.Add("product", JsonStringValue.FromString("Danube Anna Hotel"));
 attributes.Add("amount", JsonNumberValue.FromDouble(358.35));
 attributes.Add("currency", JsonStringValue.FromString("USD"));
 attributes.Add("reviewScore", JsonNumberValue.FromDouble(4.8));
