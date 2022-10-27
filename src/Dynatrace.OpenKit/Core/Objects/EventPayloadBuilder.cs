@@ -1,7 +1,6 @@
 ﻿using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Util.Json.Objects;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -16,13 +15,20 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// Dictionary containing attributes for sendEvent API
         /// </summary>
-        private readonly Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+        private readonly Dictionary<string, JsonValue> attributes;
 
         public EventPayloadBuilder(Dictionary<string, JsonValue> attributes, ILogger logger)
         {
             this.logger = logger;
 
-            InitializeInternalAttributes(attributes);
+            if(attributes == null)
+            {
+                this.attributes = new Dictionary<string, JsonValue>();
+            }
+            else
+            {
+                this.attributes = new Dictionary<string, JsonValue>(attributes);
+            }
         }
 
         public EventPayloadBuilder AddOverridableAttribute(string key, JsonValue value)
@@ -56,25 +62,22 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         /// <summary>
-        /// Initialize the internal attribute dictionary and filter out the reserved internal keys already
+        /// Removes reservered internal attributes from the provided attributes
         /// </summary>
-        /// <param name="extAttributes">External attributes coming from the API</param>
-        private void InitializeInternalAttributes(Dictionary<string, JsonValue> extAttributes)
+        internal EventPayloadBuilder CleanReservedInternalAttributes()
         {
-            if(extAttributes != null)
+            foreach (KeyValuePair<string, JsonValue> entry in new Dictionary<string, JsonValue>(attributes))
             {
-                foreach (KeyValuePair<string, JsonValue> entry in extAttributes)
+                if (entry.Key == "dt" || entry.Key.StartsWith("dt."))
                 {
-                    if (entry.Key == "dt" || entry.Key.StartsWith("dt."))
-                    {
-                        logger.Warn($"EventPayloadBuilder InitializeInternalAttributes: ${entry.Key} is reserved for internal values!");
-                    }
-                    else
-                    {
-                        this.attributes.Add(entry.Key, entry.Value);
-                    }
+                    logger.Warn($"EventPayloadBuilder CleanReservedInternalAttributes: ${entry.Key} is reserved for internal values!");
+                    attributes.Remove(entry.Key);
                 }
             }
+
+            return this;
         }
+
+
     }
 }

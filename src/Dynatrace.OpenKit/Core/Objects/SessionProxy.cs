@@ -287,7 +287,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"{this} SendEvent({name},{attributes})");
+                logger.Debug($"{this} SendEvent({name},{(attributes != null ? JsonObjectValue.FromDictionary(attributes).ToString() : "{}")})");
             }
 
             lock (lockObject)
@@ -312,7 +312,7 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             if (logger.IsDebugEnabled)
             {
-                logger.Debug($"{this} SendBizEvent({type},{attributes})");
+                logger.Debug($"{this} SendBizEvent({type},{(attributes != null ? JsonObjectValue.FromDictionary(attributes).ToString() : "{}")})");
             }
 
             lock (lockObject)

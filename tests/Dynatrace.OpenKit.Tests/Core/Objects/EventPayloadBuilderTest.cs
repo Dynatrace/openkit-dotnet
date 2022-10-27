@@ -31,7 +31,7 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
-        public void RemovingReservedValuesAtInitializing()
+        public void RemovingReservedInternalValues()
         {
             Dictionary<string, JsonValue> dict = new Dictionary<string, JsonValue>();
             dict.Add("dt", JsonStringValue.FromString("Removed"));
@@ -39,6 +39,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             dict.Add("event.kind", JsonStringValue.FromString("Okay"));
 
             EventPayloadBuilder builder = new EventPayloadBuilder(dict, mockLogger);
+            builder.CleanReservedInternalAttributes();
             Assert.That(builder.Build(), Is.EqualTo("{\"event.kind\":\"Okay\"}"));
         }
 

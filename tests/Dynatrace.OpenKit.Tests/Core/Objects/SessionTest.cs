@@ -1258,7 +1258,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.SendEvent(eventName, attributes);
 
             // then
-            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{attributes})");
+            mockLogger.Received(1).Debug($"{target} SendEvent({eventName},{JsonObjectValue.FromDictionary(attributes).ToString()})");
             mockBeacon.Received(1).SendEvent("SomeEvent", attributes);
         }
 
@@ -1316,7 +1316,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             target.SendBizEvent(eventType, attributes);
 
             // then
-            mockLogger.Received(1).Debug($"{target} SendBizEvent({eventType},{attributes})");
+            mockLogger.Received(1).Debug($"{target} SendBizEvent({eventType},{JsonObjectValue.FromDictionary(attributes).ToString()})");
             mockBeacon.Received(1).SendBizEvent("SomeType", attributes);
         }
 

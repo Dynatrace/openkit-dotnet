@@ -695,7 +695,9 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
+            EventPayloadBuilder eventPayloadBuilder = new EventPayloadBuilder(attributes, logger);
+            eventPayloadBuilder.CleanReservedInternalAttributes();
+            GenerateEventPayload(eventPayloadBuilder);
             eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(name))
                 .AddOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_RUM));
 
@@ -719,9 +721,15 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            EventPayloadBuilder eventPayloadBuilder = GenerateEventPayload(attributes);
-            eventPayloadBuilder.AddNonOverridableAttribute("event.type", JsonStringValue.FromString(type))
-                .AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
+            EventPayloadBuilder eventPayloadBuilder = new EventPayloadBuilder(attributes, logger);
+            eventPayloadBuilder.AddNonOverridableAttribute("event.type", JsonStringValue.FromString(type));
+
+            JsonNumberValue sizeAttribute = JsonNumberValue.FromLong(Encoding.UTF8.GetByteCount(eventPayloadBuilder.Build()));
+            eventPayloadBuilder.CleanReservedInternalAttributes()
+                .AddNonOverridableAttribute("dt.rum.custom_attributes_size", sizeAttribute);
+
+            GenerateEventPayload(eventPayloadBuilder);
+            eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
 
             if (attributes != null && attributes.ContainsKey("event.name"))
             {
@@ -751,10 +759,8 @@ namespace Dynatrace.OpenKit.Protocol
             AddEventData(timingProvider.ProvideTimestampInMilliseconds(), eventBuilder);
         }
 
-        private EventPayloadBuilder GenerateEventPayload(Dictionary<string, JsonValue> attributes)
+        private void GenerateEventPayload(EventPayloadBuilder builder)
         {
-            EventPayloadBuilder builder = new EventPayloadBuilder(attributes, logger);
-
             builder.AddOverridableAttribute(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(timingProvider.ProvideTimestampInNanoseconds()))
                 .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
                 .AddNonOverridableAttribute(EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId))
@@ -765,8 +771,6 @@ namespace Dynatrace.OpenKit.Protocol
                 .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))
                 .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ModelId))
                 .AddOverridableAttribute(EventPayloadAttributes.EVENT_PROVIDER, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded));
-
-            return builder;
         }
 
         void IBeacon.AddWebRequest(int parentActionId, IWebRequestTracerInternals webRequestTracer)

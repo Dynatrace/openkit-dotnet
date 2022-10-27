@@ -36,7 +36,6 @@ namespace Dynatrace.OpenKit.Protocol
     public class BeaconTest
     {
         private const string AppId = "appID";
-        private const string AppName = "appName";
         private const string AppVersion = "1.0";
         private const int ActionId = 17;
         private const int ServerId = 123;
@@ -1406,10 +1405,10 @@ namespace Dynatrace.OpenKit.Protocol
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
 
-            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
-            actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
-            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
             actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
+            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
@@ -1739,6 +1738,9 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add("TestString", JsonStringValue.FromString("Test"));
             actualAttributes.Add("TestBool", JsonBooleanValue.FromValue(false));
 
+            actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
+            actualAttributes.Add("dt.rum.custom_attributes_size", JsonNumberValue.FromLong(62));
+
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
             actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
@@ -1750,7 +1752,6 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
 
             actualAttributes.Add(EventPayloadAttributes.EVENT_PROVIDER, JsonStringValue.FromString(AppId));
-            actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
             actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("BIZ_EVENT"));
             actualAttributes.Add("event.name", JsonStringValue.FromString("SomeType"));
 
@@ -1783,10 +1784,14 @@ namespace Dynatrace.OpenKit.Protocol
             target.SendBizEvent(eventType, attributes);
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
-
-            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
-            actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
+            
             actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
+            actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
+
+            actualAttributes.Add("dt.rum.custom_attributes_size", JsonNumberValue.FromLong(134));
+            actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
+
             actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
@@ -1795,7 +1800,6 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
 
             actualAttributes.Add(EventPayloadAttributes.EVENT_PROVIDER, JsonStringValue.FromString(AppId));
-            actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
             actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("BIZ_EVENT"));
             actualAttributes.Add("event.name", JsonStringValue.FromString("SomeType"));
 
@@ -1829,6 +1833,27 @@ namespace Dynatrace.OpenKit.Protocol
                 new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
                 0,                                                        // timestamp
                 Arg.Is<string>(str => str.Contains("timestamp%22%3A%22Test%22%2C%22"))
+                );
+        }
+
+        [Test]
+        public void SendValidBizEventTryingToOverrideDtRumCustomAttributeSize()
+        {
+            // given
+            var target = CreateBeacon().Build();
+            const string eventType = "customType";
+
+            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
+            attributes.Add("dt.rum.custom_attributes_size", JsonStringValue.FromString("overridden"));
+
+            // when
+            target.SendBizEvent(eventType, attributes);
+
+            // then
+            mockBeaconCache.Received(1).AddEventData(
+                new BeaconKey(SessionId, SessionSeqNo),                   // beacon key
+                0,                                                        // timestamp
+                Arg.Is<string>(str => str.Contains("dt.rum.custom%5Fattributes%5Fsize%22%3A72%2C%22"))
                 );
         }
 
@@ -2006,6 +2031,9 @@ namespace Dynatrace.OpenKit.Protocol
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
 
+            actualAttributes.Add("event.type", JsonStringValue.FromString("type"));
+            actualAttributes.Add("dt.rum.custom_attributes_size", JsonNumberValue.FromLong(21));
+
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add("dt.rum.application.id", JsonStringValue.FromString(AppId));
             actualAttributes.Add("dt.rum.instance.id", JsonNumberValue.FromLong(DeviceId));
@@ -2017,7 +2045,6 @@ namespace Dynatrace.OpenKit.Protocol
             actualAttributes.Add(EventPayloadAttributes.DEVICE_MODEL_IDENTIFIER, JsonStringValue.FromString(""));
 
             actualAttributes.Add(EventPayloadAttributes.EVENT_PROVIDER, JsonStringValue.FromString(AppId));
-            actualAttributes.Add("event.type", JsonStringValue.FromString("type"));
             actualAttributes.Add(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString("BIZ_EVENT"));
             actualAttributes.Add("event.name", JsonStringValue.FromString("type"));
 
