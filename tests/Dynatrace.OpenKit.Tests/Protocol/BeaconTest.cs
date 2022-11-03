@@ -1364,8 +1364,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
-            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
-            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString(SessionId.ToInvariantString()));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
@@ -1405,8 +1405,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
 
-            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
-            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString(SessionId.ToInvariantString()));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
@@ -1606,8 +1606,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add("dt.rum.application.id", JsonStringValue.FromString(AppId));
-            actualAttributes.Add("dt.rum.instance.id", JsonNumberValue.FromLong(DeviceId));
-            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add("dt.rum.instance.id", JsonStringValue.FromString(DeviceId.ToInvariantString()));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString(SessionId.ToInvariantString()));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
@@ -1743,8 +1743,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
-            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
-            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString(SessionId.ToInvariantString()));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
@@ -1785,14 +1785,14 @@ namespace Dynatrace.OpenKit.Protocol
 
             Dictionary<string, JsonValue> actualAttributes = new Dictionary<string, JsonValue>();
             
-            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId));
+            actualAttributes.Add(Beacon.EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()));
             actualAttributes.Add(Beacon.EventPayloadApplicationId, JsonStringValue.FromString(AppId));
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
 
             actualAttributes.Add("dt.rum.custom_attributes_size", JsonNumberValue.FromLong(134));
             actualAttributes.Add("event.type", JsonStringValue.FromString("SomeType"));
 
-            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString(SessionId.ToInvariantString()));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));
@@ -2036,8 +2036,8 @@ namespace Dynatrace.OpenKit.Protocol
 
             actualAttributes.Add(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(0));
             actualAttributes.Add("dt.rum.application.id", JsonStringValue.FromString(AppId));
-            actualAttributes.Add("dt.rum.instance.id", JsonNumberValue.FromLong(DeviceId));
-            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonNumberValue.FromLong(SessionId));
+            actualAttributes.Add("dt.rum.instance.id", JsonStringValue.FromString(DeviceId.ToInvariantString()));
+            actualAttributes.Add(Beacon.EventPayloadSessionId, JsonStringValue.FromString(SessionId.ToInvariantString()));
             actualAttributes.Add("dt.rum.schema_version", JsonStringValue.FromString("1.0"));
             actualAttributes.Add(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(AppVersion));
             actualAttributes.Add(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(""));

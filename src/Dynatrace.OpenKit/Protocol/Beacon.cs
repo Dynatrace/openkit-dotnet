@@ -763,8 +763,8 @@ namespace Dynatrace.OpenKit.Protocol
         {
             builder.AddOverridableAttribute(EventPayloadAttributes.TIMESTAMP, JsonNumberValue.FromLong(timingProvider.ProvideTimestampInNanoseconds()))
                 .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
-                .AddNonOverridableAttribute(EventPayloadInstanceId, JsonNumberValue.FromLong(DeviceId))
-                .AddNonOverridableAttribute(EventPayloadSessionId, JsonNumberValue.FromLong(SessionNumber))
+                .AddNonOverridableAttribute(EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()))
+                .AddNonOverridableAttribute(EventPayloadSessionId, JsonStringValue.FromString(SessionNumber.ToInvariantString()))
                 .AddNonOverridableAttribute("dt.rum.schema_version", JsonStringValue.FromString("1.0"))
                 .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
                 .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
