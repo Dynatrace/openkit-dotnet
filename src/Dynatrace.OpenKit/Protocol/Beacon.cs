@@ -731,15 +731,6 @@ namespace Dynatrace.OpenKit.Protocol
             GenerateEventPayload(eventPayloadBuilder);
             eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
 
-            if (attributes != null && attributes.ContainsKey("event.name"))
-            {
-                eventPayloadBuilder.AddNonOverridableAttribute("event.name", attributes["event.name"]);
-            }
-            else
-            {
-                eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(type));
-            }
-
             SendEventPayload(eventPayloadBuilder);
         }
 
@@ -765,7 +756,7 @@ namespace Dynatrace.OpenKit.Protocol
                 .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
                 .AddNonOverridableAttribute(EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()))
                 .AddNonOverridableAttribute(EventPayloadSessionId, JsonStringValue.FromString(SessionNumber.ToInvariantString()))
-                .AddNonOverridableAttribute("dt.rum.schema_version", JsonStringValue.FromString("1.0"))
+                .AddNonOverridableAttribute("dt.rum.schema_version", JsonStringValue.FromString("1.1"))
                 .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
                 .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
                 .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))
