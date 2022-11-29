@@ -48,7 +48,7 @@ namespace Dynatrace.OpenKit.Core.Communication
             statusResponse.IsErroneousResponse.Returns(false);
 
             var httpClient = Substitute.For<IHttpClient>();
-            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>())
+            httpClient.SendBeaconRequest(Arg.Any<string>(), Arg.Any<byte[]>(), Arg.Any<IAdditionalQueryParameters>(), Arg.Any<int>(), Arg.Any<long>())
                 .Returns(statusResponse);
 
             mockHttpClientProvider = Substitute.For<IHttpClientProvider>();

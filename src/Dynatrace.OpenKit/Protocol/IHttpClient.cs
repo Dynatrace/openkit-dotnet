@@ -35,9 +35,11 @@ namespace Dynatrace.OpenKit.Protocol
         /// <param name="additionalParameters">
         ///     additional parameters that will be send with the beacon request (can be <code>null</code>.
         /// </param>
+        /// <param name="sessionNumber">session number</param>
+        /// <param name="deviceId">device id</param>
         /// <returns></returns>
         IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data,
-            IAdditionalQueryParameters additionalParameters);
+            IAdditionalQueryParameters additionalParameters, int sessionNumber, long deviceId);
 
         /// <summary>
         /// Sends a special status request for a new session.

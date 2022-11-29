@@ -852,7 +852,7 @@ namespace Dynatrace.OpenKit.Protocol
                 var encodedBeacon = Encoding.UTF8.GetBytes(chunk);
 
                 // send the request
-                response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon, additionalParameters);
+                response = httpClient.SendBeaconRequest(clientIpAddress, encodedBeacon, additionalParameters, SessionNumber, DeviceId);
                 if (response == null || response.IsErroneousResponse)
                 {
                     // error happened - but don't know what exactly

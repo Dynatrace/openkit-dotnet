@@ -66,6 +66,7 @@ namespace Dynatrace.OpenKit.Protocol
         internal const string QueryKeyResponseType = "resp";
         internal const string QueryKeyConfigTimestamp = "cts";
         internal const string QueryKeyNewSession = "ns";
+        internal const string QueryKeySessionIdentifier = "si";
 
         // additional reserved characters for URL encoding
         private static readonly char[] QueryReservedCharacters = {'_'};
@@ -109,9 +110,11 @@ namespace Dynatrace.OpenKit.Protocol
 
         // sends a beacon send request and returns a status response
         public IStatusResponse SendBeaconRequest(string clientIpAddress, byte[] data,
-            IAdditionalQueryParameters additionalParameters)
+            IAdditionalQueryParameters additionalParameters, int sessionNumber, long deviceId)
         {
             var url = AppendAdditionalQueryParameters(monitorUrl, additionalParameters);
+            url = AppendSessionIdentifierParameter(url, sessionNumber.ToInvariantString(), deviceId.ToInvariantString());
+
             return SendRequest(RequestType.Beacon, url, clientIpAddress, data, "POST")
                    ?? StatusResponse.CreateErrorResponse(logger, int.MaxValue);
         }
@@ -270,6 +273,14 @@ namespace Dynatrace.OpenKit.Protocol
             AppendQueryParam(builder, QueryKeyConfigTimestamp, parameters.ConfigurationTimestamp.ToString());
 
             return builder.ToString();
+        }
+
+        private static string AppendSessionIdentifierParameter(string baseUrl, string sessionNumber, string deviceID)
+        {
+            var newSessionUrlBuilder = new StringBuilder(baseUrl);
+            AppendQueryParam(newSessionUrlBuilder, QueryKeySessionIdentifier, deviceID + "_" + sessionNumber);
+
+            return newSessionUrlBuilder.ToString();
         }
 
         // helper method for appending query parameters

@@ -429,7 +429,7 @@ namespace Dynatrace.OpenKit.Protocol
 
 
             // when
-            var obtained = target.SendBeaconRequest("175.45.176.1", new byte[] {0xba, 0xad, 0xbe, 0xef}, null);
+            var obtained = target.SendBeaconRequest("175.45.176.1", new byte[] {0xba, 0xad, 0xbe, 0xef}, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -447,7 +447,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("175.45.176.1", null, null);
+            var obtained = target.SendBeaconRequest("175.45.176.1", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -467,7 +467,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             var obtained = target.SendBeaconRequest("175.45.176.1",
-                Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"), null);
+                Encoding.UTF8.GetBytes("The quick brown fox jumps over the lazy dog"), null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -487,13 +487,15 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("192.168.0.1", null, null);
+            var obtained = target.SendBeaconRequest("192.168.0.1", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
             Assert.That(obtained.ResponseCode, Is.EqualTo(200));
 
-            spyClient.Received(1).DoPostRequest(Arg.Is<string>(x => x == MonitorUrl),
+            var BeaconUrl = MonitorUrl + $"&{HttpClient.QueryKeySessionIdentifier}=1%5F0";
+
+            spyClient.Received(1).DoPostRequest(Arg.Is<string>(x => x == BeaconUrl),
                                                 Arg.Is<string>(x => !string.IsNullOrEmpty(x)),
                                                 null);
         }
@@ -507,7 +509,7 @@ namespace Dynatrace.OpenKit.Protocol
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(StatusResponse);
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -533,7 +535,7 @@ namespace Dynatrace.OpenKit.Protocol
                 {ResponseCode = 200, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -558,7 +560,7 @@ namespace Dynatrace.OpenKit.Protocol
                 {ResponseCode = 400, Headers = headers, Response = null});
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -578,7 +580,7 @@ namespace Dynatrace.OpenKit.Protocol
                 .Throw(new Exception("dummy"));
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -597,7 +599,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // when
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseShort);
-            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -606,7 +608,7 @@ namespace Dynatrace.OpenKit.Protocol
 
             // and when
             spyClient.DoPostRequest(string.Empty, string.Empty, null).ReturnsForAnyArgs(InvalidStatusResponseLong);
-            obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
             // then
             Assert.That(obtained, Is.Not.Null);
@@ -630,7 +632,7 @@ namespace Dynatrace.OpenKit.Protocol
                 });
 
             // when
-            var obtained = target.SendBeaconRequest("156.33.241.5", null, null);
+            var obtained = target.SendBeaconRequest("156.33.241.5", null, null, 0, 1);
 
 
             // then
@@ -722,10 +724,11 @@ namespace Dynatrace.OpenKit.Protocol
                 .Returns(CreateSuccessHttpResponse());
 
             // when
-            spyClient.SendBeaconRequest(null, null, null);
+            spyClient.SendBeaconRequest(null, null, null, 1, 0);
 
             // then
             var expectedUrl = InitializeBaseUrl();
+            AppendUrlParameter(expectedUrl, "si", "0%5F1");
             Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
         }
 
@@ -741,11 +744,12 @@ namespace Dynatrace.OpenKit.Protocol
                 .Returns(CreateSuccessHttpResponse());
 
             // when
-            spyClient.SendBeaconRequest(null, null, mockAdditionalParameters);
+            spyClient.SendBeaconRequest(null, null, mockAdditionalParameters, 1, 0);
 
             // then
             var expectedUrl = InitializeBaseUrl();
             AppendUrlParameter(expectedUrl, "cts", timestamp.ToString());
+            AppendUrlParameter(expectedUrl, "si", "0%5F1");
             Assert.That(capturedUrl, Is.EqualTo(expectedUrl.ToString()));
         }
 
