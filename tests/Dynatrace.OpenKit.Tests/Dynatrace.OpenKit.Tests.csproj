@@ -28,45 +28,53 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net35'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
-    <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="NUnit" Version="3.13.1" />
-    <PackageReference Include="OpenCover" Version="4.7.922" />
     <!-- Note: For .NET 3.5 & 4.0 NSubstitute cannot be upgraded to a higher version,
          since legacy .NET support was dropped -->
     <PackageReference Include="NSubstitute" Version="2.0.3" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   
   <!-- package references for .NET 4.5 and above -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net452' Or '$(TargetFramework)' == 'net46' Or '$(TargetFramework)' == 'net461' Or '$(TargetFramework)' == 'net462' Or '$(TargetFramework)' == 'net47' Or '$(TargetFramework)' == 'net471' Or '$(TargetFramework)' == 'net472' Or '$(TargetFramework)' == 'net48' And '$(VisualStudioVersion)' == '16.0'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
-    <PackageReference Include="coveralls.io" Version="1.4.2" />
     <PackageReference Include="NUnit" Version="3.13.1" />
-    <PackageReference Include="OpenCover" Version="4.7.922" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   
   <!-- package references for LTS .NET Core 3.1 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1' And '$(VisualStudioVersion)' == '16.0'">
     <!--references to external packages -->
-    <PackageReference Include="coveralls.io" Version="1.4.2" />
-    <PackageReference Include="OpenCover" Version="4.7.922" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!-- package references for .NET 6.0 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' And '$(VisualStudioVersion)' == '17.0'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
-    <PackageReference Include="coveralls.io" Version="1.4.2" />
-    <PackageReference Include="OpenCover" Version="4.7.922" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 
@@ -74,12 +82,14 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' And '$(VisualStudioVersion)' == '17.0'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
-    <PackageReference Include="coveralls.io" Version="1.4.2" />
-    <PackageReference Include="OpenCover" Version="4.7.922" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <!-- .NET Core 3.1 references, compilation flags and build options -->

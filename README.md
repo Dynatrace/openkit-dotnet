@@ -1,7 +1,7 @@
 # Dynatrace OpenKit - .NET Reference Implementation
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build status](https://ci.appveyor.com/api/projects/status/ug034eehokcyw1ks/branch/main?svg=true)](https://ci.appveyor.com/project/openkitdt/openkit-dotnet/branch/main)
+![Build Status](https://github.com/Dynatrace/openkit-dotnet/actions/workflows/dotnet.yml/badge.svg?branch=main)
 [![Coverage Status](https://coveralls.io/repos/github/Dynatrace/openkit-dotnet/badge.svg?branch=main)](https://coveralls.io/github/Dynatrace/openkit-dotnet?branch=main)
 
 :information_source: We changed the default branch name to `main`. You can find the necessary steps to update your local clone on [Scott Hanselman's Blog](https://www.hanselman.com/blog/EasilyRenameYourGitDefaultBranchFromMasterToMain.aspx).  
