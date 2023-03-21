@@ -5,7 +5,7 @@
         <TargetFrameworks>net48;net472;net471;net47;net462;net461;net46;net452;net35;netstandard2.1;netstandard2.0;netstandard1.1;netcoreapp3.1;uap10.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '17.0'">
-        <TargetFrameworks>net6.0;net5.0</TargetFrameworks>
+        <TargetFrameworks>net7.0;net6.0;net5.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
          <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
@@ -128,6 +128,12 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET48</DefineConstants>
     <Description>Dynatrace OpenKit SDK for .NET Framework 4.8</Description>
+  </PropertyGroup>
+
+  <!-- .NET 7.0 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0' And '$(VisualStudioVersion)' == '17.0'">
+    <DefineConstants>NET7_0</DefineConstants>
+    <Description>Dynatrace OpenKit SDK for .NET 7.0</Description>
   </PropertyGroup>
 
   <!-- .NET 6.0 references, compilation flags and build options -->
