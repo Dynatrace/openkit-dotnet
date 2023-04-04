@@ -4,6 +4,7 @@
 
 ### Added
 - Support for .NET 7.0
+- Non-finite numeric values are serialized as JSON null in reported events, and a special field is added for supportability.
 
 ## 3.0.0 [Release date: 2022-12-06]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.0.0)

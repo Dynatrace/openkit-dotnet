@@ -701,6 +701,11 @@ namespace Dynatrace.OpenKit.Protocol
             eventPayloadBuilder.AddNonOverridableAttribute("event.name", JsonStringValue.FromString(name))
                 .AddOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_RUM));
 
+            if (eventPayloadBuilder.IsEventPayloadContainingNonFiniteValues())
+            {
+                eventPayloadBuilder.AddNonOverridableAttribute("dt.rum.has_nfn_values", JsonBooleanValue.True);
+            }
+
             SendEventPayload(eventPayloadBuilder);
         }
 
@@ -731,6 +736,11 @@ namespace Dynatrace.OpenKit.Protocol
             GenerateEventPayload(eventPayloadBuilder);
             eventPayloadBuilder.AddNonOverridableAttribute(EventPayloadAttributes.EVENT_KIND, JsonStringValue.FromString(EventPayloadAttributes.EVENT_KIND_BIZ));
 
+            if(eventPayloadBuilder.IsEventPayloadContainingNonFiniteValues())
+            {
+                eventPayloadBuilder.AddNonOverridableAttribute("dt.rum.has_nfn_values", JsonBooleanValue.True);
+            }
+
             SendEventPayload(eventPayloadBuilder);
         }
 
@@ -756,7 +766,7 @@ namespace Dynatrace.OpenKit.Protocol
                 .AddNonOverridableAttribute(EventPayloadApplicationId, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationIdPercentEncoded))
                 .AddNonOverridableAttribute(EventPayloadInstanceId, JsonStringValue.FromString(DeviceId.ToInvariantString()))
                 .AddNonOverridableAttribute(EventPayloadSessionId, JsonStringValue.FromString(SessionNumber.ToInvariantString()))
-                .AddNonOverridableAttribute("dt.rum.schema_version", JsonStringValue.FromString("1.1"))
+                .AddNonOverridableAttribute("dt.rum.schema_version", JsonStringValue.FromString("1.2"))
                 .AddOverridableAttribute(EventPayloadAttributes.APP_VERSION, JsonStringValue.FromString(configuration.OpenKitConfiguration.ApplicationVersion))
                 .AddOverridableAttribute(EventPayloadAttributes.OS_NAME, JsonStringValue.FromString(configuration.OpenKitConfiguration.OperatingSystem))
                 .AddOverridableAttribute(EventPayloadAttributes.DEVICE_MANUFACTURER, JsonStringValue.FromString(configuration.OpenKitConfiguration.Manufacturer))

@@ -172,15 +172,27 @@ namespace Dynatrace.OpenKit.Util.Json.Objects
             }
         }
 
+        internal bool IsFinite()
+        {
+            return IsInteger || (!double.IsNaN(DoubleValue) && !double.IsInfinity(DoubleValue));
+        }
+
         internal override void WriteJSONString(JsonValueWriter writer)
         {
-            if (IsInteger)
+            if (!IsFinite())
             {
-                writer.InsertValue(LongValue.ToInvariantString());
+                writer.InsertValue("null");
             }
             else
             {
-                writer.InsertValue(DoubleValue.ToInvariantString());
+                if (IsInteger)
+                {
+                    writer.InsertValue(LongValue.ToInvariantString());
+                }
+                else
+                {
+                    writer.InsertValue(DoubleValue.ToInvariantString());
+                }
             }
         }
     }

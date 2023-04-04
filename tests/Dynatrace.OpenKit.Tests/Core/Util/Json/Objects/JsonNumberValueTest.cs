@@ -16,6 +16,7 @@
 
 using System;
 using Dynatrace.OpenKit.Util.Json.Objects;
+using Dynatrace.OpenKit.Util.Json.Writer;
 using NUnit.Framework;
 
 namespace Dynatrace.OpenKit.Core.Util.Json.Objects
@@ -247,6 +248,72 @@ namespace Dynatrace.OpenKit.Core.Util.Json.Objects
         public void DoubleJsonString()
         {
             Assert.That(JsonNumberValue.FromDouble(17.1).ToString(), Is.EqualTo("17.1"));
+        }
+
+        [Test]
+        public void IsFiniteReturnsFalseWhenUsingNaN()
+        {
+            Assert.False(JsonNumberValue.FromDouble(Double.NaN).IsFinite());
+        }
+
+        [Test]
+        public void IsFiniteReturnsFalseWhenUsingNegativeInfinity()
+        {
+            Assert.False(JsonNumberValue.FromDouble(Double.NegativeInfinity).IsFinite());
+        }
+
+        [Test]
+        public void IsFiniteReturnsFalseWhenUsingPositiveInfinity()
+        {
+            Assert.False(JsonNumberValue.FromDouble(Double.PositiveInfinity).IsFinite());
+        }
+
+        [Test]
+        public void IsFiniteReturnsTrueWhenUsingFiniteValue()
+        {
+            Assert.True(JsonNumberValue.FromDouble(42.0).IsFinite());
+        }
+
+        [Test]
+        public void IsFiniteReturnsTrueWhenUsingSpecialPatternLongNaN()
+        {
+            Assert.True(JsonNumberValue.FromLong(BitConverter.DoubleToInt64Bits(Double.NaN)).IsFinite());
+        }
+
+        [Test]
+        public void IsFiniteReturnsTrueWhenUsingSpecialPatternLongPositiveInfinity()
+        {
+            Assert.True(JsonNumberValue.FromLong(BitConverter.DoubleToInt64Bits(Double.PositiveInfinity)).IsFinite());
+        }
+
+        [Test]
+        public void IsFiniteReturnsTrueWhenUsingSpecialPatternLongNegativeInfinity()
+        {
+            Assert.True(JsonNumberValue.FromLong(BitConverter.DoubleToInt64Bits(Double.NegativeInfinity)).IsFinite());
+        }
+
+        [Test]
+        public void WriteJSONStringReturnsNullWhenUsingNaN()
+        {
+            var writer = new JsonValueWriter();
+            JsonNumberValue.FromDouble(Double.NaN).WriteJSONString(writer);
+            Assert.That(writer.ToString(), Is.EqualTo("null"));
+        }
+
+        [Test]
+        public void WriteJSONStringReturnsNullWhenUsingNegativeInfinity()
+        {
+            var writer = new JsonValueWriter();
+            JsonNumberValue.FromDouble(Double.NegativeInfinity).WriteJSONString(writer);
+            Assert.That(writer.ToString(), Is.EqualTo("null"));
+        }
+
+        [Test]
+        public void WriteJSONStringReturnsNullWhenUsingPositiveInfinity()
+        {
+            var writer = new JsonValueWriter();
+            JsonNumberValue.FromDouble(Double.PositiveInfinity).WriteJSONString(writer);
+            Assert.That(writer.ToString(), Is.EqualTo("null"));
         }
     }
 }
