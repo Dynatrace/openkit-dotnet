@@ -7,12 +7,12 @@
     <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <PackageVersion>3.1.0.0-SNAPSHOT</PackageVersion>
+    <PackageVersion>3.1.0.0</PackageVersion>
     <Title>OpenKit .NET</Title>
     <Authors>Dynatrace LLC</Authors>
     <Company>Dynatrace LLC</Company>
     <Description>Dynatrace OpenKit SDK for .NET</Description>
-    <Copyright>(c) 2016-2022 Dynatrace LLC</Copyright>
+    <Copyright>(c) 2016-2023 Dynatrace LLC</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageIconUrl>https://assets.dynatrace.com/global/resources/Signet_Logo_RGB_CP_512x512px.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/Dynatrace/openkit-dotnet</PackageProjectUrl>
