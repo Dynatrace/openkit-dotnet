@@ -2096,24 +2096,6 @@ namespace Dynatrace.OpenKit.Protocol
         }
 
         [Test]
-        public void SendBizEventNotReportedIfEventReportingDisallowed()
-        {
-            // given
-            mockPrivacyConfiguration.IsEventReportingAllowed.Returns(false);
-            var target = CreateBeacon().Build();
-
-            const string eventType = "SomeType";
-
-            Dictionary<string, JsonValue> attributes = new Dictionary<string, JsonValue>();
-
-            // when
-            target.SendBizEvent(eventType, attributes);
-
-            // then
-            Assert.That(mockBeaconCache.ReceivedCalls(), Is.Empty);
-        }
-
-        [Test]
         public void SendBizEventNotReportedIfDisallowedByTrafficControl()
         {
             // given

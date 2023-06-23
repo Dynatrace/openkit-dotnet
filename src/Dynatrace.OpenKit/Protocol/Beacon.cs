@@ -690,7 +690,7 @@ namespace Dynatrace.OpenKit.Protocol
                 return;
             }
 
-            if (!ThisBeacon.IsCrashCapturingEnabled)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
@@ -716,12 +716,7 @@ namespace Dynatrace.OpenKit.Protocol
                 throw new ArgumentException("type is null or empty");
             }
 
-            if (!configuration.PrivacyConfiguration.IsEventReportingAllowed)
-            {
-                return;
-            }
-
-            if (!ThisBeacon.IsCrashCapturingEnabled)
+            if (!ThisBeacon.IsDataCapturingEnabled)
             {
                 return;
             }
