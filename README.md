@@ -4,9 +4,6 @@
 ![Build Status](https://github.com/Dynatrace/openkit-dotnet/actions/workflows/dotnet.yml/badge.svg?branch=main)
 [![Coverage Status](https://coveralls.io/repos/github/Dynatrace/openkit-dotnet/badge.svg?branch=main)](https://coveralls.io/github/Dynatrace/openkit-dotnet?branch=main)
 
-:information_source: We changed the default branch name to `main`. You can find the necessary steps to update your local clone on [Scott Hanselman's Blog](https://www.hanselman.com/blog/EasilyRenameYourGitDefaultBranchFromMasterToMain.aspx).  
-We encourage you to rename the default branch in your forks too.
-
 ## What is the OpenKit?
 
 The OpenKit provides an easy and lightweight way to get insights into applications with Dynatrace by instrumenting the source code of those applications.
@@ -48,22 +45,13 @@ This repository contains the reference implementation in pure .NET/C#. Other imp
 * All non binary files within the repository are formatted with unix style (LF) line endings.
 
 ## Getting started
-* [Installing and updating OpenKit .NET][installing]
-* [General concepts][concepts]
-* [Detailed example][example]
-* [Contributing to OpenKit .NET][contributing]
-* [Supported versions][supported_versions]
-* [Upgrade guide][upgrade_guide]
+* [Installing and updating OpenKit .NET](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/installing.md)
+* [General concepts](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/concepts.md)
+* [Detailed example](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/example.md)
+* [Contributing to OpenKit .NET](https://github.com/Dynatrace/openkit-dotnet/blob/main/CONTRIBUTING.md)
+* [Supported versions](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/supported_versions.md)
+* [Upgrade guide](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/upgrade_guide.md)
 
 ## Advanced topics
-* [Building OpenKit .NET][building]
-* [OpenKit .NET internals][internals]
-
-[installing]: ./docs/installing.md
-[concepts]: ./docs/concepts.md
-[example]: ./docs/example.md
-[contributing]: ./CONTRIBUTING.md
-[supported_versions]: ./docs/supported_versions.md
-[building]: ./docs/building.md
-[internals]: ./docs/internals.md
-[upgrade_guide]: ./docs/upgrade_guide.md
+* [Building OpenKit .NET](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/building.md)
+* [OpenKit .NET internals](https://github.com/Dynatrace/openkit-dotnet/blob/main/docs/internals.md)

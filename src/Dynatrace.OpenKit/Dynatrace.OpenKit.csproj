@@ -168,13 +168,18 @@
 
   <!-- package additional content files (documentation) -->
   <ItemGroup Label="Packaging">
-    <Content Include="$(SolutionDir)\*.md">
+    <Content Include="..\..\*.md">
       <PackagePath>content\</PackagePath>
       <Pack>true</Pack>
       <Visible>false</Visible>
     </Content>
-    <Content Include="$(SolutionDir)\docs\**\*">
+    <Content Include="..\..\docs\**\*">
       <PackagePath>content\docs\</PackagePath>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="..\..\assets\icon.png">
+      <PackagePath>content\</PackagePath>
       <Pack>true</Pack>
       <Visible>false</Visible>
     </Content>
