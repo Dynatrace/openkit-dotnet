@@ -3,7 +3,10 @@
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.1.0...HEAD)
 
 ### Changed
-- `Session.SendBizEvent` will always send an event regardless of the `DataCollectionLevel` 
+- `Session.SendBizEvent` will always send an event regardless of the `DataCollectionLevel`
+
+### Added
+- Support for .NET 8.0
 
 ## 3.1.0 [Release date: 2023-06-05]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.1.0)

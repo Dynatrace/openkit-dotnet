@@ -5,7 +5,7 @@
         <TargetFrameworks>net48;net472;net471;net47;net462;net461;net46;net452;net35;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '17.0'">
-        <TargetFrameworks>net7.0;net6.0;net5.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net7.0;net6.0;net5.0</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
         <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
@@ -63,13 +63,27 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- package references for .NET 8.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' And '$(VisualStudioVersion)' == '17.0'">
+    <!--references to external packages -->
+    <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="NSubstitute" Version="4.2.2" />
+    <PackageReference Include="coverlet.msbuild" Version="3.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <!-- package references for .NET 7.0 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net7.0' And '$(VisualStudioVersion)' == '17.0'">
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="NUnit" Version="3.13.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="coverlet.msbuild" Version="3.2.0">
       <PrivateAssets>all</PrivateAssets>
@@ -82,8 +96,8 @@
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="NUnit" Version="3.13.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="coverlet.msbuild" Version="3.2.0">
       <PrivateAssets>all</PrivateAssets>
@@ -97,8 +111,8 @@
     <!--references to external packages -->
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="NUnit" Version="3.13.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="NSubstitute" Version="4.2.2" />
     <PackageReference Include="coverlet.msbuild" Version="3.2.0">
       <PrivateAssets>all</PrivateAssets>
@@ -206,6 +220,12 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0' And '$(VisualStudioVersion)' == '17.0'">
     <DefineConstants>NET7_0</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET 7.0</Description>
+  </PropertyGroup>
+
+  <!-- .NET 8.0 references, compilation flags and build options -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0' And '$(VisualStudioVersion)' == '17.0'">
+    <DefineConstants>NET7_0</DefineConstants>
+    <Description>Dynatrace OpenKit Tests for .NET 8.0</Description>
   </PropertyGroup>
   
 </Project>
