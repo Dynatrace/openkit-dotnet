@@ -5,11 +5,11 @@
         <TargetFrameworks>net48;net472;net471;net47;net462;net461;net46;net452;net35;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'=='Windows_NT' And '$(VisualStudioVersion)' == '17.0'">
-        <TargetFrameworks>net8.0;net7.0;net6.0;net5.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net7.0;net6.0;net5.0;net481</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
         <!-- TODO: mario.jonke dotnet core must be re-evaluated -->
-        <TargetFrameworks>net48;net472;net471;net47;net46;net35;netcoreapp3.1</TargetFrameworks>
+        <TargetFrameworks>net481;net48;net472;net471;net47;net46;net35;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>Dynatrace.OpenKit.Tests</AssemblyName>
@@ -48,6 +48,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <!-- package references for .NET 4.8.1 and above -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net481' And '$(VisualStudioVersion)' == '17.0'">
+    <!--references to external packages -->
+    <PackageReference Include="NUnit.ConsoleRunner" Version="3.12.0" />
+    <PackageReference Include="coveralls.io" Version="1.4.2" />
+    <PackageReference Include="NUnit" Version="3.13.1" />
+    <PackageReference Include="OpenCover" Version="4.7.922" />
+    <PackageReference Include="NSubstitute" Version="4.2.2" />
   </ItemGroup>
   
   <!-- package references for LTS .NET Core 3.1 -->
@@ -202,6 +212,15 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48' And '$(VisualStudioVersion)' == '16.0'">
     <DefineConstants>NET48</DefineConstants>
     <Description>Dynatrace OpenKit Tests for .NET Framework 4.8</Description>
+  </PropertyGroup>
+  
+  <!-- .NET Full 4.8.1 references, compilation flags and build options -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net481'  And '$(VisualStudioVersion)' == '17.0'">
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net481' And '$(VisualStudioVersion)' == '17.0'">
+    <DefineConstants>NET481</DefineConstants>
+    <Description>Dynatrace OpenKit Tests for .NET Framework 4.8.1</Description>
   </PropertyGroup>
 
   <!-- .NET 5.0 references, compilation flags and build options -->

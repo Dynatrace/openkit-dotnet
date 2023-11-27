@@ -7,6 +7,7 @@
 
 ### Added
 - Support for .NET 8.0
+- Support for .NET Framework 4.8.1
 
 ## 3.1.0 [Release date: 2023-06-05]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.1.0)

@@ -146,7 +146,7 @@ namespace Dynatrace.OpenKit.Protocol
             return new System.Net.Http.HttpClient();
         }
 
-#elif NET45 || NET451 || NET452 || NET46 || NET461 || NET462 || NET47 || NET471 || NET472 || NET48
+#elif NET45 || NET451 || NET452 || NET46 || NET461 || NET462 || NET47 || NET471 || NET472 || NET48 || NET481
 
         private System.Net.Http.HttpClient CreateHttpClient()
         {
