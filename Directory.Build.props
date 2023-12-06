@@ -7,7 +7,7 @@
     <AssemblyOriginatorKeyFile>../../keys/Dynatrace.OpenKit.NET.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <PackageVersion>3.2.0.0</PackageVersion>
+    <PackageVersion>3.2.1.0-SNAPSHOT</PackageVersion>
     <Title>OpenKit .NET</Title>
     <Authors>Dynatrace LLC</Authors>
     <Company>Dynatrace LLC</Company>
