@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.1.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.2.0...HEAD)
+
+## 3.2.0 [Release date: 2023-12-06]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.2.0)
 
 ### Changed
 - `Session.SendBizEvent` will always send an event regardless of the `DataCollectionLevel`
