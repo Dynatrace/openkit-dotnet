@@ -15,6 +15,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Core.Caching;
 using Dynatrace.OpenKit.Core.Configuration;
@@ -214,6 +215,8 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{GetType().Name} shutdown requested");
             }
 
+            IList<IOpenKitObject> childObjects;
+
             lock (lockObject)
             {
                 if (isShutdown)
@@ -222,10 +225,11 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 isShutdown = true;
+
+                childObjects = ThisComposite.GetCopyOfChildObjects();
             }
 
             // close all open children
-            var childObjects = ThisComposite.GetCopyOfChildObjects();
             foreach (var childObject in childObjects)
             {
                 childObject.Dispose();

@@ -18,6 +18,7 @@ using Dynatrace.OpenKit.API;
 using Dynatrace.OpenKit.Protocol;
 using Dynatrace.OpenKit.Util;
 using System;
+using System.Collections.Generic;
 
 namespace Dynatrace.OpenKit.Core.Objects
 {
@@ -376,6 +377,8 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         private IAction DoLeaveAction(bool discardData)
         {
+            IList<IOpenKitObject> childObjects;
+
             lock (LockObject)
             {
                 if (ThisAction.IsActionLeft)
@@ -385,9 +388,10 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 isActionLeft = true;
-            }
 
-            var childObjects = ThisComposite.GetCopyOfChildObjects();
+                childObjects = ThisComposite.GetCopyOfChildObjects();
+            }
+            
             foreach (var childObject in childObjects)
             {
                 if (discardData)
@@ -407,7 +411,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     childObject.Dispose();
                 }
             }
-
+            
             EndTime = Beacon.CurrentTimestamp;
             EndSequenceNo = Beacon.NextSequenceNumber;
 

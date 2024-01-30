@@ -409,12 +409,18 @@ namespace Dynatrace.OpenKit.Core.Objects
             // forcefully leave all child elements
             // Since the end time was set, no further child objects are added to the internal list so the following
             // operations are safe outside the lock block.
-            var childObjects = ThisComposite.GetCopyOfChildObjects();
+            IList<IOpenKitObject> childObjects;
+
+            lock (state)
+            {
+                childObjects = ThisComposite.GetCopyOfChildObjects();
+            }
+            
             foreach (var childObject in childObjects)
             {
                 childObject.Dispose();
             }
-
+            
             // send the end event, only if a session is explicitly ended
             if (sendSessionEndEvent)
             {
