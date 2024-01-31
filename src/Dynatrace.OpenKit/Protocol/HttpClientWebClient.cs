@@ -149,7 +149,7 @@ namespace Dynatrace.OpenKit.Protocol
                     httpWebRequest.Headers.Add("X-Client-IP", clientIpAddress);
                 }
 
-                httpWebRequest.Headers.Add("User-Agent", "OpenKit/" + ProtocolConstants.OpenKitVersion);
+                httpWebRequest.UserAgent = "OpenKit/" + ProtocolConstants.OpenKitVersion;
 
                 return httpWebRequest;
             }
