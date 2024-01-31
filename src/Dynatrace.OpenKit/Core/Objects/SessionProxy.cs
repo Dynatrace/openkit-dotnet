@@ -384,6 +384,8 @@ namespace Dynatrace.OpenKit.Core.Objects
                 logger.Debug($"{this} End()");
             }
 
+            IList<IOpenKitObject> childObjects;
+
             lock (lockObject)
             {
                 if (isFinished)
@@ -392,9 +394,10 @@ namespace Dynatrace.OpenKit.Core.Objects
                 }
 
                 isFinished = true;
+
+                childObjects = ThisComposite.GetCopyOfChildObjects();
             }
 
-            var childObjects = ThisComposite.GetCopyOfChildObjects();
             foreach (var childObject in childObjects)
             {
                 if (childObject is ISessionInternals childSession)
@@ -406,7 +409,7 @@ namespace Dynatrace.OpenKit.Core.Objects
                     childObject.Dispose();
                 }
             }
-
+            
             parent.OnChildClosed(this);
             sessionWatchdog.RemoveFromSplitByTimeout(this);
         }
