@@ -3193,8 +3193,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 1337;
-            const int receivedBytes = 1447;
+            const long sentBytes = 1337;
+            const long receivedBytes = 1447;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);
@@ -3268,8 +3268,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 0;
-            const int receivedBytes = 1447;
+            const long sentBytes = 0;
+            const long receivedBytes = 1447;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);
@@ -3304,8 +3304,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = -1;
-            const int receivedBytes = 1447;
+            const long sentBytes = -1;
+            const long receivedBytes = 1447;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);
@@ -3339,8 +3339,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 1337;
-            const int receivedBytes = 0;
+            const long sentBytes = 1337;
+            const long receivedBytes = 0;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);
@@ -3375,8 +3375,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 1337;
-            const int receivedBytes = -1;
+            const long sentBytes = 1337;
+            const long receivedBytes = -1;
             const int responseCode = 418;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);
@@ -3410,8 +3410,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 1337;
-            const int receivedBytes = 1447;
+            const long sentBytes = 1337;
+            const long receivedBytes = 1447;
             const int responseCode = 0;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);
@@ -3446,8 +3446,8 @@ namespace Dynatrace.OpenKit.Protocol
             // given
             var target = CreateBeacon().Build();
 
-            const int sentBytes = 1337;
-            const int receivedBytes = 1447;
+            const long sentBytes = 1337;
+            const long receivedBytes = 1447;
             const int responseCode = -1;
             var tracer = Substitute.For<IWebRequestTracerInternals>();
             tracer.Url.Returns(Url);

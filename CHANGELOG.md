@@ -2,10 +2,17 @@
 
 ## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.2.0...HEAD)
 
+### Added
+
+- `IWebRequestTracer.SetBytesSent(long bytes)` to increase the size range
+- `IWebRequestTracer.SetBytesReceived(long bytes)` to increase the size range
+
 ### Changed
 
 - `HttpClientWebClient` for NET3.5 is now using User-Agent property directly
 - Improved cancelation or disposal of childs when leaving an action
+- Deprecated `IWebRequestTracer.SetBytesSent(int bytes)` due to datatype limitations
+- Deprecated `IWebRequestTracer.SetBytesReceived(int bytes)` due to datatype limitations
 
 ## 3.2.0 [Release date: 2023-12-06]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.2.0)

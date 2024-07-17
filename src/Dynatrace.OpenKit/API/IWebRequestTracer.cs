@@ -48,14 +48,30 @@ namespace Dynatrace.OpenKit.API
         /// </summary>
         /// <param name="bytesSent">number of bytes sent by the web request</param>
         /// <returns></returns>
+        [Obsolete("Use SetBytesSent(long) instead")]
         IWebRequestTracer SetBytesSent(int bytesSent);
+
+        /// <summary>
+        /// Sets the amount of sent bytes of the web request
+        /// </summary>
+        /// <param name="bytesSent">number of bytes sent by the web request</param>
+        /// <returns></returns>
+        IWebRequestTracer SetBytesSent(long bytesSent);
 
         /// <summary>
         /// Sets the amount of received bytes of the web request
         /// </summary>
         /// <param name="bytesReceived">number of bytes received by the web request</param>
         /// <returns></returns>
+        [Obsolete("Use SetBytesReceived(long) instead")]
         IWebRequestTracer SetBytesReceived(int bytesReceived);
+
+        /// <summary>
+        /// Sets the amount of received bytes of the web request
+        /// </summary>
+        /// <param name="bytesReceived">number of bytes received by the web request</param>
+        /// <returns></returns>
+        IWebRequestTracer SetBytesReceived(long bytesReceived);
     }
 
 }

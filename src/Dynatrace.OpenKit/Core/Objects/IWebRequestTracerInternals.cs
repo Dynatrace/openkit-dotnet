@@ -61,12 +61,12 @@ namespace Dynatrace.OpenKit.Core.Objects
         /// <summary>
         /// The number of bytes sent
         /// </summary>
-        int BytesSent { get; }
+        long BytesSent { get; }
 
         /// <summary>
         /// The number of received bytes
         /// </summary>
-        int BytesReceived { get; }
+        long BytesReceived { get; }
 
         /// <summary>
         /// Indicates whether this <see cref="IWebRequestTracer"/> was <see cref="IWebRequestTracer.Stop(int)">stopped</see>

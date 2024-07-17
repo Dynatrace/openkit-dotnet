@@ -131,9 +131,9 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public int ResponseCode { get; private set; } = -1;
 
-        public int BytesSent { get; private set; } = -1;
+        public long BytesSent { get; private set; } = -1;
 
-        public int BytesReceived { get; private set; } = -1;
+        public long BytesReceived { get; private set; } = -1;
 
         bool IWebRequestTracerInternals.IsStopped => EndTime != -1;
 
@@ -216,6 +216,11 @@ namespace Dynatrace.OpenKit.Core.Objects
 
         public IWebRequestTracer SetBytesSent(int bytesSent)
         {
+            return SetBytesSent((long) bytesSent);
+        }
+
+        public IWebRequestTracer SetBytesSent(long bytesSent)
+        {
             lock (lockObject)
             {
                 if (!ThisTracer.IsStopped)
@@ -228,6 +233,11 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         public IWebRequestTracer SetBytesReceived(int bytesReceived)
+        {
+            return SetBytesReceived((long) bytesReceived);
+        }
+
+        public IWebRequestTracer SetBytesReceived(long bytesReceived)
         {
             lock (lockObject)
             {

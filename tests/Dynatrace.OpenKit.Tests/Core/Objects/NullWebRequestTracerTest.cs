@@ -47,6 +47,19 @@ namespace Dynatrace.OpenKit.Core.Objects
         }
 
         [Test]
+        public void SetBytesSentLongReturnsSelf()
+        {
+            // given
+            var target = NullWebRequestTracer.Instance;
+
+            // when
+            var obtained = target.SetBytesSent(37L);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
         public void SetBytesReceivedReturnsSelf()
         {
             // given
@@ -54,6 +67,19 @@ namespace Dynatrace.OpenKit.Core.Objects
 
             // when
             var obtained = target.SetBytesReceived(73);
+
+            // then
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void SetBytesReceivedLongReturnsSelf()
+        {
+            // given
+            var target = NullWebRequestTracer.Instance;
+
+            // when
+            var obtained = target.SetBytesReceived(73L);
 
             // then
             Assert.That(obtained, Is.SameAs(target));

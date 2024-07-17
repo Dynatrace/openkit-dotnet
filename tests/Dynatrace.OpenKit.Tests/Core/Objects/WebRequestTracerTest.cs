@@ -137,7 +137,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SetBytesSent(1234);
 
             // then
-            Assert.That(target.BytesSent, Is.EqualTo(1234));
+            Assert.That(target.BytesSent, Is.EqualTo(1234L));
             Assert.That(obtained, Is.SameAs(target));
         }
 
@@ -152,7 +152,36 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SetBytesSent(1234);
 
             // then
-            Assert.That(target.BytesSent, Is.EqualTo(-1));
+            Assert.That(target.BytesSent, Is.EqualTo(-1L));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void SetBytesSentLongSetsTheNumberOfSentBytes()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+
+            // when setting the sent bytes
+            var obtained = target.SetBytesSent(1234L);
+
+            // then
+            Assert.That(target.BytesSent, Is.EqualTo(1234L));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void SetBytesSentLongDoesNotSetAnythingIfStoppedWithResponseCode()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+            target.Stop(200);
+
+            // when setting the sent bytes
+            var obtained = target.SetBytesSent(1234L);
+
+            // then
+            Assert.That(target.BytesSent, Is.EqualTo(-1L));
             Assert.That(obtained, Is.SameAs(target));
         }
 
@@ -166,7 +195,7 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SetBytesReceived(4321);
 
             // then
-            Assert.That(target.BytesReceived, Is.EqualTo(4321));
+            Assert.That(target.BytesReceived, Is.EqualTo(4321L));
             Assert.That(obtained, Is.SameAs(target));
         }
 
@@ -181,7 +210,36 @@ namespace Dynatrace.OpenKit.Core.Objects
             var obtained = target.SetBytesReceived(4321);
 
             // then
-            Assert.That(target.BytesReceived, Is.EqualTo(-1));
+            Assert.That(target.BytesReceived, Is.EqualTo(-1L));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void SetBytesReceivedLongSetsTheNumberOfReceivedBytes()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+
+            // when setting the received bytes
+            var obtained = target.SetBytesReceived(4321L);
+
+            // then
+            Assert.That(target.BytesReceived, Is.EqualTo(4321L));
+            Assert.That(obtained, Is.SameAs(target));
+        }
+
+        [Test]
+        public void SetBytesReceivedLongDoesNotSetAnythingIfStoppedWithResponseCode()
+        {
+            // given
+            var target = CreateWebRequestTracer().Build();
+            target.Stop(200);
+
+            // when setting the received bytes
+            var obtained = target.SetBytesReceived(4321L);
+
+            // then
+            Assert.That(target.BytesReceived, Is.EqualTo(-1L));
             Assert.That(obtained, Is.SameAs(target));
         }
 

@@ -1087,6 +1087,24 @@ namespace Dynatrace.OpenKit.Protocol
             }
         }
 
+        /// <summary>
+        /// Serialization helper method for adding key/value pairs with int values.
+        ///
+        /// <para>
+        /// The key value pair is only added if the given <paramref name="intValue"/> is not negative.
+        /// </para>
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="key"></param>
+        /// <param name="intValue"></param>
+        private static void AddKeyValuePairIfNotNegative(StringBuilder builder, string key, long longValue)
+        {
+            if (longValue >= 0)
+            {
+                AddKeyValuePair(builder, key, longValue);
+            }
+        }
+
         // helper method for adding key/value pairs with double values
         private static void AddKeyValuePair(StringBuilder builder, string key, double doubleValue)
         {

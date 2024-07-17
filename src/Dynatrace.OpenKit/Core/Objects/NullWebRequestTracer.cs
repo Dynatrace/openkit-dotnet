@@ -43,11 +43,20 @@ namespace Dynatrace.OpenKit.Core.Objects
         {
             return this;
         }
+        public IWebRequestTracer SetBytesReceived(long bytesReceived)
+        {
+            return this;
+        }
 
         public IWebRequestTracer SetBytesSent(int bytesSent)
         {
             return this;
         }
+
+        public IWebRequestTracer SetBytesSent(long bytesSent)
+        {
+            return this;
+        }  
 
         public IWebRequestTracer Start()
         {
