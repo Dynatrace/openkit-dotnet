@@ -1,6 +1,9 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.2.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.3.0...HEAD)
+
+## 3.3.0 [Release date: 2024-08-02]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.3.0)
 
 ### Added
 

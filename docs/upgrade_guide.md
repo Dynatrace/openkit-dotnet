@@ -1,5 +1,15 @@
 # Upgrade guide for OpenKit .NET
 
+## OpenKit .NET 3.2 to 3.3
+There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
+to the latest 3.3 release.
+
+### Deprecated API
+* `IWebRequestTracer.SetBytesSent(int bytes)`
+  Use `IWebRequestTracer.SetBytesSent(long bytes)` to increase the size range
+* `IWebRequestTracer.SetBytesReceived(int bytes)`
+  Use `IWebRequestTracer.SetBytesReceived(long bytes)` to increase the size range
+
 ## OpenKit .NET 3.1 to 3.2
 There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
 to the latest 3.2 release.
