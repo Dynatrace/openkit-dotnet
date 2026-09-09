@@ -1,5 +1,9 @@
 # Upgrade guide for OpenKit .NET
 
+## OpenKit .NET 3.4 to 3.5
+There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
+to the latest 3.5 release.
+
 ## OpenKit .NET 3.3 to 3.4
 There are no breaking API changes and upgrading is straightforward, by [updating][update] the library
 to the latest 3.4 release.

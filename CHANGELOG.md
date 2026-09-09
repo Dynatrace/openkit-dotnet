@@ -1,6 +1,13 @@
 # OpenKit .NET Changelog
 
-## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.4.0...HEAD)
+## [Unreleased](https://github.com/Dynatrace/openkit-dotnet/compare/v3.5.0...HEAD)
+
+## 3.5.0 [Release date: 2026-08-27]
+[GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.5.0)
+
+### Changed
+
+- Fixed beacon sending sleep time overflow which caused a long sleep
 
 ## 3.4.0 [Release date: 2025-08-25]
 [GitHub Releases](https://github.com/Dynatrace/openkit-dotnet/releases/tag/v3.4.0)

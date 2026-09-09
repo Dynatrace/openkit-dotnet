@@ -182,5 +182,22 @@ namespace Dynatrace.OpenKit.Core.Communication
             // then
             mockContext.DidNotReceive().Sleep(Arg.Any<int>());
         }
+
+        [Test]
+        public void SleepIsNotCalledWhenLastStatusCheckTimeIsMoreThan25DaysStale()
+        {
+            // given — reproduces the int overflow: 7200000 - 2_424_503_599 = -2_417_303_599 (long),
+            // which wrapped via unchecked (int) cast to +1_877_663_697 (a ~21-day sleep)
+            const long staleDelta = 2_424_503_599L; // 28.06 days in ms (from production dumps)
+            mockContext.CurrentTimestamp.Returns(staleDelta);
+            mockContext.LastStatusCheckTime.Returns(0L);
+            var target = new BeaconSendingCaptureOffState();
+
+            // when
+            target.Execute(mockContext);
+
+            // then — delta clamps to 0; Sleep must not be called
+            mockContext.DidNotReceive().Sleep(Arg.Any<int>());
+        }
     }
 }

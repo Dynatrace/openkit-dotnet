@@ -15,6 +15,7 @@
 //
 
 using Dynatrace.OpenKit.Protocol;
+using System;
 
 namespace Dynatrace.OpenKit.Core.Communication
 {
@@ -74,7 +75,7 @@ namespace Dynatrace.OpenKit.Core.Communication
 
             var delta = SleepTimeInMilliseconds > 0
                 ? SleepTimeInMilliseconds
-                : (int)(StatusCheckInterval - (currentTime - context.LastStatusCheckTime));
+                : (int)Math.Max(0L, StatusCheckInterval - (currentTime - context.LastStatusCheckTime));
             if (delta > 0 && !context.IsShutdownRequested)
             {
                 // still have some time to sleep
